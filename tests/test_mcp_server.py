@@ -123,6 +123,40 @@ def test_mcp_audit_climate_resilience():
     assert response.json()["result"]["status"] == "COMPLIANT"
 
 
+def test_mcp_audit_data_leakage_prevention():
+    payload = {
+        "tool": "audit_data_leakage_prevention",
+        "arguments": {
+            "perimeter_name": "prod-perimeter",
+            "perimeter_config": {
+                "enforced": True,
+                "restricted_services": ["storage.googleapis.com", "bigquery.googleapis.com"],
+            },
+        },
+    }
+    response = client.post("/mcp", json=payload, headers=VALID_HEADERS)
+    assert response.status_code == 200
+    assert response.json()["result"]["status"] == "COMPLIANT"
+
+
+def test_mcp_audit_monitoring_activities():
+    payload = {
+        "tool": "audit_monitoring_activities",
+        "arguments": {
+            "project_id": "test-project",
+            "monitoring_config": {
+                "sinks": [{"destination": "bigquery.googleapis.com/p/d"}],
+                "data_access_logs_enabled": True,
+                "retention_days": 365,
+                "alert_policies": ["iam_change", "firewall_change", "kms_destruction"],
+            },
+        },
+    }
+    response = client.post("/mcp", json=payload, headers=VALID_HEADERS)
+    assert response.status_code == 200
+    assert response.json()["result"]["status"] == "COMPLIANT"
+
+
 def test_mcp_unknown_tool():
     payload = {"tool": "unknown_tool_xyz", "arguments": {}}
     response = client.post("/mcp", json=payload, headers=VALID_HEADERS)

@@ -121,6 +121,31 @@ def test_orchestrator_delegated_tools():
     climate_res = orchestrator.audit_climate_resilience("app", topology)
     assert climate_res["status"] == "COMPLIANT"
 
+    # Test audit_data_leakage_prevention (A.8.12)
+    dlp_res = orchestrator.audit_data_leakage_prevention("perimeter-1", {"enforced": True, "restricted_services": ["storage.googleapis.com", "bigquery.googleapis.com"]})
+    assert dlp_res["status"] == "COMPLIANT"
+
+    # Test audit_monitoring_activities (A.8.16)
+    mon_res = orchestrator.audit_monitoring_activities("project-1", {
+        "sinks": [{"destination": "bigquery.googleapis.com/p/d"}],
+        "data_access_logs_enabled": True,
+        "retention_days": 365,
+        "alert_policies": ["iam_change", "firewall_change", "kms_destruction"],
+    })
+    assert mon_res["status"] == "COMPLIANT"
+
+    # Test calculate_compliance_score
+    score_report = orchestrator.calculate_compliance_score([iac_res, threat_res, climate_res, dlp_res, mon_res])
+    assert score_report["total_controls_assessed"] == 5
+    assert score_report["compliant_count"] == 4
+    assert score_report["non_compliant_count"] == 1
+    assert score_report["overall_score"] == 80.0
+    assert score_report["rating"] == "SATISFACTORY"
+
+    # Test empty score report
+    empty_report = orchestrator.calculate_compliance_score([])
+    assert empty_report["rating"] == "NOT_ASSESSED"
+
     # Test audit_gcp_resource
     tool_context = SimpleNamespace(state={"agent-grc-identity_999": "token-123"})
     gcp_res = orchestrator.audit_gcp_resource("my-bucket", "A.5.23", resource_type="gcs_bucket", tool_context=tool_context)

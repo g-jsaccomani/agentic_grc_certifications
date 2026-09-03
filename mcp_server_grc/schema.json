@@ -97,6 +97,42 @@
         },
         "required": ["workload_id", "topology"]
       }
+    },
+    {
+      "name": "audit_data_leakage_prevention",
+      "description": "Audits VPC Service Controls (VPC-SC) perimeters, egress policies, and data boundaries per ISO 27001 Control A.8.12.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "perimeter_name": {
+            "type": "string",
+            "description": "Name of the VPC-SC perimeter."
+          },
+          "perimeter_config": {
+            "type": "object",
+            "description": "Perimeter configuration details."
+          }
+        },
+        "required": ["perimeter_name"]
+      }
+    },
+    {
+      "name": "audit_monitoring_activities",
+      "description": "Audits centralized logging into BigQuery/SecOps and retention per ISO 27001 Control A.8.16.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "description": "GCP Project ID."
+          },
+          "monitoring_config": {
+            "type": "object",
+            "description": "Monitoring and logging configuration."
+          }
+        },
+        "required": ["project_id"]
+      }
     }
   ]
 }

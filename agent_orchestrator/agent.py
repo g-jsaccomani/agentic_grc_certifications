@@ -164,6 +164,73 @@ class GRCAgentOrchestrator:
             climate_risk_assessed=climate_risk_assessed,
         )
 
+    def audit_data_leakage_prevention(
+        self,
+        perimeter_name: str,
+        perimeter_config: Optional[Dict[str, Any]] = None,
+        bearer_token: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Audits VPC Service Controls perimeters per ISO 27001:2022 Control A.8.12."""
+        from mcp_server_grc.tools.data_leakage_prevention import audit_data_leakage_prevention
+        return audit_data_leakage_prevention(
+            perimeter_name=perimeter_name,
+            perimeter_config=perimeter_config,
+            bearer_token=bearer_token,
+        )
+
+    def audit_monitoring_activities(
+        self,
+        project_id: str,
+        monitoring_config: Optional[Dict[str, Any]] = None,
+        bearer_token: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Audits centralized logging and monitoring per ISO 27001:2022 Control A.8.16."""
+        from mcp_server_grc.tools.monitoring import audit_monitoring_activities
+        return audit_monitoring_activities(
+            project_id=project_id,
+            monitoring_config=monitoring_config,
+            bearer_token=bearer_token,
+        )
+
+    def calculate_compliance_score(
+        self,
+        findings: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """Calculates quantitative compliance score across evaluated controls.
+
+        Each control finding is weighted equally or assessed by violation severity.
+        Score = (Compliant Controls / Total Assessed Controls) * 100.
+        """
+        if not findings:
+            return {
+                "overall_score": 0.0,
+                "total_controls_assessed": 0,
+                "compliant_count": 0,
+                "non_compliant_count": 0,
+                "rating": "NOT_ASSESSED",
+            }
+
+        compliant_count = sum(1 for f in findings if f.get("status") == "COMPLIANT")
+        total = len(findings)
+        score = round((compliant_count / total) * 100, 2)
+
+        if score >= 90.0:
+            rating = "EXCELLENT"
+        elif score >= 75.0:
+            rating = "SATISFACTORY"
+        elif score >= 50.0:
+            rating = "NEEDS_IMPROVEMENT"
+        else:
+            rating = "CRITICAL_NON_COMPLIANCE"
+
+        return {
+            "overall_score": score,
+            "total_controls_assessed": total,
+            "compliant_count": compliant_count,
+            "non_compliant_count": total - compliant_count,
+            "rating": rating,
+        }
+
     def process_audit_request(
         self,
         session_id: str,

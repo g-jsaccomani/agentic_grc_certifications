@@ -14,6 +14,8 @@ from mcp_server_grc.tools.cloud_security import audit_cloud_security
 from mcp_server_grc.tools.iac_scanner import scan_iac_configuration
 from mcp_server_grc.tools.threat_intel import correlate_threat_intelligence
 from mcp_server_grc.tools.climate_resilience import audit_climate_resilience
+from mcp_server_grc.tools.data_leakage_prevention import audit_data_leakage_prevention
+from mcp_server_grc.tools.monitoring import audit_monitoring_activities
 
 app = FastAPI(
     title="Custom MCP Server - ISO 27001 GRC Compliance Tooling",
@@ -113,6 +115,30 @@ def get_agent_card():
                 },
             },
             {
+                "name": "audit_data_leakage_prevention",
+                "description": "Audits VPC Service Controls (VPC-SC) perimeters and egress rules against ISO 27001:2022 Control A.8.12.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "perimeter_name": {"type": "string"},
+                        "perimeter_config": {"type": "object"},
+                    },
+                    "required": ["perimeter_name"],
+                },
+            },
+            {
+                "name": "audit_monitoring_activities",
+                "description": "Audits centralized log ingestion into BigQuery/SecOps and retention per ISO 27001:2022 Control A.8.16.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "project_id": {"type": "string"},
+                        "monitoring_config": {"type": "object"},
+                    },
+                    "required": ["project_id"],
+                },
+            },
+            {
                 "name": "get_iam_policy",
                 "description": "Fetches and audits the IAM policy configurations of a target GCS Bucket for control A.5.23.",
                 "input_schema": {
@@ -184,6 +210,22 @@ def handle_tool_call(
             workload_id=args.get("workload_id", ""),
             topology=args.get("topology", {}),
             climate_risk_assessed=args.get("climate_risk_assessed", True),
+        )
+        return {"tool": tool, "result": result}
+
+    elif tool == "audit_data_leakage_prevention":
+        result = audit_data_leakage_prevention(
+            perimeter_name=args.get("perimeter_name", ""),
+            perimeter_config=args.get("perimeter_config", {}),
+            bearer_token=authorization,
+        )
+        return {"tool": tool, "result": result}
+
+    elif tool == "audit_monitoring_activities":
+        result = audit_monitoring_activities(
+            project_id=args.get("project_id", ""),
+            monitoring_config=args.get("monitoring_config", {}),
+            bearer_token=authorization,
         )
         return {"tool": tool, "result": result}
 
