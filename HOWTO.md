@@ -62,25 +62,37 @@ The client provisions the baseline GCP organizational structure and access contr
    - `roles/accesscontextmanager.policyReader`: VPC Service Controls inspection.
 7. **Deployer Permissions**: Grants the implementation engineer deployment permissions on the host project (`roles/run.admin`, `roles/iam.serviceAccountUser`, `roles/storage.admin`, `roles/artifactregistry.admin`, `roles/cloudbuild.builds.editor`).
 
-### How the Client Executes the Terraform (via Cloud Shell)
+### Client Execution (Choose Option A, B, or C)
 
-1. Open [Google Cloud Shell](https://shell.cloud.google.com).
-2. Clone or upload the repository:
+#### Option A: Zero-Git One-Command Flow (Recommended for Non-Technical Clients)
+
+Send these 3 simple steps to the client:
+
+1. Open Google Cloud Shell: [https://shell.cloud.google.com](https://shell.cloud.google.com)
+2. Paste this single command into the terminal and press Enter:
    ```bash
-   git clone https://github.com/g-jsaccomani/agentic_grc_certifications.git
-   cd agentic_grc_certifications/terraform/first_steps
+   curl -sSL https://raw.githubusercontent.com/g-jsaccomani/agentic_grc_certifications/main/terraform/first_steps/bootstrap.sh | bash
    ```
-3. Copy the configuration file and adjust variables:
-   ```bash
-   cp terraform.tfvars.example terraform.tfvars
+3. The script automatically detects the Organization ID, links billing, enables the APIs, and provisions the security identity. When finished, copy the printed line:
+   ```text
+   PROJECT_ID: agentic-grc-xxxx
    ```
-   *Edit `terraform.tfvars` with the client's `org_id`, `billing_account`, and the engineer's email `deployer_email = "jsaccomani@google.com"`.*
-4. Initialize and apply:
-   ```bash
-   terraform init
-   terraform apply
-   ```
-5. Copy the generated `project_id` output and share it with the implementation engineer.
+   and send it to the implementation engineer.
+
+#### Option B: Direct 1-Click Cloud Shell Link
+
+If the client prefers a direct browser link:
+- Click: [Open in Cloud Shell](https://shell.cloud.google.com/?cloudshell_git_repo=https://github.com/g-jsaccomani/agentic_grc_certifications.git&cloudshell_working_dir=terraform/first_steps)
+- When the terminal opens, type `./bootstrap.sh` and press Enter.
+
+#### Option C: Manual Terraform Execution (For Technical Administrators)
+
+```bash
+cd terraform/first_steps
+cp terraform.tfvars.example terraform.tfvars
+terraform init
+terraform apply
+```
 
 ---
 
