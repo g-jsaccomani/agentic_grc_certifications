@@ -25,6 +25,9 @@ audit-poc:
 journey:
 	@bash scripts/journey.sh
 
+provision-org:
+	@bash scripts/provision_org_agent.sh
+
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
