@@ -1,0 +1,79 @@
+name: Deploy Agentic GRC Platform
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  MCP_SERVICE_NAME: mcp-server-grc
+  ORCHESTRATOR_IMAGE_NAME: agent-grc-orchestrator
+
+jobs:
+  test-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Test Suite
+        run: |
+          pytest -v --cov=. --cov-report=term-missing
+
+  build-and-deploy:
+    needs: test-and-verify
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build & Push MCP Server
+        run: |
+          IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/grc-containers/${{ env.MCP_SERVICE_NAME }}:${{ github.sha }}"
+          docker build -t "${IMAGE_TAG}" ./mcp_server_grc
+          docker push "${IMAGE_TAG}"
+
+      - name: Deploy MCP Server to Cloud Run
+        run: |
+          IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/grc-containers/${{ env.MCP_SERVICE_NAME }}:${{ github.sha }}"
+          gcloud run deploy "${{ env.MCP_SERVICE_NAME }}" \
+            --image="${IMAGE_TAG}" \
+            --region="${{ env.REGION }}" \
+            --platform=managed \
+            --no-allow-unauthenticated \
+            --ingress=all \
+            --set-env-vars="PROJECT_ID=${{ env.PROJECT_ID }},REGION=${{ env.REGION }}"

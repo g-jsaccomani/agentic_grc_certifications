@@ -1,0 +1,102 @@
+{
+  "server_name": "mcp-server-grc",
+  "version": "1.0.0",
+  "protocol": "StreamableHTTP",
+  "tools": [
+    {
+      "name": "audit_cloud_security",
+      "description": "Audits a target GCP asset state (GCS bucket, KMS key, firewall rule, IAM binding) against ISO/IEC 27001:2022 Control A.5.23.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "resource_type": {
+            "type": "string",
+            "enum": ["gcs_bucket", "kms_key", "firewall_rule", "iam_binding"],
+            "description": "The category of cloud resource to audit."
+          },
+          "resource_name": {
+            "type": "string",
+            "description": "Full resource name or identifier (e.g. bucket-name, projects/.../cryptoKeys/...)."
+          },
+          "config": {
+            "type": "object",
+            "description": "Optional dictionary containing configuration attributes for audit analysis."
+          }
+        },
+        "required": ["resource_type", "resource_name"]
+      }
+    },
+    {
+      "name": "scan_iac_configuration",
+      "description": "Static analysis of Infrastructure-as-Code (Terraform, Ansible) to detect misconfigurations before deployment per ISO 27001 Control A.8.9.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "iac_type": {
+            "type": "string",
+            "enum": ["terraform", "ansible"],
+            "description": "Type of IaC source code."
+          },
+          "content": {
+            "type": "string",
+            "description": "Raw text content of the IaC file."
+          },
+          "filename": {
+            "type": "string",
+            "description": "Optional filename."
+          }
+        },
+        "required": ["iac_type", "content"]
+      }
+    },
+    {
+      "name": "correlate_threat_intelligence",
+      "description": "Correlates cloud audit logging trails with active threat intelligence (Google SecOps / Mandiant) per ISO 27001 Control A.5.7.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "log_sink_name": {
+            "type": "string",
+            "description": "Name of the Cloud Logging sink."
+          },
+          "sink_destination": {
+            "type": "string",
+            "description": "Destination URI of the sink (e.g. BigQuery dataset)."
+          },
+          "recent_events": {
+            "type": "array",
+            "items": { "type": "object" },
+            "description": "List of recent audit log event dictionaries."
+          },
+          "threat_feed_enabled": {
+            "type": "boolean",
+            "description": "Whether active threat intelligence feed is active."
+          }
+        },
+        "required": ["log_sink_name", "sink_destination"]
+      }
+    },
+    {
+      "name": "audit_climate_resilience",
+      "description": "Audits geographic distribution, active-active failover, and climate disaster recovery resilience per ISO 27001:2022 Amd 1:2024 (Clauses 4.1 & 4.2).",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "workload_id": {
+            "type": "string",
+            "description": "Identifier of the critical workload or service."
+          },
+          "topology": {
+            "type": "object",
+            "description": "Topology details including primary_region, secondary_region, storage_redundancy, automated_failover."
+          },
+          "climate_risk_assessed": {
+            "type": "boolean",
+            "description": "Whether climate risk was evaluated in ISMS context."
+          }
+        },
+        "required": ["workload_id", "topology"]
+      }
+    }
+  ]
+}
