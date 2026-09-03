@@ -19,30 +19,29 @@ def test_portal_html_serving():
 
 def test_portal_chat_endpoints():
     # 1. Audit prompt
-    res_audit = client.post("/api/chat", json={"message": "Executar auditoria completa proativa"})
+    res_audit = client.post("/api/chat", json={"message": "Execute proactive audit"})
     assert res_audit.status_code == 200
     data = res_audit.json()
-    assert "Ciclo Proativo de Auditoria" in data["response"]
+    assert "Proactive Audit Cycle Completed" in data["response"]
     assert data["subagent_used"] == "ContinuousIntelligenceEngine"
 
     # 2. Horizon scanning prompt
-    res_horizon = client.post("/api/chat", json={"message": "Horizon scanning regulatório"})
+    res_horizon = client.post("/api/chat", json={"message": "Horizon scanning regulatory update"})
     assert res_horizon.status_code == 200
-    assert "Horizon Scanning Regulatório" in res_horizon.json()["response"]
+    assert "Horizon Scanning Regulatory Review" in res_horizon.json()["response"]
 
     # 3. Cryptography prompt
-    res_crypto = client.post("/api/chat", json={"message": "Verificar criptografia KMS A.8.24"})
+    res_crypto = client.post("/api/chat", json={"message": "Audit KMS cryptography A.8.24"})
     assert res_crypto.status_code == 200
-    assert "A.8.24" in res_crypto.json()["response"]
+    assert "Control A.8.24 Analysis" in res_crypto.json()["response"]
 
     # 4. General prompt
-    res_gen = client.post("/api/chat", json={"message": "Como você funciona?"})
+    res_gen = client.post("/api/chat", json={"message": "What is your capability?"})
     assert res_gen.status_code == 200
-    assert "Agente de Conformidade" in res_gen.json()["response"]
+    assert "GEAP Compliance" in res_gen.json()["response"]
 
 
 def test_portal_upload_file():
-    # Test uploading a terraform file with a public access violation
     tf_content = """
     resource "google_storage_bucket" "bad" {
       name = "bad-bucket"

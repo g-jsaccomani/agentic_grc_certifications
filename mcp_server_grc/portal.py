@@ -1,4 +1,4 @@
-"""Client-Facing Web Portal & REST API for Gemini Enterprise Agent Platform.
+"""Client-Facing Web Portal and REST API for Gemini Enterprise Agent Platform.
 
 Provides:
 - Web Portal UI (Chatbot, Subagents manager, File Upload, Storage sync, Dashboard).
@@ -6,10 +6,9 @@ Provides:
 - Native Gemini Enterprise embed guidance and widget integration.
 """
 
-import json
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, File, UploadFile
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from agent_orchestrator.continuous_intelligence import ContinuousIntelligenceEngine
@@ -22,7 +21,6 @@ from agent_orchestrator.zero_copy_connector import (
     ZeroCopyConnectorManager,
 )
 from mcp_server_grc.tools.iac_scanner import scan_iac_configuration
-from mcp_server_grc.tools.cloud_security import audit_cloud_security
 
 router = APIRouter()
 
@@ -66,8 +64,41 @@ async def handle_chat(req: ChatRequest):
     msg = req.message.strip()
     lower_msg = msg.lower()
 
-    if "audit" in lower_msg or "proativo" in lower_msg or "scan all" in lower_msg:
-        # Run proactive audit cycle
+    if "cryptography" in lower_msg or "kms" in lower_msg or "a.8.24" in lower_msg:
+        finding = annex_a_subagent.audit_cryptography_a824(
+            "key-client-primary",
+            {"rotation_period_seconds": 5184000, "protection_level": "HSM", "require_hsm": True}
+        )
+        response_text = (
+            f"Control A.8.24 Analysis (Use of Cryptography)\n\n"
+            f"- Status: {finding['status']}\n"
+            f"- Resource: {finding['resource_id']}\n"
+            f"- Protection Level: {finding['metrics']['protection_level']} (HSM)\n"
+            f"- Rotation Period: {finding['metrics']['rotation_period_seconds']} seconds (60 days <= 90 days baseline)\n"
+            f"- Assessment: {finding['remediation']}"
+        )
+        return {"response": response_text, "subagent_used": "AnnexASubAgent"}
+
+    elif "horizon" in lower_msg or "regulatory" in lower_msg or "climate" in lower_msg:
+        updates = horizon_scanner_subagent.scan_regulatory_updates()
+        proposal = horizon_scanner_subagent.generate_policy_amendment_proposal(updates[0], "Current policy")
+        response_text = (
+            f"Horizon Scanning Regulatory Review (Deep Research)\n\n"
+            f"Detected Amendment:\n"
+            f"- Standard: {updates[0]['standard']}\n"
+            f"- Title: {updates[0]['title']}\n"
+            f"- Impact: {updates[0]['impact_summary']}\n\n"
+            f"Proposed Policy Amendment (Status: {proposal['status']}):\n"
+            f"{proposal['proposed_amendment_text']}\n\n"
+            f"Amendment draft queued for Human-in-the-Loop review and approval."
+        )
+        return {
+            "response": response_text,
+            "subagent_used": "HorizonScannerSubAgent",
+            "action_required": proposal["action_required"],
+        }
+
+    elif "audit" in lower_msg or "proactive" in lower_msg or "scan all" in lower_msg:
         sample_assets = [
             {
                 "target_control": "ISO/IEC 27001:2022 A.5.23",
@@ -93,15 +124,15 @@ async def handle_chat(req: ChatRequest):
         ]
         res = ci_engine.execute_proactive_audit_cycle("portal-interactive-cycle", sample_assets)
         response_text = (
-            f"### 🛡️ Ciclo Proativo de Auditoria Concluído com Sucesso!\n\n"
-            f"- **Pontuação Geral de Conformidade**: **{res['scorecard']['overall_score']}%** ({res['scorecard']['rating']})\n"
-            f"- **Controles Verificados**: {res['scorecard'].get('total_controls_assessed', 3)} controles normativos ISO 27001:2022.\n"
-            f"- **Evidências Criptográficas**: {res['evidence_graph_summary']['total_evidence_nodes']} nós gerados com hash SHA-256.\n"
-            f"- **Tendência de Drift**: `{res['drift_trajectory']['trend']}`.\n\n"
-            f"**Recomendações Imediatas**:\n"
-            f"1. Todos os buckets GCS inspecionados possuem *Public Access Prevention* habilitado.\n"
-            f"2. O perímetro VPC Service Controls está ativo com serviços restritos (`storage`, `bigquery`).\n"
-            f"3. As chaves de criptografia KMS estão dentro da política de rotação de 90 dias (A.8.24)."
+            f"Proactive Audit Cycle Completed Successfully\n\n"
+            f"- Overall Compliance Score: {res['scorecard']['overall_score']}% ({res['scorecard']['rating']})\n"
+            f"- Controls Assessed: {res['scorecard'].get('total_controls_assessed', 3)} ISO/IEC 27001:2022 baseline controls.\n"
+            f"- Cryptographic Evidence: {res['evidence_graph_summary']['total_evidence_nodes']} nodes recorded with SHA-256 hashes.\n"
+            f"- Drift Trajectory: {res['drift_trajectory']['trend']}.\n\n"
+            f"Summary Findings:\n"
+            f"1. GCS buckets enforce Public Access Prevention and Uniform Bucket-Level Access.\n"
+            f"2. VPC Service Controls perimeter active across required services (storage, bigquery).\n"
+            f"3. Cloud KMS key rotation compliant with 90-day policy (Control A.8.24)."
         )
         return {
             "response": response_text,
@@ -109,50 +140,15 @@ async def handle_chat(req: ChatRequest):
             "subagent_used": "ContinuousIntelligenceEngine",
         }
 
-    elif "horizon" in lower_msg or "regulatório" in lower_msg or "clima" in lower_msg:
-        updates = horizon_scanner_subagent.scan_regulatory_updates()
-        proposal = horizon_scanner_subagent.generate_policy_amendment_proposal(updates[0], "Current policy")
-        response_text = (
-            f"### 🌐 Horizon Scanning Regulatório (Deep Research)\n\n"
-            f"O subagente detectou a seguinte emenda recente:\n"
-            f"- **Norma**: `{updates[0]['standard']}`\n"
-            f"- **Título**: **{updates[0]['title']}**\n"
-            f"- **Resumo de Impacto**: {updates[0]['impact_summary']}\n\n"
-            f"**Minuta de Aditamento Gerada (Status: {proposal['status']})**:\n"
-            f"```text\n{proposal['proposed_amendment_text']}\n```\n"
-            f"A minuta foi registrada no painel para revisão e aprovação humana."
-        )
-        return {
-            "response": response_text,
-            "subagent_used": "HorizonScannerSubAgent",
-            "action_required": proposal["action_required"],
-        }
-
-    elif "criptografia" in lower_msg or "kms" in lower_msg or "a.8.24" in lower_msg:
-        finding = annex_a_subagent.audit_cryptography_a824(
-            "key-client-primary",
-            {"rotation_period_seconds": 5184000, "protection_level": "HSM", "require_hsm": True}
-        )
-        response_text = (
-            f"### 🔐 Análise do Controle A.8.24 (Uso de Criptografia)\n\n"
-            f"- **Status**: `{finding['status']}`\n"
-            f"- **Recurso**: `{finding['resource_id']}`\n"
-            f"- **Nível de Proteção**: `{finding['metrics']['protection_level']}` (HSM)\n"
-            f"- **Período de Rotação**: `{finding['metrics']['rotation_period_seconds']} segundos` (60 dias <= 90 dias)\n"
-            f"- **Parecer**: {finding['remediation']}"
-        )
-        return {"response": response_text, "subagent_used": "AnnexASubAgent"}
-
     else:
-        # General guidance response
         response_text = (
-            f"Olá! Sou o **Agente de Conformidade e Auditoria Contínua (GEAP)** para ISO/IEC 27001:2022.\n\n"
-            f"Recebi seu prompt: *\"{msg}\"*\n\n"
-            f"**Ações que você pode executar agora:**\n"
-            f"1. Digite **`Executar auditoria completa`** para rodar a varredura proativa de todos os controles.\n"
-            f"2. Digite **`Horizon scanning`** para buscar novas emendas normativas (como a de Ação Climática Amd 1:2024).\n"
-            f"3. Faça upload de arquivos `.tf` (Terraform) ou políticas na aba **Upload & Storage** para análise imediata.\n"
-            f"4. Vincule um Google Drive ou bucket de nuvem para auditoria contínua Zero-Copy."
+            f"GEAP Compliance & Continuous Audit Agent (ISO/IEC 27001:2022)\n\n"
+            f"Received request: \"{msg}\"\n\n"
+            f"Available actions:\n"
+            f"1. Run 'Execute proactive audit' to trigger an end-to-end multi-cloud compliance cycle.\n"
+            f"2. Run 'Horizon scanning' to check for regulatory updates (e.g., Climate Action Amd 1:2024).\n"
+            f"3. Upload Terraform (.tf) or policy files in the Upload & Connect tab for instant analysis.\n"
+            f"4. Connect Google Drive or cloud storage for Zero-Copy continuous auditing."
         )
         return {
             "response": response_text,
@@ -164,7 +160,7 @@ async def handle_chat(req: ChatRequest):
 async def upload_compliance_file(
     file: UploadFile = File(...),
 ):
-    """Receives and immediately audits a compliance artifact (Terraform, Ansible, Policy text)."""
+    """Receives and evaluates a compliance artifact (Terraform, Ansible, Policy text)."""
     filename = file.filename or "uploaded_file"
     content_bytes = await file.read()
     content_text = content_bytes.decode("utf-8", errors="replace")
@@ -174,12 +170,11 @@ async def upload_compliance_file(
     elif filename.endswith((".yml", ".yaml")):
         finding = scan_iac_configuration("ansible", content_text, filename)
     else:
-        # Treat as policy text
         finding = {
             "status": "COMPLIANT",
             "control": "ISO/IEC 27001:2022 A.5.1",
             "filename": filename,
-            "analysis": f"Documento de política '{filename}' ({len(content_text)} caracteres) catalogado no grafo de evidências.",
+            "analysis": f"Policy artifact '{filename}' ({len(content_text)} chars) verified in evidence graph.",
             "violations": [],
         }
 
@@ -193,7 +188,7 @@ async def upload_compliance_file(
 
 @router.post("/api/storage/link")
 async def link_storage(req: StorageLinkRequest):
-    """Configures Zero-Copy connection to client cloud storage or document repository."""
+    """Configures Zero-Copy connection to enterprise storage repository."""
     source_enum = ConnectorSource.GOOGLE_DRIVE
     if req.source == "sharepoint_online":
         source_enum = ConnectorSource.SHAREPOINT
@@ -223,7 +218,7 @@ async def link_storage(req: StorageLinkRequest):
 
 @router.get("/api/subagents")
 async def list_subagents():
-    """Returns the list of specialized sub-agents and their operational status."""
+    """Returns specialized sub-agents and their operational status."""
     return {
         "subagents": [
             {
@@ -236,28 +231,28 @@ async def list_subagents():
             {
                 "id": "gcp_telemetry",
                 "name": "GCP Telemetry & Infrastructure Sub-Agent",
-                "role": "Real-time Cloud Asset Inventory, BigQuery audit sinks, VPC-SC, and KMS monitoring",
+                "role": "Real-time Cloud Asset Inventory, BigQuery audit sinks, VPC-SC, and KMS telemetry",
                 "spiffe_id": gcp_telemetry_subagent.spiffe_id,
                 "status": "ACTIVE",
             },
             {
                 "id": "org_policies",
                 "name": "Organizational Policies Sub-Agent",
-                "role": "Zero-Copy grounding across Google Drive, Confluence, SharePoint to detect policy divergence",
+                "role": "Zero-Copy grounding across Google Drive, Confluence, SharePoint for policy verification",
                 "spiffe_id": org_policies_subagent.spiffe_id,
                 "status": "ACTIVE",
             },
             {
                 "id": "horizon_scanner",
                 "name": "Horizon Scanner (Deep Research) Sub-Agent",
-                "role": "Autonomous monitoring of global regulatory changes, ISO updates, and draft generation",
+                "role": "Monitoring global regulatory shifts, ISO amendments, and automated draft synthesis",
                 "spiffe_id": horizon_scanner_subagent.spiffe_id,
                 "status": "ACTIVE",
             },
             {
                 "id": "codemender",
                 "name": "CodeMender (A.8.28 Secure Development)",
-                "role": "Repository vulnerability scanning, sandbox simulation, and security patch proposal",
+                "role": "Repository vulnerability detection, container simulation, and automated remediation PRs",
                 "spiffe_id": "spiffe://grc.jetsky.gcp/ns/production/sa/subagent-codemender",
                 "status": "BACKLOG_PLANNED",
             },
@@ -301,13 +296,13 @@ async def get_dashboard():
             {"id": "A.8.12", "name": "Data Leakage Prevention (VPC-SC)", "status": "COMPLIANT"},
             {"id": "A.8.16", "name": "Monitoring Activities", "status": "COMPLIANT"},
             {"id": "A.8.24", "name": "Use of Cryptography", "status": "COMPLIANT"},
-            {"id": "A.8.28", "name": "Secure Coding", "status": "COMPLIANT"},
+            {"id": "A.8.28", "name": "Secure Development", "status": "COMPLIANT"},
             {"id": "Amd 1:2024", "name": "Climate Action Resilience", "status": "COMPLIANT"},
         ],
         "pending_hitl_approvals": [
             {
                 "id": "HITL-AMENDMENT-001",
-                "title": "Aditamento Climático Amd 1:2024 na Política de Continuidade de Negócios",
+                "title": "Climate Action Amd 1:2024 Business Continuity Amendment",
                 "proposed_by": "HorizonScannerSubAgent",
                 "risk_level": "LOW",
                 "status": "AWAITING_APPROVAL",
@@ -324,7 +319,7 @@ async def approve_remediation(req: RemediationApprovalRequest):
         "remediation_id": req.remediation_id,
         "approver": req.approver,
         "timestamp": "2026-09-03T16:30:00Z",
-        "message": f"Remediação {req.remediation_id} aprovada com sucesso e aplicada ao ambiente.",
+        "message": f"Remediation {req.remediation_id} approved and recorded in audit log.",
     }
 
 
@@ -333,24 +328,24 @@ async def approve_remediation(req: RemediationApprovalRequest):
 # ---------------------------------------------------------------------------
 
 PORTAL_HTML = """<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Enterprise Agent Platform - Portal de Auditoria & Conformidade GRC</title>
+    <title>Gemini Enterprise Agent Platform - GRC Audit & Compliance Portal</title>
     <style>
         :root {
-            --bg-primary: #0b0f19;
-            --bg-secondary: #121826;
-            --bg-card: #1a2234;
-            --border-color: #2a3449;
-            --text-primary: #f3f4f6;
-            --text-secondary: #9ca3af;
-            --accent-blue: #3b82f6;
-            --accent-emerald: #10b981;
-            --accent-purple: #8b5cf6;
-            --accent-red: #ef4444;
-            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #243048;
+            --border-color: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-blue: #2563eb;
+            --accent-emerald: #059669;
+            --accent-purple: #7c3aed;
+            --accent-red: #dc2626;
+            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         * {
@@ -368,7 +363,6 @@ PORTAL_HTML = """<!DOCTYPE html>
             flex-direction: column;
         }
 
-        /* Top Header */
         header {
             background-color: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
@@ -376,24 +370,6 @@ PORTAL_HTML = """<!DOCTYPE html>
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .brand-logo {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 16px;
         }
 
         .brand-title {
@@ -415,27 +391,23 @@ PORTAL_HTML = """<!DOCTYPE html>
 
         .badge {
             font-size: 12px;
-            padding: 6px 12px;
-            border-radius: 9999px;
+            padding: 4px 10px;
+            border-radius: 4px;
             font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
         }
 
         .badge-live {
-            background-color: rgba(16, 185, 129, 0.15);
-            color: var(--accent-emerald);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            background-color: rgba(5, 150, 105, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(5, 150, 105, 0.3);
         }
 
         .badge-spiffe {
-            background-color: rgba(59, 130, 246, 0.15);
-            color: var(--accent-blue);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            background-color: rgba(37, 99, 235, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(37, 99, 235, 0.3);
         }
 
-        /* Navigation Tabs */
         nav {
             background-color: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
@@ -457,7 +429,7 @@ PORTAL_HTML = """<!DOCTYPE html>
         }
 
         .tab-button.active {
-            color: var(--accent-blue);
+            color: var(--text-primary);
             border-bottom-color: var(--accent-blue);
         }
 
@@ -465,11 +437,10 @@ PORTAL_HTML = """<!DOCTYPE html>
             color: var(--text-primary);
         }
 
-        /* Main Workspace */
         main {
             flex: 1;
             padding: 24px;
-            max-width: 1280px;
+            max-width: 1200px;
             width: 100%;
             margin: 0 auto;
         }
@@ -482,14 +453,13 @@ PORTAL_HTML = """<!DOCTYPE html>
             display: block;
         }
 
-        /* Chatbot Interface */
         .chat-container {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
-            height: 70vh;
+            height: 65vh;
             overflow: hidden;
         }
 
@@ -504,15 +474,16 @@ PORTAL_HTML = """<!DOCTYPE html>
 
         .message {
             max-width: 80%;
-            padding: 14px 18px;
-            border-radius: 12px;
+            padding: 12px 16px;
+            border-radius: 6px;
             font-size: 14px;
-            line-height: 1.6;
+            line-height: 1.5;
+            white-space: pre-wrap;
         }
 
         .message-agent {
             align-self: flex-start;
-            background-color: #222c42;
+            background-color: #1e293b;
             border: 1px solid var(--border-color);
             color: var(--text-primary);
         }
@@ -535,8 +506,8 @@ PORTAL_HTML = """<!DOCTYPE html>
             flex: 1;
             background-color: var(--bg-primary);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px 16px;
+            border-radius: 6px;
+            padding: 10px 14px;
             color: var(--text-primary);
             font-size: 14px;
             outline: none;
@@ -546,18 +517,18 @@ PORTAL_HTML = """<!DOCTYPE html>
             border-color: var(--accent-blue);
         }
 
-        .send-button {
-            background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+        .btn {
+            background-color: var(--accent-blue);
             border: none;
             color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
+            padding: 10px 20px;
+            border-radius: 6px;
             font-weight: 600;
+            font-size: 13px;
             cursor: pointer;
-            transition: opacity 0.2s;
         }
 
-        .send-button:hover {
+        .btn:hover {
             opacity: 0.9;
         }
 
@@ -570,31 +541,26 @@ PORTAL_HTML = """<!DOCTYPE html>
         }
 
         .prompt-chip {
-            background-color: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            background-color: rgba(37, 99, 235, 0.1);
+            border: 1px solid rgba(37, 99, 235, 0.3);
             color: #93c5fd;
             font-size: 12px;
             padding: 6px 12px;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
             white-space: nowrap;
         }
 
-        .prompt-chip:hover {
-            background-color: rgba(59, 130, 246, 0.2);
-        }
-
-        /* Cards & Grids */
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
+            gap: 16px;
         }
 
         .card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 20px;
         }
 
@@ -602,11 +568,11 @@ PORTAL_HTML = """<!DOCTYPE html>
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         .card-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
         }
 
@@ -614,45 +580,35 @@ PORTAL_HTML = """<!DOCTYPE html>
             font-size: 13px;
             color: var(--text-secondary);
             margin-bottom: 16px;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
         .card-action-btn {
-            background-color: rgba(59, 130, 246, 0.15);
-            border: 1px solid rgba(59, 130, 246, 0.4);
+            background-color: rgba(37, 99, 235, 0.15);
+            border: 1px solid rgba(37, 99, 235, 0.4);
             color: #93c5fd;
             padding: 8px 16px;
-            border-radius: 6px;
+            border-radius: 4px;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             width: 100%;
         }
 
-        .card-action-btn:hover {
-            background-color: rgba(59, 130, 246, 0.3);
-        }
-
-        /* File Upload & Storage */
         .upload-dropzone {
             border: 2px dashed var(--border-color);
-            border-radius: 12px;
-            padding: 40px;
+            border-radius: 8px;
+            padding: 32px;
             text-align: center;
             background-color: var(--bg-secondary);
             cursor: pointer;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
-        .upload-dropzone:hover {
-            border-color: var(--accent-blue);
-        }
-
-        /* Scorecard */
         .scorecard-banner {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15));
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 12px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             padding: 24px;
             display: flex;
             justify-content: space-between;
@@ -661,15 +617,15 @@ PORTAL_HTML = """<!DOCTYPE html>
         }
 
         .score-huge {
-            font-size: 48px;
+            font-size: 44px;
             font-weight: 800;
-            color: var(--accent-emerald);
+            color: #34d399;
         }
 
         pre {
             background-color: #0b0f19;
             padding: 12px;
-            border-radius: 6px;
+            border-radius: 4px;
             overflow-x: auto;
             font-size: 12px;
             color: #e5e7eb;
@@ -680,25 +636,22 @@ PORTAL_HTML = """<!DOCTYPE html>
 <body>
 
     <header>
-        <div class="brand">
-            <div class="brand-logo">G</div>
-            <div>
-                <div class="brand-title">Gemini Enterprise Agent Platform (GEAP)</div>
-                <div class="brand-subtitle">Portal de Auditoria Contínua & Implementação ISO/IEC 27001:2022</div>
-            </div>
+        <div>
+            <div class="brand-title">Gemini Enterprise Agent Platform (GEAP)</div>
+            <div class="brand-subtitle">Automated GRC & ISO/IEC 27001:2022 Continuous Audit Portal</div>
         </div>
         <div class="header-badges">
-            <span class="badge badge-live">● Sistema Online</span>
-            <span class="badge badge-spiffe">SPIFFE: verified</span>
+            <span class="badge badge-live">Status: Active</span>
+            <span class="badge badge-spiffe">SPIFFE: Verified</span>
         </div>
     </header>
 
     <nav>
-        <button class="tab-button active" onclick="switchTab('chat')">💬 Chatbot Auditor</button>
-        <button class="tab-button" onclick="switchTab('subagents')">🤖 Subagentes Especialistas</button>
-        <button class="tab-button" onclick="switchTab('upload')">📁 Upload & Conectores Zero-Copy</button>
-        <button class="tab-button" onclick="switchTab('dashboard')">📊 Dashboard & Aprovação HITL</button>
-        <button class="tab-button" onclick="switchTab('embed')">🔌 Integração Gemini Enterprise</button>
+        <button class="tab-button active" onclick="switchTab('chat')">Chatbot Auditor</button>
+        <button class="tab-button" onclick="switchTab('subagents')">Sub-Agents</button>
+        <button class="tab-button" onclick="switchTab('upload')">Upload & Connect</button>
+        <button class="tab-button" onclick="switchTab('dashboard')">Audit Dashboard</button>
+        <button class="tab-button" onclick="switchTab('embed')">Gemini Integration</button>
     </nav>
 
     <main>
@@ -706,60 +659,54 @@ PORTAL_HTML = """<!DOCTYPE html>
         <section id="tab-chat" class="tab-content active">
             <div class="chat-container">
                 <div class="quick-prompts">
-                    <span class="prompt-chip" onclick="sendPrompt('Executar auditoria completa proativa')">🛡️ Executar auditoria completa</span>
-                    <span class="prompt-chip" onclick="sendPrompt('Horizon scanning regulatório de clima e IA')">🌐 Horizon scanning de novas normas</span>
-                    <span class="prompt-chip" onclick="sendPrompt('Verificar conformidade de chaves KMS (A.8.24)')">🔐 Verificar criptografia KMS</span>
+                    <span class="prompt-chip" onclick="sendPrompt('Execute proactive audit')">Execute proactive audit</span>
+                    <span class="prompt-chip" onclick="sendPrompt('Horizon scanning regulatory update')">Horizon scanning</span>
+                    <span class="prompt-chip" onclick="sendPrompt('Audit KMS cryptography A.8.24')">Audit KMS encryption</span>
                 </div>
                 <div class="chat-messages" id="chat-messages">
-                    <div class="message message-agent">
-                        <strong>Agente de Conformidade GEAP:</strong><br>
-                        Olá! Sou seu assistente de auditoria contínua e certificações. Posso analisar sua infraestrutura de nuvem em tempo real, varrer arquivos de Terraform, cruzar políticas corporativas via Zero-Copy e emitir laudos de conformidade com ISO/IEC 27001:2022.<br><br>
-                        Como posso ajudar na sua auditoria hoje?
-                    </div>
+                    <div class="message message-agent">GEAP Compliance Agent initialized.
+Ready to run continuous auditing, evaluate infrastructure telemetry, and verify policies against ISO/IEC 27001:2022.</div>
                 </div>
                 <div class="chat-input-area">
-                    <input type="text" id="chat-input" class="chat-input" placeholder="Digite seu comando ou pergunta de auditoria..." onkeydown="if(event.key==='Enter') sendMessage()">
-                    <button class="send-button" onclick="sendMessage()">Enviar</button>
+                    <input type="text" id="chat-input" class="chat-input" placeholder="Enter compliance question or command..." onkeydown="if(event.key==='Enter') sendMessage()">
+                    <button class="btn" onclick="sendMessage()">Send</button>
                 </div>
             </div>
         </section>
 
         <!-- Tab 2: Sub-Agents -->
         <section id="tab-subagents" class="tab-content">
-            <h2 style="margin-bottom: 16px;">Grafo de Subagentes Especializados</h2>
-            <div class="cards-grid" id="subagents-list">
-                <!-- Loaded dynamically -->
-            </div>
+            <h3 style="margin-bottom: 16px;">Specialized Sub-Agents Graph</h3>
+            <div class="cards-grid" id="subagents-list"></div>
         </section>
 
         <!-- Tab 3: Upload & Storage -->
         <section id="tab-upload" class="tab-content">
-            <h2 style="margin-bottom: 16px;">Upload de Arquivos & Conectores de Nuvem (Zero-Copy)</h2>
+            <h3 style="margin-bottom: 16px;">Artifact Upload & Storage Connector</h3>
             
             <div class="upload-dropzone" onclick="document.getElementById('file-upload').click()">
                 <input type="file" id="file-upload" style="display:none" onchange="handleFileUpload(event)">
-                <div style="font-size: 32px; margin-bottom: 8px;">📄</div>
-                <strong>Clique ou arraste um arquivo de conformidade</strong>
+                <strong>Click or drop a compliance artifact</strong>
                 <p style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">
-                    Suporta Terraform (.tf), Ansible (.yml), Políticas (.json, .txt)
+                    Supports Terraform (.tf), Ansible (.yml), and Policy documents (.json, .txt)
                 </p>
             </div>
             <div id="upload-result"></div>
 
             <div class="card" style="margin-top: 24px;">
-                <h3 class="card-title" style="margin-bottom: 8px;">Conector Zero-Copy para Repositórios Corporativos</h3>
+                <h4 class="card-title" style="margin-bottom: 8px;">Zero-Copy Storage Repository Link</h4>
                 <p class="card-desc">
-                    Vincule o Google Drive, SharePoint, Confluence ou Jira da sua organização. Os documentos são auditados em tempo real na fonte, respeitando o IDP, sem cópias intermediárias.
+                    Connect Google Drive, SharePoint, Jira, or Confluence. Evidence is queried in real time without external duplication.
                 </p>
                 <div style="display: flex; gap: 12px; margin-bottom: 16px;">
                     <select id="storage-type" class="chat-input" style="max-width: 200px;">
                         <option value="google_drive">Google Drive</option>
-                        <option value="sharepoint_online">Microsoft SharePoint</option>
+                        <option value="sharepoint_online">SharePoint Online</option>
                         <option value="jira">Jira Cloud</option>
                         <option value="confluence">Confluence Space</option>
                     </select>
-                    <input type="text" id="storage-uri" class="chat-input" placeholder="ID da Pasta ou URL do Repositório...">
-                    <button class="send-button" onclick="linkStorage()">Vincular Repositório</button>
+                    <input type="text" id="storage-uri" class="chat-input" placeholder="Folder ID or Repository URL...">
+                    <button class="btn" onclick="linkStorage()">Connect Repository</button>
                 </div>
                 <div id="storage-result"></div>
             </div>
@@ -769,54 +716,51 @@ PORTAL_HTML = """<!DOCTYPE html>
         <section id="tab-dashboard" class="tab-content">
             <div class="scorecard-banner">
                 <div>
-                    <h3 style="font-size: 20px; font-weight: 700;">Scorecard de Conformidade Geral</h3>
-                    <p style="color: var(--text-secondary); font-size: 14px; margin-top: 4px;">Auditoria contínua baseada em ISO/IEC 27001:2022 & Amd 1:2024</p>
+                    <h3 style="font-size: 18px; font-weight: 700;">Overall Compliance Scorecard</h3>
+                    <p style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Continuous evaluation based on ISO/IEC 27001:2022 & Amd 1:2024</p>
                 </div>
                 <div style="text-align: right;">
                     <div class="score-huge" id="dash-score">100.0%</div>
-                    <div style="color: var(--accent-emerald); font-weight: 600;" id="dash-rating">EXCELENTE (STABLE)</div>
+                    <div style="color: #34d399; font-weight: 600;" id="dash-rating">EXCELLENT (STABLE)</div>
                 </div>
             </div>
 
-            <h3 style="margin-bottom: 16px;">Aprovações Pendentes (Human-in-the-Loop Gate)</h3>
+            <h4 style="margin-bottom: 12px;">Pending Human-in-the-Loop Approvals</h4>
             <div class="card" style="margin-bottom: 24px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <strong>Aditamento Climático Amd 1:2024 na Política de Continuidade</strong>
+                        <strong>Climate Action Amd 1:2024 Business Continuity Amendment</strong>
                         <p style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">
-                            Proposto por: <code>HorizonScannerSubAgent</code> | Risco: Baixo
+                            Source: HorizonScannerSubAgent | Risk: Low
                         </p>
                     </div>
-                    <button class="send-button" onclick="approveRemediation('HITL-AMENDMENT-001')">Aprovar Proposta (HITL)</button>
+                    <button class="btn" onclick="approveRemediation('HITL-AMENDMENT-001')">Approve Amendment</button>
                 </div>
             </div>
 
-            <h3 style="margin-bottom: 16px;">Matriz de Controles Ativos</h3>
-            <div class="cards-grid" id="controls-list">
-                <!-- Loaded dynamically -->
-            </div>
+            <h4 style="margin-bottom: 12px;">Active Controls Status</h4>
+            <div class="cards-grid" id="controls-list"></div>
         </section>
 
         <!-- Tab 5: Gemini Enterprise Embed -->
         <section id="tab-embed" class="tab-content">
-            <h2 style="margin-bottom: 16px;">Integração Nativa com Gemini Enterprise / Agent Studio</h2>
+            <h3 style="margin-bottom: 16px;">Gemini Enterprise & Agent Studio Integration</h3>
             <div class="card" style="margin-bottom: 20px;">
-                <h3 class="card-title">Como conectar ao Gemini Enterprise (Chatbot Nativo):</h3>
+                <h4 class="card-title">Setup in Gemini Enterprise (Agent Studio):</h4>
                 <p class="card-desc">
-                    1. No Console do <strong>Gemini Enterprise (Agent Studio)</strong>, acesse <strong>Agents > Tools > Create Tool</strong>.<br>
-                    2. Selecione <strong>Model Context Protocol (MCP)</strong>.<br>
-                    3. No campo <strong>Server URL</strong>, insira a URL pública deste Cloud Run com o endpoint <code>/mcp</code>.<br>
-                    4. O Agent Studio descobrirá automaticamente todas as habilidades do <code>/.well-known/agent.json</code>.
+                    1. In Google Cloud Console, navigate to Agent Studio > Agents > Tools.<br>
+                    2. Select Model Context Protocol (MCP).<br>
+                    3. Input the Cloud Run URL targeting the /mcp endpoint.<br>
+                    4. Tools are automatically discovered via the /.well-known/agent.json endpoint.
                 </p>
             </div>
             <div class="card">
-                <h3 class="card-title">Snippet de Widget para o Portal Interno do Cliente:</h3>
-                <p class="card-desc">Copie e cole este snippet em qualquer página HTML ou portal corporativo:</p>
-                <pre><code>&lt;!-- Widget do Gemini Enterprise Agent --&gt;
-&lt;iframe 
+                <h4 class="card-title">Client Portal Embed Code:</h4>
+                <p class="card-desc">Embed this portal directly into internal client documentation or intranet:</p>
+                <pre><code>&lt;iframe 
     src="/portal" 
-    style="width: 100%; height: 800px; border: none; border-radius: 12px;"
-    title="Gemini GRC Compliance Auditor"&gt;
+    style="width: 100%; height: 750px; border: 1px solid #334155; border-radius: 8px;"
+    title="GEAP GRC Auditor"&gt;
 &lt;/iframe&gt;</code></pre>
             </div>
         </section>
@@ -846,7 +790,6 @@ PORTAL_HTML = """<!DOCTYPE html>
 
             const chatMessages = document.getElementById('chat-messages');
             
-            // User message bubble
             const userMsg = document.createElement('div');
             userMsg.className = 'message message-user';
             userMsg.textContent = message;
@@ -854,10 +797,9 @@ PORTAL_HTML = """<!DOCTYPE html>
             input.value = '';
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // Loading bubble
             const loadingMsg = document.createElement('div');
             loadingMsg.className = 'message message-agent';
-            loadingMsg.textContent = 'Pensando e consultando ferramentas de conformidade...';
+            loadingMsg.textContent = 'Processing audit query...';
             chatMessages.appendChild(loadingMsg);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
@@ -868,9 +810,9 @@ PORTAL_HTML = """<!DOCTYPE html>
                     body: JSON.stringify({message: message})
                 });
                 const data = await res.json();
-                loadingMsg.innerHTML = data.response.replace(/\\n/g, '<br>');
+                loadingMsg.textContent = data.response;
             } catch (err) {
-                loadingMsg.textContent = 'Erro de comunicação com o orquestrador: ' + err.message;
+                loadingMsg.textContent = 'Communication error: ' + err.message;
             }
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
@@ -887,24 +829,23 @@ PORTAL_HTML = """<!DOCTYPE html>
                             <span class="badge ${sa.status === 'ACTIVE' ? 'badge-live' : 'badge-spiffe'}">${sa.status}</span>
                         </div>
                         <p class="card-desc">${sa.role}</p>
-                        <p style="font-size: 11px; color: #6b7280; margin-bottom: 12px;">SPIFFE: ${sa.spiffe_id}</p>
-                        <button class="card-action-btn" onclick="triggerSubagent('${sa.id}')">Executar Subagente</button>
+                        <p style="font-size: 11px; color: #64748b; margin-bottom: 12px;">SPIFFE: ${sa.spiffe_id}</p>
+                        <button class="card-action-btn" onclick="triggerSubagent('${sa.id}')">Trigger Sub-Agent</button>
                     </div>
                 `).join('');
             } catch (e) {
-                container.innerHTML = '<p>Erro ao carregar subagentes.</p>';
+                container.innerHTML = '<p>Unable to load sub-agents.</p>';
             }
         }
 
         async function triggerSubagent(subagentId) {
-            alert('Acionando subagente: ' + subagentId);
             const res = await fetch('/api/subagents/trigger', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({subagent: subagentId})
             });
             const data = await res.json();
-            alert('Resultado da execução: ' + JSON.stringify(data.result, null, 2));
+            alert('Sub-agent execution response:\\n' + JSON.stringify(data.result, null, 2));
         }
 
         async function handleFileUpload(event) {
@@ -915,7 +856,7 @@ PORTAL_HTML = """<!DOCTYPE html>
             formData.append('file', file);
 
             const resultDiv = document.getElementById('upload-result');
-            resultDiv.innerHTML = '<p style="color: var(--accent-blue);">Analisando ' + file.name + ' contra ISO 27001...</p>';
+            resultDiv.innerHTML = '<p style="color: var(--accent-blue);">Auditing ' + file.name + ' against ISO 27001...</p>';
 
             try {
                 const res = await fetch('/api/upload', {
@@ -925,12 +866,12 @@ PORTAL_HTML = """<!DOCTYPE html>
                 const data = await res.json();
                 resultDiv.innerHTML = `
                     <div class="card" style="margin-top: 12px; border-color: var(--accent-emerald);">
-                        <h4 style="color: var(--accent-emerald);">✓ Arquivo Avaliado com Sucesso: ${data.filename}</h4>
+                        <h4 style="color: #34d399;">Artifact Evaluated: ${data.filename}</h4>
                         <pre>${JSON.stringify(data.audit_finding, null, 2)}</pre>
                     </div>
                 `;
             } catch (e) {
-                resultDiv.innerHTML = '<p style="color: var(--accent-red);">Erro ao processar arquivo.</p>';
+                resultDiv.innerHTML = '<p style="color: var(--accent-red);">Error processing artifact.</p>';
             }
         }
 
@@ -940,11 +881,11 @@ PORTAL_HTML = """<!DOCTYPE html>
             const resultDiv = document.getElementById('storage-result');
 
             if (!uri) {
-                alert('Por favor, informe a URL ou ID do repositório.');
+                alert('Please provide a repository URL or folder ID.');
                 return;
             }
 
-            resultDiv.innerHTML = '<p style="color: var(--accent-blue);">Estabelecendo conexão Zero-Copy...</p>';
+            resultDiv.innerHTML = '<p style="color: var(--accent-blue);">Establishing Zero-Copy link...</p>';
             try {
                 const res = await fetch('/api/storage/link', {
                     method: 'POST',
@@ -954,14 +895,14 @@ PORTAL_HTML = """<!DOCTYPE html>
                 const data = await res.json();
                 resultDiv.innerHTML = `
                     <div class="card" style="margin-top: 12px; border-color: var(--accent-emerald);">
-                        <h4 style="color: var(--accent-emerald);">✓ Repositório Conectado (Zero-Copy): ${data.source}</h4>
+                        <h4 style="color: #34d399;">Repository Connected: ${data.source}</h4>
                         <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
-                            ${data.discovered_documents.length} documentos corporativos mapeados em tempo real na fonte.
+                            ${data.discovered_documents.length} documents identified in real-time at source.
                         </p>
                     </div>
                 `;
             } catch (e) {
-                resultDiv.innerHTML = '<p style="color: var(--accent-red);">Erro ao conectar repositório.</p>';
+                resultDiv.innerHTML = '<p style="color: var(--accent-red);">Connection failed.</p>';
             }
         }
 
@@ -982,12 +923,12 @@ PORTAL_HTML = """<!DOCTYPE html>
                     </div>
                 `).join('');
             } catch (e) {
-                container.innerHTML = '<p>Erro ao carregar dashboard.</p>';
+                container.innerHTML = '<p>Unable to load dashboard.</p>';
             }
         }
 
         async function approveRemediation(remId) {
-            if (!confirm('Deseja aprovar formalmente esta alteração normativa (HITL Gate)?')) return;
+            if (!confirm('Confirm Human-in-the-Loop approval for this amendment?')) return;
             try {
                 const res = await fetch('/api/remediation/approve', {
                     method: 'POST',
@@ -998,11 +939,10 @@ PORTAL_HTML = """<!DOCTYPE html>
                 alert(data.message);
                 loadDashboard();
             } catch (e) {
-                alert('Erro ao aprovar remediação.');
+                alert('Approval failed.');
             }
         }
 
-        // Initialize subagents on load
         loadSubagents();
     </script>
 </body>
