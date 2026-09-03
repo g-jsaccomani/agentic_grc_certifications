@@ -16,12 +16,15 @@ from mcp_server_grc.tools.threat_intel import correlate_threat_intelligence
 from mcp_server_grc.tools.climate_resilience import audit_climate_resilience
 from mcp_server_grc.tools.data_leakage_prevention import audit_data_leakage_prevention
 from mcp_server_grc.tools.monitoring import audit_monitoring_activities
+from mcp_server_grc.portal import router as portal_router
 
 app = FastAPI(
     title="Custom MCP Server - ISO 27001 GRC Compliance Tooling",
     version="1.0.0",
     description="StreamableHTTP MCP Server for automated ISO 27001:2022 and Cloud Security auditing.",
 )
+
+app.include_router(portal_router)
 
 app.add_middleware(
     CORSMiddleware,

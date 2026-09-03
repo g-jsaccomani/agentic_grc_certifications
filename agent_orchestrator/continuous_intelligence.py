@@ -97,6 +97,10 @@ class ContinuousIntelligenceEngine:
                     project_id=resource_id,
                     monitoring_config=config,
                 )
+            elif "A.8.24" in ctrl:
+                from agent_orchestrator.subagents.annex_a_agent import AnnexASubAgent
+                subagent = AnnexASubAgent()
+                finding = subagent.audit_cryptography_a824(key_id=resource_id, config=config)
             elif "Amd 1:2024" in ctrl or "4.1" in ctrl:
                 finding = self.orchestrator.audit_climate_resilience(
                     workload_id=resource_id,

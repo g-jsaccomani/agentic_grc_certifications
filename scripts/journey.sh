@@ -77,6 +77,7 @@ fi
 
 echo -e "\n${BOLD}[Stage 5/6] Deployment of StreamableHTTP MCP Server${NC}"
 if [ "${DRY_RUN}" == "true" ]; then
+    SERVICE_URL="https://${MCP_SERVICE_NAME}-<hash>.a.run.app"
     echo -e "${YELLOW}[DRY-RUN] Cloud Run Deployment Command preview:${NC}"
     echo "gcloud run deploy ${MCP_SERVICE_NAME} \\"
     echo "  --source=${PROJECT_ROOT}/mcp_server_grc \\"
@@ -93,6 +94,7 @@ else
       --platform=managed \
       --no-allow-unauthenticated \
       --set-env-vars="PROJECT_ID=${PROJECT_ID},REGION=${REGION}"
+    SERVICE_URL=$(gcloud run services describe "${MCP_SERVICE_NAME}" --region="${REGION}" --format="value(status.url)")
     echo -e "${GREEN}✓ ${MCP_SERVICE_NAME} deployed successfully.${NC}"
 fi
 
@@ -104,9 +106,15 @@ echo -e "${GREEN}✓ Proactive Audit Engine verification successful!${NC}"
 echo -e "\n${BOLD}${GREEN}================================================================${NC}"
 echo -e "${BOLD}${GREEN}        JOURNEY COMPLETED: AGENT DEPLOYMENT READY & VERIFIED!    ${NC}"
 echo -e "${BOLD}${GREEN}================================================================${NC}"
-echo -e "Your GRC Compliance Agent is configured with:"
-echo -e " - ISO/IEC 27001:2022 Controls: A.5.23, A.8.9, A.8.12, A.8.16, A.8.24, A.8.28, Amd 1:2024"
-echo -e " - Zero-Copy Enterprise Grounding (Drive, Confluence, Jira)"
-echo -e " - Persistent Memory Bank & Evidence Graph"
-echo -e " - Model Armor & SPIFFE Zero-Trust Ingress/Egress Guardrails"
+echo -e "${BOLD}Client Web Portal URL:${NC} ${BLUE}${BOLD}${SERVICE_URL:-http://localhost:8080}/portal${NC}"
+echo -e "${BOLD}Local Dev Portal URL:${NC}  ${BLUE}http://localhost:8080/portal${NC} (run 'make run-portal')"
+echo -e "Discovery Endpoint:   ${SERVICE_URL:-http://localhost:8080}/.well-known/agent.json"
+echo -e "StreamableHTTP MCP:   ${SERVICE_URL:-http://localhost:8080}/mcp"
+echo -e "----------------------------------------------------------------"
+echo -e "Features Available in Client Portal:"
+echo -e " 1. 💬 Chatbot Auditor: Prompt & response interface with evidence grounding"
+echo -e " 2. 🤖 Sub-agents: Trigger Annex A, GCP Telemetry, Org Policies, Horizon Scanner"
+echo -e " 3. 📁 File Upload: Live analysis of Terraform (.tf), Ansible (.yml), Policies"
+echo -e " 4. 🔗 Zero-Copy Sync: Connect Google Drive, SharePoint, Jira without data copy"
+echo -e " 5. 📊 Scorecard & HITL: View continuous score and approve remediation playbooks"
 echo -e "================================================================\n"
