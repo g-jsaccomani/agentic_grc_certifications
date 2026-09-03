@@ -1,0 +1,17 @@
+# Google Cloud Organization ID (numerical ID)
+org_id = "31564119954"
+
+# Billing Account ID (format: XXXXXX-XXXXXX-XXXXXX)
+billing_account = "0180FF-1553BD-6B74BE"
+
+# Folder display name
+folder_name = "fldr-agentic-grc"
+
+# Project ID prefix (will have random suffix appended unless custom_project_id is set)
+project_prefix = "agentic-grc"
+
+# Default deployment region
+region = "us-central1"
+
+# Engineer/consultant user to grant deployment permissions
+deployer_email = "jsaccomani@google.com"

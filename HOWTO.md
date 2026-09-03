@@ -1,63 +1,113 @@
 # How-To Guide: Deploying and Running the Agentic GRC Platform
 
-This guide provides step-by-step instructions for provisioning the Google Cloud Platform (GCP) organization hierarchy, deploying the autonomous compliance agent to Cloud Run, and connecting it to Gemini Enterprise.
+This guide details the complete deployment lifecycle for the Agentic GRC platform. It is designed for a two-phase workflow:
+
+1. **Phase 1 (Client First Steps)**: The client applies a Terraform template in their GCP environment to provision the dedicated folder, host project, required APIs, auditor service account, organization-level IAM permissions, and deployer permissions.
+2. **Phase 2 (Implementation & Deployment)**: The implementation engineer authenticates with GCP credentials and executes the automated deployment journey (`make journey`) to build and deploy the platform on Cloud Run.
 
 ---
 
-## 1. Prerequisites
+## 1. Project Location and Paths
 
-Before starting, verify that your environment has:
-- Google Cloud SDK (`gcloud`) installed and authenticated:
+All commands and development tasks must be executed from the root of the `agentic_grc_certifications` repository:
+
+- **Local Workstation Path**:
   ```bash
-  gcloud auth login
-  gcloud auth application-default login
+  cd "/Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certifications"
   ```
-- An active GCP user account with the following roles:
-  - Organization Administrator (`roles/resourcemanager.organizationAdmin`) or Folder Creator (`roles/resourcemanager.folderCreator`) + Project Creator (`roles/resourcemanager.projectCreator`) on the target Organization.
-  - Organization IAM Administrator (`roles/iam.admin`) to grant organization-wide read roles.
-  - Billing Account User (`roles/billing.user`) on an active billing account.
-- Python 3.12+ and `make` installed locally.
+- **Git Clone (Fresh Workstation Setup)**:
+  ```bash
+  git clone git@github.com:g-jsaccomani/agentic_grc_certifications.git
+  cd agentic_grc_certifications
+  ```
+- **Terraform First Steps Directory**:
+  ```bash
+  cd "/Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certifications/terraform/first_steps"
+  ```
 
 ---
 
-## 2. Automated Deployment (Recommended)
+## 2. Phase 1: Client First Steps (Terraform Bootstrap)
 
-### Step 2.1: Provision the Organization Folder, Project, and IAM Roles
+The client provisions the baseline GCP organizational structure and access controls using the Terraform files located in `terraform/first_steps/`.
 
-Run the provisioning script using `make`:
+### What This Terraform Automatically Provisions
 
-```bash
-make provision-org
-```
-
-**What this command does automatically:**
-1. Creates a dedicated folder named `fldr-agentic-grc` under your GCP Organization (`31564119954`).
-2. Creates a dedicated project named `agentic-grc-<suffix>` inside that folder.
-3. Links your active Billing Account (`0180FF-1553BD-6B74BE`) to the new project.
-4. Enables all required APIs:
+1. **Folder**: Creates `fldr-agentic-grc` under the client's GCP Organization.
+2. **Project**: Creates `agentic-grc-<id>` inside the folder.
+3. **Billing**: Links the client's active billing account to the new project.
+4. **Cloud APIs**: Enables 16 required Google Cloud APIs:
    - `modelarmor.googleapis.com` (Model Armor Safety Gate)
    - `run.googleapis.com` (Cloud Run Serverless Compute)
    - `cloudasset.googleapis.com` (Cloud Asset Inventory)
    - `securitycenter.googleapis.com` (Security Command Center)
    - `accesscontextmanager.googleapis.com` (VPC Service Controls)
-   - `cloudkms.googleapis.com` (Key Management Service)
+   - `cloudkms.googleapis.com` (Cloud Key Management Service)
    - `bigquery.googleapis.com` (Audit Log Sinks)
    - `aiplatform.googleapis.com` (Vertex AI Platform)
    - `discoveryengine.googleapis.com` (Gemini Enterprise Discovery Engine)
-5. Creates a dedicated Service Account: `sa-agentic-grc-auditor@<PROJECT_ID>.iam.gserviceaccount.com`.
-6. Binds organization-level read privileges to the Service Account on the organization:
-   - `roles/cloudasset.viewer`: Real-time inspection of all GCP assets across all projects.
-   - `roles/browser`: Hierarchy traversal across all folders and projects.
-   - `roles/iam.securityReviewer`: Organization-wide IAM policy and permissions review.
-   - `roles/securitycenter.findingsViewer`: Organization-wide Security Command Center findings.
-   - `roles/accesscontextmanager.policyReader`: VPC Service Controls perimeter review.
-7. Deploys the Model Armor security baseline template (`g-rc-safety-baseline`).
+   - `artifactregistry.googleapis.com` (Container Registry)
+   - `cloudbuild.googleapis.com` (Build Automation)
+   - `iam.googleapis.com`
+   - `cloudresourcemanager.googleapis.com`
+   - `serviceusage.googleapis.com`
+   - `logging.googleapis.com`
+   - `monitoring.googleapis.com`
+5. **Auditor Identity**: Creates Service Account `sa-agentic-grc-auditor@<PROJECT_ID>.iam.gserviceaccount.com`.
+6. **Organization-Level IAM Bindings**: Binds read-only inspection roles to the auditor service account at the organization level:
+   - `roles/cloudasset.viewer`: Real-time inspection of cloud resources across all projects.
+   - `roles/browser`: Organizational hierarchy navigation.
+   - `roles/iam.securityReviewer`: IAM policy review across the organization.
+   - `roles/securitycenter.findingsViewer`: Organization-wide security posture findings.
+   - `roles/accesscontextmanager.policyReader`: VPC Service Controls inspection.
+7. **Deployer Permissions**: Grants the implementation engineer deployment permissions on the host project (`roles/run.admin`, `roles/iam.serviceAccountUser`, `roles/storage.admin`, `roles/artifactregistry.admin`, `roles/cloudbuild.builds.editor`).
+
+### How the Client Executes the Terraform (via Cloud Shell)
+
+1. Open [Google Cloud Shell](https://shell.cloud.google.com).
+2. Clone or upload the repository:
+   ```bash
+   git clone https://github.com/g-jsaccomani/agentic_grc_certifications.git
+   cd agentic_grc_certifications/terraform/first_steps
+   ```
+3. Copy the configuration file and adjust variables:
+   ```bash
+   cp terraform.tfvars.example terraform.tfvars
+   ```
+   *Edit `terraform.tfvars` with the client's `org_id`, `billing_account`, and the engineer's email `deployer_email = "jsaccomani@google.com"`.*
+4. Initialize and apply:
+   ```bash
+   terraform init
+   terraform apply
+   ```
+5. Copy the generated `project_id` output and share it with the implementation engineer.
 
 ---
 
-### Step 2.2: Deploy the Agent and Client Web Portal
+## 3. Phase 2: Engineer Authentication and Application Deployment
 
-Set the environment variables with the project ID output from Step 2.1 and execute the journey:
+Once the client completes Phase 1, the implementation engineer executes the deployment journey.
+
+### Step 3.1: Authenticate with GCP Credentials
+
+Authenticate your local terminal to GCP:
+
+```bash
+gcloud auth login
+gcloud auth application-default login
+```
+
+### Step 3.2: Navigate to the Repository
+
+Navigate to the project root:
+
+```bash
+cd "/Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certifications"
+```
+
+### Step 3.3: Run the Automated Deployment Journey
+
+Set the target project ID (from Phase 1 output) and run `make journey`:
 
 ```bash
 export PROJECT_ID="<OUTPUT_PROJECT_ID>"
@@ -66,78 +116,73 @@ export REGION="us-central1"
 make journey
 ```
 
-**What this command does automatically:**
-1. Executes the quality and security test suite (56 unit and integration tests).
-2. Deploys the combined StreamableHTTP MCP server and Client Web Portal container to Cloud Run.
-3. Performs an end-to-end smoke test validating the continuous audit engine.
-4. Prints the live HTTPS URL for the client portal.
+**What `make journey` does automatically:**
+1. Executes the 56-test suite verifying the multi-agent graph, Model Armor safety, and Zero-Copy connectors.
+2. Builds and packages the container containing the MCP server and web portal.
+3. Deploys the service to Google Cloud Run.
+4. Runs an automated smoke test verifying the Continuous Intelligence audit engine against live APIs.
+5. Prints the live HTTPS URL for the client portal.
 
----
-
-### Step 2.3: Access the Client Portal
+### Step 3.4: Access the Live Client Portal
 
 Open the printed URL in your browser:
 ```text
 https://<SERVICE_NAME>-<HASH>.a.run.app/portal
 ```
 
-*(For local testing without deploying to GCP, run `make run-portal` and visit `http://localhost:8080/portal`)*
+*(To run the portal locally without Cloud Run, run `make run-portal` and visit `http://localhost:8080/portal`)*
 
 ---
 
-## 3. Connecting to Gemini Enterprise (Agent Studio)
+## 4. Alternative: Single-Script Provisioning (`make provision-org`)
 
-To enable chatbot interactions directly inside Google Cloud Vertex AI / Gemini Enterprise:
+If you have direct Organization Administrator privileges on the target GCP organization, you can bypass the manual Terraform upload and provision the folder, project, and IAM bindings with a single command:
 
-1. Open the Google Cloud Console and navigate to **Vertex AI** > **Agent Studio**.
-2. Select or create an Agent.
-3. In the left navigation, click **Tools** > **Create Tool**.
-4. Choose **Model Context Protocol (MCP)**.
-5. In the **Server URL** field, paste your deployed Cloud Run URL pointing to the `/mcp` endpoint:
+```bash
+cd "/Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certifications"
+make provision-org
+```
+
+Then proceed directly to Step 3.3 (`make journey`).
+
+---
+
+## 5. Connecting to Gemini Enterprise (Agent Studio)
+
+To connect the deployed compliance agent into Vertex AI / Gemini Enterprise:
+
+1. In the Google Cloud Console, navigate to **Vertex AI** > **Agent Studio**.
+2. Select or create an agent.
+3. Click **Tools** > **Create Tool** > **Model Context Protocol (MCP)**.
+4. In the **Server URL** field, enter your deployed Cloud Run URL pointing to the `/mcp` endpoint:
    ```text
    https://<YOUR_CLOUD_RUN_URL>/mcp
    ```
-6. Agent Studio will query the Discovery Endpoint (`/.well-known/agent.json`) and automatically register all compliance skills:
-   - `audit_cloud_security`
-   - `scan_iac_configuration`
-   - `correlate_threat_intelligence`
-   - `audit_climate_resilience`
-   - `audit_data_leakage_prevention`
-   - `audit_monitoring_activities`
+5. Agent Studio will automatically discover and register the audit skills via `/.well-known/agent.json`:
+   - `audit_cloud_security` (A.5.23, A.8.20, A.8.24)
+   - `scan_iac_configuration` (A.8.9)
+   - `correlate_threat_intelligence` (A.5.7)
+   - `audit_climate_resilience` (Amd 1:2024 Clauses 4.1 & 4.2)
+   - `audit_data_leakage_prevention` (A.8.12)
+   - `audit_monitoring_activities` (A.8.16)
 
 ---
 
-## 4. Using the Client Web Portal
+## 6. Client Web Portal Features
 
-The deployed web portal provides an intuitive dashboard divided into five tabs:
+The portal dashboard includes five primary operational tabs:
 
-### Tab 1: Chatbot Auditor
-- Send natural language prompts (e.g., *"Execute proactive audit"*, *"Audit KMS cryptography A.8.24"*, *"Horizon scanning regulatory update"*).
-- The agent orchestrates subagents, queries the live evidence graph, evaluates compliance, and returns structured findings.
-
-### Tab 2: Sub-Agents
-- View the real-time operational status and cryptographic SPIFFE identity of each specialized sub-agent:
-  - `AnnexASubAgent` (ISO 27001 Annex A controls)
-  - `GCPTelemetrySubAgent` (Asset inventory and telemetry)
-  - `OrgPoliciesSubAgent` (Policy cross-referencing)
-  - `HorizonScannerSubAgent` (Regulatory updates and climate resilience)
-  - `CodeMender` (Planned backlog)
-- Trigger individual sub-agents on demand.
-
-### Tab 3: Upload & Connect
-- **Compliance Artifact Upload**: Drag and drop Terraform files (`.tf`), Ansible playbooks (`.yml`), or organizational policy files (`.json`, `.txt`). The scanner evaluates misconfigurations immediately.
-- **Zero-Copy Storage Link**: Connect Google Drive, SharePoint, Jira, or Confluence by supplying the folder ID or repository URL. Files are analyzed at the source without copying data externally.
-
-### Tab 4: Audit Dashboard & HITL Gate
-- View the overall compliance scorecard and temporal drift velocity.
-- Review and approve pending Human-in-the-Loop (HITL) remediation playbooks or policy amendments.
-
-### Tab 5: Gemini Integration
-- View setup instructions and embed code for internal client intranets.
+1. **Chatbot Auditor**: Natural language chat interface grounded in the live evidence graph and Model Armor guardrails.
+2. **Sub-Agents**: View and invoke specialized sub-agents (`AnnexASubAgent`, `GCPTelemetrySubAgent`, `OrgPoliciesSubAgent`, `HorizonScannerSubAgent`).
+3. **Upload & Connect**:
+   - Upload Terraform (`.tf`), Ansible (`.yml`), or policy files (`.json`, `.txt`) for instant local misconfiguration analysis.
+   - Configure Zero-Copy connectors (Google Drive, SharePoint, Jira, Confluence) to audit documentation at the source.
+4. **Audit Dashboard & HITL Gate**: Continuous compliance score, temporal drift velocity, and approval gate for remediation playbooks.
+5. **Gemini Integration**: Intranet embed code and REST/MCP endpoints.
 
 ---
 
-## 5. Local Development and Testing Commands
+## 7. Developer & Maintenance Command Reference
 
 | Command | Purpose |
 | :--- | :--- |
@@ -145,23 +190,27 @@ The deployed web portal provides an intuitive dashboard divided into five tabs:
 | `make test` | Run the complete 56-test suite with coverage reporting. |
 | `make run-portal` | Start the local web portal on `http://localhost:8080/portal`. |
 | `make audit-poc` | Run a standalone proof-of-concept audit script. |
-| `make provision-org` | Provision GCP folder, project, and org-level IAM roles. |
+| `make provision-org` | Run the bash script to provision GCP folder, project, and org-level IAM roles. |
 | `make journey` | Full end-to-end test, container build, and Cloud Run deployment. |
 | `make clean` | Remove temporary cache and test artifacts. |
 
 ---
 
-## 6. Verification and Troubleshooting
+## 8. Verification and Troubleshooting
 
-- **Check Cloud Run service status**:
+- **Inspect Cloud Run Service**:
   ```bash
   gcloud run services describe mcp-server-grc --project="<PROJECT_ID>" --region="us-central1"
   ```
-- **Check Cloud Run logs**:
+- **Read Service Logs**:
   ```bash
-  gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=mcp-server-grc" --project="<PROJECT_ID>" --limit=20
+  gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=mcp-server-grc" --project="<PROJECT_ID>" --limit=30
   ```
-- **Verify Organization IAM Bindings**:
+- **Verify Organization-Level Auditor Bindings**:
   ```bash
   gcloud organizations get-iam-policy 31564119954 --filter="bindings.members:sa-agentic-grc-auditor"
+  ```
+- **Verify Project Deployer Permissions**:
+  ```bash
+  gcloud projects get-iam-policy "<PROJECT_ID>" --filter="bindings.members:user:jsaccomani@google.com"
   ```
