@@ -1,4 +1,4 @@
-.PHONY: install test lint run-mcp run-orchestrator clean
+.PHONY: install test lint run-mcp run-orchestrator clean journey
 
 PYTHON := .venv/bin/python
 UV := /Users/jsaccomani/.local/bin/uv
@@ -14,6 +14,9 @@ lint:
 
 run-mcp:
 	$(PYTHON) -m uvicorn mcp_server_grc.server:app --host 0.0.0.0 --port 8080 --reload
+
+journey:
+	@bash scripts/journey.sh
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
