@@ -11,6 +11,8 @@ An enterprise-grade, autonomous multi-agent orchestration framework designed for
 
 Directly maps live cloud telemetry and organizational policies to **ISO/IEC 27001:2022**, the **Amd 1:2024 Climate Action Amendment**, and emerging AI governance baselines.
 
+> **Deployment Guide**: See [HOWTO.md](file:///Users/jsaccomani/Documents/Jetsky/My%20Projects/agentic_grc_certifications/HOWTO.md) for step-by-step instructions on provisioning the GCP Organization folder, project, and deploying the agent with `make provision-org` and `make journey`.
+
 ---
 
 ## 1. Key Architectural Pillars (GEAP)
