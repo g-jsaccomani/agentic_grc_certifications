@@ -50,27 +50,45 @@ if [ -z "${CURRENT_ACCOUNT}" ]; then
 fi
 echo -e "Authenticated as: ${BOLD}${GREEN}${CURRENT_ACCOUNT}${NC}"
 
+# Helper: Verify if an IaC binary is genuine and functional (not a Cloud Shell stub)
+is_valid_iac() {
+    local candidate="${1:-}"
+    if [ -z "${candidate}" ]; then
+        return 1
+    fi
+    if ! command -v "${candidate}" >/dev/null 2>&1 && [ ! -x "${candidate}" ]; then
+        return 1
+    fi
+    local ver_str
+    ver_str=$("${candidate}" version 2>&1 || true)
+    # Require output starting with standard version header (e.g., 'Terraform v1.9.5' or 'OpenTofu v1.8.2')
+    # This rejects the Google Cloud Shell wrapper that prints install instructions
+    if echo "${ver_str}" | grep -qE '^(Terraform|OpenTofu) v[0-9]+\.[0-9]+'; then
+        return 0
+    fi
+    return 1
+}
+
 # 2. Check for Functional Infrastructure-as-Code Engine (Terraform or OpenTofu)
 echo -e "\n${BOLD}[2/6] Verifying Infrastructure-as-Code (IaC) Engine...${NC}"
 IAC_BIN=""
 
-# Test if an actual working terraform binary exists
-if command -v terraform >/dev/null 2>&1; then
-    if terraform version >/dev/null 2>&1; then
-        IAC_BIN="terraform"
-    fi
-fi
-
-# Test if an actual working OpenTofu binary exists
-if [ -z "${IAC_BIN}" ] && command -v tofu >/dev/null 2>&1; then
-    if tofu version >/dev/null 2>&1; then
-        IAC_BIN="tofu"
-    fi
+# Check local user bin directory first
+if is_valid_iac "${BIN_DIR}/terraform"; then
+    IAC_BIN="${BIN_DIR}/terraform"
+elif is_valid_iac "${BIN_DIR}/tofu"; then
+    IAC_BIN="${BIN_DIR}/tofu"
+# Then check system PATH
+elif is_valid_iac "terraform"; then
+    IAC_BIN="$(command -v terraform)"
+elif is_valid_iac "tofu"; then
+    IAC_BIN="$(command -v tofu)"
 fi
 
 # If neither is found or functional, present choices to the client
 if [ -z "${IAC_BIN}" ]; then
-    echo -e "${YELLOW}Notice: Neither Terraform nor OpenTofu is currently installed in this environment.${NC}"
+    echo -e "${YELLOW}Notice: Neither a working Terraform nor OpenTofu binary was found in this environment.${NC}"
+    echo -e "${YELLOW}(Google Cloud Shell placeholder detected or binary not installed).${NC}"
     echo -e "Please select which tool you would like to install:\n"
     echo -e "  ${BOLD}[1] Terraform${NC}  (Official HashiCorp binary - Recommended)"
     echo -e "  ${BOLD}[2] OpenTofu${NC}   (Open-source Linux Foundation engine)\n"
@@ -78,12 +96,12 @@ if [ -z "${IAC_BIN}" ]; then
     SELECTION="1"
     # Read user input safely even if running through 'curl ... | bash' pipe
     if [ -t 0 ]; then
-        read -r -p "Enter your choice [1 or 2] (default: 1): " USER_INPUT || true
+        read -r -t 15 -p "Enter your choice [1 or 2] (default: 1 in 15s): " USER_INPUT || true
         if [ -n "${USER_INPUT:-}" ]; then
             SELECTION="${USER_INPUT}"
         fi
-    elif [ -e /dev/tty ]; then
-        read -r -p "Enter your choice [1 or 2] (default: 1): " USER_INPUT < /dev/tty || true
+    elif [ -e /dev/tty ] && [ -r /dev/tty ]; then
+        read -r -t 15 -p "Enter your choice [1 or 2] (default: 1 in 15s): " USER_INPUT < /dev/tty || true
         if [ -n "${USER_INPUT:-}" ]; then
             SELECTION="${USER_INPUT}"
         fi
@@ -92,7 +110,7 @@ if [ -z "${IAC_BIN}" ]; then
     fi
 
     if [ "${SELECTION}" == "2" ]; then
-        echo -e "\n${BOLD}Installing OpenTofu (v1.8.2)...${NC}"
+        echo -e "\n${BOLD}Downloading official OpenTofu (v1.8.2)...${NC}"
         TOFU_URL="https://github.com/opentofu/opentofu/releases/download/v1.8.2/tofu_1.8.2_${OS}_${ARCH}.tar.gz"
         curl -sSL -o /tmp/tofu.tar.gz "${TOFU_URL}"
         tar -xzf /tmp/tofu.tar.gz -C "${BIN_DIR}" tofu
@@ -101,7 +119,7 @@ if [ -z "${IAC_BIN}" ]; then
         IAC_BIN="${BIN_DIR}/tofu"
         echo -e "${GREEN}OpenTofu successfully installed to ${IAC_BIN}!${NC}"
     else
-        echo -e "\n${BOLD}Installing HashiCorp Terraform (v1.9.5)...${NC}"
+        echo -e "\n${BOLD}Downloading official HashiCorp Terraform (v1.9.5)...${NC}"
         TF_URL="https://releases.hashicorp.com/terraform/1.9.5/terraform_1.9.5_${OS}_${ARCH}.zip"
         curl -sSL -o /tmp/terraform.zip "${TF_URL}"
         if command -v unzip >/dev/null 2>&1; then
@@ -114,9 +132,19 @@ if [ -z "${IAC_BIN}" ]; then
         IAC_BIN="${BIN_DIR}/terraform"
         echo -e "${GREEN}Terraform successfully installed to ${IAC_BIN}!${NC}"
     fi
+
+    # Ensure PATH is persisted for future sessions
+    if [ -f "${HOME}/.bashrc" ] && ! grep -q "PATH=.*${BIN_DIR}" "${HOME}/.bashrc" 2>/dev/null; then
+        echo "export PATH=\"${BIN_DIR}:\$PATH\"" >> "${HOME}/.bashrc"
+    fi
 fi
 
-echo -e "Using IaC Engine: ${BOLD}${GREEN}$(${IAC_BIN} version | head -n 1)${NC}"
+if ! is_valid_iac "${IAC_BIN}"; then
+    echo -e "${RED}Error: Failed to verify functional IaC engine at ${IAC_BIN}.${NC}"
+    exit 1
+fi
+
+echo -e "Using IaC Engine: ${BOLD}${GREEN}$("${IAC_BIN}" version | head -n 1)${NC}"
 
 # 3. Detect or Confirm Organization ID
 echo -e "\n${BOLD}[3/6] Identifying GCP Organization...${NC}"
@@ -161,15 +189,24 @@ echo -e "${GREEN}Configuration file generated.${NC}"
 # 6. Execute Provisioning
 echo -e "\n${BOLD}[6/6] Provisioning Folder, Project, APIs, and IAM Roles...${NC}"
 echo -e "Running initialization (${IAC_BIN} init)..."
-${IAC_BIN} init -input=false
+"${IAC_BIN}" init -input=false
 
 echo -e "\nApplying infrastructure changes automatically..."
-${IAC_BIN} apply -auto-approve -input=false
+"${IAC_BIN}" apply -auto-approve -input=false
 
 # 7. Extract Outputs and Display in Large, Plain Text
-PROJECT_ID=$(${IAC_BIN} output -raw project_id 2>/dev/null || true)
-FOLDER_ID=$(${IAC_BIN} output -raw folder_id 2>/dev/null || true)
-AUDITOR_SA=$(${IAC_BIN} output -raw auditor_service_account_email 2>/dev/null || true)
+PROJECT_ID=$("${IAC_BIN}" output -raw project_id 2>/dev/null || true)
+FOLDER_ID=$("${IAC_BIN}" output -raw folder_id 2>/dev/null || true)
+AUDITOR_SA=$("${IAC_BIN}" output -raw auditor_service_account_email 2>/dev/null || true)
+
+# Fail fast if output extraction failed or contains an error/stub message
+if [ -z "${PROJECT_ID}" ] || [ -z "${FOLDER_ID}" ] || echo "${PROJECT_ID}" | grep -qi "Follow the instructions"; then
+    echo -e "\n${RED}${BOLD}================================================================${NC}"
+    echo -e "${RED}${BOLD}       ERROR: INFRASTRUCTURE PROVISIONING DID NOT COMPLETE      ${NC}"
+    echo -e "${RED}${BOLD}================================================================${NC}"
+    echo -e "\nPlease review the error output above or contact the implementation engineer for support.\n"
+    exit 1
+fi
 
 echo -e "\n${BOLD}${GREEN}================================================================${NC}"
 echo -e "${BOLD}${GREEN}              FIRST STEPS PROVISIONING COMPLETED!               ${NC}"
