@@ -81,22 +81,67 @@ resource "google_organization_iam_member" "org_roles" {
 # ------------------------------------------------------------------------------
 # 6. Deployer IAM Permissions on Host Project (for Engineer make journey execution)
 # ------------------------------------------------------------------------------
+locals {
+  # Merge legacy deployer_email (if present) with deployer_emails list
+  raw_deployer_list = distinct(concat(
+    var.deployer_email != "" ? [var.deployer_email] : [],
+    var.deployer_emails
+  ))
+
+  # Ensure each entry is prefixed with IAM member type (defaults to user: if not specified)
+  formatted_deployer_members = [
+    for m in local.raw_deployer_list : (
+      can(regex("^(user|serviceAccount|group|domain):", m)) ? m : "user:${m}"
+    )
+  ]
+
+  # Matrix product of members and roles
+  deployer_member_roles = flatten([
+    for m in local.formatted_deployer_members : [
+      for r in var.deployer_project_roles : {
+        key    = "${m}-${r}"
+        member = m
+        role   = r
+      }
+    ]
+  ])
+}
+
 resource "google_project_iam_member" "deployer_roles" {
-  for_each = toset(var.deployer_email != "" ? var.deployer_project_roles : [])
+  for_each = {
+    for item in local.deployer_member_roles : item.key => item
+  }
 
   project = google_project.grc_project.project_id
-  role    = each.value
-  member  = "user:${var.deployer_email}"
+  role    = each.value.role
+  member  = each.value.member
 
   depends_on = [google_project_service.apis]
 }
 
 resource "google_service_account_iam_member" "deployer_sa_user" {
-  count = var.deployer_email != "" ? 1 : 0
+  for_each = toset(local.formatted_deployer_members)
 
   service_account_id = google_service_account.grc_auditor.name
   role               = "roles/iam.serviceAccountUser"
-  member             = "user:${var.deployer_email}"
+  member             = each.value
 
   depends_on = [google_service_account.grc_auditor]
+}
+
+# ------------------------------------------------------------------------------
+# 7. Cloud Build & Compute Default Service Account (for Cloud Run source builds)
+# ------------------------------------------------------------------------------
+resource "google_project_iam_member" "compute_sa_builder_roles" {
+  for_each = toset([
+    "roles/storage.admin",
+    "roles/logging.logWriter",
+    "roles/artifactregistry.writer"
+  ])
+
+  project = google_project.grc_project.project_id
+  role    = each.value
+  member  = "serviceAccount:${google_project.grc_project.number}-compute@developer.gserviceaccount.com"
+
+  depends_on = [google_project_service.apis]
 }

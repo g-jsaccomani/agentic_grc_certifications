@@ -13,5 +13,8 @@ project_prefix = "agentic-grc"
 # Default deployment region
 region = "us-central1"
 
-# Engineer/consultant user to grant deployment permissions
-deployer_email = "jsaccomani@google.com"
+# Account(s) to grant deployment permissions (individual user email, group, or serviceAccount)
+deployer_emails = [
+  "admin@company.com",
+  "engineer@company.com"
+]

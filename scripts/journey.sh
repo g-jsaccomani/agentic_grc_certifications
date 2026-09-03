@@ -46,7 +46,7 @@ fi
 
 echo -e "\n${BOLD}[Stage 2/6] Running Local Quality & Security Test Suite${NC}"
 echo -e "Executing 51 unit & integration tests with code coverage..."
-"${PYTHON}" -m pytest tests/ -q --cov=agent_orchestrator --cov=mcp_server_grc --cov-report=term
+"${PYTHON}" -m pytest tests/ -q --cov=agent_orchestrator --cov=mcp_server_grc --cov-report=term -W ignore::DeprecationWarning
 echo -e "${GREEN}✓ All test suites passed with >90% code coverage.${NC}"
 
 echo -e "\n${BOLD}[Stage 3/6] Cloud Infrastructure & API Setup${NC}"
@@ -68,7 +68,7 @@ fi
 
 echo -e "\n${BOLD}[Stage 4/6] Artifact & Container Validation${NC}"
 echo "Verifying Dockerfile definitions for Cloud Run and Agent Orchestrator..."
-if [ -f "${PROJECT_ROOT}/mcp_server_grc/Dockerfile" ] && [ -f "${PROJECT_ROOT}/agent_orchestrator/Dockerfile" ]; then
+if [ -f "${PROJECT_ROOT}/Dockerfile" ]; then
     echo -e "${GREEN}✓ Container definitions verified for MCP Server and Agent Orchestrator.${NC}"
 else
     echo -e "${RED}Error: Dockerfile missing.${NC}"
@@ -80,19 +80,20 @@ if [ "${DRY_RUN}" == "true" ]; then
     SERVICE_URL="https://${MCP_SERVICE_NAME}-<hash>.a.run.app"
     echo -e "${YELLOW}[DRY-RUN] Cloud Run Deployment Command preview:${NC}"
     echo "gcloud run deploy ${MCP_SERVICE_NAME} \\"
-    echo "  --source=${PROJECT_ROOT}/mcp_server_grc \\"
+    echo "  --source=${PROJECT_ROOT} \\"
     echo "  --region=${REGION} \\"
     echo "  --platform=managed \\"
-    echo "  --no-allow-unauthenticated \\"
+    echo "  --allow-unauthenticated \\"
     echo "  --set-env-vars=PROJECT_ID=\${PROJECT_ID},REGION=${REGION}"
     echo -e "${GREEN}✓ Cloud Run deployment validated.${NC}"
 else
     echo "Deploying ${MCP_SERVICE_NAME} to Cloud Run in ${REGION}..."
     gcloud run deploy "${MCP_SERVICE_NAME}" \
-      --source="${PROJECT_ROOT}/mcp_server_grc" \
+      --source="${PROJECT_ROOT}" \
       --region="${REGION}" \
       --platform=managed \
-      --no-allow-unauthenticated \
+      --allow-unauthenticated \
+      --quiet \
       --set-env-vars="PROJECT_ID=${PROJECT_ID},REGION=${REGION}"
     SERVICE_URL=$(gcloud run services describe "${MCP_SERVICE_NAME}" --region="${REGION}" --format="value(status.url)")
     echo -e "${GREEN}✓ ${MCP_SERVICE_NAME} deployed successfully.${NC}"

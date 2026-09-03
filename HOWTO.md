@@ -224,5 +224,5 @@ The portal dashboard includes five primary operational tabs:
   ```
 - **Verify Project Deployer Permissions**:
   ```bash
-  gcloud projects get-iam-policy "<PROJECT_ID>" --filter="bindings.members:user:jsaccomani@google.com"
+  gcloud projects get-iam-policy "<PROJECT_ID>" --filter="bindings.members:<DEPLOYER_ACCOUNT>"
   ```

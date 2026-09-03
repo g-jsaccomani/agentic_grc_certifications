@@ -10,6 +10,7 @@ BOLD="\033[1m"
 GREEN="\033[0;32m"
 YELLOW="\033[1;33m"
 BLUE="\033[0;34m"
+CYAN="\033[0;36m"
 RED="\033[0;31m"
 NC="\033[0m"
 
@@ -41,7 +42,7 @@ case "${ARCH}" in
 esac
 
 # 1. Verify Google Cloud Authentication
-echo -e "\n${BOLD}[1/6] Checking Google Cloud Authentication...${NC}"
+echo -e "\n${BOLD}[1/7] Checking Google Cloud Authentication...${NC}"
 CURRENT_ACCOUNT=$(gcloud config get-value account 2>/dev/null || true)
 if [ -z "${CURRENT_ACCOUNT}" ]; then
     echo -e "${YELLOW}No active account found. Running gcloud auth login...${NC}"
@@ -70,7 +71,7 @@ is_valid_iac() {
 }
 
 # 2. Check for Functional Infrastructure-as-Code Engine (Terraform or OpenTofu)
-echo -e "\n${BOLD}[2/6] Verifying Infrastructure-as-Code (IaC) Engine...${NC}"
+echo -e "\n${BOLD}[2/7] Verifying Infrastructure-as-Code (IaC) Engine...${NC}"
 IAC_BIN=""
 
 # Check local user bin directory first
@@ -147,7 +148,7 @@ fi
 echo -e "Using IaC Engine: ${BOLD}${GREEN}$("${IAC_BIN}" version | head -n 1)${NC}"
 
 # 3. Detect or Confirm Organization ID
-echo -e "\n${BOLD}[3/6] Identifying GCP Organization...${NC}"
+echo -e "\n${BOLD}[3/7] Identifying GCP Organization...${NC}"
 DEFAULT_ORG="31564119954"
 DETECTED_ORG=$(gcloud organizations list --format="value(name)" 2>/dev/null | head -n 1 | awk -F'/' '{print $NF}' || true)
 
@@ -160,7 +161,7 @@ else
 fi
 
 # 4. Detect or Confirm Billing Account
-echo -e "\n${BOLD}[4/6] Identifying Billing Account...${NC}"
+echo -e "\n${BOLD}[4/7] Identifying Billing Account...${NC}"
 DEFAULT_BILLING="0180FF-1553BD-6B74BE"
 DETECTED_BILLING=$(gcloud billing accounts list --filter="open=true" --format="value(name)" 2>/dev/null | head -n 1 | awk -F'/' '{print $NF}' || true)
 
@@ -172,22 +173,81 @@ else
     echo -e "Using Default Billing Account: ${BOLD}${TARGET_BILLING}${NC}"
 fi
 
-DEPLOYER_EMAIL="jsaccomani@google.com"
+# 5. Specify Authorized Deployer & Operator Accounts
+echo -e "\n${BOLD}[5/7] Configuring Authorized Deployer & Operator Accounts...${NC}"
+echo -e "Specify the email address(es) or accounts that will be granted deployment and operator"
+echo -e "permissions on the newly provisioned project."
+echo -e "Supported formats (comma-separated for multiple):"
+echo -e "  - Individual User:   ${CYAN}engineer@company.com${NC} or ${CYAN}user:engineer@company.com${NC}"
+echo -e "  - Group / Team:      ${CYAN}group:devops@company.com${NC}"
+echo -e "  - Service Account:   ${CYAN}serviceAccount:ci-deployer@other-project.iam.gserviceaccount.com${NC}"
 
-# 5. Generate Configuration File
-echo -e "\n${BOLD}[5/6] Generating Configuration File (terraform.tfvars)...${NC}"
+CURRENT_GCLOUD_ACCOUNT=$(gcloud config get-value account 2>/dev/null || true)
+DEFAULT_ACCOUNT_HINT="${CURRENT_GCLOUD_ACCOUNT}"
+
+TARGET_ACCOUNTS=""
+if [ -n "${DEPLOYER_ACCOUNTS:-}" ]; then
+    TARGET_ACCOUNTS="${DEPLOYER_ACCOUNTS}"
+    echo -e "Using accounts from DEPLOYER_ACCOUNTS environment variable: ${BOLD}${GREEN}${TARGET_ACCOUNTS}${NC}"
+elif [ -n "${DEPLOYER_EMAILS:-}" ]; then
+    TARGET_ACCOUNTS="${DEPLOYER_EMAILS}"
+    echo -e "Using accounts from DEPLOYER_EMAILS environment variable: ${BOLD}${GREEN}${TARGET_ACCOUNTS}${NC}"
+elif [ -n "${DEPLOYER_EMAIL:-}" ]; then
+    TARGET_ACCOUNTS="${DEPLOYER_EMAIL}"
+    echo -e "Using account from DEPLOYER_EMAIL environment variable: ${BOLD}${GREEN}${TARGET_ACCOUNTS}${NC}"
+else
+    if [ -t 0 ]; then
+        if [ -n "${DEFAULT_ACCOUNT_HINT}" ]; then
+            read -r -p "Enter account(s) to authorize [Default: ${DEFAULT_ACCOUNT_HINT}]: " INPUT_ACCOUNTS || true
+            TARGET_ACCOUNTS="${INPUT_ACCOUNTS:-${DEFAULT_ACCOUNT_HINT}}"
+        else
+            read -r -p "Enter account(s) to authorize: " TARGET_ACCOUNTS || true
+        fi
+    elif [ -e /dev/tty ] && [ -r /dev/tty ]; then
+        if [ -n "${DEFAULT_ACCOUNT_HINT}" ]; then
+            read -r -p "Enter account(s) to authorize [Default: ${DEFAULT_ACCOUNT_HINT}]: " INPUT_ACCOUNTS < /dev/tty || true
+            TARGET_ACCOUNTS="${INPUT_ACCOUNTS:-${DEFAULT_ACCOUNT_HINT}}"
+        else
+            read -r -p "Enter account(s) to authorize: " TARGET_ACCOUNTS < /dev/tty || true
+        fi
+    else
+        TARGET_ACCOUNTS="${DEFAULT_ACCOUNT_HINT}"
+    fi
+fi
+
+echo -e "Authorized Account(s): ${BOLD}${GREEN}${TARGET_ACCOUNTS}${NC}"
+
+# Convert comma-separated accounts to Terraform list syntax
+TF_DEPLOYER_EMAILS="["
+FIRST_ACC=true
+IFS=',' read -ra ADDR <<< "${TARGET_ACCOUNTS}"
+for item in "${ADDR[@]}"; do
+    trimmed=$(echo "${item}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    if [ -n "${trimmed}" ]; then
+        if [ "${FIRST_ACC}" = true ]; then
+            TF_DEPLOYER_EMAILS="${TF_DEPLOYER_EMAILS}\n  \"${trimmed}\""
+            FIRST_ACC=false
+        else
+            TF_DEPLOYER_EMAILS="${TF_DEPLOYER_EMAILS},\n  \"${trimmed}\""
+        fi
+    fi
+done
+TF_DEPLOYER_EMAILS="${TF_DEPLOYER_EMAILS}\n]"
+
+# 6. Generate Configuration File
+echo -e "\n${BOLD}[6/7] Generating Configuration File (terraform.tfvars)...${NC}"
 cat <<EOF > terraform.tfvars
 org_id          = "${TARGET_ORG}"
 billing_account = "${TARGET_BILLING}"
 folder_name     = "fldr-agentic-grc"
 project_prefix  = "agentic-grc"
 region          = "us-central1"
-deployer_email  = "${DEPLOYER_EMAIL}"
+deployer_emails = $(echo -e "${TF_DEPLOYER_EMAILS}")
 EOF
 echo -e "${GREEN}Configuration file generated.${NC}"
 
-# 6. Execute Provisioning
-echo -e "\n${BOLD}[6/6] Provisioning Folder, Project, APIs, and IAM Roles...${NC}"
+# 7. Execute Provisioning
+echo -e "\n${BOLD}[7/7] Provisioning Folder, Project, APIs, and IAM Roles...${NC}"
 echo -e "Running initialization (${IAC_BIN} init)..."
 "${IAC_BIN}" init -input=false
 

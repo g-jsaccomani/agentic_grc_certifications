@@ -41,9 +41,15 @@ variable "service_account_name" {
 }
 
 variable "deployer_email" {
-  description = "Email address of the engineer/consultant deploying the platform (e.g. jsaccomani@google.com)"
+  description = "Single email address of deployer (optional / legacy compatibility)"
   type        = string
-  default     = "jsaccomani@google.com"
+  default     = ""
+}
+
+variable "deployer_emails" {
+  description = "List of email addresses or GCP accounts (user:email, group:group_email, serviceAccount:sa_email) to grant deployer permissions"
+  type        = list(string)
+  default     = []
 }
 
 variable "required_apis" {
@@ -92,6 +98,7 @@ variable "deployer_project_roles" {
     "roles/storage.admin",
     "roles/aiplatform.user",
     "roles/serviceusage.serviceUsageConsumer",
-    "roles/cloudbuild.builds.editor"
+    "roles/cloudbuild.builds.editor",
+    "roles/modelarmor.admin"
   ]
 }

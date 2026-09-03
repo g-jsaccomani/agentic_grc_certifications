@@ -15,8 +15,8 @@ import httpx
 from agent_orchestrator.gateway import ModelArmorGateway
 from agent_orchestrator.a2a_client import A2AClient, A2ATask
 
-# Gemini 2026 Platform Configurations
-MODEL_ID = os.getenv("GEMINI_MODEL_ID", "gemini-3.7-flash")
+# Gemini Platform Configurations
+MODEL_ID = os.getenv("GEMINI_MODEL_ID", "gemini-2.5-flash")
 CLIENT_AUTH_NAME = "agent-grc-identity"
 
 
