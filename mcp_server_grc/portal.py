@@ -33,6 +33,7 @@ from mcp_server_grc.assets_b64 import (
     GOOGLE_CLOUD_WORDMARK_URI,
     GOOGLE_CLOUD_ICON_URI,
     GOOGLE_COLOR_STRIPE_URI,
+    GOOGLE_CLOUD_DARK_WORDMARK_URI,
 )
 
 logger = logging.getLogger("portal")
