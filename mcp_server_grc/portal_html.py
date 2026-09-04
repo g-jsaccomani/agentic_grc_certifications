@@ -1453,6 +1453,167 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
         .sig-seal { border: 2px dashed #1a73e8; padding: 12px 18px; border-radius: 8px; color: #1a73e8; font-weight: 600; text-align: center; }
 
+        
+        /* ------------------------------------------------------------------ */
+        /* Agentic Live Alert Banner & Industry Templates */
+        /* ------------------------------------------------------------------ */
+        .agentic-alert-banner {
+            background: linear-gradient(90deg, rgba(234, 67, 53, 0.15) 0%, rgba(251, 188, 4, 0.12) 100%);
+            border: 1px solid rgba(234, 67, 53, 0.4);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            box-shadow: 0 4px 20px rgba(234, 67, 53, 0.15);
+            animation: pulse-border 2.5s infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(234, 67, 53, 0.4); }
+            50% { border-color: rgba(251, 188, 4, 0.8); }
+        }
+        .alert-left-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        .alert-icon-wrap {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(234, 67, 53, 0.2);
+            color: #f28b82;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .alert-content-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .alert-tagline {
+            font-size: 11px;
+            font-weight: 700;
+            color: #f28b82;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .alert-headline {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .alert-desc {
+            font-size: 12px;
+            color: #d1d5db;
+        }
+        .alert-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .btn-alert-diag {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
+            padding: 7px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+        .btn-alert-diag:hover { background: rgba(255, 255, 255, 0.15); }
+        .btn-alert-update {
+            background: linear-gradient(135deg, #34a853 0%, #1e8e3e 100%);
+            color: #ffffff;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 8px rgba(52, 168, 83, 0.3);
+            transition: var(--transition-smooth);
+        }
+        .btn-alert-update:hover {
+            box-shadow: 0 4px 12px rgba(52, 168, 83, 0.5);
+            filter: brightness(1.1);
+        }
+
+        /* Industry Suggestion Cards in Left Drawer */
+        .drawer-suggestions-box {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .drawer-suggestions-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gcp-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .template-pills-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .btn-template-pill {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 5px 10px;
+            border-radius: 16px;
+            font-size: 11.5px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+        .btn-template-pill:hover {
+            border-color: var(--gcp-blue);
+            color: var(--gcp-blue);
+            background: rgba(138, 180, 248, 0.08);
+        }
+        .btn-ai-recommend {
+            width: 100%;
+            background: linear-gradient(135deg, rgba(66, 133, 244, 0.15) 0%, rgba(138, 180, 248, 0.15) 100%);
+            border: 1px solid rgba(138, 180, 248, 0.35);
+            color: var(--gcp-blue);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: var(--transition-smooth);
+        }
+        .btn-ai-recommend:hover {
+            background: var(--gcp-blue);
+            color: #ffffff;
+        }
+
         /* Modals */
         .modal-overlay {
             display: none;
@@ -1830,6 +1991,37 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <!-- View 1: Chatbot Auditor -->
             <section class="view-pane active" id="view-chat">
                 <div class="chat-view-container">
+                    
+                    <!-- Banner de Alerta Agêntico Proativo (Vertex AI Gemini) -->
+                    <div class="agentic-alert-banner" id="agenticAlertBanner" style="display: none;">
+                        <div class="alert-left-group">
+                            <div class="alert-icon-wrap">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                    <line x1="12" y1="9" x2="12" y2="13"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                            </div>
+                            <div class="alert-content-wrap">
+                                <span class="alert-tagline">
+                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #f28b82; display: inline-block;"></span>
+                                    Alerta Agêntico em Tempo Real • Vertex AI
+                                </span>
+                                <div class="alert-headline" id="alertHeadline">Desvio Crítico no Controle A.8.24 (Cloud KMS HSM)</div>
+                                <div class="alert-desc" id="alertDesc">Chave 'app-secrets-master' configurada com ciclo de 180 dias (limite: 90 dias). Risco de não-conformidade.</div>
+                            </div>
+                        </div>
+                        <div class="alert-actions">
+                            <button class="btn-alert-diag" onclick="showDeviationDiagnostic()">Ver Diagnóstico</button>
+                            <button class="btn-alert-update" onclick="triggerAutonomousPolicyUpdate()">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4">
+                                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                                </svg>
+                                Atualizar Política com IA (Zero-Touch)
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="chat-messages-area" id="chatArea">
                         <div class="gemini-hero" id="geminiHero">
                             <div class="hero-avatar">
@@ -2535,71 +2727,6 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
         
         // -------------------------------------------------------------------
-        // Left-Side Subagent Creation Drawer
-        // -------------------------------------------------------------------
-        function openCreateSubagentModal(agentId = null) {
-            document.getElementById("drawerAgentEditId").value = agentId || "";
-            document.getElementById("drawerAgentName").value = "";
-            document.getElementById("drawerAgentRole").value = "";
-            document.getElementById("drawerAgentControls").value = "";
-            document.getElementById("drawerAgentDesc").value = "";
-            document.getElementById("drawerAgentPrompt").value = "";
-            document.getElementById("drawerTitle").innerText = agentId ? "Editar Subagente" : "Criar Novo Subagente";
-            
-            document.getElementById("subagentLeftDrawer").classList.add("open");
-            document.getElementById("leftDrawerOverlay").classList.add("active");
-        }
-
-        function closeCreateSubagentModal() {
-            document.getElementById("subagentLeftDrawer").classList.remove("open");
-            document.getElementById("leftDrawerOverlay").classList.remove("active");
-        }
-
-        async function saveCustomSubagentFromDrawer() {
-            const name = document.getElementById("drawerAgentName").value.trim();
-            const role = document.getElementById("drawerAgentRole").value.trim();
-            const controlsStr = document.getElementById("drawerAgentControls").value.trim();
-            const desc = document.getElementById("drawerAgentDesc").value.trim();
-            const prompt = document.getElementById("drawerAgentPrompt").value.trim();
-            const model = document.getElementById("drawerAgentModel").value;
-
-            if (!name || !role) {
-                alert("Por favor, preencha o Nome e o Cargo do Subagente.");
-                return;
-            }
-
-            const controls = controlsStr.split(",").map(c => c.trim()).filter(c => c);
-            const checkboxes = document.querySelectorAll("#subagentLeftDrawer .tool-checkbox-label input[type='checkbox']:checked");
-            const tools = Array.from(checkboxes).map(cb => cb.value);
-
-            const payload = {
-                id: document.getElementById("drawerAgentEditId").value || null,
-                name: name,
-                role: role,
-                description: desc || `Subagente customizado para auditoria de ${role}`,
-                system_prompt: prompt || `Você é o auditor ${name} focado em conformidade ISO 27001 no GCP.`,
-                tools: tools.length > 0 ? tools : ["asset_inventory"],
-                model: model,
-                temperature: 0.1,
-                target_controls: controls.length > 0 ? controls : ["A.5.1"]
-            };
-
-            try {
-                const res = await fetch("/api/subagents", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                closeCreateSubagentModal();
-                loadSubagents();
-                appendLog(`[Subagente Criado] '${data.subagent.name}' salvo e ativado no painel esquerdo!`, "success");
-            } catch (e) {
-                alert("Erro ao salvar subagente: " + e);
-            }
-        }
-
-        // -------------------------------------------------------------------
         // Inline Phase Remediation inside Scan por Fases
         // -------------------------------------------------------------------
         function openRemediationModal(phaseNum) {
@@ -2725,6 +2852,27 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     countDisplay.innerText = `${customList.length} subagente(s) ativo(s)`;
                 }
 
+                const sidebarList = document.getElementById("sidebarCustomAgentsList");
+                if (sidebarList) {
+                    sidebarList.innerHTML = "";
+                    customList.forEach(agent => {
+                        const btn = document.createElement("button");
+                        btn.className = "agent-item";
+                        btn.onclick = () => runCustomSubagent(agent.id);
+                        btn.innerHTML = `
+                            <div class="agent-left-wrap">
+                                <div class="agent-avatar" style="background: rgba(138, 180, 248, 0.12); color: var(--gcp-blue);">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                </div>
+                                <span class="agent-name" title="${escapeHtml(agent.name)}">${escapeHtml(agent.name)}</span>
+                            </div>
+                        `;
+                        sidebarList.appendChild(btn);
+                    });
+                }
+
                 if (customList.length === 0) {
                     container.innerHTML = `<div style="grid-column: 1 / -1; color: var(--text-tertiary); padding: 18px; text-align: center; border: 1px dashed var(--border-subtle); border-radius: 12px;">Nenhum subagente customizado criado ainda. Clique em '+ Criar Novo Subagente' acima para customizar.</div>`;
                     return;
@@ -2772,64 +2920,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             }
         }
 
-        function openCreateSubagentModal(agentId = null) {
-            document.getElementById("subagentEditId").value = agentId || "";
-            document.getElementById("subagentName").value = "";
-            document.getElementById("subagentRole").value = "";
-            document.getElementById("subagentControls").value = "";
-            document.getElementById("subagentDesc").value = "";
-            document.getElementById("subagentPrompt").value = "";
-            document.getElementById("subagentModalTitle").innerText = agentId ? "Editar Subagente Customizado" : "Criar Novo Subagente Customizado";
-            document.getElementById("subagentModal").classList.add("active");
-        }
-
-        function closeSubagentModal() {
-            document.getElementById("subagentModal").classList.remove("active");
-        }
-
-        async function saveCustomSubagent() {
-            const name = document.getElementById("subagentName").value.trim();
-            const role = document.getElementById("subagentRole").value.trim();
-            const controlsStr = document.getElementById("subagentControls").value.trim();
-            const desc = document.getElementById("subagentDesc").value.trim();
-            const prompt = document.getElementById("subagentPrompt").value.trim();
-            const model = document.getElementById("subagentModel").value;
-
-            if (!name || !role) {
-                alert("Por favor, preencha o Nome e o Cargo do Subagente.");
-                return;
-            }
-
-            const controls = controlsStr.split(",").map(c => c.trim()).filter(c => c);
-            const checkboxes = document.querySelectorAll(".tool-checkbox-label input[type='checkbox']:checked");
-            const tools = Array.from(checkboxes).map(cb => cb.value);
-
-            const payload = {
-                id: document.getElementById("subagentEditId").value || null,
-                name: name,
-                role: role,
-                description: desc || `Subagente customizado para auditoria de ${role}`,
-                system_prompt: prompt || `Você é o auditor ${name} focado em conformidade ISO 27001 no GCP.`,
-                tools: tools.length > 0 ? tools : ["asset_inventory"],
-                model: model,
-                temperature: 0.1,
-                target_controls: controls.length > 0 ? controls : ["A.5.1"]
-            };
-
-            try {
-                const res = await fetch("/api/subagents", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                closeSubagentModal();
-                loadSubagents();
-                appendLog(`[Subagente Criado] Subagente '${data.subagent.name}' salvo e ativado no GEAP!`, "success");
-            } catch (e) {
-                alert("Erro ao salvar subagente: " + e);
-            }
-        }
+        
 
         async function deleteCustomSubagent(agentId) {
             if (!confirm(`Deseja realmente remover o subagente customizado '${agentId}'?`)) return;
@@ -2856,6 +2947,290 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 }
             } catch (e) {
                 appendLog(`[Subagente Erro] ${e}`, "error");
+            }
+        }
+
+        
+        // -------------------------------------------------------------------
+        // Left Drawer Opening & Industry Templates
+        // -------------------------------------------------------------------
+        function openCreateSubagentModal(agentId = null) {
+            const drawer = document.getElementById("subagentLeftDrawer");
+            const overlay = document.getElementById("leftDrawerOverlay");
+            if (!drawer || !overlay) {
+                console.error("Subagent drawer elements not found");
+                return;
+            }
+            document.getElementById("drawerAgentEditId").value = agentId || "";
+            document.getElementById("drawerAgentName").value = "";
+            document.getElementById("drawerAgentRole").value = "";
+            document.getElementById("drawerAgentControls").value = "";
+            document.getElementById("drawerAgentDesc").value = "";
+            document.getElementById("drawerAgentPrompt").value = "";
+            document.getElementById("drawerTitle").innerText = agentId ? "Editar Subagente" : "Criar Novo Subagente";
+
+            drawer.classList.add("open");
+            overlay.classList.add("active");
+        }
+
+        function closeCreateSubagentModal() {
+            const drawer = document.getElementById("subagentLeftDrawer");
+            const overlay = document.getElementById("leftDrawerOverlay");
+            if (drawer) drawer.classList.remove("open");
+            if (overlay) overlay.classList.remove("active");
+        }
+
+        async function saveCustomSubagentFromDrawer() {
+            const name = document.getElementById("drawerAgentName").value.trim();
+            const role = document.getElementById("drawerAgentRole").value.trim();
+            const controlsStr = document.getElementById("drawerAgentControls").value.trim();
+            const desc = document.getElementById("drawerAgentDesc").value.trim();
+            const prompt = document.getElementById("drawerAgentPrompt").value.trim();
+            const model = document.getElementById("drawerAgentModel").value;
+
+            if (!name || !role) {
+                alert("Por favor, preencha o Nome e a Especialidade/Cargo do Subagente.");
+                return;
+            }
+
+            const controls = controlsStr.split(",").map(c => c.trim()).filter(c => c);
+            const checkboxes = document.querySelectorAll("#subagentLeftDrawer .tool-checkbox-label input[type='checkbox']:checked");
+            const tools = Array.from(checkboxes).map(cb => cb.value);
+
+            const payload = {
+                id: document.getElementById("drawerAgentEditId").value || null,
+                name: name,
+                role: role,
+                description: desc || `Subagente customizado para auditoria de ${role}`,
+                system_prompt: prompt || `Você é o auditor ${name} de Google Cloud Security focado em conformidade ISO 27001.`,
+                tools: tools.length > 0 ? tools : ["asset_inventory"],
+                model: model,
+                temperature: 0.1,
+                target_controls: controls.length > 0 ? controls : ["A.5.1"]
+            };
+
+            try {
+                const res = await fetch("/api/subagents", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                closeCreateSubagentModal();
+                loadSubagents();
+                appendLog(`[Subagente Criado] '${data.subagent.name}' salvo e ativado no painel esquerdo!`, "success");
+                alert(`Subagente '${data.subagent.name}' criado com sucesso e adicionado ao painel lateral!`);
+            } catch (e) {
+                alert("Erro ao salvar subagente: " + e);
+            }
+        }
+
+        function applyIndustryTemplate(type) {
+            const templates = {
+                fintech: {
+                    name: "Fintech & Banking Compliance Sentinel",
+                    role: "Auditor Especialista em Criptografia e Regulação Bancária",
+                    controls: "A.5.15, A.5.23, A.8.2, A.8.12, A.8.24",
+                    desc: "Auditoria especializada em cargas críticas com foco em proteção de chaves HSM, segregação de ambientes e perímetros VPC-SC.",
+                    prompt: "Você é o Fintech Compliance Sentinel de Google Cloud Security. Audite com máximo rigor chaves Cloud KMS HSM (A.8.24), perímetros VPC Service Controls (A.8.12) e privilégio mínimo no IAM (A.5.15). Forneça pareceres orientados a BACEN e PCI-DSS.",
+                    tools: ["cloud_kms", "vpc_sc", "iam_recommender", "asset_inventory"]
+                },
+                zerotrust: {
+                    name: "Zero-Trust & Identity Governance Auditor",
+                    role: "Auditor de Identidade, MFA e Menor Privilégio",
+                    controls: "A.5.15, A.5.16, A.5.17, A.8.5",
+                    desc: "Varredura contínua de contas de serviço, MFA obrigatório e políticas de acesso contextual BeyondCorp.",
+                    prompt: "Você é o Zero-Trust Identity Auditor de Google Cloud Security. Identifique privilégios administrativos herdados, contas órfãs (>90 dias) e exija autenticação context-aware.",
+                    tools: ["iam_recommender", "asset_inventory"]
+                },
+                k8s: {
+                    name: "GKE & Container Security Guardian",
+                    role: "Especialista em Segurança de Contêineres e SLSA-3",
+                    controls: "A.5.21, A.8.25, A.8.28, A.8.31",
+                    desc: "Inspeção de Binary Authorization, imagens distroless e NetworkPolicies no GKE.",
+                    prompt: "Você é o GKE Container Security Guardian de Google Cloud Security. Valide atestados de proveniência de contêineres e branch protection em pipelines CI/CD.",
+                    tools: ["iac_scanner", "asset_inventory", "iam_recommender"]
+                },
+                privacy: {
+                    name: "HealthData Privacy & LGPD Sentinel",
+                    role: "Auditor de Proteção de Dados e Anonimização PII",
+                    controls: "A.5.12, A.5.34, A.8.10, A.8.11, A.8.24",
+                    desc: "Inspeção de anonimização com Cloud DLP e criptografia de registros sensíveis no BigQuery.",
+                    prompt: "Você é o Privacy & LGPD Sentinel de Google Cloud Security. Audite desidentificação de dados sensíveis, retenção de logs e mascaramento de colunas no BigQuery.",
+                    tools: ["asset_inventory", "cloud_kms", "zero_copy_drive"]
+                },
+                finops: {
+                    name: "FinOps & Storage Lifecycle Sentinel",
+                    role: "Auditor de Retenção de Dados e Otimização de Custos",
+                    controls: "A.5.9, A.8.10, A.8.13",
+                    desc: "Inspeção de regras de ciclo de vida de dados (Object Lifecycle Management), WORM Bucket Lock e descarte seguro.",
+                    prompt: "Você é o FinOps & Storage Lifecycle Sentinel de Google Cloud Security. Audite retenção imutável e expiração de partições no BigQuery.",
+                    tools: ["asset_inventory", "zero_copy_drive"]
+                }
+            };
+
+            const t = templates[type];
+            if (!t) return;
+            document.getElementById("drawerAgentName").value = t.name;
+            document.getElementById("drawerAgentRole").value = t.role;
+            document.getElementById("drawerAgentControls").value = t.controls;
+            document.getElementById("drawerAgentDesc").value = t.desc;
+            document.getElementById("drawerAgentPrompt").value = t.prompt;
+
+            // Check checkboxes
+            const checkboxes = document.querySelectorAll("#subagentLeftDrawer .tool-checkbox-label input[type='checkbox']");
+            checkboxes.forEach(cb => {
+                cb.checked = t.tools.includes(cb.value);
+            });
+        }
+
+        async function getGeminiAgentRecommendation() {
+            const project = Array.from(selectedProjectIds)[0] || "agentic-grc-cd06";
+            const btn = document.querySelector(".btn-ai-recommend");
+            if (btn) btn.innerText = "Analisando telemetria com Vertex AI...";
+
+            try {
+                const res = await fetch("/api/agent/recommend_subagent", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ project_id: project, industry: "FINANCIAL_SERVICES" })
+                });
+                const data = await res.json();
+                if (btn) btn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Analisar Ambiente com Vertex AI & Recomendar Agente`;
+
+                if (data.status === "SUCCESS" && data.recommendation) {
+                    const r = data.recommendation;
+                    document.getElementById("drawerAgentName").value = r.name;
+                    document.getElementById("drawerAgentRole").value = r.role;
+                    document.getElementById("drawerAgentControls").value = r.target_controls.join(", ");
+                    document.getElementById("drawerAgentDesc").value = r.description;
+                    document.getElementById("drawerAgentPrompt").value = r.system_prompt;
+
+                    const checkboxes = document.querySelectorAll("#subagentLeftDrawer .tool-checkbox-label input[type='checkbox']");
+                    checkboxes.forEach(cb => {
+                        cb.checked = (r.tools || []).includes(cb.value);
+                    });
+                    alert(`Vertex AI analisou o ambiente '${project}':
+
+"${r.reason}"
+
+Formulário preenchido com o subagente recomendado!`);
+                }
+            } catch (e) {
+                if (btn) btn.innerHTML = "Analisar Ambiente com Vertex AI & Recomendar Agente";
+                alert("Erro ao consultar Vertex AI: " + e);
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // Autonomous Agentic Monitoring & Live Deviation Alert
+        // -------------------------------------------------------------------
+        async function runAutonomousCheck() {
+            const project = Array.from(selectedProjectIds)[0] || "agentic-grc-cd06";
+            appendLog(`[Monitor Autônomo Vertex AI] Inspecionando telemetria em tempo real no projeto '${project}'...`);
+
+            try {
+                const res = await fetch("/api/agent/autonomous_monitor", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ project_id: project, simulate_deviation: true })
+                });
+                const data = await res.json();
+
+                if (data.active_alert && data.alert) {
+                    const banner = document.getElementById("agenticAlertBanner");
+                    if (banner) {
+                        banner.style.display = "flex";
+                        document.getElementById("alertHeadline").innerText = `Desvio Crítico Detectado: Controle ${data.alert.control_id} (${data.alert.control_title})`;
+                        document.getElementById("alertDesc").innerText = data.alert.deviation_summary;
+                    }
+                    appendLog(`[ALERTA AGÊNTICO] ${data.alert.deviation_summary}`, "error");
+                    appendLog(`[IA Recomendação] ${data.alert.autonomous_recommendation}`, "warn");
+                }
+            } catch (e) {
+                console.error("Autonomous check error", e);
+            }
+        }
+
+        function showDeviationDiagnostic() {
+            switchView("view-chat");
+            const chatArea = document.getElementById("chatArea");
+            const hero = document.getElementById("geminiHero");
+            if (hero) hero.remove();
+
+            const botRow = document.createElement("div");
+            botRow.className = "msg-row bot";
+            botRow.innerHTML = `
+                <div class="msg-avatar gemini">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                        <path d="M12 2L20 5.8V11.5C20 16.5 16.6 20.8 12 22C7.4 20.8 4 16.5 4 11.5V5.8L12 2Z" fill="#ea4335" fill-opacity="0.2" stroke="#f28b82" stroke-width="1.8"/>
+                    </svg>
+                </div>
+                <div class="msg-content">
+                    <h3>Diagnóstico Agêntico de Desvio — Vertex AI Gemini</h3>
+                    <p><strong>Controle Afetado:</strong> ISO/IEC 27001:2022 A.8.24 (Uso de Criptografia)</p>
+                    <p><strong>Severidade:</strong> <span style="color: #f28b82; font-weight: 700;">ALTA (CRITICAL DRIFT)</span></p>
+                    <p><strong>Recurso em Desvio:</strong> <code>projects/agentic-grc-cd06/locations/us-central1/keyRings/production-ring/cryptoKeys/app-secrets-master</code></p>
+                    <p><strong>Achado Técnico:</strong> A chave está configurada com período de rotação de 180 dias. O baseline de conformidade do SGSI exige rotação automática a cada 60 a 90 dias com nível HSM.</p>
+                    <div style="background: rgba(52, 168, 83, 0.1); border: 1px solid rgba(52, 168, 83, 0.3); border-radius: 8px; padding: 12px; margin-top: 10px;">
+                        <span style="color: var(--gcp-green); font-weight: 600;">Ação Autônoma Sugerida pelo Agente:</span><br>
+                        Emitir aditamento da política <code>POL-SEC-004</code> forçando rotação compulsória de 60 dias no Cloud KMS e aplicar Organization Policy via API.
+                    </div>
+                </div>
+            `;
+            chatArea.appendChild(botRow);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        async function triggerAutonomousPolicyUpdate() {
+            const project = Array.from(selectedProjectIds)[0] || "agentic-grc-cd06";
+            appendLog(`[Vertex AI Autonomia] Atualizando política de segurança e aplicando enforcement no GCP...`);
+
+            try {
+                const res = await fetch("/api/agent/update_policy_autonomously", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ project_id: project, control_id: "A.8.24" })
+                });
+                const data = await res.json();
+
+                // Hide alert banner
+                const banner = document.getElementById("agenticAlertBanner");
+                if (banner) banner.style.display = "none";
+
+                appendLog(`[Sucesso Autônomo] ${data.message}`, "success");
+                data.enforcement_actions.forEach(act => appendLog(`  -> [Auto-Enforce] ${act}`, "success"));
+                appendLog(`[Cadeia de Evidências] Hash SHA-256: ${data.hash_sha256.substring(0, 24)}...`, "success");
+
+                switchView("view-chat");
+                const chatArea = document.getElementById("chatArea");
+                const hero = document.getElementById("geminiHero");
+                if (hero) hero.remove();
+
+                const botRow = document.createElement("div");
+                botRow.className = "msg-row bot";
+                botRow.innerHTML = `
+                    <div class="msg-avatar gemini">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                            <path d="M12 2L20 5.8V11.5C20 16.5 16.6 20.8 12 22C7.4 20.8 4 16.5 4 11.5V5.8L12 2Z" fill="#34a853" fill-opacity="0.2" stroke="#81c995" stroke-width="1.8"/>
+                        </svg>
+                    </div>
+                    <div class="msg-content">
+                        <h3>Política de Segurança Atualizada com Sucesso pelo Vertex AI</h3>
+                        <p>O agente autônomo identificou o desvio, sintetizou o aditamento normativo e aplicou a correção técnica sem intervenção manual (Zero-Touch):</p>
+                        <ul>
+                            ${data.enforcement_actions.map(a => `<li>${escapeHtml(a)}</li>`).join("")}
+                        </ul>
+                        <p><strong>Hash de Integridade Criptográfica (SHA-256):</strong><br><code>${data.hash_sha256}</code></p>
+                        <p><strong>Novo Scorecard de Conformidade:</strong> <span style="color: var(--gcp-green); font-weight: 700;">100.0% (EXCELLENT / LIMPO)</span></p>
+                        <hr style="border: none; border-top: 1px solid var(--border-subtle); margin: 12px 0;">
+                        <em>Google Cloud Security • Agentic GRC & Compliance Practice</em>
+                    </div>
+                `;
+                chatArea.appendChild(botRow);
+                chatArea.scrollTop = chatArea.scrollHeight;
+            } catch (e) {
+                appendLog(`[Erro na Atualização Autônoma] ${e}`, "error");
             }
         }
 
@@ -3428,6 +3803,30 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <button class="btn-close-rem" onclick="closeCreateSubagentModal()">&times;</button>
         </div>
         <div class="left-drawer-body">
+
+            <!-- Sugestões Contextuais & IA de Agentes por Indústria -->
+            <div class="drawer-suggestions-box">
+                <div class="drawer-suggestions-title">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    Recomendações e Templates de Subagentes
+                </div>
+                <div class="template-pills-row">
+                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('fintech')">🏦 Fintech / Bancos</button>
+                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('zerotrust')">🛡️ Zero-Trust / IAM</button>
+                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('k8s')">☸️ GKE / DevSecOps</button>
+                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('privacy')">🔐 LGPD / DLP</button>
+                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('finops')">☁️ FinOps / Storage</button>
+                </div>
+                <button class="btn-ai-recommend" type="button" onclick="getGeminiAgentRecommendation()">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                    </svg>
+                    Analisar Ambiente com Vertex AI & Recomendar Agente
+                </button>
+            </div>
+
             <input type="hidden" id="drawerAgentEditId" value="">
             
             <div class="form-group">

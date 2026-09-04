@@ -158,3 +158,30 @@ def test_custom_subagents_lifecycle():
     assert res_del.status_code == 200
     assert res_del.json()["status"] == "DELETED"
 
+
+def test_agentic_recommendation_and_autonomous_policy_update():
+    # 1. Test subagent recommendation
+    res_rec = client.post("/api/agent/recommend_subagent", json={"project_id": "agentic-grc-cd06", "industry": "FINANCIAL_SERVICES"})
+    assert res_rec.status_code == 200
+    rec_data = res_rec.json()
+    assert rec_data["status"] == "SUCCESS"
+    assert "Fintech & Banking" in rec_data["recommendation"]["name"]
+    assert len(rec_data["recommendation"]["target_controls"]) > 0
+
+    # 2. Test autonomous monitor
+    res_mon = client.post("/api/agent/autonomous_monitor", json={"project_id": "agentic-grc-cd06", "simulate_deviation": True})
+    assert res_mon.status_code == 200
+    mon_data = res_mon.json()
+    assert mon_data["active_alert"] is True
+    assert mon_data["alert"]["control_id"] == "A.8.24"
+    assert "proposed_amendment_text" in mon_data["alert"]
+
+    # 3. Test autonomous policy update
+    res_update = client.post("/api/agent/update_policy_autonomously", json={"project_id": "agentic-grc-cd06", "control_id": "A.8.24"})
+    assert res_update.status_code == 200
+    up_data = res_update.json()
+    assert up_data["status"] == "POLICY_UPDATED_AND_ENFORCED"
+    assert len(up_data["hash_sha256"]) == 64
+    assert up_data["new_score"] == 100.0
+
+
