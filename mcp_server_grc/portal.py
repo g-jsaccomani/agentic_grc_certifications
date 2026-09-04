@@ -26,7 +26,7 @@ from agent_orchestrator.zero_copy_connector import (
     ZeroCopyDocument,
 )
 from mcp_server_grc.tools.iac_scanner import scan_iac_configuration
-from mcp_server_grc.catalog import ACTIVE_PROJECTS, ISO_27001_CATALOG
+from mcp_server_grc.catalog import ACTIVE_PROJECTS, ISO_27001_CATALOG, THEMES_STRUCTURE
 from mcp_server_grc.portal_html import PORTAL_HTML
 
 logger = logging.getLogger("portal")
@@ -180,10 +180,16 @@ async def get_iso_matrix(theme: Optional[str] = None, search: Optional[str] = No
         s = search.lower()
         items = [
             c for c in items
-            if s in c["id"].lower() or s in c["name"].lower() or s in c["gcp_mapping"].lower() or s in c["description"].lower()
+            if s in c["id"].lower()
+            or s in c["name"].lower()
+            or s in c["gcp_mapping"].lower()
+            or s in c["description"].lower()
+            or s in c.get("how_to_check", "").lower()
+            or s in c.get("how_to_maintain", "").lower()
         ]
     return {
-        "total_controls_in_standard": len(ISO_27001_CATALOG),
+        "total_controls_in_standard": 93,
+        "themes_summary": THEMES_STRUCTURE,
         "filtered_count": len(items),
         "controls": items,
         "themes": ["Todos", "A.5 Organizacional", "A.6 Pessoas", "A.7 Físico", "A.8 Tecnológico", "Amd 1:2024 Clima"],
