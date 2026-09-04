@@ -206,6 +206,10 @@ The portal dashboard includes comprehensive operational modules accessible via t
    - Multi-format export: Official A4 print-ready PDF, structured machine-readable JSON (for Archer, ServiceNow, Vanta, Drata), and Markdown.
 8. **FinOps & Custos de IA**:
    - Real-time token usage telemetry and financial ROI tracking from Gemini Context Caching.
+9. **Global Localization & Multilingual Engine (i18n)**:
+   - Built-in automatic detection of user's browser language with instant support for **Português (`PT`)**, **English (`EN`)**, and **Español (`ES`)**.
+   - Top navbar language switcher (`PT | EN | ES`) with `localStorage` persistence.
+   - Dual-layer translation: localizes both UI elements/menus and AI lead auditor reasoning prompts dispatched to Gemini 2.5.
 
 ---
 

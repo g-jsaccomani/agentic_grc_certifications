@@ -72,6 +72,13 @@ Connects directly to enterprise repositories (**Google Drive, Microsoft SharePoi
   - Merkle Root Hash and SHA-256 cryptographic sealing conforming to RFC 3161 audit trail standards.
   - Triple-format exports: Official A4 print-ready PDF, structured machine-readable JSON (compatible with Archer, ServiceNow, Vanta, Drata), and Markdown.
 
+### VIII. Global Localization & Multilingual Architecture (i18n)
+- **Automatic Browser Language Detection**: Detects user browser locale (`navigator.language`) and dynamically defaults to **English (`en`)**, **Portuguese (`pt`)**, or **Spanish (`es`)** with international English fallback.
+- **Top Navbar Language Switcher**: Persistent interactive selector (`🌐 PT | EN | ES`) allowing instant language toggling with `localStorage` persistence.
+- **Full UI & AI Reasoning Localization**:
+  - Dynamically localizes all sidebar navigation, top bar controls, action buttons, prompt chips, and document viewer toolbars.
+  - Propagates target `locale` to Vertex AI Gemini 2.5 and specialized subagents, formulating technical findings, evidence dossiers, and executive audit opinions in the selected language.
+
 ---
 
 ## 2. ISO/IEC 27001:2022 Controls Mapping (93 Controls)

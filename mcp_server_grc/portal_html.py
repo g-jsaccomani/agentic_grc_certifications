@@ -3011,7 +3011,47 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             gap: 4px;
         }
 
-    </style>
+    
+        /* Language Selector Pill */
+        .lang-selector-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            background: var(--bg-surface-hover);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            user-select: none;
+        }
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 3px 7px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.15s ease;
+            font-family: inherit;
+        }
+        .lang-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .lang-btn.active {
+            background: #1a73e8;
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+        .lang-divider {
+            color: var(--border-subtle);
+            font-size: 10px;
+            user-select: none;
+        }
+</style>
 </head>
 <body>
 
@@ -3042,7 +3082,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <line x1="12" y1="5" x2="12" y2="19"/>
                         <line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
-                    <span class="label">Nova conversa</span>
+                    <span class="label" data-i18n="nav_new_chat">Nova conversa</span>
                 </button>
             </div>
 
@@ -3055,7 +3095,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <path d="M12 2L20 5.8V11.5C20 16.5 16.6 20.8 12 22C7.4 20.8 4 16.5 4 11.5V5.8L12 2Z"/>
                             </svg>
                         </div>
-                        <span class="agent-name">Agentic GRC Auditor</span>
+                        <span class="agent-name" data-i18n="nav_lead_auditor">Agentic GRC Auditor</span>
                     </div>
                     <span class="agent-pin" title="Auditor Líder" style="color: var(--gcp-blue); font-size: 11px;">●</span>
                 </button>
@@ -3067,7 +3107,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
                             </svg>
                         </div>
-                        <span class="agent-name">Scan por Fases</span>
+                        <span class="agent-name" data-i18n="nav_phases">Scan por Fases</span>
                     </div>
                 </button>
 
@@ -3081,7 +3121,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <line x1="16" y1="17" x2="8" y2="17"/>
                             </svg>
                         </div>
-                        <span class="agent-name">Matriz ISO 27001 & SoA</span>
+                        <span class="agent-name" data-i18n="nav_matrix">Matriz ISO 27001 & SoA</span>
                     </div>
                 </button>
 
@@ -3107,7 +3147,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                             </svg>
                         </div>
-                        <span class="agent-name">Scorecard & Evidências</span>
+                        <span class="agent-name" data-i18n="nav_scorecard">Scorecard & Evidências</span>
                     </div>
                 </button>
 
@@ -3121,7 +3161,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <line x1="9" y1="15" x2="15" y2="15"/>
                             </svg>
                         </div>
-                        <span class="agent-name">Dossiê Executivo</span>
+                        <span class="agent-name" data-i18n="nav_exec_report">Dossiê Executivo</span>
                     </div>
                 </button>
 
@@ -3132,7 +3172,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                         </div>
-                        <span class="agent-name">Relatório Técnico (Auditoria Externa)</span>
+                        <span class="agent-name" data-i18n="nav_tech_report">Relatório Técnico (Auditoria Externa)</span>
                     </div>
                 </button>
 
@@ -3144,7 +3184,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                             </svg>
                         </div>
-                        <span class="agent-name">FinOps & Custos de IA</span>
+                        <span class="agent-name" data-i18n="nav_finops">FinOps & Custos de IA</span>
                     </div>
                 </button>
             </div>
@@ -3263,15 +3303,24 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <span>Gemini Enterprise Agent Platform</span>
                 </span>
                 <span style="color: var(--text-tertiary)">/</span>
-                <span class="top-active-agent" id="topActiveTitle">Chatbot Auditor</span>
+                <span class="top-active-agent" id="topActiveTitle" data-i18n="top_active_agent">Chatbot Auditor</span>
                 <span style="color: var(--text-tertiary)">•</span>
-                <span style="color: var(--gcp-blue); font-size: 13px;" id="topProjectCountBadge">1 projeto ativo</span>
+                <span style="color: var(--gcp-blue); font-size: 13px;" id="topProjectCountBadge" data-i18n="top_project_count">1 projeto ativo</span>
             </div>
 
             <div class="top-right-actions">
                 <div class="top-status-indicator">
                     <span class="status-dot"></span>
-                    <span>Vertex AI gemini-2.5-flash (Google Cloud Security Certified)</span>
+                    <span data-i18n="status_indicator">Vertex AI gemini-2.5-flash (Google Cloud Security Certified)</span>
+                </div>
+
+                <!-- Language Selector Pill -->
+                <div class="lang-selector-group" id="langSelectorGroup" title="Idioma / Language / Idioma">
+                    <button class="lang-btn active" id="langBtnPt" onclick="setLanguage('pt')">PT</button>
+                    <span class="lang-divider">|</span>
+                    <button class="lang-btn" id="langBtnEn" onclick="setLanguage('en')">EN</button>
+                    <span class="lang-divider">|</span>
+                    <button class="lang-btn" id="langBtnEs" onclick="setLanguage('es')">ES</button>
                 </div>
 
                 <div class="dropdown" id="exportDropdown">
@@ -3281,7 +3330,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <polyline points="7 10 12 15 17 10"/>
                             <line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
-                        Exportar Relatório
+                        <span data-i18n="export_btn">Exportar Relatório</span>
                     </button>
                     <div class="dropdown-menu">
                         <a class="dropdown-item" href="javascript:void(0)" onclick="openExecutiveReport()">
@@ -3291,13 +3340,13 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <line x1="16" y1="13" x2="8" y2="13"/>
                                 <line x1="16" y1="17" x2="8" y2="17"/>
                             </svg>
-                            Visualizar Dossiê Executivo
+                            <span data-i18n="export_exec">Visualizar Dossiê Executivo</span>
                         </a>
                         <a class="dropdown-item" href="javascript:void(0)" onclick="openTechnicalReport()">
                             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor">
                                 <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
-                            Visualizar Relatório Técnico (Auditoria Externa)
+                            <span data-i18n="export_tech">Visualizar Relatório Técnico (Auditoria Externa)</span>
                         </a>
                         <a class="dropdown-item" href="javascript:void(0)" onclick="printExecutiveReport()">
                             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor">
@@ -3305,7 +3354,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
                                 <rect x="6" y="14" width="12" height="8"/>
                             </svg>
-                            Imprimir / Salvar PDF Oficial
+                            <span data-i18n="export_print">Imprimir / Salvar PDF Oficial</span>
                         </a>
                         <a class="dropdown-item" href="/api/reports/export?format=json" target="_blank">
                             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor">
@@ -3369,8 +3418,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <div class="gemini-hero" id="geminiHero">
                             <!-- Clean Header (Spacious, No distractions) -->
                             <div class="hero-work-header">
-                                <h1 class="hero-work-title">Vamos trabalhar!</h1>
-                                <p class="hero-work-subtitle">
+                                <h1 class="hero-work-title" data-i18n="hero_work_title">Vamos trabalhar!</h1>
+                                <p class="hero-work-subtitle" data-i18n="hero_work_subtitle">
                                     Auditoria contínua autônoma e governança para Google Cloud & ISO/IEC 27001:2022
                                 </p>
                             </div>
@@ -3378,7 +3427,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <!-- Wide & Spacious Main Input Box -->
                             <div class="hero-input-container">
                                 <div class="hero-input-card">
-                                    <textarea id="chatInputHero" class="hero-textarea" placeholder="O que você gostaria de auditar hoje? (ex.: ISO 27001, Cloud KMS, VPC-SC, FinOps)" rows="2" onkeydown="handleHeroKey(event)" oninput="handleHeroInput(this)"></textarea>
+                                    <textarea id="chatInputHero" class="hero-textarea" placeholder="O que você gostaria de auditar hoje? (ex.: ISO 27001, Cloud KMS, VPC-SC, FinOps)" data-i18n-placeholder="hero_placeholder" rows="2" onkeydown="handleHeroKey(event)" oninput="handleHeroInput(this)"></textarea>
                                     
                                     <div class="hero-input-controls">
                                         <div class="hero-input-left">
@@ -3462,8 +3511,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <!-- Minimal Card 1: Velocímetro de Saúde -->
                                 <div class="health-card">
                                     <div class="health-card-header">
-                                        <div class="health-card-title">Saúde do Ambiente GCP</div>
-                                        <span class="health-card-badge">Telemetria Ativa</span>
+                                        <div class="health-card-title" data-i18n="health_title">Saúde do Ambiente GCP</div>
+                                        <span class="health-card-badge" data-i18n="health_badge">Telemetria Ativa</span>
                                     </div>
                                     <div class="speedometer-wrap">
                                         <svg class="speedometer-svg" viewBox="0 0 200 110">
@@ -3655,7 +3704,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                                 </svg>
                             </button>
-                            <textarea id="chatInput" class="chat-textarea" placeholder="Consulte o Agentic GRC Auditor (Google Cloud Security)..." rows="1" onkeydown="handleChatKey(event)" oninput="handleChatInput(this)"></textarea>
+                            <textarea id="chatInput" class="chat-textarea" placeholder="Consulte o Agentic GRC Auditor (Google Cloud Security)..." data-i18n-placeholder="chat_input_placeholder" rows="1" onkeydown="handleChatKey(event)" oninput="handleChatInput(this)"></textarea>
                             <button id="sendBtn" class="btn-send" onclick="sendChatMessage()" title="Enviar mensagem">
                                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
                                     <line x1="12" y1="19" x2="12" y2="5"/>
@@ -3663,7 +3712,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 </svg>
                             </button>
                         </div>
-                        <div class="chat-disclaimer">
+                        <div class="chat-disclaimer" data-i18n="chat_disclaimer">
                             Google Cloud Security • As evidências e pareceres de conformidade são validados no Grafo Criptográfico SHA-256 e protegidos por Model Armor.
                         </div>
                     </div>
@@ -4191,8 +4240,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <!-- Floating Action Bar above Document Paper -->
                 <div class="doc-viewer-actions-bar">
                     <div class="doc-viewer-actions-left">
-                        <span class="doc-viewer-chip blue">Visão Estratégica • C-Level</span>
-                        <span class="doc-viewer-title">Continuous Compliance & Audit Dossier</span>
+                        <span class="doc-viewer-chip blue" data-i18n="doc_exec_chip">Visão Estratégica • C-Level</span>
+                        <span class="doc-viewer-title" data-i18n="doc_exec_title">Continuous Compliance & Audit Dossier</span>
                     </div>
                     <div class="doc-viewer-actions-right">
                         <button class="btn-doc-action primary" onclick="printExecutiveReport()" title="Imprimir ou Salvar em PDF">
@@ -4445,8 +4494,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <!-- Floating Action Bar above Document Paper -->
                 <div class="doc-viewer-actions-bar">
                     <div class="doc-viewer-actions-left">
-                        <span class="doc-viewer-chip">Auditoria Externa • Stage 2</span>
-                        <span class="doc-viewer-title">ISO/IEC 27001:2022 Technical Dossier</span>
+                        <span class="doc-viewer-chip" data-i18n="doc_tech_chip">Auditoria Externa • Stage 2</span>
+                        <span class="doc-viewer-title" data-i18n="doc_tech_title">ISO/IEC 27001:2022 Technical Dossier</span>
                     </div>
                     <div class="doc-viewer-actions-right">
                         <button class="btn-doc-action primary" onclick="printTechnicalReport()" title="Imprimir ou Salvar em PDF">
@@ -5098,6 +5147,211 @@ PORTAL_HTML = r"""<!DOCTYPE html>
     </div>
 
     <script>
+        // =========================================================================
+        // INTERNATIONALIZATION (i18n) ENGINE - PT, EN, ES
+        // =========================================================================
+        const I18N = {
+            pt: {
+                status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
+                top_active_agent: "Chatbot Auditor",
+                top_project_count: "1 projeto ativo",
+                top_projects_count: "{n} projetos ativos",
+                export_btn: "Exportar Relatório",
+                export_exec: "Visualizar Dossiê Executivo",
+                export_tech: "Visualizar Relatório Técnico (Auditoria Externa)",
+                export_print: "Imprimir / Salvar PDF Oficial",
+                export_json: "Exportar JSON (Audit Machine-Readable)",
+                export_md: "Exportar Markdown Técnico",
+                
+                nav_new_chat: "Nova conversa",
+                nav_lead_auditor: "Agentic GRC Auditor",
+                nav_phases: "Scan por Fases",
+                nav_matrix: "Matriz ISO 27001 & SoA",
+                nav_connectors: "Conectores & Zero-Copy",
+                nav_scorecard: "Scorecard & Evidências",
+                nav_exec_report: "Dossiê Executivo",
+                nav_tech_report: "Relatório Técnico (Auditoria Externa)",
+                nav_finops: "FinOps & Custos de IA",
+                
+                scope_title: "Escopo da Organização GCP",
+                scope_filter_placeholder: "Filtrar projetos...",
+                scope_select_all: "Marcar Todos",
+                scope_only_prod: "Apenas Prod",
+                scope_folders_title: "Pastas Organizacionais e Projetos",
+                subagents_title: "SUBAGENTES ESPECIALISTAS",
+                
+                hero_work_title: "Vamos trabalhar!",
+                hero_work_subtitle: "Auditoria contínua autônoma e governança para Google Cloud & ISO/IEC 27001:2022",
+                hero_placeholder: "O que você gostaria de auditar hoje? (ex.: ISO 27001, Cloud KMS, VPC-SC, FinOps)",
+                health_title: "Saúde do Ambiente GCP",
+                health_badge: "Telemetria Ativa",
+                
+                doc_tech_chip: "Auditoria Externa • Stage 2",
+                doc_tech_title: "ISO/IEC 27001:2022 Technical Dossier",
+                doc_exec_chip: "Visão Estratégica • C-Level",
+                doc_exec_title: "Continuous Compliance & Audit Dossier",
+                btn_print_pdf: "Imprimir / PDF",
+                btn_to_exec: "Dossiê Executivo ›",
+                btn_to_tech: "Relatório Técnico ›",
+                
+                chat_input_placeholder: "Consulte o Agentic GRC Auditor (Google Cloud Security)...",
+                chat_disclaimer: "Google Cloud Security • As evidências e pareceres de conformidade são validados no Grafo Criptográfico SHA-256 e protegidos por Model Armor.",
+                bot_evaluating: "Agentic GRC Auditor (Google Cloud Security) avaliando telemetria e grafo de evidências..."
+            },
+            en: {
+                status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
+                top_active_agent: "Audit Chatbot",
+                top_project_count: "1 active project",
+                top_projects_count: "{n} active projects",
+                export_btn: "Export Report",
+                export_exec: "View Executive Dossier",
+                export_tech: "View Technical Report (External Audit)",
+                export_print: "Print / Save Official PDF",
+                export_json: "Export JSON (Machine-Readable)",
+                export_md: "Export Technical Markdown",
+                
+                nav_new_chat: "New conversation",
+                nav_lead_auditor: "Agentic GRC Auditor",
+                nav_phases: "Phased Scan",
+                nav_matrix: "ISO 27001 Matrix & SoA",
+                nav_connectors: "Connectors & Zero-Copy",
+                nav_scorecard: "Scorecard & Evidence",
+                nav_exec_report: "Executive Dossier",
+                nav_tech_report: "Technical Report (External Audit)",
+                nav_finops: "FinOps & AI Costs",
+                
+                scope_title: "GCP Organization Scope",
+                scope_filter_placeholder: "Filter projects...",
+                scope_select_all: "Select All",
+                scope_only_prod: "Only Prod",
+                scope_folders_title: "Organizational Folders & Projects",
+                subagents_title: "SPECIALIST SUBAGENTS",
+                
+                hero_work_title: "Let's get to work!",
+                hero_work_subtitle: "Autonomous continuous compliance and governance for Google Cloud & ISO/IEC 27001:2022",
+                hero_placeholder: "What would you like to audit today? (e.g.: ISO 27001, Cloud KMS, VPC-SC, FinOps)",
+                health_title: "GCP Environment Health",
+                health_badge: "Active Telemetry",
+                
+                doc_tech_chip: "External Audit • Stage 2",
+                doc_tech_title: "ISO/IEC 27001:2022 Technical Dossier",
+                doc_exec_chip: "Strategic View • C-Level",
+                doc_exec_title: "Continuous Compliance & Audit Dossier",
+                btn_print_pdf: "Print / PDF",
+                btn_to_exec: "Executive Dossier ›",
+                btn_to_tech: "Technical Report ›",
+                
+                chat_input_placeholder: "Ask Agentic GRC Auditor (Google Cloud Security)...",
+                chat_disclaimer: "Google Cloud Security • Evidence and audit opinions validated on SHA-256 Cryptographic Graph and protected by Model Armor.",
+                bot_evaluating: "Agentic GRC Auditor (Google Cloud Security) evaluating telemetry and evidence graph..."
+            },
+            es: {
+                status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
+                top_active_agent: "Chatbot Auditor",
+                top_project_count: "1 proyecto activo",
+                top_projects_count: "{n} proyectos activos",
+                export_btn: "Exportar Informe",
+                export_exec: "Ver Dossier Ejecutivo",
+                export_tech: "Ver Informe Técnico (Auditoría Externa)",
+                export_print: "Imprimir / Guardar PDF Oficial",
+                export_json: "Exportar JSON (Legible por máquina)",
+                export_md: "Exportar Markdown Técnico",
+                
+                nav_new_chat: "Nueva conversación",
+                nav_lead_auditor: "Agentic GRC Auditor",
+                nav_phases: "Escaneo por Fases",
+                nav_matrix: "Matriz ISO 27001 y SoA",
+                nav_connectors: "Conectores y Zero-Copy",
+                nav_scorecard: "Scorecard y Evidencias",
+                nav_exec_report: "Dossier Ejecutivo",
+                nav_tech_report: "Informe Técnico (Auditoría Externa)",
+                nav_finops: "FinOps y Costos de IA",
+                
+                scope_title: "Alcance de Organización GCP",
+                scope_filter_placeholder: "Filtrar proyectos...",
+                scope_select_all: "Seleccionar Todos",
+                scope_only_prod: "Solo Prod",
+                scope_folders_title: "Carpetas Organizacionales y Proyectos",
+                subagents_title: "SUBAGENTES ESPECIALISTAS",
+                
+                hero_work_title: "¡Manos a la obra!",
+                hero_work_subtitle: "Auditoría continua autónoma y gobernanza para Google Cloud e ISO/IEC 27001:2022",
+                hero_placeholder: "¿Qué le gustaría auditar hoy? (ej.: ISO 27001, Cloud KMS, VPC-SC, FinOps)",
+                health_title: "Salud del Entorno GCP",
+                health_badge: "Telemetría Activa",
+                
+                doc_tech_chip: "Auditoría Externa • Stage 2",
+                doc_tech_title: "ISO/IEC 27001:2022 Technical Dossier",
+                doc_exec_chip: "Visión Estratégica • C-Level",
+                doc_exec_title: "Continuous Compliance & Audit Dossier",
+                btn_print_pdf: "Imprimir / PDF",
+                btn_to_exec: "Dossier Ejecutivo ›",
+                btn_to_tech: "Informe Técnico ›",
+                
+                chat_input_placeholder: "Consulte al Agentic GRC Auditor (Google Cloud Security)...",
+                chat_disclaimer: "Google Cloud Security • Evidencias y dictámenes de auditoría validados en Grafo Criptográfico SHA-256 y protegidos por Model Armor.",
+                bot_evaluating: "Agentic GRC Auditor (Google Cloud Security) evaluando telemetría y grafo de evidencias..."
+            }
+        };
+
+        window.currentLanguage = 'pt';
+
+        function detectUserLanguage() {
+            try {
+                const saved = localStorage.getItem('agentic_grc_lang');
+                if (saved && ['pt', 'en', 'es'].includes(saved)) {
+                    return saved;
+                }
+                const navLang = (navigator.language || navigator.languages?.[0] || 'pt').toLowerCase();
+                if (navLang.startsWith('en')) return 'en';
+                if (navLang.startsWith('es')) return 'es';
+                if (navLang.startsWith('pt')) return 'pt';
+                return 'en'; // Global fallback for international visitors
+            } catch (e) {
+                return 'pt';
+            }
+        }
+
+        function setLanguage(lang) {
+            if (!I18N[lang]) lang = 'en';
+            window.currentLanguage = lang;
+            try {
+                localStorage.setItem('agentic_grc_lang', lang);
+            } catch(e) {}
+
+            // Update selector button styles
+            ['pt', 'en', 'es'].forEach(l => {
+                const btn = document.getElementById('langBtn' + l.charAt(0).toUpperCase() + l.slice(1));
+                if (btn) {
+                    btn.classList.toggle('active', l === lang);
+                }
+            });
+
+            // Update all text nodes with data-i18n
+            const dict = I18N[lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) {
+                    el.innerText = dict[key];
+                }
+            });
+
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (dict[key]) {
+                    el.placeholder = dict[key];
+                }
+            });
+
+            // Refresh dynamic suggestions in current language
+            if (typeof shuffleDynamicSuggestions === 'function') {
+                shuffleDynamicSuggestions();
+            }
+
+            document.documentElement.lang = lang;
+        }
+
         // State
         let activeProjects = [
             { project_id: "agentic-grc-cd06", environment: "PRODUCTION", region: "us-central1" },
@@ -5743,6 +5997,8 @@ Formulário preenchido com o subagente recomendado!`);
         }
 
         document.addEventListener("DOMContentLoaded", () => {
+            const detectedLang = detectUserLanguage();
+            setLanguage(detectedLang);
             loadProjects();
             loadFinOpsMetrics();
             loadIsoMatrix();
@@ -5877,24 +6133,35 @@ Formulário preenchido com o subagente recomendado!`);
                 // =========================================================================
         // Dynamic & Always-Altering Suggestion Chips Pool
         // =========================================================================
-                const dynamicSuggestionPool = [
-            { label: "Auditoria Completa ISO 27001", prompt: "Executar auditoria técnica completa de todos os 93 controles da ISO/IEC 27001:2022" },
-            { label: "Criptografia Cloud KMS (A.8.24)", prompt: "Auditar controle A.8.24 de Criptografia Cloud KMS e rotação de chaves HSM" },
-            { label: "Perímetros VPC-SC (A.8.12)", prompt: "Verificar perímetros VPC Service Controls e controle de fuga de dados A.8.12" },
-            { label: "Armazenamento GCS (A.5.23)", prompt: "Auditar segurança do Cloud Storage e controle A.5.23 para serviços em nuvem" },
-            { label: "IAM & Menor Privilégio", prompt: "Auditar conformidade de IAM, segregação de funções e ausência de papéis primitivos" },
-            { label: "Logs 365 Dias (A.8.16)", prompt: "Verificar retenção de 365 dias dos logs de auditoria no BigQuery (A.8.16)" },
-            { label: "Amd 1:2024 Clima & DR", prompt: "Auditar conformidade com a Emenda Climática ISO 27001 Amd 1:2024 e Disaster Recovery" },
-            { label: "Parecer Formal & Grafo SHA-256", prompt: "Gerar Parecer Executivo Formal de Conformidade com selo criptográfico SHA-256" },
-            { label: "Governança PII & Cloud DLP", prompt: "Mapear dados pessoais sensíveis e inspecionar regras Cloud DLP para LGPD/GDPR" },
-            { label: "Isolamento CDE / PCI-DSS v4.0", prompt: "Verificar requisitos de proteção de CDE e conformidade prévia com PCI-DSS v4.0" },
-            { label: "Orquestração de Subagentes", prompt: "Listar e recomendar subagentes especializados para este escopo" },
-            { label: "FinOps & ROI de Tokens", prompt: "Calcular ROI de tokens e economia financeira obtida com Gemini Context Caching" },
-            { label: "Postura de Clusters GKE", prompt: "Auditar postura de segurança de clusters GKE, Workload Identity e binários assinados" },
-            { label: "Hardening CIS GCP v3.0", prompt: "Executar varredura de hardening baseada nas recomendações do CIS GCP Foundation Benchmark v3.0" },
-            { label: "Security Command Center (SCC)", prompt: "Avaliar findings críticos e de alta severidade no Security Command Center Enterprise" },
-            { label: "Zero-Copy & Evidências", prompt: "Auditar repositórios Zero-Copy conectados para políticas de segurança e SGSI" }
-        ];
+                const dynamicSuggestionPools = {
+            pt: [
+                { label: "Auditoria Completa ISO 27001", prompt: "Executar auditoria técnica completa de todos os 93 controles da ISO/IEC 27001:2022" },
+                { label: "Criptografia Cloud KMS (A.8.24)", prompt: "Auditar controle A.8.24 de Criptografia Cloud KMS e rotação de chaves HSM" },
+                { label: "Perímetros VPC-SC (A.8.12)", prompt: "Verificar perímetros VPC Service Controls e controle de fuga de dados A.8.12" },
+                { label: "Armazenamento GCS (A.5.23)", prompt: "Auditar segurança do Cloud Storage e controle A.5.23 para serviços em nuvem" },
+                { label: "IAM & Menor Privilégio", prompt: "Auditar conformidade de IAM, segregação de funções e ausência de papéis primitivos" },
+                { label: "Logs 365 Dias (A.8.16)", prompt: "Verificar retenção de 365 dias dos logs de auditoria no BigQuery (A.8.16)" },
+                { label: "Amd 1:2024 Clima & DR", prompt: "Auditar conformidade com a Emenda Climática ISO 27001 Amd 1:2024 e Disaster Recovery" }
+            ],
+            en: [
+                { label: "Complete ISO 27001 Audit", prompt: "Run complete technical audit of all 93 ISO/IEC 27001:2022 controls" },
+                { label: "Cloud KMS Encryption (A.8.24)", prompt: "Audit control A.8.24 Cloud KMS Encryption and HSM key rotation" },
+                { label: "VPC-SC Perimeters (A.8.12)", prompt: "Verify VPC Service Controls perimeters and data leakage prevention A.8.12" },
+                { label: "GCS Storage (A.5.23)", prompt: "Audit Cloud Storage security and control A.5.23 for cloud services" },
+                { label: "IAM & Least Privilege", prompt: "Audit IAM compliance, segregation of duties and absence of primitive roles" },
+                { label: "365-Day Logs (A.8.16)", prompt: "Verify 365-day audit log retention in BigQuery sinks (A.8.16)" },
+                { label: "Amd 1:2024 Climate & DR", prompt: "Audit compliance with ISO 27001 Amd 1:2024 Climate Amendment and Disaster Recovery" }
+            ],
+            es: [
+                { label: "Auditoría Completa ISO 27001", prompt: "Ejecutar auditoría técnica completa de los 93 controles de ISO/IEC 27001:2022" },
+                { label: "Criptografía Cloud KMS (A.8.24)", prompt: "Auditar control A.8.24 de Criptografía Cloud KMS y rotación de claves HSM" },
+                { label: "Perímetros VPC-SC (A.8.12)", prompt: "Verificar perímetros VPC Service Controls y prevención de fuga de datos A.8.12" },
+                { label: "Almacenamiento GCS (A.5.23)", prompt: "Auditar seguridad de Cloud Storage y control A.5.23 para servicios cloud" },
+                { label: "IAM y Menor Privilegio", prompt: "Auditar cumplimiento de IAM, segregación de funciones y ausencia de roles primitivos" },
+                { label: "Logs 365 Días (A.8.16)", prompt: "Verificar retención de 365 días de logs de auditoría en BigQuery (A.8.16)" },
+                { label: "Amd 1:2024 Clima y DR", prompt: "Auditar cumplimiento de la Enmienda Climática ISO 27001 Amd 1:2024 y Disaster Recovery" }
+            ]
+        };
 
         let lastPickedIndices = [];
         let suggestionRotationTimer = null;
@@ -5904,12 +6171,13 @@ Formulário preenchido com o subagente recomendado!`);
             if (!container) return;
 
             // Pick 5 random items distinct from last selection
-            let availableIndices = dynamicSuggestionPool
+            const pool = dynamicSuggestionPools[window.currentLanguage || "pt"] || dynamicSuggestionPools.en;
+            let availableIndices = pool
                 .map((_, i) => i)
                 .filter(i => !lastPickedIndices.includes(i));
             
             if (availableIndices.length < 5) {
-                availableIndices = dynamicSuggestionPool.map((_, i) => i);
+                availableIndices = pool.map((_, i) => i);
             }
 
             for (let i = availableIndices.length - 1; i > 0; i--) {
@@ -5926,7 +6194,7 @@ Formulário preenchido com o subagente recomendado!`);
             setTimeout(() => {
                 container.innerHTML = "";
                 selectedIndices.forEach(idx => {
-                    const item = dynamicSuggestionPool[idx];
+                    const item = pool[idx];
                     const btn = document.createElement("button");
                     btn.className = "chip-item";
                     btn.innerHTML = escapeHtml(item.label);
@@ -6505,7 +6773,13 @@ Formulário preenchido com o subagente recomendado!`);
                 const res = await fetch("/api/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ message: text, project_id: Array.from(selectedProjectIds)[0], selected_projects: Array.from(selectedProjectIds), model: currentSelectedModel })
+                    body: JSON.stringify({
+                        message: text,
+                        project_id: Array.from(selectedProjectIds)[0],
+                        selected_projects: Array.from(selectedProjectIds),
+                        model: currentSelectedModel,
+                        locale: window.currentLanguage || 'pt'
+                    })
                 });
                 const data = await res.json();
                 const replyElem = document.getElementById("activeBotReply");
