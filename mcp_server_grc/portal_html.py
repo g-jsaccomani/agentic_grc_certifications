@@ -1351,7 +1351,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <div class="recent-list">
                 <div class="recent-item" onclick="promptPreFill('Gerar parecer executivo formal de conformidade para agentic-grc-cd06')">Parecer ISO 27001 - agentic-grc-cd06</div>
                 <div class="recent-item" onclick="promptPreFill('Executar auditoria técnica em 4 fases no ambiente multi-projeto')">Scan Fases 1 a 4 - Staging & Prod</div>
-                <div class="recent-item" onclick="promptPreFill('Avaliar conformidade com a emenda ISO 27001 Amd 1:2024 de Ação Climática')">Resiliência Amd 1:2024</div>
+                <div class="recent-item" onclick="promptPreFill('Avaliar conformidade dos 93 controles da ISO/IEC 27001:2022')">Auditoria 93 Controles</div>
             </div>
         </div>
 
@@ -1487,7 +1487,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <span class="hero-badge-pso">Google Cloud Security PSO</span>
                             <h1 class="hero-title">Agentic GRC Auditor</h1>
                             <p class="hero-subtitle">
-                                Auditoria contínua autônoma, governança e certificação para <strong>ISO/IEC 27001:2022</strong> e <strong>Amd 1:2024 de Ação Climática</strong> integrada à telemetria real do Google Cloud e Grafo de Evidências imutável.
+                                Auditoria contínua autônoma, governança e certificação para <strong>ISO/IEC 27001:2022</strong> (93 Controles do Anexo A) integrada à telemetria real do Google Cloud e Grafo de Evidências imutável.
                             </p>
 
                             <div class="hero-suggestions-stack">
@@ -1580,8 +1580,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <span class="phase-step-num">Fase 3</span>
                             <span class="phase-status-tag" id="statusPhase3">Pronto</span>
                         </div>
-                        <div class="phase-name">Governança & Clima</div>
-                        <div class="phase-desc">Org Policies e avaliação da emenda Amd 1:2024 de Ação Climática (Cláusulas 4.1 e 4.2).</div>
+                        <div class="phase-name">Governança & Políticas</div>
+                        <div class="phase-desc">Auditoria de Organization Policies e políticas corporativas do SGSI (A.5).</div>
                         <div class="phase-progress-bar"><div class="phase-progress-fill" id="fillPhase3"></div></div>
                     </div>
 
@@ -1615,18 +1615,18 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <div class="section-header-banner">
                     <div class="view-title-group">
                         <h2>Matriz de Controles ISO/IEC 27001:2022 & Declaração de Aplicabilidade (SoA)</h2>
-                        <p>Catálogo consolidado de 93 controles do Anexo A estruturado em 4 temas com taxonomia de 5 atributos e emenda Amd 1:2024.</p>
+                        <p>Catálogo consolidado de 93 controles do Anexo A estruturado rigorosamente nos 4 temas da ISO/IEC 27001:2022 com taxonomia de 5 atributos.</p>
                     </div>
                 </div>
 
-                <!-- Resumo dos 4 Temas Principais + Amd 1:2024 (Como solicitado pelo usuário) -->
+                <!-- Resumo dos 4 Temas Principais da ISO/IEC 27001:2022 -->
                 <div class="themes-summary-grid" id="themesSummaryGrid">
                     <div class="theme-card active" onclick="filterMatrixByTheme('Todos')">
                         <div class="theme-card-top">
                             <span class="theme-card-title">Todos os Controles</span>
-                            <span class="theme-count-badge">93 + 2</span>
+                            <span class="theme-count-badge">93</span>
                         </div>
-                        <div class="theme-card-scope">Visão consolidada do Anexo A completo e emenda climática para a SoA.</div>
+                        <div class="theme-card-scope">Visão consolidada dos 93 controles do Anexo A para a Declaração de Aplicabilidade (SoA).</div>
                     </div>
                     <div class="theme-card" onclick="filterMatrixByTheme('A.5 Organizacional')">
                         <div class="theme-card-top">
@@ -1665,7 +1665,6 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <button class="btn-filter-pill" onclick="filterMatrixByTheme('A.6 Pessoas')">A.6 Pessoas</button>
                         <button class="btn-filter-pill" onclick="filterMatrixByTheme('A.7 Físico')">A.7 Físico</button>
                         <button class="btn-filter-pill" onclick="filterMatrixByTheme('A.8 Tecnológico')">A.8 Tecnológico</button>
-                        <button class="btn-filter-pill" onclick="filterMatrixByTheme('Amd 1:2024 Clima')">Amd 1:2024 Clima</button>
                     </div>
 
                     <div class="search-box-wrap">
@@ -1740,8 +1739,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <div style="font-size: 11px; color: var(--gcp-green)">Online</div>
                             </div>
                         </div>
-                        <div class="card-desc">Monitora emendas regulatórias globais e propõe aditamentos à política (ex.: Amd 1:2024 de Ação Climática).</div>
-                        <button class="btn-action-primary" onclick="triggerSubagent('horizon_scanner', 'climate_action')" style="margin-top: auto;">Executar Horizon Scan</button>
+                        <div class="card-desc">Monitora atualizações normativas globais, novas ameaças e propõe melhorias contínuas para o SGSI.</div>
+                        <button class="btn-action-primary" onclick="triggerSubagent('horizon_scanner', 'regulatory_updates')" style="margin-top: auto;">Executar Horizon Scan</button>
                     </div>
 
                     <div class="card-panel">
@@ -1811,7 +1810,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <div class="card-panel" style="margin-top: 16px;">
                     <div class="card-title">Aprovações Humanas Pendentes (Human-in-the-Loop)</div>
                     <div class="card-desc">
-                        Aditamento de Política para Incorporação da Emenda Amd 1:2024 (Ação Climática) proposto pelo Horizon Scanner.
+                        Atualização Semestral de Política de Controle de Acesso IAM (A.5.15) proposta pelo subagente de Governança.
                     </div>
                     <div style="display: flex; gap: 10px; margin-top: 12px;">
                         <button class="btn-confirm" onclick="approveRemediation('HITL-AMENDMENT-001')">
@@ -1855,7 +1854,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </div>
                         <div class="report-meta-item">
                             <span class="report-meta-label">Norma & Emendas</span>
-                            <span class="report-meta-value">ABNT NBR ISO/IEC 27001:2022 & Amd 1:2024 (Ação Climática)</span>
+                            <span class="report-meta-value">ABNT NBR ISO/IEC 27001:2022 (Anexo A - 93 Controles)</span>
                         </div>
                         <div class="report-meta-item">
                             <span class="report-meta-label">Auditor Líder Responsável</span>
@@ -1881,7 +1880,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                     <div class="report-section-title">1. Parecer Executivo de Auditoria</div>
                     <p style="font-size: 13.5px; color: #374151; margin-bottom: 16px;">
-                        A prática de <strong>Google Cloud Security PSO (Professional Services Organization)</strong> realizou a auditoria autônoma de segurança e conformidade da informação sobre as instâncias do Google Cloud Platform indicadas no escopo. A avaliação contemplou os requisitos normativos do Anexo A da ISO/IEC 27001:2022 (Organização, Pessoas, Físico e Tecnológico) e a nova exigência mandatória da Emenda Amd 1:2024 de Ação Climática (Cláusulas 4.1 e 4.2).
+                        A prática de <strong>Google Cloud Security PSO (Professional Services Organization)</strong> realizou a auditoria autônoma de segurança e conformidade da informação sobre as instâncias do Google Cloud Platform indicadas no escopo. A avaliação contemplou integralmente os 93 controles normativos do Anexo A da ISO/IEC 27001:2022 consolidados nos 4 temas principais (Organizacional, Pessoas, Físico e Tecnológico).
                     </p>
 
                     <div class="report-section-title">2. Resultados do Pipeline de Auditoria em 4 Fases</div>
@@ -1911,7 +1910,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <td><strong>Fase 3</strong></td>
                                 <td>Governança & Ação Climática</td>
                                 <td><span style="color: #059669; font-weight: 600;">CONFORME</span></td>
-                                <td>ISO 27001 Amd 1:2024 atendido com arquitetura multirregional ativa us-central1 / us-east4 e failover testado.</td>
+                                <td>Controles Organizacionais A.5 com 100% de conformidade, políticas ativas e enforce de Organization Policies.</td>
                             </tr>
                             <tr>
                                 <td><strong>Fase 4</strong></td>

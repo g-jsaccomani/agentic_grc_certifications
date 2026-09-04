@@ -97,14 +97,13 @@ def call_vertex_gemini(user_prompt: str, projects: Optional[List[str]] = None) -
 Ambientes GCP Monitorados ({len(audited_projects)} projetos): {", ".join(audited_projects)} | Região Primária: {region}
 Plataforma: Gemini Enterprise Agent Platform (GEAP)
 Norma: ISO/IEC 27001:2022 (Controles do Anexo A: A.5 Organizacionais, A.6 Pessoas, A.7 Físicos, A.8 Tecnológicos)
-Emenda Relevante: ISO/IEC 27001:2022 / Amd 1:2024 (Ação Climática - Cláusulas 4.1 e 4.2)
 Scorecard de Conformidade Atual: 100.0% (Classificação: EXCELLENT)
 Nós de Evidência no Grafo Criptográfico: {active_nodes} nós registrados com hash SHA-256
 Posturas e Controles Auditados no Ambiente:
 - Controle A.5.23 (Segurança em Serviços em Nuvem): Buckets GCS com Public Access Prevention (PAP) e Uniform Bucket-Level Access (UBLA) ativados.
 - Controle A.8.12 (Prevenção contra Vazamento de Dados / DLP): Perímetro VPC Service Controls ativo e restrito a storage.googleapis.com e bigquery.googleapis.com.
 - Controle A.8.24 (Uso de Criptografia): Chaves Cloud KMS protegidas em HSM com período de rotação <= 90 dias.
-- ISO 27001 Amd 1:2024 (Ação Climática): Topologia multirregional resiliente (us-central1 / us-east4) com análise formal de riscos climáticos e testes semestrais de failover.
+- Controle A.5.1 (Políticas de Segurança da Informação): Políticas aprovadas pela diretoria com conformidade e enforce de Organization Policies ativas.
 - Controle A.8.9 (Gerenciamento de Configuração): Scanner estático de IaC Terraform e Ansible integrado.
 - Proteção de Borda: Model Armor ativo inspecionando prompts e respostas contra jailbreak e vazamento de PII.
 """
@@ -113,13 +112,13 @@ Posturas e Controles Auditados no Ambiente:
 
         system_instruction = (
             "Você é o 'Agentic GRC Auditor', Auditor Líder Autônomo e Especialista Sênior da Prática de Google Cloud Security PSO (Professional Services Organization), operando sobre o Gemini Enterprise Agent Platform (GEAP).\n"
-            "Sua missão é conduzir análises de conformidade e auditorias contínuas de alto padrão técnico e executivo com rigor metodológico para a ISO/IEC 27001:2022 e a nova emenda Amd 1:2024 (Ação Climática).\n\n"
+            "Sua missão é conduzir análises de conformidade e auditorias contínuas de alto padrão técnico e executivo com rigor metodológico para os 93 controles da ISO/IEC 27001:2022.\n\n"
             "Diretrizes Obrigatórias de Formatação e Apresentação das Respostas:\n"
             "- Adote sempre um tom consultivo sênior, técnico, executivo e impecável.\n"
             "- Estruture sua resposta com seções bem demarcadas em Markdown:\n"
             "  1. **Parecer Executivo de Auditoria**: Resumo claro do estado de conformidade, classificação (ex: EXCELLENT / CONFORME), índice de drift e impacto nos negócios.\n"
             "  2. **Matriz de Controles & Postura GCP**: Utilize SEMPRE uma tabela em Markdown para detalhar os controles avaliados, contendo as colunas: | Controle ISO | Nome do Requisito | Serviço GCP & Configuração | Status | Evidência Técnica |.\n"
-            "  3. **Resiliência e Ação Climática (Amd 1:2024 - Cláusulas 4.1 e 4.2)**: Destaque a arquitetura multirregional e plano de continuidade em sinistros climáticos.\n"
+            "  3. **Governança & Políticas Organizacionais (A.5)**: Destaque as políticas corporativas validadas via Zero-Copy e Organization Policies ativas.\n"
             "  4. **Garantia Criptográfica de Evidências**: Mencione a integridade dos dados ancorados no Grafo de Evidências imutável com hashes SHA-256 e proteção de borda do Model Armor.\n"
             "  5. **Recomendações e Próximos Passos PSO**: Recomendações práticas e proativas para sustentar a certificação e aprimorar a postura.\n"
             "- Conclua sempre com a assinatura oficial:\n"
@@ -192,7 +191,7 @@ async def get_iso_matrix(theme: Optional[str] = None, search: Optional[str] = No
         "themes_summary": THEMES_STRUCTURE,
         "filtered_count": len(items),
         "controls": items,
-        "themes": ["Todos", "A.5 Organizacional", "A.6 Pessoas", "A.7 Físico", "A.8 Tecnológico", "Amd 1:2024 Clima"],
+        "themes": ["Todos", "A.5 Organizacional", "A.6 Pessoas", "A.7 Físico", "A.8 Tecnológico"],
     }
 
 
@@ -256,17 +255,16 @@ async def run_phased_audit(req: PhasedAuditRequest):
         ]
     }
 
-    # Phase 3: Zero-Copy Governance & Climate Action
+    # Phase 3: Zero-Copy Governance & Organization Policies
     phase3_results = {
-        "phase": "Fase 3: Governança Zero-Copy & Ação Climática (Amd 1:2024)",
+        "phase": "Fase 3: Governança Zero-Copy & Políticas do SGSI (A.5)",
         "status": "COMPLETED",
-        "climate_resilience_status": "CONFORME",
         "governance_docs_verified": 6,
         "findings": [
-            "ISO 27001 Amd 1:2024 Cl. 4.1 e 4.2: Matriz de risco climático integrada ao SGSI.",
-            "Resiliência Geográfica: Topologia multirregional ativa us-central1 / us-east4.",
+            "Organization Policies ativas: Enforce de restrições de localização e desativação de chaves padrão.",
+            "Políticas de Segurança da Informação (A.5.1): Aprovadas pela diretoria e indexadas com SHA-256.",
             "Model Armor: Proteção contra Prompt Injection, Jailbreak e vazamento de PII ativa.",
-            "Zero-Copy Connector: Políticas de segurança validadas na fonte sem duplicação de dados.",
+            "Zero-Copy Connector: Políticas de segurança corporativas validadas na fonte sem duplicação de dados.",
         ]
     }
 
@@ -314,7 +312,7 @@ async def export_report(
             "report_id": f"PSO-GRC-ISO27001-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}",
             "generated_at": timestamp,
             "classification": "CONFIDENTIAL / FORMAL AUDIT DOSSIER",
-            "standard": "ISO/IEC 27001:2022 + Amd 1:2024 (Climate Action Changes to Management System Standards)",
+            "standard": "ABNT NBR ISO/IEC 27001:2022 (Sistemas de Gestão de Segurança da Informação)",
             "projects_audited": project_list,
             "lead_auditor": "Agentic GRC Auditor (Google Cloud Security PSO Virtual Lead Auditor)",
             "platform": "Gemini Enterprise Agent Platform (GEAP)",
@@ -326,7 +324,7 @@ async def export_report(
             "phases_summary": {
                 "phase_1_discovery": "COMPLETED - 100% Asset & IAM Verified (Least Privilege)",
                 "phase_2_technical": "COMPLETED - 100% KMS HSM, VPC-SC DLP, GCS PAP, IaC Scanner Verified",
-                "phase_3_governance": "COMPLETED - ISO 27001 Amd 1:2024 Climate Resilience Attested (Multi-region DR)",
+                "phase_3_governance": "COMPLETED - Zero-Copy Corporate Policies & Organization Policies Enforced",
                 "phase_4_evidence": "COMPLETED - SHA-256 Immutability Anchored in Evidence Graph",
             },
         }
@@ -347,7 +345,7 @@ async def export_report(
 **Auditor Líder Responsável:** Agentic GRC Auditor (Autonomous Cognitive Lead Auditor - SPIFFE Validated)  
 **Plataforma de Execução:** Gemini Enterprise Agent Platform (GEAP)  
 **Projetos GCP no Escopo de Auditoria:** {', '.join(project_list)}  
-**Normas Auditadas:** ABNT NBR ISO/IEC 27001:2022 & Amendment 1:2024 (Climate Action)  
+**Normas Auditadas:** ABNT NBR ISO/IEC 27001:2022 (Anexo A - 93 Controles)  
 **Selo de Integridade:** Hash Criptográfico SHA-256 Imutável Ancorado  
 
 ---
@@ -361,7 +359,7 @@ Com base na coleta automatizada de telemetria, inspeção de políticas de organ
 | :--- | :--- | :--- |
 | **Scorecard Global de Conformidade** | **100.0%** | **Excelente / Conforme** |
 | **Cobertura de Controles ISO 27001:2022** | 93 Controles (Anexo A) | 100% Auditado |
-| **Emenda Amd 1:2024 (Ação Climática)** | Resiliência Multirregional | Totalmente Conforme (Cl. 4.1 & 4.2) |
+| **Governança & Políticas Organizacionais** | Organization Policies GCP | Enforce 100% Ativo |
 | **Proteção de Borda & Governança IA** | Model Armor Ativo | Anti-Jailbreak / DLP Ativos |
 | **Cadeia de Evidências Criptográficas** | SHA-256 Merkle Chain | Integridade e Não-Repúdio Garantidos |
 
@@ -381,10 +379,10 @@ Com base na coleta automatizada de telemetria, inspeção de políticas de organ
 - **Controle A.8.24 (Criptografia):** Chaves Cloud KMS protegidas em HSM com rotação <= 60 dias.
 - **Controle A.8.9 (IaC):** Inspeção estática de Terraform/Ansible sem vulnerabilidades críticas.
 
-### Fase 3: Governança Zero-Copy & Ação Climática
+### Fase 3: Governança Zero-Copy & Políticas Organizacionais
 - **Status:** CONFORME (100%)
-- **Amd 1:2024 (Cláusulas 4.1 e 4.2):** Análise formal de impacto de eventos climáticos integrada ao SGSI.
-- **Topologia de Recuperação de Desastres:** Redundância geográfica multirregional com failover semestral.
+- **Controles Organizacionais (A.5):** Validação de políticas de segurança aprovadas pela diretoria.
+- **Organization Policies:** Restrições hierárquicas ativas no GCP sem deriva de conformidade.
 - **Conectores Zero-Copy:** Google Drive e SharePoint auditados na fonte sem duplicação de dados.
 
 ### Fase 4: Grafo Criptográfico & Scorecard Final
@@ -504,7 +502,7 @@ async def handle_chat(req: ChatRequest):
                 "Agentic GRC Auditor - GEAP Compliance & Continuous Audit Agent (Google Cloud Security PSO)\n\n"
                 "Capacidades Principais de Auditoria:\n"
                 "1. Auditoria Contínua e Parecer Executivo para ISO/IEC 27001:2022 (Controles A.5, A.6, A.7 e A.8).\n"
-                "2. Avaliação Formal de Resiliência Climática e Continuidade de Negócios (Amd 1:2024 - Cláusulas 4.1 e 4.2).\n"
+                "2. Avaliação Contínua de Políticas Organizacionais e Governança do SGSI (Tema A.5).\n"
                 "3. Inspeção Estática de Infraestrutura como Código (Terraform .tf e Ansible .yml).\n"
                 "4. Grafo Imutável de Evidências Criptográficas ancorado com Hashes SHA-256.\n"
                 "5. Conectores Zero-Copy para Google Workspace e políticas corporativas sem duplicação de dados.\n"
@@ -527,7 +525,7 @@ async def handle_chat(req: ChatRequest):
         f"Received request: \"{msg}\"\n\n"
         f"Available actions:\n"
         f"1. Run 'Execute proactive audit' to trigger an end-to-end multi-cloud compliance cycle.\n"
-        f"2. Run 'Horizon scanning' to check for regulatory updates (e.g., Climate Action Amd 1:2024).\n"
+        f"2. Run 'Horizon scanning' to check for regulatory updates and cloud compliance drifts.\n"
         f"3. Upload Terraform (.tf) or policy files in the Upload & Connect tab for instant analysis.\n"
         f"4. Connect Google Drive or cloud storage for Zero-Copy continuous auditing."
     )
@@ -672,13 +670,13 @@ async def get_dashboard():
             {"id": "A.8.16", "name": "Monitoring Activities (Logging)", "status": "COMPLIANT"},
             {"id": "A.8.24", "name": "Use of Cryptography (Cloud KMS HSM)", "status": "COMPLIANT"},
             {"id": "A.8.28", "name": "Secure Development & Artifacts", "status": "COMPLIANT"},
-            {"id": "Amd 1:2024", "name": "Climate Action Resilience (us-central1 / us-east4)", "status": "COMPLIANT"},
+            {"id": "A.5.1", "name": "Políticas de Segurança da Informação", "status": "COMPLIANT"},
         ],
         "pending_hitl_approvals": [
             {
-                "id": "HITL-AMENDMENT-001",
-                "title": "Climate Action Amd 1:2024 Business Continuity Amendment",
-                "proposed_by": "HorizonScannerSubAgent",
+                "id": "HITL-POLICY-001",
+                "title": "Atualização Semestral de Política de Controle de Acesso IAM (A.5.15)",
+                "proposed_by": "OrgPoliciesSubAgent",
                 "risk_level": "LOW",
                 "status": "AWAITING_APPROVAL",
             }

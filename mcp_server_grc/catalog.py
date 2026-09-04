@@ -1,6 +1,6 @@
 """Scalable ISO/IEC 27001:2022 Catalog and Multi-Project Registry for GEAP.
 
-Consolidates the 93 Annex A controls across 4 main themes + ISO 27001 Amd 1:2024 Climate Action,
+Consolidates the 93 Annex A controls across 4 main themes (Organizacional, Pessoas, Físico, Tecnológico),
 with 5-attribute taxonomy (Type, Properties, Cybersecurity Concepts, Operational Capabilities, Security Domains)
 and detailed operational guidance on How to Check and How to Maintain continuous compliance.
 """
@@ -57,13 +57,6 @@ THEMES_STRUCTURE = [
         "control_count": 34,
         "scope": "Autenticação, criptografia, redes, segurança no desenvolvimento (DevSecOps) e monitoramento.",
         "icon": "cpu",
-    },
-    {
-        "theme": "ISO/IEC 27001:2022 / Amd 1:2024 (Ação Climática)",
-        "short_theme": "Amd 1:2024 Clima",
-        "control_count": 2,
-        "scope": "Avaliação formal de riscos climáticos e resiliência multirregional de data centers (Cláusulas 4.1 e 4.2).",
-        "icon": "cloud-rain",
     },
 ]
 
@@ -542,52 +535,6 @@ ISO_27001_CATALOG = [
         "status": "COMPLIANT",
         "phase": "Fase 2: Auditoria Técnica Profunda",
         "evidence": "Varredura contínua de contêineres ativa com zero vulnerabilidades críticas",
-        "severity": "HIGH",
-        "soa_status": "APLICÁVEL (INCLUÍDO NO SGSI)"
-    },
-
-    # -------------------------------------------------------------------------
-    # ISO/IEC 27001:2022 / Amd 1:2024 Climate Action (Ação Climática)
-    # -------------------------------------------------------------------------
-    {
-        "id": "Amd 1:2024 Cl. 4.1",
-        "name": "Ação Climática no Contexto da Organização",
-        "theme": "Amd 1:2024 Clima",
-        "description": "A organização deve determinar formalmente se as mudanças climáticas e eventos meteorológicos extremos são questões relevantes para o SGSI e para a continuidade das operações de TI.",
-        "how_to_check": "1. Inspecionar o aditamento da Política de Segurança da Informação cobrindo análise de riscos climáticos e desastres naturais regionais.\n2. Verificar a topologia das cargas de trabalho GCP: confirmar presença de arquitetura multirregional ativa (`us-central1` e `us-east4`).\n3. Validar se o Grafo de Evidências indexa o parecer técnico de risco climático com hash SHA-256.",
-        "how_to_maintain": "1. Realizar revisão anual formal da matriz de riscos climáticos acompanhando relatórios científicos de sinistros regionais.\n2. Enforçar a política de replicação assíncrona entre regiões distintas para todos os bancos de dados críticos (Cloud Spanner / Cloud SQL Cross-Region Replicas).",
-        "attributes": {
-            "type": "Preventivo",
-            "properties": "Disponibilidade, Integridade",
-            "concepts": "Identificar, Proteger",
-            "capabilities": "Continuidade do Negócio",
-            "domains": "Resiliência"
-        },
-        "gcp_mapping": "Multiregional Topology (us-central1 / us-east4) & Climate Risk Registry",
-        "status": "COMPLIANT",
-        "phase": "Fase 3: Governança & Políticas",
-        "evidence": "Matriz de risco climático aprovada e integrada ao registro do SGSI",
-        "severity": "HIGH",
-        "soa_status": "APLICÁVEL (INCLUÍDO NO SGSI)"
-    },
-    {
-        "id": "Amd 1:2024 Cl. 4.2",
-        "name": "Requisitos de Partes Interessadas em Mudanças Climáticas",
-        "theme": "Amd 1:2024 Clima",
-        "description": "A organização deve identificar e determinar os requisitos de partes interessadas relevantes que possam estar relacionados às mudanças climáticas e à resiliência de serviços de TI.",
-        "how_to_check": "1. Auditar os acordos de nível de serviço (SLAs), RTO e RPO formalizados com clientes e órgãos reguladores em cenários de desastre climático.\n2. Checar relatórios de testes semestrais de failover entre regiões do Google Cloud executados com sucesso.\n3. Verificar contratos de fornecedores de nuvem garantindo neutralidade de carbono e redundância de data center.",
-        "how_to_maintain": "1. Automatizar a execução de testes de comutação por falha (failover) duas vezes ao ano com simulação de interrupção regional total.\n2. Monitorar os indicadores de eficiência de energia (PUE) e carbono através do Google Cloud Carbon Footprint.",
-        "attributes": {
-            "type": "Preventivo, Detectivo",
-            "properties": "Disponibilidade",
-            "concepts": "Proteger, Recuperar",
-            "capabilities": "Continuidade do Negócio",
-            "domains": "Resiliência"
-        },
-        "gcp_mapping": "Automated Cross-Region Failover Testing & Carbon Footprint",
-        "status": "COMPLIANT",
-        "phase": "Fase 3: Governança & Políticas",
-        "evidence": "Teste semestral de failover multirregional executado com sucesso e documentado",
         "severity": "HIGH",
         "soa_status": "APLICÁVEL (INCLUÍDO NO SGSI)"
     },
