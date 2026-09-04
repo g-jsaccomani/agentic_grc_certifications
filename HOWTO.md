@@ -210,6 +210,11 @@ The portal dashboard includes comprehensive operational modules accessible via t
    - Built-in automatic detection of user's browser language with instant support for **Português (`PT`)**, **English (`EN`)**, and **Español (`ES`)**.
    - Top navbar language switcher (`PT | EN | ES`) with `localStorage` persistence.
    - Dual-layer translation: localizes both UI elements/menus and AI lead auditor reasoning prompts dispatched to Gemini 2.5.
+10. **Model Armor & Anti-Hallucination Guardrails**:
+    - Perimeter edge protection blocking prompt injection, jailbreaks, and developer modes in real-time.
+    - Strict anti-hallucination normative grounding preventing compliance overrides.
+    - Automatic PII redaction (CPF, SSN, email, credit card) and secret leak interception (private keys, API keys, JWT).
+    - See [`GUARDRAILS.md`](file:///Users/jsaccomani/Documents/Jetsky/My%20Projects/agentic_grc_certifications/GUARDRAILS.md) for the complete engineering and red-team specification.
 
 ---
 
@@ -218,7 +223,7 @@ The portal dashboard includes comprehensive operational modules accessible via t
 | Command | Purpose |
 | :--- | :--- |
 | `make install` | Install Python dependencies into `.venv` using `uv`. |
-| `make test` | Run the complete 62-test suite with coverage reporting. |
+| `make test` | Run the complete 69-test suite (including Model Armor & Guardrails) with coverage reporting. |
 | `make run-portal` | Start the local web portal on `http://localhost:8080/portal`. |
 | `make audit-poc` | Run a standalone proof-of-concept audit script. |
 | `make provision-org` | Run the bash script to provision GCP folder, project, and org-level IAM roles. |

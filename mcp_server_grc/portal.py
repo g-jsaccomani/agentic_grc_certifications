@@ -16,6 +16,7 @@ from fastapi import APIRouter, File, UploadFile, Response, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 
+from agent_orchestrator.gateway import ModelArmorGateway
 from agent_orchestrator.continuous_intelligence import ContinuousIntelligenceEngine
 from agent_orchestrator.subagents.annex_a_agent import AnnexASubAgent
 from agent_orchestrator.subagents.gcp_telemetry_agent import GCPTelemetrySubAgent
@@ -48,6 +49,7 @@ router = APIRouter()
 
 # Global in-memory engines for the portal session
 ci_engine = ContinuousIntelligenceEngine(organization_name="Enterprise-Client-Environment")
+model_armor_gateway = ModelArmorGateway()
 annex_a_subagent = AnnexASubAgent()
 gcp_telemetry_subagent = GCPTelemetrySubAgent()
 org_policies_subagent = OrgPoliciesSubAgent()
@@ -58,6 +60,13 @@ zero_copy_manager = ZeroCopyConnectorManager()
 # ---------------------------------------------------------------------------
 # Pydantic Request Models
 # ---------------------------------------------------------------------------
+
+class GuardrailsInspectRequest(BaseModel):
+    text: str = Field(..., description="Text payload to inspect")
+    direction: str = Field(default="ingress", description="ingress or egress")
+    target_destination: Optional[str] = Field(default=None, description="Destination domain for egress checks")
+    locale: Optional[str] = Field(default="pt", description="Target locale: pt, en, es")
+
 
 class ChatRequest(BaseModel):
     message: str = Field(..., description="User prompt or audit command")
@@ -1242,6 +1251,29 @@ Com base na coleta automatizada de telemetria, inspeção de políticas de organ
 async def handle_chat(req: ChatRequest):
     """Processes user chat prompts and routes to Vertex AI Gemini or specialized subagents."""
     msg = req.message.strip()
+
+    # 1. Model Armor Perimeter Ingress Guardrail
+    ingress_verdict = model_armor_gateway.inspect_ingress(msg)
+    if not ingress_verdict.allowed:
+        finops_tracker.record_usage(
+            "model-armor-interception",
+            prompt_tokens=len(msg),
+            completion_tokens=150,
+            cached_tokens=0,
+            model_key="model-armor",
+        )
+        block_msg = model_armor_gateway.format_block_message(
+            ingress_verdict.violations, locale=req.locale or "pt"
+        )
+        return {
+            "response": block_msg,
+            "status": "BLOCKED_BY_MODEL_ARMOR",
+            "violations": ingress_verdict.violations,
+            "subagent_used": "ModelArmorGateway (Perimeter Defense)",
+        }
+
+    # Downstream execution uses sanitized prompt (PII redacted)
+    sanitized_msg = ingress_verdict.sanitized_prompt
     model_key = "gemini-2.5-pro"
     if req.model:
         if req.model == "gemini-3.5-flash":
@@ -1257,7 +1289,7 @@ async def handle_chat(req: ChatRequest):
         cached_tokens=3200,
         model_key=model_key,
     )
-    lower_msg = msg.lower()
+    lower_msg = sanitized_msg.lower()
     projects = req.selected_projects or ["agentic-grc-cd06"]
 
     # Deterministic Subagent Test Triggers
@@ -1352,10 +1384,21 @@ async def handle_chat(req: ChatRequest):
         }
 
     # Intelligent Reasoning: Consult Vertex AI Gemini 2.5 Flash
-    ai_response = call_vertex_gemini(msg, projects=projects, locale=req.locale or 'pt')
+    ai_response = call_vertex_gemini(sanitized_msg, projects=projects, locale=req.locale or 'pt')
     if ai_response:
+        egress_verdict = model_armor_gateway.inspect_egress(ai_response)
+        if not egress_verdict.allowed:
+            block_msg = model_armor_gateway.format_block_message(
+                egress_verdict.violations, locale=req.locale or "pt"
+            )
+            return {
+                "response": block_msg,
+                "status": "BLOCKED_BY_MODEL_ARMOR",
+                "violations": egress_verdict.violations,
+                "subagent_used": "ModelArmorGateway (Egress Guardrail)",
+            }
         return {
-            "response": ai_response,
+            "response": egress_verdict.sanitized_output,
             "subagent_used": "VertexAI-Gemini-2.5-Flash (Lead Auditor Reasoning)",
         }
 
@@ -1373,6 +1416,44 @@ async def handle_chat(req: ChatRequest):
         "response": response_text,
         "subagent_used": "OrchestratorCoordinator",
     }
+
+
+@router.post("/api/guardrails/inspect")
+async def inspect_guardrails(req: GuardrailsInspectRequest):
+    """Allows automated testing agents to inspect inputs and outputs against Model Armor guardrails."""
+    direction = req.direction.lower().strip()
+    if direction == "egress":
+        verdict = model_armor_gateway.inspect_egress(req.text, target_destination=req.target_destination)
+        block_msg = (
+            model_armor_gateway.format_block_message(verdict.violations, locale=req.locale or "pt")
+            if not verdict.allowed
+            else None
+        )
+        return {
+            "direction": "egress",
+            "allowed": verdict.allowed,
+            "verdict": verdict.verdict,
+            "violations": verdict.violations,
+            "secrets_redacted": verdict.secrets_redacted,
+            "sanitized_output": verdict.sanitized_output,
+            "block_message": block_msg,
+        }
+    else:
+        verdict = model_armor_gateway.inspect_ingress(req.text)
+        block_msg = (
+            model_armor_gateway.format_block_message(verdict.violations, locale=req.locale or "pt")
+            if not verdict.allowed
+            else None
+        )
+        return {
+            "direction": "ingress",
+            "allowed": verdict.allowed,
+            "verdict": verdict.verdict,
+            "violations": verdict.violations,
+            "pii_redacted": verdict.pii_redacted,
+            "sanitized_prompt": verdict.sanitized_prompt,
+            "block_message": block_msg,
+        }
 
 
 @router.post("/api/upload")
