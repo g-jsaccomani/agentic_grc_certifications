@@ -2808,7 +2808,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
             <!-- Merged Unified Navigation (No duplicates, pure borderless icons) -->
             <div class="agent-list">
-                <button class="agent-item active" id="agentBtnGrcAuditor" onclick="selectAuditorTab()">
+                <button class="agent-item" id="agentBtnGrcAuditor" onclick="selectAuditorTab()">
                     <div class="agent-left-wrap">
                         <div class="agent-avatar" style="color: #4285f4;">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -3196,8 +3196,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             </div>
 
                             <!-- Dynamic & Always-Altering Suggestion Chips (Visible in Agentic GRC Auditor) -->
-                            <div class="hero-quick-chips" id="heroQuickChips">
-                                <!-- Populated dynamically by shuffleDynamicSuggestions() -->
+                            <div class="hero-quick-chips" id="heroQuickChips" style="display: none;">
+                                <!-- Populated dynamically by shuffleDynamicSuggestions() when Auditor tab is clicked -->
                             </div>
 
                             <!-- Agentic GRC Auditor Health Dash (Speedometer & Compliance Status) -->
@@ -3270,7 +3270,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 </div>
                             </div>
 
-                            <!-- Clean Regulatory RSS<!-- Clean Regulatory RSS News Feed Strip (Visible in Nova Conversa) -->
+                            <!-- Clean Regulatory RSS News Feed Strip (Visible on Initial Screen & Nova Conversa) -->
                             <div class="hero-news-section" id="heroNewsSection">
                                 <div class="news-section-header">
                                     <div class="news-header-left">
@@ -4940,7 +4940,7 @@ Formulário preenchido com o subagente recomendado!`);
             loadFinOpsMetrics();
             loadIsoMatrix();
             loadSubagents();
-            selectAuditorTab();
+            startNewConversation(); // Always start on the initial screen with RSS Feeds
             startSuggestionRotation();
         });
 
@@ -5236,7 +5236,7 @@ Formulário preenchido com o subagente recomendado!`);
             updateBottomInputVisibility();
 
             document.querySelectorAll(".agent-item").forEach(el => el.classList.remove("active"));
-            document.getElementById("topActiveTitle").innerText = "Nova Conversa de Auditoria";
+            document.getElementById("topActiveTitle").innerText = "Agentic GRC Auditor";
         }
 
         function sendChatMessageFromHero() {
