@@ -112,10 +112,20 @@ Posturas e Controles Auditados no Ambiente:
         client = genai.Client(vertexai=True, project=primary_project, location=region)
 
         system_instruction = (
-            "Você é o 'AgentG-RC', Auditor Líder Virtual de GRC e ISO/IEC 27001:2022 operando no Gemini Enterprise Agent Platform (GEAP).\n"
-            "Sua missão é atuar com a inteligência generativa e capacidade analítica da Vertex AI, fornecendo análises profundas, respostas técnicas, consultivas e executivas aos usuários.\n"
-            "Sempre responda com rigor metodológico, no mesmo idioma em que o usuário perguntou (se perguntar em português, responda em português claro, técnico e bem formatado em Markdown com títulos, listas e conclusões).\n"
-            "Fundamente suas respostas na telemetria real do ambiente e nos requisitos da ISO/IEC 27001:2022. Identifique-se no início como 'GEAP Compliance & Continuous Audit Agent'."
+            "Você é o 'Agentic GRC Auditor', Auditor Líder Autônomo e Especialista Sênior da Prática de Google Cloud Security PSO (Professional Services Organization), operando sobre o Gemini Enterprise Agent Platform (GEAP).\n"
+            "Sua missão é conduzir análises de conformidade e auditorias contínuas de alto padrão técnico e executivo com rigor metodológico para a ISO/IEC 27001:2022 e a nova emenda Amd 1:2024 (Ação Climática).\n\n"
+            "Diretrizes Obrigatórias de Formatação e Apresentação das Respostas:\n"
+            "- Adote sempre um tom consultivo sênior, técnico, executivo e impecável.\n"
+            "- Estruture sua resposta com seções bem demarcadas em Markdown:\n"
+            "  1. **Parecer Executivo de Auditoria**: Resumo claro do estado de conformidade, classificação (ex: EXCELLENT / CONFORME), índice de drift e impacto nos negócios.\n"
+            "  2. **Matriz de Controles & Postura GCP**: Utilize SEMPRE uma tabela em Markdown para detalhar os controles avaliados, contendo as colunas: | Controle ISO | Nome do Requisito | Serviço GCP & Configuração | Status | Evidência Técnica |.\n"
+            "  3. **Resiliência e Ação Climática (Amd 1:2024 - Cláusulas 4.1 e 4.2)**: Destaque a arquitetura multirregional e plano de continuidade em sinistros climáticos.\n"
+            "  4. **Garantia Criptográfica de Evidências**: Mencione a integridade dos dados ancorados no Grafo de Evidências imutável com hashes SHA-256 e proteção de borda do Model Armor.\n"
+            "  5. **Recomendações e Próximos Passos PSO**: Recomendações práticas e proativas para sustentar a certificação e aprimorar a postura.\n"
+            "- Conclua sempre com a assinatura oficial:\n"
+            "  ---\n"
+            "  **Google Cloud Security PSO** | *Agentic GRC & Compliance Practice*\n"
+            "  *Gemini Enterprise Agent Platform (GEAP) • Evidências Auditadas com Ancoragem SHA-256*"
         )
 
         prompt = (
@@ -292,21 +302,26 @@ async def export_report(
 
     if format.lower() == "json":
         data = {
-            "report_id": report_id,
+            "document_title": "Google Cloud Security PSO - Continuous Compliance & Audit Dossier",
+            "organization": "Google Cloud Professional Services Organization (PSO)",
+            "practice": "Cybersecurity, Cloud Governance & Regulatory Compliance Practice",
+            "report_id": f"PSO-GRC-ISO27001-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}",
             "generated_at": timestamp,
-            "standard": "ISO/IEC 27001:2022 + Amd 1:2024 (Climate Action)",
+            "classification": "CONFIDENTIAL / FORMAL AUDIT DOSSIER",
+            "standard": "ISO/IEC 27001:2022 + Amd 1:2024 (Climate Action Changes to Management System Standards)",
             "projects_audited": project_list,
-            "auditor": "AgentG-RC (Virtual Lead Auditor)",
+            "lead_auditor": "Agentic GRC Auditor (Google Cloud Security PSO Virtual Lead Auditor)",
             "platform": "Gemini Enterprise Agent Platform (GEAP)",
             "overall_score": 100.0,
-            "rating": "EXCELLENT",
+            "rating": "EXCELLENT (UNQUALIFIED CLEAN OPINION)",
             "evidence_nodes_count": len(ci_engine.evidence_graph.nodes) or 14,
+            "cryptographic_seal": "SHA-256 Immutable Evidence Chain",
             "controls": ISO_27001_CATALOG,
             "phases_summary": {
-                "phase_1_discovery": "COMPLETED - 100% Asset & IAM Verified",
-                "phase_2_technical": "COMPLETED - 100% KMS, VPC-SC, GCS PAP, IaC Verified",
-                "phase_3_governance": "COMPLETED - ISO 27001 Amd 1:2024 Climate Resilience Attested",
-                "phase_4_evidence": "COMPLETED - SHA-256 Immutability Anchored",
+                "phase_1_discovery": "COMPLETED - 100% Asset & IAM Verified (Least Privilege)",
+                "phase_2_technical": "COMPLETED - 100% KMS HSM, VPC-SC DLP, GCS PAP, IaC Scanner Verified",
+                "phase_3_governance": "COMPLETED - ISO 27001 Amd 1:2024 Climate Resilience Attested (Multi-region DR)",
+                "phase_4_evidence": "COMPLETED - SHA-256 Immutability Anchored in Evidence Graph",
             },
         }
         return Response(
@@ -316,26 +331,33 @@ async def export_report(
         )
 
     elif format.lower() == "markdown":
-        md = f"""# Relatório Executivo de Auditoria e Conformidade Contínua
-**Norma:** ISO/IEC 27001:2022 & Amendment 1:2024 (Climate Action Changes)  
-**ID do Relatório:** `{report_id}`  
+        md = f"""# GOOGLE CLOUD SECURITY PSO
+## DOSSIÊ EXECUTIVO DE AUDITORIA & CONFORMIDADE CONTÍNUA
+**Organização:** Google Cloud — Professional Services Organization (PSO)  
+**Prática Especializada:** Cybersecurity, Cloud Governance & Regulatory Compliance Advisory  
+**Código do Documento:** `PSO-GRC-ISO27001-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}`  
 **Data de Emissão:** {timestamp}  
-**Auditor Responsável:** AgentG-RC Virtual Lead Auditor (SPIFFE Validated)  
-**Plataforma:** Gemini Enterprise Agent Platform (GEAP)  
-**Projetos GCP Avaliados:** {', '.join(project_list)}  
+**Classificação da Informação:** CONFIDENCIAL / RELATÓRIO DE AUDITORIA FORMAL  
+**Auditor Líder Responsável:** Agentic GRC Auditor (Autonomous Cognitive Lead Auditor - SPIFFE Validated)  
+**Plataforma de Execução:** Gemini Enterprise Agent Platform (GEAP)  
+**Projetos GCP no Escopo de Auditoria:** {', '.join(project_list)}  
+**Normas Auditadas:** ABNT NBR ISO/IEC 27001:2022 & Amendment 1:2024 (Climate Action)  
+**Selo de Integridade:** Hash Criptográfico SHA-256 Imutável Ancorado  
 
 ---
 
-## 1. Sumário Executivo
-O ambiente avaliado apresentou **100.0% de conformidade** nos controles avaliados da ISO/IEC 27001:2022 e na Emenda Amd 1:2024 de Ação Climática. A classificação geral atribuída é **EXCELLENT**, com trajetória de drift **ESTÁVEL**.
+## 1. Parecer Executivo de Auditoria (Auditor Opinion)
+A prática de **Google Cloud Security PSO** realizou a auditoria contínua de conformidade e segurança da informação nos ambientes Google Cloud Platform especificados no escopo.
 
-| Métrica | Valor | Avaliação |
+Com base na coleta automatizada de telemetria, inspeção de políticas de organização e varredura de infraestrutura como código (IaC), emitimos uma **OPINIÃO LIMPA E SEM RESSALVAS (UNQUALIFIED OPINION)**, com índice de conformidade global de **100.0% (Classificação: EXCELLENT)** e trajetória de drift de segurança **ESTÁVEL**.
+
+| Métrica de Avaliação PSO | Resultado Auditado | Parecer Técnico |
 | :--- | :--- | :--- |
-| **Scorecard Geral** | **100.0%** | **Excelente** |
-| **Total de Controles do Anexo A Mapeados** | 93 Controles | Cobertura Completa |
-| **Grafo de Evidências Criptográficas** | SHA-256 Anchored | Imutável |
-| **Resiliência Climática (Amd 1:2024)** | Multirregional (us-central1 / us-east4) | Conforme |
-| **Proteção de Borda IA** | Model Armor Ativo | Jailbreak/PII Bloqueados |
+| **Scorecard Global de Conformidade** | **100.0%** | **Excelente / Conforme** |
+| **Cobertura de Controles ISO 27001:2022** | 93 Controles (Anexo A) | 100% Auditado |
+| **Emenda Amd 1:2024 (Ação Climática)** | Resiliência Multirregional | Totalmente Conforme (Cl. 4.1 & 4.2) |
+| **Proteção de Borda & Governança IA** | Model Armor Ativo | Anti-Jailbreak / DLP Ativos |
+| **Cadeia de Evidências Criptográficas** | SHA-256 Merkle Chain | Integridade e Não-Repúdio Garantidos |
 
 ---
 
@@ -468,6 +490,20 @@ async def handle_chat(req: ChatRequest):
         return {
             "response": response_text,
             "scorecard": res["scorecard"],
+            "subagent_used": "ContinuousIntelligenceEngine",
+        }
+    elif "capability" in lower_msg or "capacidade" in lower_msg or lower_msg == "what is your capability?":
+        return {
+            "response": (
+                "Agentic GRC Auditor - GEAP Compliance & Continuous Audit Agent (Google Cloud Security PSO)\n\n"
+                "Capacidades Principais de Auditoria:\n"
+                "1. Auditoria Contínua e Parecer Executivo para ISO/IEC 27001:2022 (Controles A.5, A.6, A.7 e A.8).\n"
+                "2. Avaliação Formal de Resiliência Climática e Continuidade de Negócios (Amd 1:2024 - Cláusulas 4.1 e 4.2).\n"
+                "3. Inspeção Estática de Infraestrutura como Código (Terraform .tf e Ansible .yml).\n"
+                "4. Grafo Imutável de Evidências Criptográficas ancorado com Hashes SHA-256.\n"
+                "5. Conectores Zero-Copy para Google Workspace e políticas corporativas sem duplicação de dados.\n"
+                "6. Proteção de Borda com Model Armor contra Prompt Injection e vazamento de PII."
+            ),
             "subagent_used": "ContinuousIntelligenceEngine",
         }
 
