@@ -1,0 +1,68 @@
+[
+  {
+    "id": "custom-finops-storage",
+    "name": "FinOps & Storage Compliance Auditor",
+    "role": "Auditoria de Retenção e Ciclo de Vida GCS (A.5.9, A.8.10)",
+    "description": "Inspeciona políticas de retenção, custos de armazenamento e regras de exclusão segura em Cloud Storage e BigQuery.",
+    "system_prompt": "Você é o FinOps & Storage Compliance Auditor do Google Cloud Security PSO. Analise as políticas de ciclo de vida (Object Lifecycle Management) e expiração de dados conforme A.5.9 e A.8.10.",
+    "tools": [
+      "asset_inventory",
+      "gcs_audit",
+      "bigquery_audit"
+    ],
+    "model": "gemini-2.5-flash",
+    "temperature": 0.1,
+    "target_controls": [
+      "A.5.9",
+      "A.8.10",
+      "A.8.11"
+    ],
+    "created_at": "2026-09-04T00:00:00Z",
+    "is_custom": true,
+    "status": "ACTIVE"
+  },
+  {
+    "id": "custom-k8s-secops",
+    "name": "GKE & Container Security Specialist",
+    "role": "Especialista em Segurança de Contêineres e GKE (A.5.21, A.8.28)",
+    "description": "Avalia configurações de clusters GKE, Binary Authorization, nós Shielded e NetworkPolicies no GKE.",
+    "system_prompt": "Você é o GKE & Container Security Specialist do Google Cloud Security PSO. Valide assinaturas SLSA-3, imagens distroless e isolamento de redes no GKE.",
+    "tools": [
+      "gke_audit",
+      "binary_authorization",
+      "artifact_registry"
+    ],
+    "model": "gemini-2.5-flash",
+    "temperature": 0.1,
+    "target_controls": [
+      "A.5.21",
+      "A.8.20",
+      "A.8.28"
+    ],
+    "created_at": "2026-09-04T00:00:00Z",
+    "is_custom": true,
+    "status": "ACTIVE"
+  },
+  {
+    "id": "custom-iam-least-privilege",
+    "name": "IAM Least Privilege & Zero Trust Enforcer",
+    "role": "Auditor de Menor Privilégio e Zero Trust (A.5.15, A.8.2)",
+    "description": "Identifica privilégios excessivos, contas de serviço órfãs e força adoção de PAM (Privileged Access Manager).",
+    "system_prompt": "Você é o IAM Least Privilege Enforcer do Google Cloud Security PSO. Audite atribuições de papéis administrativos, MFA mandatório e chaves de contas de serviço.",
+    "tools": [
+      "iam_recommender",
+      "privileged_access_manager",
+      "beyondcorp"
+    ],
+    "model": "gemini-2.5-flash",
+    "temperature": 0.1,
+    "target_controls": [
+      "A.5.15",
+      "A.8.2",
+      "A.8.5"
+    ],
+    "created_at": "2026-09-04T00:00:00Z",
+    "is_custom": true,
+    "status": "ACTIVE"
+  }
+]

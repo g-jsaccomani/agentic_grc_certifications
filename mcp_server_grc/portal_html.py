@@ -993,6 +993,176 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
 
         /* ------------------------------------------------------------------ */
+        
+        /* Phase Action Buttons & Findings */
+        .phase-actions-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .btn-phase-exec {
+            flex: 1;
+            background: rgba(138, 180, 248, 0.15);
+            color: var(--gcp-blue);
+            border: 1px solid rgba(138, 180, 248, 0.3);
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .btn-phase-exec:hover {
+            background: var(--gcp-blue);
+            color: #fff;
+        }
+        .btn-phase-treat {
+            flex: 1;
+            background: rgba(234, 67, 53, 0.12);
+            color: #f28b82;
+            border: 1px solid rgba(234, 67, 53, 0.25);
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .btn-phase-treat:hover {
+            background: rgba(234, 67, 53, 0.22);
+            border-color: var(--gcp-red);
+        }
+        .phase-findings-box {
+            margin-top: 10px;
+            padding: 8px 10px;
+            background: var(--bg-canvas);
+            border-radius: 6px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            border-left: 3px solid var(--gcp-blue);
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        /* Custom Subagents Section */
+        .subagent-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 24px 0 14px 0;
+        }
+        .subagent-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .badge-custom {
+            background: rgba(138, 180, 248, 0.15);
+            color: var(--gcp-blue);
+            font-size: 10.5px;
+            padding: 2px 7px;
+            border-radius: 10px;
+            border: 1px solid rgba(138, 180, 248, 0.3);
+        }
+        .subagent-prompt-preview {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            background: var(--bg-canvas);
+            padding: 8px 10px;
+            border-radius: 6px;
+            line-height: 1.4;
+            max-height: 52px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        .subagent-card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+        }
+        .btn-subagent-run {
+            flex: 1;
+            background: var(--gcp-blue);
+            color: #fff;
+            border: none;
+            padding: 7px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+        .btn-subagent-run:hover { background: var(--gcp-blue-hover); }
+        .btn-subagent-delete {
+            background: rgba(234, 67, 53, 0.15);
+            color: #f28b82;
+            border: 1px solid rgba(234, 67, 53, 0.3);
+            padding: 7px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+        .btn-subagent-delete:hover { background: rgba(234, 67, 53, 0.3); }
+
+        /* Form styling for Modals */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 12px;
+        }
+        .form-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .form-control {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text-primary);
+            font-size: 12.5px;
+            outline: none;
+            width: 100%;
+            transition: var(--transition-smooth);
+        }
+        .form-control:focus { border-color: var(--border-focus); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .tools-checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background: var(--bg-canvas);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+        }
+        .tool-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
         /* View 4: Subagentes & Zero-Copy */
         /* ------------------------------------------------------------------ */
         .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
@@ -1563,6 +1733,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <div class="phase-name">Descoberta & IAM</div>
                         <div class="phase-desc">Cloud Asset Inventory, service accounts e privilégio mínimo (A.5.2, A.5.15, A.8.2).</div>
                         <div class="phase-progress-bar"><div class="phase-progress-fill" id="fillPhase1"></div></div>
+                        <div class="phase-actions-row">
+                            <button class="btn-phase-exec" onclick="runSinglePhase(1)">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                Executar Fase 1
+                            </button>
+                            <button class="btn-phase-treat" onclick="openRemediationModal(1)">Tratar Desvios</button>
+                        </div>
+                        <div class="phase-findings-box" id="findingsPhase1" style="display:none;"></div>
                     </div>
 
                     <div class="phase-card" id="cardPhase2">
@@ -1573,6 +1751,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <div class="phase-name">Auditoria Técnica & IaC</div>
                         <div class="phase-desc">Scan de templates Terraform, portas abertas, VPC Service Controls e Cloud KMS (A.8.9, A.8.24).</div>
                         <div class="phase-progress-bar"><div class="phase-progress-fill" id="fillPhase2"></div></div>
+                        <div class="phase-actions-row">
+                            <button class="btn-phase-exec" onclick="runSinglePhase(2)">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                Executar Fase 2
+                            </button>
+                            <button class="btn-phase-treat" onclick="openRemediationModal(2)">Tratar Desvios</button>
+                        </div>
+                        <div class="phase-findings-box" id="findingsPhase2" style="display:none;"></div>
                     </div>
 
                     <div class="phase-card" id="cardPhase3">
@@ -1583,6 +1769,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <div class="phase-name">Governança & Políticas</div>
                         <div class="phase-desc">Auditoria de Organization Policies e políticas corporativas do SGSI (A.5).</div>
                         <div class="phase-progress-bar"><div class="phase-progress-fill" id="fillPhase3"></div></div>
+                        <div class="phase-actions-row">
+                            <button class="btn-phase-exec" onclick="runSinglePhase(3)">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                Executar Fase 3
+                            </button>
+                            <button class="btn-phase-treat" onclick="openRemediationModal(3)">Tratar Desvios</button>
+                        </div>
+                        <div class="phase-findings-box" id="findingsPhase3" style="display:none;"></div>
                     </div>
 
                     <div class="phase-card" id="cardPhase4">
@@ -1593,6 +1787,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <div class="phase-name">Grafo & Assinatura</div>
                         <div class="phase-desc">Consolidação e ancoragem de evidências com hashes SHA-256 no grafo imutável.</div>
                         <div class="phase-progress-bar"><div class="phase-progress-fill" id="fillPhase4"></div></div>
+                        <div class="phase-actions-row">
+                            <button class="btn-phase-exec" onclick="runSinglePhase(4)">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                Executar Fase 4
+                            </button>
+                            <button class="btn-phase-treat" onclick="openRemediationModal(4)">Tratar Desvios</button>
+                        </div>
+                        <div class="phase-findings-box" id="findingsPhase4" style="display:none;"></div>
                     </div>
                 </div>
 
@@ -1702,12 +1904,44 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <section class="view-pane" id="view-connectors">
                 <div class="section-header-banner">
                     <div class="view-title-group">
-                        <h2>Subagentes & Conectores Zero-Copy</h2>
-                        <p>Integração com repositórios externos (Google Drive, SharePoint, Jira) sem replicação de dados.</p>
+                        <h2>Subagentes Especializados & Conectores Zero-Copy</h2>
+                        <p>Crie, customize e execute subagentes com instruções especializadas e integre repositórios sem replicação de dados.</p>
                     </div>
-                    <button class="btn-confirm" onclick="openStorageModal()">Conectar Repositório</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-confirm" onclick="openCreateSubagentModal()" style="background: var(--gcp-blue);">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: middle; margin-right: 4px;">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Criar Novo Subagente
+                        </button>
+                        <button class="btn-confirm" onclick="openStorageModal()">Conectar Repositório</button>
+                    </div>
                 </div>
 
+                <div class="subagent-section-header">
+                    <span class="subagent-section-title">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                        </svg>
+                        Subagentes Customizados pelo Usuário
+                    </span>
+                    <span style="font-size: 12px; color: var(--text-tertiary)" id="customCountDisplay">Carregando...</span>
+                </div>
+                <div class="cards-grid" id="customSubagentsGrid" style="margin-bottom: 24px;">
+                    <!-- Preenchido dinamicamente via API -->
+                </div>
+
+                <div class="subagent-section-header">
+                    <span class="subagent-section-title">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                        Subagentes Nativos (Google Cloud Security PSO)
+                    </span>
+                </div>
                 <div class="cards-grid">
                     <div class="card-panel">
                         <div class="card-panel-header">
@@ -2041,9 +2275,256 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
 
         // Initialization
+        
+        // -------------------------------------------------------------------
+        // Individual Phase Execution & Remediation
+        // -------------------------------------------------------------------
+        async function runSinglePhase(phaseNum) {
+            const projects = Array.from(selectedProjectIds);
+            const card = document.getElementById(`cardPhase${phaseNum}`);
+            const statusTag = document.getElementById(`statusPhase${phaseNum}`);
+            const fill = document.getElementById(`fillPhase${phaseNum}`);
+            const findingsBox = document.getElementById(`findingsPhase${phaseNum}`);
+
+            statusTag.innerText = "Executando...";
+            statusTag.className = "phase-status-tag running";
+            fill.style.width = "40%";
+            appendLog(`[Fase ${phaseNum} Execução Individual] Iniciando auditoria para projetos: ${projects.join(', ')}...`);
+
+            try {
+                const res = await fetch("/api/audit/run_phases", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ projects: projects, phase: phaseNum })
+                });
+                const data = await res.json();
+                fill.style.width = "100%";
+                statusTag.innerText = "Concluído (100%)";
+                statusTag.className = "phase-status-tag compliant";
+
+                if (data.phases && data.phases.length > 0) {
+                    const p = data.phases[0];
+                    appendLog(`[Fase ${phaseNum} Concluída] Status: ${p.status}`, "success");
+                    if (p.findings) {
+                        p.findings.forEach(f => appendLog(`  -> ${f}`));
+                        if (findingsBox) {
+                            findingsBox.style.display = "block";
+                            findingsBox.innerHTML = `<strong>Achados da Fase ${phaseNum}:</strong><br>` + p.findings.map(f => `• ${escapeHtml(f)}`).join("<br>");
+                        }
+                    }
+                }
+            } catch (e) {
+                statusTag.innerText = "Erro";
+                statusTag.className = "phase-status-tag failed";
+                appendLog(`[Fase ${phaseNum} Erro] ${e}`, "error");
+            }
+        }
+
+        function openRemediationModal(phaseNum) {
+            document.getElementById("remPhaseNumber").value = phaseNum;
+            document.getElementById("remModalTitle").innerText = `Tratar Desvios da Fase ${phaseNum}`;
+            const details = document.getElementById("remPlanDetails");
+            
+            const plans = {
+                1: "<strong>Plano de Remediação Fase 1 (Descoberta & IAM):</strong><br>• Revogação de permissões excessivas identificadas pelo IAM Recommender.<br>• Aplicação mandatória de autenticação MFA/2FA para identidades de projeto.<br>• Desativação de chaves de service account inativas.",
+                2: "<strong>Plano de Remediação Fase 2 (Auditoria Técnica & IaC):</strong><br>• Enforce de Public Access Prevention (PAP) e UBLA nos buckets Cloud Storage.<br>• Configuração de período de rotação de chaves Cloud KMS HSM para 60 dias.<br>• Fechamento de portas administrativas abertas (SSH/RDP) no firewall VPC.",
+                3: "<strong>Plano de Remediação Fase 3 (Governança & Políticas):</strong><br>• Aplicação de Organization Policies restritivas (ex: restrição de localização geográfica).<br>• Sincronização e assinatura digital das políticas do SGSI via Zero-Copy (Google Drive).<br>• Registro formal da aprovação da diretoria no grafo de conformidade.",
+                4: "<strong>Plano de Remediação Fase 4 (Grafo Criptográfico):</strong><br>• Recálculo completo de hashes SHA-256 para todos os nós de evidência.<br>• Emissão de novo recibo digital com não-repúdio.<br>• Reconciliação do Scorecard executivo em 100.0% (EXCELLENT)."
+            };
+            details.innerHTML = plans[phaseNum] || "Plano de remediação automatizado para a fase selecionada.";
+            document.getElementById("remediationModal").classList.add("active");
+        }
+
+        function closeRemediationModal() {
+            document.getElementById("remediationModal").classList.remove("active");
+        }
+
+        async function executePhaseRemediation() {
+            const phaseNum = parseInt(document.getElementById("remPhaseNumber").value, 10);
+            const project = Array.from(selectedProjectIds)[0] || "agentic-grc-cd06";
+            appendLog(`[Remediação Fase ${phaseNum}] Aplicando ações corretivas automáticas no projeto ${project}...`);
+
+            try {
+                const res = await fetch("/api/audit/remediate_phase", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phase: phaseNum, project_id: project })
+                });
+                const data = await res.json();
+                closeRemediationModal();
+
+                appendLog(`[Remediação Fase ${phaseNum}] Sucesso! Status: ${data.details.status}`, "success");
+                data.details.actions_executed.forEach(a => appendLog(`  [Auto-Fix] ${a}`, "success"));
+
+                const statusTag = document.getElementById(`statusPhase${phaseNum}`);
+                if (statusTag) {
+                    statusTag.innerText = "Remediado (100%)";
+                    statusTag.className = "phase-status-tag compliant";
+                }
+                const findingsBox = document.getElementById(`findingsPhase${phaseNum}`);
+                if (findingsBox) {
+                    findingsBox.style.display = "block";
+                    findingsBox.innerHTML = `<span style="color: var(--gcp-green);"><strong>Fase ${phaseNum} Remediada com Sucesso:</strong></span><br>` + data.details.actions_executed.map(a => `✓ ${escapeHtml(a)}`).join("<br>");
+                }
+            } catch (e) {
+                appendLog(`[Remediação Erro] ${e}`, "error");
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // Custom Subagents Management
+        // -------------------------------------------------------------------
+        async function loadSubagents() {
+            try {
+                const res = await fetch("/api/subagents");
+                const data = await res.json();
+                const container = document.getElementById("customSubagentsGrid");
+                const countDisplay = document.getElementById("customCountDisplay");
+                if (!container) return;
+
+                const customList = data.custom_subagents || [];
+                if (countDisplay) {
+                    countDisplay.innerText = `${customList.length} subagente(s) ativo(s)`;
+                }
+
+                if (customList.length === 0) {
+                    container.innerHTML = `<div style="grid-column: 1 / -1; color: var(--text-tertiary); padding: 18px; text-align: center; border: 1px dashed var(--border-subtle); border-radius: 12px;">Nenhum subagente customizado criado ainda. Clique em '+ Criar Novo Subagente' acima para customizar.</div>`;
+                    return;
+                }
+
+                container.innerHTML = "";
+                customList.forEach(agent => {
+                    const card = document.createElement("div");
+                    card.className = "card-panel";
+                    const toolsHtml = (agent.tools || []).map(t => `<span class="tag-pill">#${escapeHtml(t)}</span>`).join(" ");
+                    const controlsHtml = (agent.target_controls || []).map(c => `<span class="tag-pill" style="color: var(--gcp-blue);">#${escapeHtml(c)}</span>`).join(" ");
+
+                    card.innerHTML = `
+                        <div class="card-panel-header">
+                            <div class="card-icon-avatar" style="background: rgba(138, 180, 248, 0.15); color: var(--gcp-blue);">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
+                                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+                                    <path d="M12 6v6l4 2"/>
+                                </svg>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; justify-content: space-between;">
+                                    <div class="card-title">${escapeHtml(agent.name)}</div>
+                                    <span class="badge-custom">Customizado</span>
+                                </div>
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">${escapeHtml(agent.role || 'Auditor Especialista')}</div>
+                            </div>
+                        </div>
+                        <div class="card-desc">${escapeHtml(agent.description || '')}</div>
+                        <div class="subagent-prompt-preview"><strong>System Prompt:</strong> ${escapeHtml(agent.system_prompt || '')}</div>
+                        <div style="margin-top: 4px;">
+                            ${controlsHtml} ${toolsHtml}
+                        </div>
+                        <div class="subagent-card-actions">
+                            <button class="btn-subagent-run" onclick="runCustomSubagent('${agent.id}')">Executar Auditoria</button>
+                            <button class="btn-subagent-delete" onclick="deleteCustomSubagent('${agent.id}')" title="Excluir Subagente">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (e) {
+                console.error("Error loading subagents", e);
+            }
+        }
+
+        function openCreateSubagentModal(agentId = null) {
+            document.getElementById("subagentEditId").value = agentId || "";
+            document.getElementById("subagentName").value = "";
+            document.getElementById("subagentRole").value = "";
+            document.getElementById("subagentControls").value = "";
+            document.getElementById("subagentDesc").value = "";
+            document.getElementById("subagentPrompt").value = "";
+            document.getElementById("subagentModalTitle").innerText = agentId ? "Editar Subagente Customizado" : "Criar Novo Subagente Customizado";
+            document.getElementById("subagentModal").classList.add("active");
+        }
+
+        function closeSubagentModal() {
+            document.getElementById("subagentModal").classList.remove("active");
+        }
+
+        async function saveCustomSubagent() {
+            const name = document.getElementById("subagentName").value.trim();
+            const role = document.getElementById("subagentRole").value.trim();
+            const controlsStr = document.getElementById("subagentControls").value.trim();
+            const desc = document.getElementById("subagentDesc").value.trim();
+            const prompt = document.getElementById("subagentPrompt").value.trim();
+            const model = document.getElementById("subagentModel").value;
+
+            if (!name || !role) {
+                alert("Por favor, preencha o Nome e o Cargo do Subagente.");
+                return;
+            }
+
+            const controls = controlsStr.split(",").map(c => c.trim()).filter(c => c);
+            const checkboxes = document.querySelectorAll(".tool-checkbox-label input[type='checkbox']:checked");
+            const tools = Array.from(checkboxes).map(cb => cb.value);
+
+            const payload = {
+                id: document.getElementById("subagentEditId").value || null,
+                name: name,
+                role: role,
+                description: desc || `Subagente customizado para auditoria de ${role}`,
+                system_prompt: prompt || `Você é o auditor ${name} focado em conformidade ISO 27001 no GCP.`,
+                tools: tools.length > 0 ? tools : ["asset_inventory"],
+                model: model,
+                temperature: 0.1,
+                target_controls: controls.length > 0 ? controls : ["A.5.1"]
+            };
+
+            try {
+                const res = await fetch("/api/subagents", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                closeSubagentModal();
+                loadSubagents();
+                appendLog(`[Subagente Criado] Subagente '${data.subagent.name}' salvo e ativado no GEAP!`, "success");
+            } catch (e) {
+                alert("Erro ao salvar subagente: " + e);
+            }
+        }
+
+        async function deleteCustomSubagent(agentId) {
+            if (!confirm(`Deseja realmente remover o subagente customizado '${agentId}'?`)) return;
+            try {
+                const res = await fetch(`/api/subagents/${encodeURIComponent(agentId)}`, { method: "DELETE" });
+                const data = await res.json();
+                loadSubagents();
+                appendLog(`[Subagente Removido] Subagente '${agentId}' excluído com sucesso.`, "success");
+            } catch (e) {
+                alert("Erro ao excluir subagente: " + e);
+            }
+        }
+
+        async function runCustomSubagent(agentId) {
+            const project = Array.from(selectedProjectIds)[0] || "agentic-grc-cd06";
+            appendLog(`[Subagente ${agentId}] Executando auditoria especializada no projeto '${project}'...`);
+
+            try {
+                const res = await fetch(`/api/subagents/${encodeURIComponent(agentId)}/run?project_id=${encodeURIComponent(project)}`, { method: "POST" });
+                const data = await res.json();
+                appendLog(`[Subagente ${agentId}] Concluído com Score: ${data.compliance_score}%`, "success");
+                if (data.findings) {
+                    data.findings.forEach(f => appendLog(`  -> ${f}`, "success"));
+                }
+            } catch (e) {
+                appendLog(`[Subagente Erro] ${e}`, "error");
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             loadProjects();
             loadIsoMatrix();
+            loadSubagents();
         });
 
         function toggleSidebar() {
@@ -2591,6 +3072,100 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             return html;
         }
     </script>
+
+    <!-- Modal: Criar / Editar Subagente Customizado -->
+    <div class="modal-backdrop" id="subagentModal">
+        <div class="modal-dialog" style="max-width: 580px;">
+            <div class="modal-header">
+                <span class="modal-title" id="subagentModalTitle">Criar Novo Subagente Customizado</span>
+                <span class="btn-modal-close" onclick="closeSubagentModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="subagentEditId" value="">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Nome do Subagente</label>
+                        <input type="text" id="subagentName" class="form-control" placeholder="Ex: FinOps & Storage Compliance Auditor">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cargo / Especialidade</label>
+                        <input type="text" id="subagentRole" class="form-control" placeholder="Ex: Auditor de Retenção e Ciclo de Vida">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Controles ISO Alvo (separados por vírgula)</label>
+                        <input type="text" id="subagentControls" class="form-control" placeholder="Ex: A.5.9, A.8.10, A.8.11">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Modelo Cognitivo</label>
+                        <select id="subagentModel" class="form-control">
+                            <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Recomendado / Baixa Latência)</option>
+                            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Raciocínio Profundo)</option>
+                            <option value="gemini-2.5-pro">Gemini 2.5 Pro (Lead Auditor Especialista)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Descrição do Propósito</label>
+                    <input type="text" id="subagentDesc" class="form-control" placeholder="Breve resumo do que este subagente avalia no ambiente GCP.">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">System Prompt / Instrução Especializada</label>
+                    <textarea id="subagentPrompt" class="form-control" rows="4" placeholder="Defina a metodologia e critérios do auditor: 'Você é o especialista PSO responsável por...'"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ferramentas & Permissões GCP Habilitadas</label>
+                    <div class="tools-checkbox-grid">
+                        <label class="tool-checkbox-label"><input type="checkbox" value="asset_inventory" checked> Cloud Asset Inventory</label>
+                        <label class="tool-checkbox-label"><input type="checkbox" value="iam_recommender" checked> IAM Recommender</label>
+                        <label class="tool-checkbox-label"><input type="checkbox" value="cloud_kms"> Cloud KMS HSM</label>
+                        <label class="tool-checkbox-label"><input type="checkbox" value="vpc_sc"> VPC Service Controls</label>
+                        <label class="tool-checkbox-label"><input type="checkbox" value="iac_scanner"> IaC Terraform Scanner</label>
+                        <label class="tool-checkbox-label"><input type="checkbox" value="zero_copy_drive"> Zero-Copy Workspace Drive</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeSubagentModal()">Cancelar</button>
+                <button class="btn-confirm" onclick="saveCustomSubagent()" style="background: var(--gcp-blue);">Salvar Subagente</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Tratar Desvios de Fase (Remediação) -->
+    <div class="modal-backdrop" id="remediationModal">
+        <div class="modal-dialog" style="max-width: 520px;">
+            <div class="modal-header">
+                <span class="modal-title" id="remModalTitle">Tratar Desvios da Fase</span>
+                <span class="btn-modal-close" onclick="closeRemediationModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="remPhaseNumber" value="1">
+                <div id="remPlanDetails" style="font-size: 13px; line-height: 1.6; color: #d1d5db;">
+                    Carregando plano de remediação...
+                </div>
+                <div style="margin-top: 14px; background: rgba(138, 180, 248, 0.1); border: 1px solid rgba(138, 180, 248, 0.25); border-radius: 8px; padding: 12px; font-size: 12px; color: var(--gcp-blue);">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    A execução registrará as alterações no Grafo de Evidências com novo hash SHA-256 para auditoria contínua.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeRemediationModal()">Fechar</button>
+                <button class="btn-confirm" onclick="executePhaseRemediation()" style="background: var(--gcp-green);">Executar Remediação Automática</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
 """

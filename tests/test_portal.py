@@ -99,3 +99,62 @@ def test_portal_subagents_and_dashboard():
     )
     assert res_app.status_code == 200
     assert res_app.json()["status"] == "APPROVED"
+
+
+def test_individual_phases_and_remediation():
+    # 1. Run single phase 1
+    res_p1 = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"], "phase": 1})
+    assert res_p1.status_code == 200
+    data_p1 = res_p1.json()
+    assert len(data_p1["phases"]) == 1
+    assert data_p1["phases"][0]["phase"].startswith("Fase 1")
+
+    # 2. Run single phase 2
+    res_p2 = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"], "phase": 2})
+    assert res_p2.status_code == 200
+    assert len(res_p2.json()["phases"]) == 1
+    assert res_p2.json()["phases"][0]["phase"].startswith("Fase 2")
+
+    # 3. Remediate phase 2
+    res_rem = client.post("/api/audit/remediate_phase", json={"phase": 2, "project_id": "agentic-grc-cd06"})
+    assert res_rem.status_code == 200
+    rem_data = res_rem.json()
+    assert rem_data["details"]["status"] == "REMEDIATED"
+    assert rem_data["details"]["new_score"] == 100.0
+
+
+def test_custom_subagents_lifecycle():
+    # 1. Create a custom subagent
+    new_agent = {
+        "name": "Custom Test FinOps Agent",
+        "role": "Cloud Cost and Compliance Inspector",
+        "description": "Tests storage cost allocation and tagging",
+        "system_prompt": "Inspect tags and labels on all compute resources",
+        "tools": ["iam", "asset_inventory"],
+        "model": "gemini-2.5-flash",
+        "temperature": 0.2,
+        "target_controls": ["A.5.9", "A.8.10"]
+    }
+    res_create = client.post("/api/subagents", json=new_agent)
+    assert res_create.status_code == 200
+    created = res_create.json()["subagent"]
+    agent_id = created["id"]
+    assert agent_id.startswith("custom-")
+
+    # 2. List subagents
+    res_list = client.get("/api/subagents")
+    assert res_list.status_code == 200
+    data = res_list.json()
+    assert any(a["id"] == agent_id for a in data["custom_subagents"])
+
+    # 3. Run custom subagent
+    res_run = client.post(f"/api/subagents/{agent_id}/run")
+    assert res_run.status_code == 200
+    assert res_run.json()["status"] == "COMPLETED"
+    assert len(res_run.json()["findings"]) > 0
+
+    # 4. Delete custom subagent
+    res_del = client.delete(f"/api/subagents/{agent_id}")
+    assert res_del.status_code == 200
+    assert res_del.json()["status"] == "DELETED"
+
