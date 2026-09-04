@@ -3459,32 +3459,32 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                                     <div class="model-option selected" data-model="gemini-auto" onclick="selectModel('gemini-auto', 'Automático')">
                                                         <div class="model-opt-title">
                                                             <span class="model-picker-dot" style="background:#4285f4; box-shadow: 0 0 6px #4285f4;"></span>
-                                                            <span>Automático</span>
-                                                            <span class="model-tag-rec">Recomendado</span>
+                                                            <span data-i18n="model_auto_name">Automático</span>
+                                                            <span class="model-tag-rec" data-i18n="tag_recommended">Recomendado</span>
                                                         </div>
-                                                        <div class="model-opt-desc">Roteamento autônomo Gemini 2.5 com otimização FinOps</div>
+                                                        <div class="model-opt-desc" data-i18n="model_auto_desc">Roteamento autônomo Gemini 2.5 com otimização FinOps</div>
                                                     </div>
                                                     <div class="model-option" data-model="gemini-2.5-pro" onclick="selectModel('gemini-2.5-pro', 'Gemini 2.5 Pro')">
                                                         <div class="model-opt-title">
                                                             <span class="model-picker-dot" style="background:#8ab4f8; box-shadow: 0 0 6px #8ab4f8;"></span>
                                                             <span>Gemini 2.5 Pro</span>
                                                         </div>
-                                                        <div class="model-opt-desc">Auditor Líder • Raciocínio normativo profundo & Pareceres</div>
+                                                        <div class="model-opt-desc" data-i18n="model_pro_desc">Auditor Líder • Raciocínio normativo profundo & Pareceres</div>
                                                     </div>
                                                     <div class="model-option" data-model="gemini-2.5-flash" onclick="selectModel('gemini-2.5-flash', 'Gemini 2.5 Flash')">
                                                         <div class="model-opt-title">
                                                             <span class="model-picker-dot" style="background:#81c995; box-shadow: 0 0 6px #81c995;"></span>
                                                             <span>Gemini 2.5 Flash</span>
                                                         </div>
-                                                        <div class="model-opt-desc">Alta velocidade • Triagem de evidências e telemetria GCP</div>
+                                                        <div class="model-opt-desc" data-i18n="model_flash_desc">Alta velocidade • Triagem de evidências e telemetria GCP</div>
                                                     </div>
                                                     <div class="model-option" data-model="gemini-3.5-flash" onclick="selectModel('gemini-3.5-flash', 'Gemini 3.5 Flash')">
                                                         <div class="model-opt-title">
                                                             <span class="model-picker-dot" style="background:#c58af9; box-shadow: 0 0 6px #c58af9;"></span>
                                                             <span>Gemini 3.5 Flash</span>
-                                                            <span class="model-tag-new">Novo</span>
+                                                            <span class="model-tag-new" data-i18n="tag_new">Novo</span>
                                                         </div>
-                                                        <div class="model-opt-desc">Nova geração • Context Caching de 1M tokens para varreduras contínuas</div>
+                                                        <div class="model-opt-desc" data-i18n="model_flash35_desc">Nova geração • Context Caching de 1M tokens para varreduras contínuas</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -3581,7 +3581,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <div class="news-section-header">
                                     <div class="news-header-left">
                                         <span class="news-pulse-dot"></span>
-                                        <span class="news-header-title">Novidades & Atualizações Regulatórias (RSS Feed)</span>
+                                        <span class="news-header-title" data-i18n="news_header_title">Novidades & Atualizações Regulatórias (RSS Feed)</span>
                                     </div>
                                     <div class="news-nav-buttons">
                                         <button class="btn-news-nav" onclick="scrollNewsCarousel(-1)" title="Anterior">‹</button>
@@ -3723,11 +3723,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <section class="view-pane" id="view-phases">
                 <div class="section-header-banner">
                     <div class="view-title-group">
-                        <h2>Scan de Auditoria por Fases (Google Cloud Security)</h2>
-                        <p>Pipeline estruturado de 4 fases para auditoria técnica, governança de dados e ancoragem criptográfica.</p>
+                        <h2 data-i18n="phases_title">Scan de Auditoria por Fases (Google Cloud Security)</h2>
+                        <p data-i18n="phases_subtitle">Pipeline estruturado de 4 fases para auditoria técnica, governança de dados e ancoragem criptográfica.</p>
                     </div>
                     <button class="btn-confirm" onclick="triggerPhasedAudit()">
-                        Executar Scan nas 4 Fases
+                        <span data-i18n="phases_run_all">Executar Scan nas 4 Fases</span>
                     </button>
                 </div>
 
@@ -3737,8 +3737,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <span class="phase-step-num">Fase 1</span>
                             <span class="phase-status-tag" id="statusPhase1">Pronto</span>
                         </div>
-                        <div class="phase-name">Descoberta & IAM</div>
-                        <div class="phase-desc">Cloud Asset Inventory, service accounts e privilégio mínimo (A.5.2, A.5.15, A.8.2).</div>
+                        <div class="phase-name" data-i18n="phase_1_name">Descoberta & IAM</div>
+                        <div class="phase-desc" data-i18n="phase_1_desc">Cloud Asset Inventory, service accounts e privilégio mínimo (A.5.2, A.5.15, A.8.2).</div>
                         <div class="phase-progress-bar"><div class="phase-progress-fill" id="fillPhase1"></div></div>
                         <div class="phase-actions-row">
                             <button class="btn-phase-exec" onclick="runSinglePhase(1)">
@@ -3755,8 +3755,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <span class="phase-step-num">Fase 2</span>
                             <span class="phase-status-tag" id="statusPhase2">Pronto</span>
                         </div>
-                        <div class="phase-name">Auditoria Técnica & IaC</div>
-                        <div class="phase-desc">Scan de templates Terraform, portas abertas, VPC Service Controls e Cloud KMS (A.8.9, A.8.24).</div>
+                        <div class="phase-name" data-i18n="phase_2_name">Auditoria Técnica & IaC</div>
+                        <div class="phase-desc" data-i18n="phase_2_desc">Scan de templates Terraform, portas abertas, VPC Service Controls e Cloud KMS (A.8.9, A.8.24).</div>
                         <div class="phase-progress-bar"><div class="phase-progress-fill" id="fillPhase2"></div></div>
                         <div class="phase-actions-row">
                             <button class="btn-phase-exec" onclick="runSinglePhase(2)">
@@ -3773,8 +3773,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <span class="phase-step-num">Fase 3</span>
                             <span class="phase-status-tag" id="statusPhase3">Pronto</span>
                         </div>
-                        <div class="phase-name">Governança & Políticas</div>
-                        <div class="phase-desc">Auditoria de Organization Policies e políticas corporativas do SGSI (A.5).</div>
+                        <div class="phase-name" data-i18n="phase_3_name">Governança & Políticas</div>
+                        <div class="phase-desc" data-i18n="phase_3_desc">Auditoria de Organization Policies e políticas corporativas do SGSI (A.5).</div>
                         <div class="phase-progress-bar"><div class="phase-progress-fill" id="fillPhase3"></div></div>
                         <div class="phase-actions-row">
                             <button class="btn-phase-exec" onclick="runSinglePhase(3)">
@@ -3791,8 +3791,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <span class="phase-step-num">Fase 4</span>
                             <span class="phase-status-tag" id="statusPhase4">Pronto</span>
                         </div>
-                        <div class="phase-name">Grafo & Assinatura</div>
-                        <div class="phase-desc">Consolidação e ancoragem de evidências com hashes SHA-256 no grafo imutável.</div>
+                        <div class="phase-name" data-i18n="phase_4_name">Grafo & Assinatura</div>
+                        <div class="phase-desc" data-i18n="phase_4_desc">Consolidação e ancoragem de evidências com hashes SHA-256 no grafo imutável.</div>
                         <div class="phase-progress-bar"><div class="phase-progress-fill" id="fillPhase4"></div></div>
                         <div class="phase-actions-row">
                             <button class="btn-phase-exec" onclick="runSinglePhase(4)">
@@ -3844,8 +3844,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <section class="view-pane" id="view-matrix">
                 <div class="section-header-banner">
                     <div class="view-title-group">
-                        <h2>Matriz de Controles ISO/IEC 27001:2022 & Declaração de Aplicabilidade (SoA)</h2>
-                        <p>Catálogo consolidado de 93 controles do Anexo A estruturado rigorosamente nos 4 temas da ISO/IEC 27001:2022 com taxonomia de 5 atributos.</p>
+                        <h2 data-i18n="matrix_title">Matriz de Controles ISO/IEC 27001:2022 & Declaração de Aplicabilidade (SoA)</h2>
+                        <p data-i18n="matrix_subtitle">Catálogo consolidado de 93 controles do Anexo A estruturado rigorosamente nos 4 temas da ISO/IEC 27001:2022 com taxonomia de 5 atributos.</p>
                     </div>
                 </div>
 
@@ -3853,38 +3853,38 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <div class="themes-summary-grid" id="themesSummaryGrid">
                     <div class="theme-card active" onclick="filterMatrixByTheme('Todos')">
                         <div class="theme-card-top">
-                            <span class="theme-card-title">Todos os Controles</span>
+                            <span class="theme-card-title" data-i18n="theme_all">Todos os Controles</span>
                             <span class="theme-count-badge">93</span>
                         </div>
-                        <div class="theme-card-scope">Visão consolidada dos 93 controles do Anexo A para a Declaração de Aplicabilidade (SoA).</div>
+                        <div class="theme-card-scope" data-i18n="theme_all_scope">Visão consolidada dos 93 controles do Anexo A para a Declaração de Aplicabilidade (SoA).</div>
                     </div>
                     <div class="theme-card" onclick="filterMatrixByTheme('A.5 Organizacional')">
                         <div class="theme-card-top">
-                            <span class="theme-card-title">A.5 Organizacionais</span>
+                            <span class="theme-card-title" data-i18n="theme_a5">A.5 Organizacionais</span>
                             <span class="theme-count-badge">37</span>
                         </div>
-                        <div class="theme-card-scope">Políticas, governança, fornecedores, gestão de ativos e resposta a incidentes.</div>
+                        <div class="theme-card-scope" data-i18n="theme_a5_scope">Políticas, governança, fornecedores, gestão de ativos e resposta a incidentes.</div>
                     </div>
                     <div class="theme-card" onclick="filterMatrixByTheme('A.6 Pessoas')">
                         <div class="theme-card-top">
-                            <span class="theme-card-title">A.6 Pessoas</span>
+                            <span class="theme-card-title" data-i18n="theme_a6">A.6 Pessoas</span>
                             <span class="theme-count-badge">8</span>
                         </div>
-                        <div class="theme-card-scope">Segurança em RH, triagem, termos de contratação, conscientização e desligamento.</div>
+                        <div class="theme-card-scope" data-i18n="theme_a6_scope">Segurança em RH, triagem, termos de contratação, conscientização e desligamento.</div>
                     </div>
                     <div class="theme-card" onclick="filterMatrixByTheme('A.7 Físico')">
                         <div class="theme-card-top">
-                            <span class="theme-card-title">A.7 Físicos</span>
+                            <span class="theme-card-title" data-i18n="theme_a7">A.7 Físicos</span>
                             <span class="theme-count-badge">14</span>
                         </div>
-                        <div class="theme-card-scope">Perímetros de segurança, instalações, proteção contra ameaças e descarte seguro.</div>
+                        <div class="theme-card-scope" data-i18n="theme_a7_scope">Perímetros de segurança, instalações, proteção contra ameaças e descarte seguro.</div>
                     </div>
                     <div class="theme-card" onclick="filterMatrixByTheme('A.8 Tecnológico')">
                         <div class="theme-card-top">
-                            <span class="theme-card-title">A.8 Tecnológicos</span>
+                            <span class="theme-card-title" data-i18n="theme_a8">A.8 Tecnológicos</span>
                             <span class="theme-count-badge">34</span>
                         </div>
-                        <div class="theme-card-scope">Autenticação, criptografia, redes, desenvolvimento seguro (DevSecOps) e logs.</div>
+                        <div class="theme-card-scope" data-i18n="theme_a8_scope">Autenticação, criptografia, redes, desenvolvimento seguro (DevSecOps) e logs.</div>
                     </div>
                 </div>
 
@@ -3904,7 +3904,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                             </svg>
                         </span>
-                        <input type="text" id="matrixSearchInput" class="search-input" placeholder="Buscar por controle, serviço GCP ou comando..." oninput="searchMatrix(this.value)">
+                        <input type="text" id="matrixSearchInput" class="search-input" placeholder="Buscar por controle, serviço GCP ou comando..." data-i18n-placeholder="matrix_search_placeholder" oninput="searchMatrix(this.value)">
                     </div>
                 </div>
 
@@ -3912,13 +3912,13 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th style="width: 90px;">Código</th>
-                                <th style="width: 200px;">Nome do Controle</th>
-                                <th style="width: 140px;">Tema</th>
-                                <th>Mapeamento GCP</th>
-                                <th style="width: 110px;">Status</th>
-                                <th style="width: 90px;">Severidade</th>
-                                <th style="width: 150px; text-align: center;">Ações</th>
+                                <th style="width: 90px;" data-i18n="th_code">Código</th>
+                                <th style="width: 200px;" data-i18n="th_name">Nome do Controle</th>
+                                <th style="width: 140px;" data-i18n="th_theme">Tema</th>
+                                <th data-i18n="th_mapping">Mapeamento GCP</th>
+                                <th style="width: 110px;" data-i18n="th_status">Status</th>
+                                <th style="width: 90px;" data-i18n="th_severity">Severidade</th>
+                                <th style="width: 150px; text-align: center;" data-i18n="th_actions">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="matrixTableBody">
@@ -3932,8 +3932,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <section class="view-pane" id="view-connectors">
                 <div class="section-header-banner">
                     <div class="view-title-group">
-                        <h2>Subagentes Especializados & Conectores Zero-Copy</h2>
-                        <p>Crie, customize e execute subagentes com instruções especializadas e integre repositórios sem replicação de dados.</p>
+                        <h2 data-i18n="connectors_title">Subagentes Especializados & Conectores Zero-Copy</h2>
+                        <p data-i18n="connectors_subtitle">Crie, customize e execute subagentes com instruções especializadas e integre repositórios sem replicação de dados.</p>
                     </div>
                     <div style="display: flex; gap: 10px;">
                         <button class="btn-confirm" onclick="openCreateSubagentModal()" style="background: var(--gcp-blue);">
@@ -3943,7 +3943,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             </svg>
                             Criar Novo Subagente
                         </button>
-                        <button class="btn-confirm" onclick="openStorageModal()">Conectar Repositório</button>
+                        <button class="btn-confirm" onclick="openStorageModal()"><span data-i18n="btn_connect_storage">Conectar Repositório</span></button>
                     </div>
                 </div>
 
@@ -3954,7 +3954,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <line x1="8" y1="21" x2="16" y2="21"/>
                             <line x1="12" y1="17" x2="12" y2="21"/>
                         </svg>
-                        Subagentes Customizados pelo Usuário
+                        <span data-i18n="subagents_custom_title">Subagentes Customizados pelo Usuário</span>
                     </span>
                     <span style="font-size: 12px; color: var(--text-tertiary)" id="customCountDisplay">Carregando...</span>
                 </div>
@@ -4046,37 +4046,37 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <section class="view-pane" id="view-scorecard">
                 <div class="section-header-banner">
                     <div class="view-title-group">
-                        <h2>Scorecard Contínuo & Grafo de Evidências</h2>
-                        <p>Métricas consolidadas de conformidade, drift de segurança e aprovações humanas pendentes.</p>
+                        <h2 data-i18n="scorecard_title">Scorecard Contínuo & Grafo de Evidências</h2>
+                        <p data-i18n="scorecard_subtitle">Métricas consolidadas de conformidade, drift de segurança e aprovações humanas pendentes.</p>
                     </div>
                 </div>
 
                 <div class="scorecard-stats-row">
                     <div class="stat-card">
-                        <div class="stat-label">Conformidade Global</div>
+                        <div class="stat-label" data-i18n="scorecard_global_comp">Conformidade Global</div>
                         <div class="stat-val" style="color: var(--gcp-green);" id="scoreDisplay">100.0%</div>
-                        <div style="font-size: 12px; color: var(--text-secondary)">Opinião do Auditor: LIMPA / EXCELLENT</div>
+                        <div style="font-size: 12px; color: var(--text-secondary)" data-i18n="scorecard_auditor_opinion">Opinião do Auditor: LIMPA / EXCELLENT</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Nós no Grafo de Evidências</div>
+                        <div class="stat-label" data-i18n="scorecard_nodes">Nós no Grafo de Evidências</div>
                         <div class="stat-val" id="evidenceNodesDisplay">24</div>
-                        <div style="font-size: 12px; color: var(--gcp-green)">Assinatura Criptográfica: SHA-256</div>
+                        <div style="font-size: 12px; color: var(--gcp-green)" data-i18n="scorecard_crypto_sig">Assinatura Criptográfica: SHA-256</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Proteção de Borda IA</div>
+                        <div class="stat-label" data-i18n="scorecard_edge_protect">Proteção de Borda IA</div>
                         <div class="stat-val" style="color: var(--gcp-blue);">Ativo</div>
                         <div style="font-size: 12px; color: var(--text-secondary)">Model Armor (Anti-Jailbreak / DLP)</div>
                     </div>
                 </div>
 
                 <div class="card-panel" style="margin-top: 16px;">
-                    <div class="card-title">Aprovações Humanas Pendentes (Human-in-the-Loop)</div>
-                    <div class="card-desc">
+                    <div class="card-title" data-i18n="scorecard_hitl_title">Aprovações Humanas Pendentes (Human-in-the-Loop)</div>
+                    <div class="card-desc" data-i18n="scorecard_hitl_desc">
                         Atualização Semestral de Política de Controle de Acesso IAM (A.5.15) proposta pelo subagente de Governança.
                     </div>
                     <div style="display: flex; gap: 10px; margin-top: 12px;">
                         <button class="btn-confirm" onclick="approveRemediation('HITL-AMENDMENT-001')">
-                            Aprovar Aditamento à Política
+                            <span data-i18n="scorecard_btn_approve">Aprovar Aditamento à Política</span>
                         </button>
                     </div>
                 </div>
@@ -4086,8 +4086,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <section class="view-pane" id="view-finops">
                 <div class="section-header-banner">
                     <div class="view-title-group">
-                        <h2>FinOps & Gestão de Custos de IA</h2>
-                        <p>Telemetria em tempo real de consumo de tokens (Prompt, Context Caching, Completion) e custos ($ USD / R$ BRL) por agente, subagente e fases de auditoria.</p>
+                        <h2 data-i18n="finops_title">FinOps & Gestão de Custos de IA</h2>
+                        <p data-i18n="finops_subtitle">Telemetria em tempo real de consumo de tokens (Prompt, Context Caching, Completion) e custos ($ USD / R$ BRL) por agente, subagente e fases de auditoria.</p>
                     </div>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                         <button class="btn-action-primary" onclick="loadFinOpsMetrics()" title="Recarregar métricas em tempo real">
@@ -4095,13 +4095,13 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <polyline points="23 4 23 10 17 10"/>
                                 <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                             </svg>
-                            Atualizar Métricas
+                            <span data-i18n="finops_btn_refresh">Atualizar Métricas</span>
                         </button>
                         <button class="btn-action-primary" onclick="simulateFinOpsRun()" style="background: rgba(129, 201, 149, 0.12); border-color: rgba(129, 201, 149, 0.35); color: var(--gcp-green);">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="5 3 19 12 5 21 5 3"/>
                             </svg>
-                            Simular Auditoria Contínua
+                            <span data-i18n="finops_btn_simulate">Simular Auditoria Contínua</span>
                         </button>
                         <button class="btn-action-primary" onclick="exportFinOpsJson()">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
@@ -4109,7 +4109,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <polyline points="7 10 12 15 17 10"/>
                                 <line x1="12" y1="15" x2="12" y2="3"/>
                             </svg>
-                            Exportar FinOps
+                            <span data-i18n="finops_btn_export">Exportar FinOps</span>
                         </button>
                     </div>
                 </div>
@@ -4293,19 +4293,19 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <!-- Document Metadata Box -->
                     <table class="cloudstyle-meta-box">
                         <tr>
-                            <td>Organização / Cliente</td>
+                            <td data-i18n="meta_org">Organização / Cliente</td>
                             <td>Google Cloud Security & Workload Projects</td>
                         </tr>
                         <tr>
-                            <td>Código do Documento</td>
+                            <td data-i18n="meta_doc_code">Código do Documento</td>
                             <td><strong id="docReportId">GCS-GRC-ISO27001-2026-FINAL</strong></td>
                         </tr>
                         <tr>
-                            <td>Norma & Emendas Auditadas</td>
+                            <td data-i18n="meta_standards">Norma & Emendas Auditadas</td>
                             <td>ABNT NBR ISO/IEC 27001:2022 (Anexo A - 93 Controles) + Amd 1:2024 (Ação Climática)</td>
                         </tr>
                         <tr>
-                            <td>Auditor Líder Responsável</td>
+                            <td data-i18n="meta_lead_auditor">Auditor Líder Responsável</td>
                             <td>Agentic GRC Auditor (Vertex AI Gemini 2.5 Flash Autonomous Lead Auditor)</td>
                         </tr>
                         <tr>
@@ -5006,7 +5006,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
     <div class="modal-overlay" id="projectModal">
         <div class="modal-window">
             <div class="modal-header">
-                <div class="modal-title">Adicionar Projeto GCP ao Escopo</div>
+                <div class="modal-title" data-i18n="modal_project_title">Adicionar Projeto GCP ao Escopo</div>
                 <button class="btn-collapse" onclick="closeProjectModal()">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">
                         <line x1="18" y1="6" x2="6" y2="18"/>
@@ -5019,7 +5019,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <input type="text" id="modalProjectId" class="form-input" placeholder="ex.: agentic-grc-prod">
             </div>
             <div class="form-group">
-                <label class="form-label">Ambiente</label>
+                <label class="form-label" data-i18n="modal_project_env">Ambiente</label>
                 <input type="text" id="modalEnvironment" class="form-input" placeholder="ex.: PRODUCTION ou STAGING">
             </div>
             <div class="form-group">
@@ -5037,7 +5037,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
     <div class="modal-overlay" id="storageModal">
         <div class="modal-window">
             <div class="modal-header">
-                <div class="modal-title">Conectar Repositório Zero-Copy</div>
+                <div class="modal-title" data-i18n="modal_storage_title">Conectar Repositório Zero-Copy</div>
                 <button class="btn-collapse" onclick="closeStorageModal()">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">
                         <line x1="18" y1="6" x2="6" y2="18"/>
@@ -5046,7 +5046,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </button>
             </div>
             <div class="form-group">
-                <label class="form-label">Fonte de Documentos</label>
+                <label class="form-label" data-i18n="modal_storage_source">Fonte de Documentos</label>
                 <select id="storageSourceSelect" class="form-input">
                     <option value="google_drive">Google Drive (Workspace Enterprise)</option>
                     <option value="sharepoint">Microsoft SharePoint Online</option>
@@ -5054,7 +5054,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label">URI da Pasta / Espaço</label>
+                <label class="form-label" data-i18n="modal_storage_uri">URI da Pasta / Espaço</label>
                 <input type="text" id="storageUri" class="form-input" placeholder="ex.: drive://security-policies" value="drive://iso27001-sgsi">
             </div>
             <div class="modal-actions">
@@ -5127,7 +5127,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
     <div class="modal-overlay" id="uploadModal">
         <div class="modal-window">
             <div class="modal-header">
-                <div class="modal-title">Analisar Template de Infraestrutura (IaC)</div>
+                <div class="modal-title" data-i18n="modal_upload_title">Analisar Template de Infraestrutura (IaC)</div>
                 <button class="btn-collapse" onclick="closeUploadModal()">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">
                         <line x1="18" y1="6" x2="6" y2="18"/>
@@ -5136,12 +5136,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </button>
             </div>
             <div class="form-group">
-                <label class="form-label">Selecione o arquivo Terraform (.tf) ou Ansible (.yml)</label>
+                <label class="form-label" data-i18n="modal_upload_label">Selecione o arquivo Terraform (.tf) ou Ansible (.yml)</label>
                 <input type="file" id="iacFileInput" class="form-input" accept=".tf,.yml,.yaml,.json">
             </div>
             <div class="modal-actions">
-                <button class="btn-cancel" onclick="closeUploadModal()">Cancelar</button>
-                <button class="btn-confirm" onclick="submitIacUpload()">Executar Varredura</button>
+                <button class="btn-cancel" onclick="closeUploadModal()"><span data-i18n="btn_cancel">Cancelar</span></button>
+                <button class="btn-confirm" onclick="submitIacUpload()"><span data-i18n="btn_execute_scan">Executar Varredura</span></button>
             </div>
         </div>
     </div>
@@ -5154,6 +5154,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             pt: {
                 status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
                 top_active_agent: "Chatbot Auditor",
+                top_title_chat: "Chatbot Auditor",
+                top_title_phases: "Scan por Fases",
+                top_title_matrix: "Matriz ISO 27001 & SoA",
+                top_title_connectors: "Subagentes & Zero-Copy",
+                top_title_scorecard: "Scorecard & Evidências",
+                top_title_exec: "Dossiê Executivo",
+                top_title_tech: "Relatório Técnico (Auditoria Externa)",
+                top_title_finops: "FinOps & Custos de IA",
                 top_project_count: "1 projeto ativo",
                 top_projects_count: "{n} projetos ativos",
                 export_btn: "Exportar Relatório",
@@ -5183,8 +5191,103 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 hero_work_title: "Vamos trabalhar!",
                 hero_work_subtitle: "Auditoria contínua autônoma e governança para Google Cloud & ISO/IEC 27001:2022",
                 hero_placeholder: "O que você gostaria de auditar hoje? (ex.: ISO 27001, Cloud KMS, VPC-SC, FinOps)",
+                model_auto_name: "Automático",
+                model_auto_desc: "Roteamento autônomo Gemini 2.5 com otimização FinOps",
+                model_pro_desc: "Auditor Líder • Raciocínio normativo profundo & Pareceres",
+                model_flash_desc: "Alta velocidade • Triagem de evidências e telemetria GCP",
+                model_flash35_desc: "Nova geração • Context Caching de 1M tokens para varreduras contínuas",
+                tag_recommended: "Recomendado",
+                tag_new: "Novo",
+                
                 health_title: "Saúde do Ambiente GCP",
                 health_badge: "Telemetria Ativa",
+                health_continuous: "Auditoria Contínua Ativa • Drift Temporal: ESTÁVEL",
+                health_no_drift: "Nenhum desvio crítico detectado",
+                news_header_title: "Novidades & Atualizações Regulatórias (RSS Feed)",
+                
+                phases_title: "Scan de Auditoria por Fases (Google Cloud Security)",
+                phases_subtitle: "Pipeline estruturado de 4 fases para auditoria técnica, governança de dados e ancoragem criptográfica.",
+                phases_run_all: "Executar Scan nas 4 Fases",
+                phase_1_name: "Fase 1: Descoberta & IAM",
+                phase_1_desc: "Cloud Asset Inventory, service accounts e privilégio mínimo (A.5.2, A.5.15, A.8.2).",
+                phase_2_name: "Fase 2: Auditoria Técnica & IaC",
+                phase_2_desc: "Scan de templates Terraform, portas abertas, VPC Service Controls e Cloud KMS (A.8.9, A.8.24).",
+                phase_3_name: "Fase 3: Governança & Políticas",
+                phase_3_desc: "Auditoria de Organization Policies e políticas corporativas do SGSI (A.5).",
+                phase_4_name: "Fase 4: Grafo & Assinatura",
+                phase_4_desc: "Consolidação e ancoragem de evidências com hashes SHA-256 no grafo imutável.",
+                
+                matrix_title: "Matriz de Controles ISO/IEC 27001:2022 & Declaração de Aplicabilidade (SoA)",
+                matrix_subtitle: "Catálogo consolidado de 93 controles do Anexo A estruturado rigorosamente nos 4 temas da ISO/IEC 27001:2022 com taxonomia de 5 atributos.",
+                theme_all: "Todos os Controles",
+                theme_all_scope: "Visão consolidada dos 93 controles do Anexo A para a Declaração de Aplicabilidade (SoA).",
+                theme_a5: "A.5 Organizacionais",
+                theme_a5_scope: "Políticas, governança, fornecedores, gestão de ativos e resposta a incidentes.",
+                theme_a6: "A.6 Pessoas",
+                theme_a6_scope: "Segurança em RH, triagem, termos de contratação, conscientização e desligamento.",
+                theme_a7: "A.7 Físicos",
+                theme_a7_scope: "Perímetros de segurança, instalações, proteção contra ameaças e descarte seguro.",
+                theme_a8: "A.8 Tecnológicos",
+                theme_a8_scope: "Autenticação, criptografia, redes, desenvolvimento seguro (DevSecOps) e logs.",
+                matrix_search_placeholder: "Buscar por controle, serviço GCP ou comando...",
+                th_code: "Código",
+                th_name: "Nome do Controle",
+                th_theme: "Tema",
+                th_mapping: "Mapeamento GCP",
+                th_status: "Status",
+                th_severity: "Severidade",
+                th_actions: "Ações",
+                btn_view_details: "Ver Detalhes",
+                btn_hide_details: "Ocultar",
+                btn_audit_control: "Auditar este Controle",
+                matrix_empty: "Nenhum controle encontrado.",
+                
+                connectors_title: "Subagentes Especializados & Conectores Zero-Copy",
+                connectors_subtitle: "Crie, customize e execute subagentes com instruções especializadas e integre repositórios sem replicação de dados.",
+                btn_connect_storage: "Conectar Repositório",
+                subagents_custom_title: "Subagentes Customizados pelo Usuário",
+                subagents_builtin_title: "Subagentes Nativos da Plataforma (Google Cloud Security)",
+                connectors_connected_title: "Conectores Corporativos Zero-Copy Conectados",
+                
+                scorecard_title: "Scorecard Contínuo & Grafo de Evidências",
+                scorecard_subtitle: "Métricas consolidadas de conformidade, drift de segurança e aprovações humanas pendentes.",
+                scorecard_global_comp: "Conformidade Global",
+                scorecard_auditor_opinion: "Opinião do Auditor: LIMPA / EXCELLENT",
+                scorecard_nodes: "Nós no Grafo de Evidências",
+                scorecard_crypto_sig: "Assinatura Criptográfica: SHA-256",
+                scorecard_edge_protect: "Proteção de Borda IA",
+                scorecard_hitl_title: "Aprovações Humanas Pendentes (Human-in-the-Loop)",
+                scorecard_hitl_desc: "Atualização Semestral de Política de Controle de Acesso IAM (A.5.15) proposta pelo subagente de Governança.",
+                scorecard_btn_approve: "Aprovar Aditamento à Política",
+                scorecard_btn_sandbox: "Ver Simulação em Sandbox",
+                
+                finops_title: "FinOps & Gestão de Custos de IA",
+                finops_subtitle: "Telemetria em tempo real de consumo de tokens (Prompt, Context Caching, Completion) e custos ($ USD / R$ BRL) por agente, subagente e fases de auditoria.",
+                finops_btn_refresh: "Atualizar Métricas",
+                finops_btn_simulate: "Simular Auditoria Contínua",
+                finops_btn_export: "Exportar FinOps",
+                
+                modal_upload_title: "Analisar Template de Infraestrutura (IaC)",
+                modal_upload_label: "Selecione o arquivo Terraform (.tf) ou Ansible (.yml)",
+                btn_cancel: "Cancelar",
+                btn_execute_scan: "Executar Varredura",
+                modal_storage_title: "Conectar Repositório Zero-Copy",
+                modal_storage_source: "Fonte de Documentos",
+                modal_storage_uri: "URI da Pasta / Espaço",
+                btn_connect: "Conectar",
+                modal_project_title: "Adicionar Projeto GCP ao Escopo",
+                modal_project_id: "Project ID do GCP",
+                modal_project_env: "Ambiente",
+                modal_project_region: "Região Padrão",
+                btn_save_project: "Salvar e Incluir no Escopo",
+                
+                meta_org: "Organização / Cliente",
+                meta_doc_code: "Código do Documento",
+                meta_standards: "Norma & Emendas Auditadas",
+                meta_lead_auditor: "Auditor Líder Responsável",
+                meta_audit_date: "Data da Auditoria",
+                meta_classification: "Classificação da Informação",
+                meta_result: "Resultado Final da Auditoria",
                 
                 doc_tech_chip: "Auditoria Externa • Stage 2",
                 doc_tech_title: "ISO/IEC 27001:2022 Technical Dossier",
@@ -5201,6 +5304,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             en: {
                 status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
                 top_active_agent: "Audit Chatbot",
+                top_title_chat: "Audit Chatbot",
+                top_title_phases: "Phased Scan",
+                top_title_matrix: "ISO 27001 Matrix & SoA",
+                top_title_connectors: "Subagents & Zero-Copy",
+                top_title_scorecard: "Scorecard & Evidence",
+                top_title_exec: "Executive Dossier",
+                top_title_tech: "Technical Report (External Audit)",
+                top_title_finops: "FinOps & AI Costs",
                 top_project_count: "1 active project",
                 top_projects_count: "{n} active projects",
                 export_btn: "Export Report",
@@ -5230,8 +5341,103 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 hero_work_title: "Let's get to work!",
                 hero_work_subtitle: "Autonomous continuous compliance and governance for Google Cloud & ISO/IEC 27001:2022",
                 hero_placeholder: "What would you like to audit today? (e.g.: ISO 27001, Cloud KMS, VPC-SC, FinOps)",
+                model_auto_name: "Automatic",
+                model_auto_desc: "Autonomous Gemini 2.5 routing with FinOps optimization",
+                model_pro_desc: "Lead Auditor • Deep normative reasoning & Opinions",
+                model_flash_desc: "High speed • Evidence triage and GCP telemetry",
+                model_flash35_desc: "New generation • 1M token Context Caching for continuous scans",
+                tag_recommended: "Recommended",
+                tag_new: "New",
+                
                 health_title: "GCP Environment Health",
                 health_badge: "Active Telemetry",
+                health_continuous: "Continuous Audit Active • Temporal Drift: STABLE",
+                health_no_drift: "No critical deviations detected",
+                news_header_title: "Regulatory Updates & News (RSS Feed)",
+                
+                phases_title: "Phased Audit Scan (Google Cloud Security)",
+                phases_subtitle: "Structured 4-phase pipeline for technical audit, data governance, and cryptographic anchoring.",
+                phases_run_all: "Run Scan on All 4 Phases",
+                phase_1_name: "Phase 1: Discovery & IAM",
+                phase_1_desc: "Cloud Asset Inventory, service accounts, and least privilege (A.5.2, A.5.15, A.8.2).",
+                phase_2_name: "Phase 2: Technical Audit & IaC",
+                phase_2_desc: "Terraform templates scan, open ports, VPC Service Controls, and Cloud KMS (A.8.9, A.8.24).",
+                phase_3_name: "Phase 3: Governance & Policies",
+                phase_3_desc: "Audit of Organization Policies and corporate ISMS policies (A.5).",
+                phase_4_name: "Phase 4: Graph & Signature",
+                phase_4_desc: "Consolidation and anchoring of evidence with SHA-256 hashes in immutable graph.",
+                
+                matrix_title: "ISO/IEC 27001:2022 Controls Matrix & Statement of Applicability (SoA)",
+                matrix_subtitle: "Consolidated catalog of 93 Annex A controls rigorously structured across 4 ISO/IEC 27001:2022 themes with 5-attribute taxonomy.",
+                theme_all: "All Controls",
+                theme_all_scope: "Consolidated view of 93 Annex A controls for Statement of Applicability (SoA).",
+                theme_a5: "A.5 Organizational",
+                theme_a5_scope: "Policies, governance, suppliers, asset management, and incident response.",
+                theme_a6: "A.6 People",
+                theme_a6_scope: "HR security, screening, terms of employment, awareness, and termination.",
+                theme_a7: "A.7 Physical",
+                theme_a7_scope: "Security perimeters, facilities, threat protection, and secure disposal.",
+                theme_a8: "A.8 Technological",
+                theme_a8_scope: "Authentication, cryptography, networks, secure development (DevSecOps), and logs.",
+                matrix_search_placeholder: "Search by control, GCP service or command...",
+                th_code: "Code",
+                th_name: "Control Name",
+                th_theme: "Theme",
+                th_mapping: "GCP Mapping",
+                th_status: "Status",
+                th_severity: "Severity",
+                th_actions: "Actions",
+                btn_view_details: "View Details",
+                btn_hide_details: "Hide",
+                btn_audit_control: "Audit this Control",
+                matrix_empty: "No controls found.",
+                
+                connectors_title: "Specialist Subagents & Zero-Copy Connectors",
+                connectors_subtitle: "Create, customize, and run subagents with specialized instructions and integrate repositories without data replication.",
+                btn_connect_storage: "Connect Repository",
+                subagents_custom_title: "User-Customized Subagents",
+                subagents_builtin_title: "Native Platform Subagents (Google Cloud Security)",
+                connectors_connected_title: "Connected Zero-Copy Corporate Connectors",
+                
+                scorecard_title: "Continuous Scorecard & Evidence Graph",
+                scorecard_subtitle: "Consolidated compliance metrics, security drift, and pending human approvals.",
+                scorecard_global_comp: "Overall Compliance",
+                scorecard_auditor_opinion: "Auditor Opinion: UNQUALIFIED / EXCELLENT",
+                scorecard_nodes: "Nodes in Evidence Graph",
+                scorecard_crypto_sig: "Cryptographic Signature: SHA-256",
+                scorecard_edge_protect: "AI Edge Protection",
+                scorecard_hitl_title: "Pending Human Approvals (Human-in-the-Loop)",
+                scorecard_hitl_desc: "Semiannual IAM Access Control Policy update (A.5.15) proposed by Governance subagent.",
+                scorecard_btn_approve: "Approve Policy Amendment",
+                scorecard_btn_sandbox: "View Sandbox Simulation",
+                
+                finops_title: "FinOps & AI Cost Management",
+                finops_subtitle: "Real-time telemetry of token consumption (Prompt, Context Caching, Completion) and costs ($ USD / R$ BRL) by agent, subagent, and audit phases.",
+                finops_btn_refresh: "Refresh Metrics",
+                finops_btn_simulate: "Simulate Continuous Audit",
+                finops_btn_export: "Export FinOps",
+                
+                modal_upload_title: "Analyze Infrastructure Template (IaC)",
+                modal_upload_label: "Select Terraform (.tf) or Ansible (.yml) file",
+                btn_cancel: "Cancel",
+                btn_execute_scan: "Run Scan",
+                modal_storage_title: "Connect Zero-Copy Repository",
+                modal_storage_source: "Document Source",
+                modal_storage_uri: "Folder / Space URI",
+                btn_connect: "Connect",
+                modal_project_title: "Add GCP Project to Scope",
+                modal_project_id: "GCP Project ID",
+                modal_project_env: "Environment",
+                modal_project_region: "Default Region",
+                btn_save_project: "Save & Include in Scope",
+                
+                meta_org: "Organization / Client",
+                meta_doc_code: "Document Code",
+                meta_standards: "Audited Standards & Amendments",
+                meta_lead_auditor: "Lead Auditor in Charge",
+                meta_audit_date: "Audit Date",
+                meta_classification: "Information Classification",
+                meta_result: "Final Audit Result",
                 
                 doc_tech_chip: "External Audit • Stage 2",
                 doc_tech_title: "ISO/IEC 27001:2022 Technical Dossier",
@@ -5248,6 +5454,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             es: {
                 status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
                 top_active_agent: "Chatbot Auditor",
+                top_title_chat: "Chatbot Auditor",
+                top_title_phases: "Escaneo por Fases",
+                top_title_matrix: "Matriz ISO 27001 y SoA",
+                top_title_connectors: "Subagentes y Zero-Copy",
+                top_title_scorecard: "Scorecard y Evidencias",
+                top_title_exec: "Dossier Ejecutivo",
+                top_title_tech: "Informe Técnico (Auditoría Externa)",
+                top_title_finops: "FinOps y Costos de IA",
                 top_project_count: "1 proyecto activo",
                 top_projects_count: "{n} proyectos activos",
                 export_btn: "Exportar Informe",
@@ -5277,8 +5491,103 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 hero_work_title: "¡Manos a la obra!",
                 hero_work_subtitle: "Auditoría continua autónoma y gobernanza para Google Cloud e ISO/IEC 27001:2022",
                 hero_placeholder: "¿Qué le gustaría auditar hoy? (ej.: ISO 27001, Cloud KMS, VPC-SC, FinOps)",
+                model_auto_name: "Automático",
+                model_auto_desc: "Enrutamiento autónomo Gemini 2.5 con optimización FinOps",
+                model_pro_desc: "Auditor Líder • Razonamiento normativo profundo y Dictámenes",
+                model_flash_desc: "Alta velocidad • Triaje de evidencias y telemetría GCP",
+                model_flash35_desc: "Nueva generación • Context Caching de 1M tokens para escaneos continuos",
+                tag_recommended: "Recomendado",
+                tag_new: "Nuevo",
+                
                 health_title: "Salud del Entorno GCP",
                 health_badge: "Telemetría Activa",
+                health_continuous: "Auditoría Continua Activa • Desvío Temporal: ESTABLE",
+                health_no_drift: "Sin desviaciones críticas detectadas",
+                news_header_title: "Novedades y Actualizaciones Regulatorias (RSS Feed)",
+                
+                phases_title: "Escaneo de Auditoría por Fases (Google Cloud Security)",
+                phases_subtitle: "Pipeline estructurado de 4 fases para auditoría técnica, gobernanza de datos y anclaje criptográfico.",
+                phases_run_all: "Ejecutar Escaneo en las 4 Fases",
+                phase_1_name: "Fase 1: Descubrimiento e IAM",
+                phase_1_desc: "Cloud Asset Inventory, service accounts y privilegio mínimo (A.5.2, A.5.15, A.8.2).",
+                phase_2_name: "Fase 2: Auditoría Técnica e IaC",
+                phase_2_desc: "Escaneo de plantillas Terraform, puertos abiertos, VPC Service Controls y Cloud KMS (A.8.9, A.8.24).",
+                phase_3_name: "Fase 3: Gobernanza y Políticas",
+                phase_3_desc: "Auditoría de Organization Policies y políticas corporativas del SGSI (A.5).",
+                phase_4_name: "Fase 4: Grafo y Firma",
+                phase_4_desc: "Consolidación y anclaje de evidencias con hashes SHA-256 en grafo inmutable.",
+                
+                matrix_title: "Matriz de Controles ISO/IEC 27001:2022 y Declaración de Aplicabilidad (SoA)",
+                matrix_subtitle: "Catálogo consolidado de 93 controles del Anexo A estructurado en los 4 temas ISO/IEC 27001:2022 con taxonomía de 5 atributos.",
+                theme_all: "Todos los Controles",
+                theme_all_scope: "Visión consolidada de los 93 controles del Anexo A para la Declaración de Aplicabilidad (SoA).",
+                theme_a5: "A.5 Organizacionales",
+                theme_a5_scope: "Políticas, gobernanza, proveedores, gestión de activos y respuesta a incidentes.",
+                theme_a6: "A.6 Personas",
+                theme_a6_scope: "Seguridad en RRHH, selección, términos de contratación, concienciación y cese.",
+                theme_a7: "A.7 Físicos",
+                theme_a7_scope: "Perímetros de seguridad, instalaciones, protección contra amenazas y eliminación segura.",
+                theme_a8: "A.8 Tecnológicos",
+                theme_a8_scope: "Autenticación, criptografía, redes, desarrollo seguro (DevSecOps) y registros.",
+                matrix_search_placeholder: "Buscar por control, servicio GCP o comando...",
+                th_code: "Código",
+                th_name: "Nombre del Control",
+                th_theme: "Tema",
+                th_mapping: "Mapeo GCP",
+                th_status: "Estado",
+                th_severity: "Severidad",
+                th_actions: "Acciones",
+                btn_view_details: "Ver Detalles",
+                btn_hide_details: "Ocultar",
+                btn_audit_control: "Auditar este Control",
+                matrix_empty: "No se encontraron controles.",
+                
+                connectors_title: "Subagentes Especializados y Conectores Zero-Copy",
+                connectors_subtitle: "Cree, personalice y ejecute subagentes con instrucciones especializadas e integre repositorios sin replicación de datos.",
+                btn_connect_storage: "Conectar Repositorio",
+                subagents_custom_title: "Subagentes Personalizados por el Usuario",
+                subagents_builtin_title: "Subagentes Nativos de la Plataforma (Google Cloud Security)",
+                connectors_connected_title: "Conectores Corporativos Zero-Copy Conectados",
+                
+                scorecard_title: "Scorecard Continuo y Grafo de Evidencias",
+                scorecard_subtitle: "Métricas consolidadas de cumplimiento, desvío de seguridad y aprobaciones humanas pendientes.",
+                scorecard_global_comp: "Cumplimiento Global",
+                scorecard_auditor_opinion: "Opinión del Auditor: LIMPIA / EXCELENTE",
+                scorecard_nodes: "Nodos en Grafo de Evidencias",
+                scorecard_crypto_sig: "Firma Criptográfica: SHA-256",
+                scorecard_edge_protect: "Protección de Borde IA",
+                scorecard_hitl_title: "Aprobaciones Humanas Pendientes (Human-in-the-Loop)",
+                scorecard_hitl_desc: "Actualización semestral de Política de Control de Acceso IAM (A.5.15) propuesta por el subagente de Gobernanza.",
+                scorecard_btn_approve: "Aprobar Enmienda a la Política",
+                scorecard_btn_sandbox: "Ver Simulación en Sandbox",
+                
+                finops_title: "FinOps y Gestión de Costos de IA",
+                finops_subtitle: "Telemetría en tiempo real de consumo de tokens (Prompt, Context Caching, Completion) y costos ($ USD / R$ BRL) por agente, subagente y fases de auditoría.",
+                finops_btn_refresh: "Actualizar Métricas",
+                finops_btn_simulate: "Simular Auditoría Continua",
+                finops_btn_export: "Exportar FinOps",
+                
+                modal_upload_title: "Analizar Plantilla de Infraestructura (IaC)",
+                modal_upload_label: "Seleccione el archivo Terraform (.tf) o Ansible (.yml)",
+                btn_cancel: "Cancelar",
+                btn_execute_scan: "Ejecutar Escaneo",
+                modal_storage_title: "Conectar Repositorio Zero-Copy",
+                modal_storage_source: "Fuente de Documentos",
+                modal_storage_uri: "URI de Carpeta / Espacio",
+                btn_connect: "Conectar",
+                modal_project_title: "Agregar Proyecto GCP al Alcance",
+                modal_project_id: "ID de Proyecto GCP",
+                modal_project_env: "Entorno",
+                modal_project_region: "Región Predeterminada",
+                btn_save_project: "Guardar e Incluir en Alcance",
+                
+                meta_org: "Organización / Cliente",
+                meta_doc_code: "Código del Documento",
+                meta_standards: "Normas y Enmiendas Auditadas",
+                meta_lead_auditor: "Auditor Líder Responsable",
+                meta_audit_date: "Fecha de Auditoría",
+                meta_classification: "Clasificación de la Información",
+                meta_result: "Resultado Final de Auditoría",
                 
                 doc_tech_chip: "Auditoría Externa • Stage 2",
                 doc_tech_title: "ISO/IEC 27001:2022 Technical Dossier",
@@ -5293,8 +5602,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 bot_evaluating: "Agentic GRC Auditor (Google Cloud Security) evaluando telemetría y grafo de evidencias..."
             }
         };
-
-        window.currentLanguage = 'pt';
+window.currentLanguage = 'pt';
 
         function detectUserLanguage() {
             try {
@@ -5347,6 +5655,42 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             // Refresh dynamic suggestions in current language
             if (typeof shuffleDynamicSuggestions === 'function') {
                 shuffleDynamicSuggestions();
+            }
+
+            // Refresh news carousel
+            if (typeof renderNewsCarousel === 'function') {
+                renderNewsCarousel();
+            }
+
+            // Refresh active title
+            const activePane = document.querySelector(".view-pane.active");
+            if (activePane && typeof switchView === 'function') {
+                const keyMap = {
+                    "view-chat": "top_title_chat",
+                    "view-phases": "top_title_phases",
+                    "view-matrix": "top_title_matrix",
+                    "view-connectors": "top_title_connectors",
+                    "view-scorecard": "top_title_scorecard",
+                    "view-report-exec": "top_title_exec",
+                    "view-report-tech": "top_title_tech",
+                    "view-finops": "top_title_finops"
+                };
+                const activeKey = keyMap[activePane.id] || "top_title_chat";
+                const titleEl = document.getElementById("topActiveTitle");
+                if (titleEl && dict[activeKey]) {
+                    titleEl.innerText = dict[activeKey];
+                }
+            }
+
+            // Update model selector label if set to auto
+            const lblModel = document.getElementById("lblModelPicker");
+            if (lblModel && (lblModel.innerText === 'Automático' || lblModel.innerText === 'Automatic')) {
+                lblModel.innerText = dict.model_auto_name || 'Automático';
+            }
+
+            // Re-render matrix table if loaded
+            if (typeof matrixControls !== 'undefined' && matrixControls.length > 0 && typeof renderMatrixTable === 'function') {
+                renderMatrixTable(matrixControls);
             }
 
             document.documentElement.lang = lang;
@@ -6003,7 +6347,8 @@ Formulário preenchido com o subagente recomendado!`);
             loadFinOpsMetrics();
             loadIsoMatrix();
             loadSubagents();
-            startNewConversation(); // Always start on the initial screen with RSS Feeds
+            renderNewsCarousel();
+            startNewConversation();
             startSuggestionRotation();
         });
 
@@ -6034,17 +6379,23 @@ Formulário preenchido com o subagente recomendado!`);
                 if (btn) btn.classList.add("active");
             }
 
-            const titleMap = {
-                "view-chat": "Agentic GRC Auditor",
-                "view-phases": "Scan por Fases",
-                "view-matrix": "Matriz ISO 27001 Escalável",
-                "view-connectors": "Subagentes & Zero-Copy",
-                "view-scorecard": "Scorecard & Grafo de Evidências",
-                "view-report-exec": "Dossiê Executivo",
-                "view-report-tech": "Relatório Técnico (Auditoria Externa)",
-                "view-finops": "FinOps & Custos de IA"
+            const keyMap = {
+                "view-chat": "top_title_chat",
+                "view-phases": "top_title_phases",
+                "view-matrix": "top_title_matrix",
+                "view-connectors": "top_title_connectors",
+                "view-scorecard": "top_title_scorecard",
+                "view-report-exec": "top_title_exec",
+                "view-report-tech": "top_title_tech",
+                "view-finops": "top_title_finops"
             };
-            document.getElementById("topActiveTitle").innerText = titleMap[viewId] || "Auditor";
+            const activeKey = keyMap[viewId] || "top_title_chat";
+            const titleEl = document.getElementById("topActiveTitle");
+            if (titleEl) {
+                titleEl.setAttribute("data-i18n", activeKey);
+                const dict = (I18N[window.currentLanguage || "pt"] || I18N.pt);
+                titleEl.innerText = dict[activeKey] || "Chatbot Auditor";
+            }
         }
 
 
@@ -6336,83 +6687,154 @@ Formulário preenchido com o subagente recomendado!`);
                 // =========================================================================
         // Regulatory RSS News Database & Interactive Reading Modal
         // =========================================================================
-        const regulatoryNewsDatabase = {
-            "iso-amd-1-2024": {
-                tag: "ISO/IEC 27001:2022",
-                tagColor: "#81c995",
-                date: "Setembro 2026",
-                issuer: "ISO / IAF (International Accreditation Forum)",
-                originalUrl: "https://www.iso.org/standard/88435.html",
-                sourceName: "Portal Oficial ISO (iso.org)",
-                title: "Emenda Climática ISO 27001 Amd 1:2024 Obrigatória",
-                summary: "A ISO e o IAF publicaram emenda conjunta tornando mandatório que organizações considerem as mudanças climáticas e eventos meteorológicos extremos na determinação do contexto da organização (Cláusula 4.1) e nas necessidades das partes interessadas (Cláusula 4.2).",
-                gcpImpact: "No Google Cloud, exige evidências de resiliência climática física dos data centers, redundância geográfica multi-região (Cloud Storage Dual-Region/Multi-Region, Spanner multi-região) e planos de Disaster Recovery (RPO/RTO) testados contra indisponibilidades regionais.",
-                controls: ["Cláusula 4.1 (Contexto)", "Cláusula 4.2 (Partes Interessadas)", "A.5.29 (Continuidade em TI)", "A.5.30 (Prontidão de TIC)"],
-                auditPrompt: "Avaliar a conformidade do nosso ambiente Google Cloud com a Emenda Climática ISO 27001 Amd 1:2024 (Cláusulas 4.1 e 4.2). Verificar redundância geográfica, Disaster Recovery e políticas de continuidade de negócios nos projetos selecionados."
+        
+        const regulatoryNewsDatabases = {
+            pt: {
+                "iso-amd-1-2024": {
+                    tag: "ISO/IEC 27001:2022",
+                    tagColor: "#81c995",
+                    date: "Setembro 2026",
+                    issuer: "ISO / IAF (International Accreditation Forum)",
+                    originalUrl: "https://www.iso.org/standard/88435.html",
+                    sourceName: "Portal Oficial ISO (iso.org)",
+                    title: "Emenda Climática ISO 27001 Amd 1:2024 Obrigatória",
+                    summary: "A ISO e o IAF publicaram emenda conjunta tornando mandatório que organizações considerem as mudanças climáticas e eventos meteorológicos extremos na determinação do contexto da organização (Cláusula 4.1) e nas necessidades das partes interessadas (Cláusula 4.2).",
+                    gcpImpact: "No Google Cloud, exige evidências de resiliência climática física dos data centers, redundância geográfica multi-região (Cloud Storage Dual-Region/Multi-Region, Spanner multi-região) e planos de Disaster Recovery (RPO/RTO) testados contra indisponibilidades regionais.",
+                    controls: ["Cláusula 4.1 (Contexto)", "Cláusula 4.2 (Partes Interessadas)", "A.5.29 (Continuidade em TI)", "A.5.30 (Prontidão de TIC)"],
+                    auditPrompt: "Avaliar a conformidade do nosso ambiente Google Cloud com a Emenda Climática ISO 27001 Amd 1:2024 (Cláusulas 4.1 e 4.2). Verificar redundância geográfica, Disaster Recovery e políticas de continuidade de negócios nos projetos selecionados."
+                },
+                "nist-csf-2-0": {
+                    tag: "NIST CSF 2.0",
+                    tagColor: "#8ab4f8",
+                    date: "Agosto 2026",
+                    issuer: "NIST (National Institute of Standards and Technology)",
+                    originalUrl: "https://www.nist.gov/cyberframework",
+                    sourceName: "Portal Oficial NIST (nist.gov)",
+                    title: "NIST CSF 2.0: Nova Função Governança (GV)",
+                    summary: "O NIST publicou oficialmente o Cybersecurity Framework 2.0, expandindo os cinco pilares tradicionais com a nova função GOVERN (GV). A função exige que a estratégia de cibersegurança e o apetite a risco sejam formalmente estabelecidos e comunicados pela liderança.",
+                    gcpImpact: "Integração nativa com Security Command Center (SCC Enterprise), políticas organizacionais (Org Policies) no nível raiz e métricas de risco compartilhadas com o conselho.",
+                    controls: ["GV.OC (Contexto)", "GV.RM (Risco)", "GV.PO (Políticas)", "A.5.1 (Políticas de Segurança)"],
+                    auditPrompt: "Como o nosso ambiente Google Cloud atende aos requisitos da nova função Governança (GV) do NIST CSF 2.0? Avaliar postura do Security Command Center."
+                },
+                "pci-dss-v4": {
+                    tag: "PCI-DSS v4.0.1",
+                    tagColor: "#c58af9",
+                    date: "Julho 2026",
+                    issuer: "PCI Security Standards Council (PCI SSC)",
+                    title: "Transição Mandatória PCI-DSS v4.0 em Ambientes Cloud",
+                    summary: "O PCI SSC concluiu a transição obrigatória para o PCI-DSS v4.0. Ambientes que processam dados de cartões de pagamento (CDE) agora devem comprovar autenticação multifator contínua, criptografia forte com gerenciamento automatizado de chaves e isolamento estrito de rede.",
+                    gcpImpact: "Perímetros rigorosos via VPC Service Controls (VPC-SC), uso de Cloud KMS com nível de proteção HSM (FIPS 140-3 Nível 3) e inspeção de cabeçalhos contra ataques client-side.",
+                    controls: ["Requisito 3 (Proteção de Dados)", "Requisito 8 (IAM & MFA)", "A.8.12 (DLP)", "A.8.24 (Criptografia)"],
+                    auditPrompt: "Verificar se os perímetros VPC Service Controls e as chaves Cloud KMS com HSM do nosso projeto atendem aos requisitos de isolamento de CDE do PCI-DSS v4.0."
+                }
             },
-            "nist-csf-2-0": {
-                tag: "NIST CSF 2.0",
-                tagColor: "#8ab4f8",
-                date: "Agosto 2026",
-                issuer: "NIST (National Institute of Standards and Technology)",
-                originalUrl: "https://www.nist.gov/cyberframework",
-                sourceName: "Portal Oficial NIST (nist.gov)",
-                title: "NIST CSF 2.0: Nova Função Governança (GV)",
-                summary: "O NIST publicou oficialmente o Cybersecurity Framework 2.0, expandindo os cinco pilares tradicionais (Identify, Protect, Detect, Respond, Recover) com a nova função GOVERN (GV). A função exige que a estratégia de cibersegurança e o apetite a risco sejam formalmente estabelecidos e comunicados pela liderança.",
-                gcpImpact: "Integração nativa com Security Command Center (SCC Enterprise), políticas organizacionais (Org Policies) no nível raiz e métricas de risco compartilhadas com o conselho.",
-                controls: ["GV.OC (Contexto Organizacional)", "GV.RM (Gestão de Risco)", "GV.PO (Políticas de Segurança)", "A.5.1 (Políticas de Segurança)"],
-                auditPrompt: "Como o nosso ambiente Google Cloud atende aos requisitos da nova função Governança (GV) do NIST CSF 2.0? Avaliar postura do Security Command Center e alinhamento das políticas da organização."
+            en: {
+                "iso-amd-1-2024": {
+                    tag: "ISO/IEC 27001:2022",
+                    tagColor: "#81c995",
+                    date: "September 2026",
+                    issuer: "ISO / IAF (International Accreditation Forum)",
+                    originalUrl: "https://www.iso.org/standard/88435.html",
+                    sourceName: "Official ISO Portal (iso.org)",
+                    title: "Mandatory ISO 27001 Climate Amendment Amd 1:2024",
+                    summary: "ISO and IAF issued a joint mandatory amendment requiring organizations to evaluate climate change and extreme weather risks when determining organizational context (Clause 4.1) and stakeholder requirements (Clause 4.2).",
+                    gcpImpact: "In Google Cloud, requires verifiable physical data center resilience, multi-region geographic redundancy (Cloud Storage Dual/Multi-Region, Spanner multi-region), and proven Disaster Recovery (RPO/RTO) plans.",
+                    controls: ["Clause 4.1 (Context)", "Clause 4.2 (Stakeholders)", "A.5.29 (ICT Continuity)", "A.5.30 (ICT Readiness)"],
+                    auditPrompt: "Evaluate our Google Cloud environment compliance with ISO 27001 Climate Amendment Amd 1:2024 (Clauses 4.1 and 4.2). Verify geographic redundancy, Disaster Recovery, and business continuity policies."
+                },
+                "nist-csf-2-0": {
+                    tag: "NIST CSF 2.0",
+                    tagColor: "#8ab4f8",
+                    date: "August 2026",
+                    issuer: "NIST (National Institute of Standards and Technology)",
+                    originalUrl: "https://www.nist.gov/cyberframework",
+                    sourceName: "Official NIST Portal (nist.gov)",
+                    title: "NIST CSF 2.0: New GOVERN (GV) Function",
+                    summary: "NIST released Cybersecurity Framework 2.0, expanding the traditional five pillars with the GOVERN (GV) function. Cybersecurity strategy, risk tolerance, and executive governance must now be formally measured and communicated.",
+                    gcpImpact: "Native integration with Security Command Center (SCC Enterprise), organization-level policies (Org Policies), and board-level risk metrics.",
+                    controls: ["GV.OC (Context)", "GV.RM (Risk Management)", "GV.PO (Policies)", "A.5.1 (Information Security Policies)"],
+                    auditPrompt: "How does our Google Cloud posture satisfy the new GOVERN (GV) function of NIST CSF 2.0? Assess Security Command Center and Org Policies alignment."
+                },
+                "pci-dss-v4": {
+                    tag: "PCI-DSS v4.0.1",
+                    tagColor: "#c58af9",
+                    date: "July 2026",
+                    issuer: "PCI Security Standards Council (PCI SSC)",
+                    title: "Mandatory PCI-DSS v4.0 Transition in Cloud Environments",
+                    summary: "PCI SSC completed the mandatory transition to PCI-DSS v4.0. Cardholder data environments (CDE) must now demonstrate continuous MFA, hardware-backed cryptography with automated key rotation, and strict network isolation.",
+                    gcpImpact: "Enforced VPC Service Controls (VPC-SC) perimeters, Cloud KMS HSM protection (FIPS 140-3 Level 3), and client-side script inspection.",
+                    controls: ["Req 3 (Data Protection)", "Req 8 (IAM & MFA)", "A.8.12 (DLP)", "A.8.24 (Cryptography)"],
+                    auditPrompt: "Verify if VPC Service Controls perimeters and Cloud KMS HSM keys meet PCI-DSS v4.0 CDE isolation requirements."
+                }
             },
-            "pci-dss-v4": {
-                tag: "PCI-DSS v4.0.1",
-                tagColor: "#c58af9",
-                date: "Julho 2026",
-                issuer: "PCI Security Standards Council (PCI SSC)",
-                title: "Transição Mandatória PCI-DSS v4.0 em Ambientes Cloud",
-                summary: "O PCI SSC concluiu a transição obrigatória para o PCI-DSS v4.0. Ambientes que processam dados de cartões de pagamento (CDE) agora devem comprovar autenticação multifator contínua, criptografia forte com gerenciamento automatizado de chaves e isolamento estrito de rede.",
-                gcpImpact: "Perímetros rigorosos via VPC Service Controls (VPC-SC), uso de Cloud KMS com nível de proteção HSM (FIPS 140-3 Nível 3) e inspeção de cabeçalhos contra ataques client-side.",
-                controls: ["Requisito 3 (Proteção de Dados)", "Requisito 8 (IAM & MFA)", "A.8.12 (DLP)", "A.8.24 (Criptografia)"],
-                auditPrompt: "Verificar se os perímetros VPC Service Controls e as chaves Cloud KMS com HSM do nosso projeto atendem aos requisitos de isolamento de CDE do PCI-DSS v4.0."
-            },
-            "anpd-lgpd": {
-                tag: "ANPD & LGPD",
-                tagColor: "#fdd663",
-                date: "Junho 2026",
-                issuer: "ANPD (Autoridade Nacional de Proteção de Dados)",
-                title: "Guia de Segurança da Informação da ANPD para Nuvem",
-                summary: "A ANPD emitiu novas diretrizes de segurança da informação para agentes de tratamento de pequeno, médio e grande porte que operam em nuvem pública, destacando criptografia em repouso e em trânsito, minimização de dados e elaboração de RIPD.",
-                gcpImpact: "Adoção de Cloud DLP (Sensitive Data Protection) para descoberta e mascaramento contínuo de PII (CPF, RG, dados bancários) no Cloud Storage e BigQuery.",
-                controls: ["Art. 46 a 48 LGPD", "A.8.11 (Mascaramento de Dados)", "A.8.12 (Prevenção de Vazamentos)", "A.5.34 (Privacidade e PII)"],
-                auditPrompt: "Auditar a conformidade de dados pessoais sensíveis (PII) nos buckets e datasets do GCP utilizando Cloud DLP, de acordo com o Guia de Segurança da Informação da ANPD."
-            },
-            "csa-guidance-v5": {
-                tag: "CSA Star",
-                tagColor: "#78d9ec",
-                date: "Maio 2026",
-                issuer: "Cloud Security Alliance (CSA)",
-                title: "CSA Guia v5 de Governança para Agentes de IA",
-                summary: "A Cloud Security Alliance lançou o Security Guidance v5 focado em arquiteturas híbridas e governança de agentes de inteligência artificial autônomos, definindo limites para acesso a dados, prevenção de vazamento de contexto e identidades de máquina.",
-                gcpImpact: "Implementação de Model Armor para inspeção de prompts/respostas, arquiteturas Zero-Copy (sem replicação de dados) e identidades SPIFFE emitidas para cada subagente.",
-                controls: ["CSA AIS-01 (Segurança de Modelos)", "CSA IAM-03 (Identidades Não-Humanas)", "A.8.28 (Codificação Segura)"],
-                auditPrompt: "Verificar como a arquitetura do Agentic GRC implementa as diretrizes do CSA Guidance v5 para governança e segurança de agentes autônomos de IA no Google Cloud."
-            },
-            "cis-gcp-v3": {
-                tag: "CIS Benchmark",
-                tagColor: "#fcad70",
-                date: "Abril 2026",
-                issuer: "Center for Internet Security (CIS)",
-                title: "CIS Google Cloud Foundation Benchmark v3.0 Atualizado",
-                summary: "O CIS lançou atualização abrangente para o benchmark de Google Cloud, reforçando regras de hardening para contas de serviço, chaves de API restritas, Cloud Storage sem acesso público e retenção centralizada de logs.",
-                gcpImpact: "Verificação automatizada de conformidade contra mais de 80 regras de hardening em IAM, Cloud Storage, VPC, Cloud Logging e Cloud KMS.",
-                controls: ["CIS GCP 1.x (IAM)", "CIS GCP 2.x (Storage)", "CIS GCP 3.x (Logging)", "A.8.9 (Gestão de Configuração)"],
-                auditPrompt: "Executar varredura de hardening baseada nas recomendações do CIS Google Cloud Foundation Benchmark v3.0 nos projetos em escopo."
+            es: {
+                "iso-amd-1-2024": {
+                    tag: "ISO/IEC 27001:2022",
+                    tagColor: "#81c995",
+                    date: "Septiembre 2026",
+                    issuer: "ISO / IAF (International Accreditation Forum)",
+                    originalUrl: "https://www.iso.org/standard/88435.html",
+                    sourceName: "Portal Oficial ISO (iso.org)",
+                    title: "Enmienda Climática ISO 27001 Amd 1:2024 Obligatoria",
+                    summary: "ISO e IAF publicaron una enmienda conjunta obligatoria exigiendo que las organizaciones evalúen el cambio climático y eventos meteorológicos extremos en el contexto de la organización (Cláusula 4.1) y partes interesadas (Cláusula 4.2).",
+                    gcpImpact: "En Google Cloud, exige evidencias de resiliencia física de data centers, redundancia geográfica multi-región (Cloud Storage Dual/Multi-Region, Spanner) y planes de Disaster Recovery (RPO/RTO) probados.",
+                    controls: ["Cláusula 4.1 (Contexto)", "Cláusula 4.2 (Partes Interesadas)", "A.5.29 (Continuidad TIC)", "A.5.30 (Preparación TIC)"],
+                    auditPrompt: "Evaluar el cumplimiento de nuestro entorno Google Cloud con la Enmienda Climática ISO 27001 Amd 1:2024 (Cláusulas 4.1 y 4.2). Verificar redundancia geográfica y Disaster Recovery."
+                },
+                "nist-csf-2-0": {
+                    tag: "NIST CSF 2.0",
+                    tagColor: "#8ab4f8",
+                    date: "Agosto 2026",
+                    issuer: "NIST (National Institute of Standards and Technology)",
+                    originalUrl: "https://www.nist.gov/cyberframework",
+                    sourceName: "Portal Oficial NIST (nist.gov)",
+                    title: "NIST CSF 2.0: Nueva Función Gobernanza (GV)",
+                    summary: "NIST publicó Cybersecurity Framework 2.0, ampliando los pilares tradicionales con la función GOBERNAR (GV). La estrategia de ciberseguridad y tolerancia al riesgo deben establecerse formalmente.",
+                    gcpImpact: "Integración nativa con Security Command Center (SCC Enterprise), políticas organizacionales (Org Policies) y métricas de riesgo para el directorio.",
+                    controls: ["GV.OC (Contexto)", "GV.RM (Riesgo)", "GV.PO (Políticas)", "A.5.1 (Políticas de Seguridad)"],
+                    auditPrompt: "¿Cómo cumple nuestro entorno Google Cloud con los requisitos de Gobernanza (GV) de NIST CSF 2.0? Evaluar Security Command Center y Org Policies."
+                },
+                "pci-dss-v4": {
+                    tag: "PCI-DSS v4.0.1",
+                    tagColor: "#c58af9",
+                    date: "Julio 2026",
+                    issuer: "PCI Security Standards Council (PCI SSC)",
+                    title: "Transición Obligatoria PCI-DSS v4.0 en Entornos Cloud",
+                    summary: "PCI SSC completó la transición obligatoria a PCI-DSS v4.0. Entornos con datos de tarjetas (CDE) deben demostrar MFA continuo, criptografía fuerte con gestión automatizada de claves y aislamiento estricto de red.",
+                    gcpImpact: "Perímetros rigurosos vía VPC Service Controls (VPC-SC), Cloud KMS con protección HSM (FIPS 140-3 Nivel 3) e inspección de scripts del cliente.",
+                    controls: ["Req 3 (Protección de Datos)", "Req 8 (IAM y MFA)", "A.8.12 (DLP)", "A.8.24 (Criptografía)"],
+                    auditPrompt: "Verificar si los perímetros VPC Service Controls y las claves Cloud KMS con HSM cumplen con los requisitos de aislamiento CDE de PCI-DSS v4.0."
+                }
             }
         };
 
-        let currentActiveNewsKey = null;
+        function renderNewsCarousel() {
+            const track = document.getElementById("newsCarouselTrack");
+            if (!track) return;
+            const lang = window.currentLanguage || 'pt';
+            const db = regulatoryNewsDatabases[lang] || regulatoryNewsDatabases.en;
+            const readFull = lang === 'en' ? 'Read full article ➔' : (lang === 'es' ? 'Leer noticia completa ➔' : 'Ler notícia completa ➔');
+            const official = lang === 'en' ? 'Official source ↗' : (lang === 'es' ? 'Fuente oficial ↗' : 'Fonte oficial ↗');
 
-        function openNewsModal(newsKey) {
-            const data = regulatoryNewsDatabase[newsKey];
+            track.innerHTML = Object.entries(db).map(([key, item]) => `
+                <div class="news-card" onclick="openNewsModal('${key}')">
+                    <div class="news-card-meta">
+                        <span class="news-card-date">${item.date}</span>
+                        <span class="news-card-tag" style="background: rgba(129,201,149,0.15); color: ${item.tagColor || '#81c995'};">${item.tag}</span>
+                    </div>
+                    <div class="news-card-title">${item.title}</div>
+                    <div class="news-card-snippet">${item.summary.slice(0, 140)}...</div>
+                    <div class="news-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="news-action-link">${readFull}</span>
+                        ${item.originalUrl ? `<a class="news-source-link" href="${item.originalUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${official}</a>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+function openNewsModal(newsKey) {
+            const lang = window.currentLanguage || 'pt';
+            const db = regulatoryNewsDatabases[lang] || regulatoryNewsDatabases.en;
+            const data = db[newsKey];
             if (!data) return;
 
             currentActiveNewsKey = newsKey;
@@ -6864,6 +7286,7 @@ Formulário preenchido com o subagente recomendado!`);
         }
 
         function renderMatrixTable(items) {
+            const dict = (I18N[window.currentLanguage || "pt"] || I18N.pt);
             const tbody = document.getElementById("matrixTableBody");
             tbody.innerHTML = "";
 
@@ -6896,7 +7319,7 @@ Formulário preenchido com o subagente recomendado!`);
                     <td><span style="font-size: 11px; color: ${c.severity === 'CRITICAL' ? 'var(--gcp-red)' : 'var(--text-secondary)'}">${c.severity}</span></td>
                     <td style="text-align: center;">
                         <button class="btn-expand-ctrl" onclick="toggleControlRow('${detailId}')">
-                            <span id="label_${detailId}">Ver Detalhes</span>
+                            <span id="label_${detailId}">${dict.btn_view_details || "Ver Detalhes"}</span>
                             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor">
                                 <polyline points="6 9 12 15 18 9"/>
                             </svg>
