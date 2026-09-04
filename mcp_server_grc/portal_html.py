@@ -2088,7 +2088,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
     
         /* =========================================================================
-           Sidekick Hero Work & Regulatory RSS News Feed Styles
+           Agentic GRC Hero Work & Regulatory RSS News Feed Styles (Spacious & Clean)
            ========================================================================= */
         .gemini-hero {
             display: flex;
@@ -2096,19 +2096,19 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             align-items: center;
             text-align: center;
             margin: 0 auto;
-            padding: 20px 16px 40px 16px;
+            padding: 24px 20px 48px 20px;
             width: 100%;
-            max-width: 960px;
-            gap: 16px;
-            animation: fadeIn 0.3s ease;
+            max-width: 1240px;
+            gap: 18px;
+            animation: fadeIn 0.25s ease;
         }
 
         .hero-work-header {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
+            gap: 8px;
+            margin-bottom: 4px;
         }
 
         .hero-work-badge {
@@ -2123,30 +2123,30 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             border: 1px solid rgba(138, 180, 248, 0.25);
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
         }
 
         .hero-work-title {
-            font-size: 38px;
+            font-size: 40px;
             font-weight: 500;
-            letter-spacing: -0.6px;
+            letter-spacing: -0.8px;
             color: #ffffff;
             margin: 0;
             line-height: 1.2;
         }
 
         .hero-work-subtitle {
-            font-size: 14px;
+            font-size: 13.5px;
             color: var(--text-secondary);
-            max-width: 600px;
+            max-width: 650px;
             line-height: 1.5;
             margin: 0;
         }
 
-        /* Hero Central Input Container */
+        /* Spacious Central Input Container (Spacious, Not Polluted) */
         .hero-input-container {
             width: 100%;
-            max-width: 820px;
+            max-width: 980px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -2157,7 +2157,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             background: #1e1f20;
             border: 1px solid #3c4043;
             border-radius: 24px;
-            padding: 16px 20px 12px 20px;
+            padding: 16px 22px 14px 22px;
             width: 100%;
             box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5);
             display: flex;
@@ -2178,11 +2178,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             outline: none;
             width: 100%;
             color: #e8eaed;
-            font-size: 15.5px;
+            font-size: 16px;
             line-height: 1.55;
             resize: none;
             font-family: inherit;
-            min-height: 54px;
+            min-height: 52px;
         }
 
         .hero-textarea::placeholder {
@@ -2237,7 +2237,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             background: #282a2c;
             border: 1px solid #3c4043;
             border-radius: 18px;
-            padding: 6px 12px;
+            padding: 6px 14px;
             font-size: 13px;
             color: #e8eaed;
             display: flex;
@@ -2270,7 +2270,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             border-radius: 14px;
             box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65);
             padding: 8px;
-            width: 300px;
+            width: 310px;
             display: none;
             flex-direction: column;
             gap: 4px;
@@ -2359,89 +2359,48 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             transform: scale(1.05);
         }
 
-        /* Banner Callout */
-        .hero-banner-callout {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            padding: 9px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 13px;
-            color: #e3e3e3;
-            margin-top: 12px;
-            width: 100%;
-        }
-
-        .banner-callout-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .banner-sparkle {
-            color: #8ab4f8;
-            font-size: 15px;
-        }
-
-        .btn-banner-close {
-            background: transparent;
-            border: none;
-            color: #9aa0a6;
-            cursor: pointer;
-            font-size: 13px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            transition: color 0.2s;
-        }
-
-        .btn-banner-close:hover {
-            color: #ffffff;
-        }
-
-        /* Expanded Quick Suggestion Chips */
+        /* Minimalist & Clean Suggestion Chips (1 Single Row of 5 Essentials) */
         .hero-quick-chips {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 8px;
-            max-width: 860px;
+            gap: 10px;
+            max-width: 980px;
             width: 100%;
-            margin: 16px auto 0 auto;
+            margin: 14px auto 0 auto;
         }
 
         .chip-item {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid #3c4043;
             border-radius: 20px;
-            padding: 7px 14px;
+            padding: 7px 15px;
             font-size: 12.5px;
             color: #bdc1c6;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
             white-space: nowrap;
             transition: all 0.2s ease;
         }
 
         .chip-item:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.09);
             border-color: #8ab4f8;
             color: #ffffff;
             transform: translateY(-1px);
         }
 
         .chip-icon {
-            font-size: 14px;
+            font-size: 13.5px;
         }
 
-        /* Regulatory RSS News Feed Carousel */
+        /* Spacious Regulatory RSS News Feed Strip */
         .hero-news-section {
-            max-width: 900px;
+            max-width: 1180px;
             width: 100%;
-            margin: 32px auto 10px auto;
+            margin: 28px auto 8px auto;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -2506,7 +2465,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
         .news-carousel-track {
             display: flex;
-            gap: 14px;
+            gap: 16px;
             overflow-x: auto;
             scroll-behavior: smooth;
             padding: 4px 2px 14px 2px;
@@ -2523,23 +2482,24 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             border-radius: 4px;
         }
 
+        /* Clean, Uncluttered News Card */
         .news-card {
-            flex: 0 0 260px;
+            flex: 0 0 280px;
             background: #1e1f20;
             border: 1px solid #303134;
-            border-radius: 14px;
-            padding: 14px;
+            border-radius: 12px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 9px;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: all 0.2s ease;
             text-align: left;
         }
 
         .news-card:hover {
             border-color: #8ab4f8;
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
         }
 
@@ -2560,37 +2520,19 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .news-card-tag {
             font-size: 10px;
             font-weight: 600;
-            padding: 2px 6px;
+            padding: 2px 7px;
             border-radius: 4px;
         }
 
-        .news-card-graphic {
-            height: 72px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            margin: 2px 0;
-        }
-
-        .news-graphic-tag {
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: #ffffff;
-        }
-
         .news-card-title {
-            font-size: 13.5px;
+            font-size: 14px;
             font-weight: 600;
-            color: #e8eaed;
+            color: #ffffff;
             line-height: 1.35;
         }
 
         .news-card-snippet {
-            font-size: 11.5px;
+            font-size: 12px;
             color: #9aa0a6;
             line-height: 1.45;
             display: -webkit-box;
@@ -2955,18 +2897,18 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                     <div class="chat-messages-area" id="chatArea">
                         <div class="gemini-hero" id="geminiHero">
-                            <!-- Clean Header (No borders/circles) -->
+                            <!-- Clean Header (Spacious, No distractions) -->
                             <div class="hero-work-header">
                                 <span class="hero-work-badge">
-                                    <span class="model-picker-dot"></span> Google Cloud Security • Sidekick Agent
+                                    <span class="model-picker-dot"></span> Google Cloud Security • Agentic GRC Auditor
                                 </span>
                                 <h1 class="hero-work-title">Vamos trabalhar!</h1>
                                 <p class="hero-work-subtitle">
-                                    Auditoria contínua autônoma, governança e certificação para <strong>ISO/IEC 27001:2022</strong> (93 Controles) integrada à telemetria real do Google Cloud e Grafo de Evidências imutável.
+                                    Auditoria contínua autônoma e governança para Google Cloud & ISO/IEC 27001:2022
                                 </p>
                             </div>
 
-                            <!-- Centered Main Input Box (Sidekick / Gemini Style) -->
+                            <!-- Wide & Spacious Main Input Box -->
                             <div class="hero-input-container">
                                 <div class="hero-input-card">
                                     <textarea id="chatInputHero" class="hero-textarea" placeholder="O que você gostaria de auditar hoje? (ex.: ISO 27001, Cloud KMS, VPC-SC, FinOps)" rows="2" onkeydown="handleHeroKey(event)" oninput="handleHeroInput(this)"></textarea>
@@ -2983,12 +2925,6 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
                                                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
                                                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                                                </svg>
-                                            </button>
-                                            <button type="button" class="btn-hero-tool" onclick="promptPreFill('Listar e recomendar subagentes especializados para este escopo')" title="Delegar para Subagente Especializado">
-                                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <circle cx="12" cy="8" r="5"/>
-                                                    <path d="M20 21a8 8 0 1 0-16 0"/>
                                                 </svg>
                                             </button>
                                         </div>
@@ -3047,58 +2983,28 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- Banner Callout Underneath Input -->
-                                <div class="hero-banner-callout" id="heroBannerCallout">
-                                    <div class="banner-callout-left">
-                                        <span class="banner-sparkle">✦</span>
-                                        <span class="banner-text"><strong>NOVIDADE:</strong> teste o Gemini 3.5 Flash para varreduras contínuas com Context Caching de 1M tokens</span>
-                                    </div>
-                                    <button class="btn-banner-close" onclick="document.getElementById('heroBannerCallout').style.display='none'" title="Fechar aviso">✕</button>
-                                </div>
                             </div>
 
-                            <!-- Expanded Quick Suggestion Chips (User Request) -->
+                            <!-- Clean Single-Row Suggestion Chips (5 Essentials) -->
                             <div class="hero-quick-chips">
                                 <button class="chip-item" onclick="promptPreFill('Executar auditoria técnica completa de todos os 93 controles da ISO/IEC 27001:2022')">
-                                    <span class="chip-icon">✨</span> Auditoria A.5 a A.8
+                                    <span class="chip-icon">✨</span> Auditoria Completa ISO 27001
                                 </button>
                                 <button class="chip-item" onclick="promptPreFill('Auditar controle A.8.24 de Criptografia Cloud KMS e rotação de chaves HSM')">
-                                    <span class="chip-icon">🛡️</span> Cloud KMS (A.8.24)
+                                    <span class="chip-icon">🛡️</span> Criptografia Cloud KMS (A.8.24)
                                 </button>
                                 <button class="chip-item" onclick="promptPreFill('Verificar perímetros VPC Service Controls e controle de fuga de dados A.8.12')">
                                     <span class="chip-icon">🌐</span> Perímetros VPC-SC (A.8.12)
                                 </button>
                                 <button class="chip-item" onclick="promptPreFill('Auditar segurança do Cloud Storage e controle A.5.23 para serviços em nuvem')">
-                                    <span class="chip-icon">☁️</span> Postura GCS (A.5.23)
-                                </button>
-                                <button class="chip-item" onclick="promptPreFill('Auditar conformidade de IAM, segregação de funções e ausência de papéis primitivos')">
-                                    <span class="chip-icon">📜</span> IAM & Menor Privilégio
-                                </button>
-                                <button class="chip-item" onclick="promptPreFill('Verificar retenção de 365 dias dos logs de auditoria no BigQuery (A.8.16)')">
-                                    <span class="chip-icon">🚨</span> Logs 365 Dias (A.8.16)
-                                </button>
-                                <button class="chip-item" onclick="promptPreFill('Auditar conformidade com a Emenda Climática ISO 27001 Amd 1:2024 e Disaster Recovery')">
-                                    <span class="chip-icon">🌱</span> Amd 1:2024 Clima
+                                    <span class="chip-icon">☁️</span> Armazenamento GCS (A.5.23)
                                 </button>
                                 <button class="chip-item" onclick="promptPreFill('Gerar Parecer Executivo Formal de Conformidade com selo criptográfico SHA-256')">
-                                    <span class="chip-icon">📑</span> Dossiê Executivo
-                                </button>
-                                <button class="chip-item" onclick="promptPreFill('Mapear dados pessoais sensíveis e inspecionar regras Cloud DLP para LGPD/GDPR')">
-                                    <span class="chip-icon">⚖️</span> Governança PII & DLP
-                                </button>
-                                <button class="chip-item" onclick="promptPreFill('Verificar requisitos de proteção de CDE e conformidade prévia com PCI-DSS v4.0')">
-                                    <span class="chip-icon">💳</span> CDE / Pré-PCI-DSS
-                                </button>
-                                <button class="chip-item" onclick="promptPreFill('Listar e recomendar subagentes especializados para este escopo')">
-                                    <span class="chip-icon">🤖</span> Subagente Especialista
-                                </button>
-                                <button class="chip-item" onclick="promptPreFill('Calcular ROI de tokens e economia financeira obtida com Gemini Context Caching')">
-                                    <span class="chip-icon">💰</span> FinOps & Token ROI
+                                    <span class="chip-icon">📑</span> Parecer Formal & Grafo SHA-256
                                 </button>
                             </div>
 
-                            <!-- ISO & Certifications RSS News Feed Strip -->
+                            <!-- Clean Regulatory RSS News Feed Strip -->
                             <div class="hero-news-section">
                                 <div class="news-section-header">
                                     <div class="news-header-left">
@@ -3112,117 +3018,93 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 </div>
 
                                 <div class="news-carousel-track" id="newsCarouselTrack">
-                                    <!-- News Card 1: ISO 27001 Amd 1:2024 -->
-                                    <div class="news-card" onclick="askAboutNews('Emenda Climática ISO 27001 Amd 1:2024')">
+                                    <!-- Card 1: ISO 27001 Amd 1:2024 -->
+                                    <div class="news-card" onclick="openNewsModal('iso-amd-1-2024')">
                                         <div class="news-card-meta">
                                             <span class="news-card-date">Setembro 2026</span>
                                             <span class="news-card-tag" style="background: rgba(129,201,149,0.15); color: #81c995;">ISO 27001</span>
-                                        </div>
-                                        <div class="news-card-graphic" style="background: linear-gradient(135deg, rgba(129,201,149,0.2) 0%, rgba(30,31,32,0.9) 100%);">
-                                            <span style="font-size: 26px;">🌱</span>
-                                            <span class="news-graphic-tag">Amd 1:2024</span>
                                         </div>
                                         <div class="news-card-title">Emenda Climática ISO 27001 Obrigatória</div>
                                         <div class="news-card-snippet">
                                             A IAF determinou que auditorias devem checar se os riscos de mudanças climáticas foram avaliados nas cláusulas 4.1 e 4.2 do SGSI.
                                         </div>
                                         <div class="news-card-footer">
-                                            <span class="news-action-link">Auditar no GCP ➔</span>
+                                            <span class="news-action-link">Ler notícia completa ➔</span>
                                         </div>
                                     </div>
 
-                                    <!-- News Card 2: NIST CSF 2.0 -->
-                                    <div class="news-card" onclick="askAboutNews('NIST Cybersecurity Framework 2.0 - Função Governança')">
+                                    <!-- Card 2: NIST CSF 2.0 -->
+                                    <div class="news-card" onclick="openNewsModal('nist-csf-2-0')">
                                         <div class="news-card-meta">
                                             <span class="news-card-date">Agosto 2026</span>
                                             <span class="news-card-tag" style="background: rgba(138,180,248,0.15); color: #8ab4f8;">NIST CSF 2.0</span>
                                         </div>
-                                        <div class="news-card-graphic" style="background: linear-gradient(135deg, rgba(138,180,248,0.2) 0%, rgba(30,31,32,0.9) 100%);">
-                                            <span style="font-size: 26px;">🏛️</span>
-                                            <span class="news-graphic-tag">Govern (GV)</span>
-                                        </div>
                                         <div class="news-card-title">NIST CSF 2.0: Nova Função Governança</div>
                                         <div class="news-card-snippet">
-                                            A função GOVERN estabelece alinhamento formal de cibersegurança e apetite a risco ao conselho executivo.
+                                            A função GOVERN estabelece alinhamento formal de cibersegurança e apetite a risco integrados à diretoria executiva.
                                         </div>
                                         <div class="news-card-footer">
-                                            <span class="news-action-link">Auditar no GCP ➔</span>
+                                            <span class="news-action-link">Ler notícia completa ➔</span>
                                         </div>
                                     </div>
 
-                                    <!-- News Card 3: PCI-DSS v4.0.1 -->
-                                    <div class="news-card" onclick="askAboutNews('Transição Obrigatória PCI-DSS v4.0 no Google Cloud')">
+                                    <!-- Card 3: PCI-DSS v4.0.1 -->
+                                    <div class="news-card" onclick="openNewsModal('pci-dss-v4')">
                                         <div class="news-card-meta">
                                             <span class="news-card-date">Julho 2026</span>
                                             <span class="news-card-tag" style="background: rgba(197,138,249,0.15); color: #c58af9;">PCI-DSS v4.0</span>
                                         </div>
-                                        <div class="news-card-graphic" style="background: linear-gradient(135deg, rgba(197,138,249,0.2) 0%, rgba(30,31,32,0.9) 100%);">
-                                            <span style="font-size: 26px;">💳</span>
-                                            <span class="news-graphic-tag">CDE Security</span>
-                                        </div>
                                         <div class="news-card-title">Transição Mandatória PCI-DSS v4.0 em Nuvem</div>
                                         <div class="news-card-snippet">
-                                            Exigências reforçadas para perímetros de dados de titulares de cartões (CDE) e criptografia KMS HSM.
+                                            Exigências reforçadas para perímetros de dados de titulares de cartões (CDE) e gerenciamento de chaves KMS HSM.
                                         </div>
                                         <div class="news-card-footer">
-                                            <span class="news-action-link">Auditar no GCP ➔</span>
+                                            <span class="news-action-link">Ler notícia completa ➔</span>
                                         </div>
                                     </div>
 
-                                    <!-- News Card 4: ANPD & LGPD Nuvem -->
-                                    <div class="news-card" onclick="askAboutNews('Guia de Segurança da Informação da ANPD para Nuvem')">
+                                    <!-- Card 4: ANPD & LGPD Nuvem -->
+                                    <div class="news-card" onclick="openNewsModal('anpd-lgpd')">
                                         <div class="news-card-meta">
                                             <span class="news-card-date">Junho 2026</span>
                                             <span class="news-card-tag" style="background: rgba(253,214,99,0.15); color: #fdd663;">ANPD / LGPD</span>
                                         </div>
-                                        <div class="news-card-graphic" style="background: linear-gradient(135deg, rgba(253,214,99,0.2) 0%, rgba(30,31,32,0.9) 100%);">
-                                            <span style="font-size: 26px;">⚖️</span>
-                                            <span class="news-graphic-tag">Cloud DLP</span>
-                                        </div>
                                         <div class="news-card-title">Guia de Segurança da ANPD para Nuvem</div>
                                         <div class="news-card-snippet">
-                                            Diretrizes técnicas para uso de Cloud DLP, mascaramento de PII e elaboração de ROPA e RIPD.
+                                            Diretrizes técnicas para uso de Cloud DLP, mascaramento de PII e elaboração de ROPA e relatórios de impacto.
                                         </div>
                                         <div class="news-card-footer">
-                                            <span class="news-action-link">Auditar no GCP ➔</span>
+                                            <span class="news-action-link">Ler notícia completa ➔</span>
                                         </div>
                                     </div>
 
-                                    <!-- News Card 5: CSA Guidance v5 -->
-                                    <div class="news-card" onclick="askAboutNews('CSA Security Guidance v5 para Agentes de IA')">
+                                    <!-- Card 5: CSA Guidance v5 -->
+                                    <div class="news-card" onclick="openNewsModal('csa-guidance-v5')">
                                         <div class="news-card-meta">
                                             <span class="news-card-date">Maio 2026</span>
                                             <span class="news-card-tag" style="background: rgba(120,217,236,0.15); color: #78d9ec;">CSA Star</span>
                                         </div>
-                                        <div class="news-card-graphic" style="background: linear-gradient(135deg, rgba(120,217,236,0.2) 0%, rgba(30,31,32,0.9) 100%);">
-                                            <span style="font-size: 26px;">🤖</span>
-                                            <span class="news-graphic-tag">AI Guidance</span>
-                                        </div>
                                         <div class="news-card-title">CSA Guia v5 de Governança para Agentes IA</div>
                                         <div class="news-card-snippet">
-                                            Padrões internacionais de governança de contexto, prevenção de vazamento de credenciais e Zero-Copy.
+                                            Padrões internacionais de governança de contexto, isolamento de execução, prevenção de vazamento e Zero-Copy.
                                         </div>
                                         <div class="news-card-footer">
-                                            <span class="news-action-link">Auditar no GCP ➔</span>
+                                            <span class="news-action-link">Ler notícia completa ➔</span>
                                         </div>
                                     </div>
 
-                                    <!-- News Card 6: CIS Google Cloud Benchmark v3.0 -->
-                                    <div class="news-card" onclick="askAboutNews('CIS Google Cloud Foundation Benchmark v3.0')">
+                                    <!-- Card 6: CIS Google Cloud Benchmark v3.0 -->
+                                    <div class="news-card" onclick="openNewsModal('cis-gcp-v3')">
                                         <div class="news-card-meta">
                                             <span class="news-card-date">Abril 2026</span>
                                             <span class="news-card-tag" style="background: rgba(252,173,112,0.15); color: #fcad70;">CIS Benchmark</span>
-                                        </div>
-                                        <div class="news-card-graphic" style="background: linear-gradient(135deg, rgba(252,173,112,0.2) 0%, rgba(30,31,32,0.9) 100%);">
-                                            <span style="font-size: 26px;">🛡️</span>
-                                            <span class="news-graphic-tag">CIS GCP v3.0</span>
                                         </div>
                                         <div class="news-card-title">CIS GCP Benchmark v3.0 Atualizado</div>
                                         <div class="news-card-snippet">
                                             Requisitos atualizados de hardening para Cloud Storage, Workload Identity Federation e VPC Service Controls.
                                         </div>
                                         <div class="news-card-footer">
-                                            <span class="news-action-link">Auditar no GCP ➔</span>
+                                            <span class="news-action-link">Ler notícia completa ➔</span>
                                         </div>
                                     </div>
                                 </div>
@@ -4054,6 +3936,55 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         </div>
     </div>
 
+        <!-- Modal: Leitura de Notícia Regulatória & Auditoria Opcional -->
+    <div class="modal-overlay" id="newsModal">
+        <div class="modal-window" style="max-width: 680px; border-radius: 16px;">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border-subtle); padding: 16px 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span id="newsModalTag" class="news-card-tag" style="font-size: 11px; padding: 4px 8px;"></span>
+                    <span class="modal-title" id="newsModalTitle" style="font-size: 16px; font-weight: 600; color: #ffffff;"></span>
+                </div>
+                <button class="btn-collapse" onclick="closeNewsModal()" title="Fechar">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 16px; max-height: 65vh; overflow-y: auto; padding: 20px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12.5px; color: var(--text-tertiary); border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 10px;">
+                    <span>Publicação: <strong id="newsModalDate" style="color: var(--text-primary);"></strong></span>
+                    <span>Órgão Emissor: <strong id="newsModalIssuer" style="color: var(--gcp-blue);"></strong></span>
+                </div>
+
+                <div>
+                    <h4 style="font-size: 13.5px; color: #ffffff; margin: 0 0 6px 0; font-weight: 600;">O que mudou na norma / regulamento:</h4>
+                    <p id="newsModalSummary" style="font-size: 13px; color: #d1d5db; line-height: 1.6; margin: 0;"></p>
+                </div>
+
+                <div style="background: rgba(138, 180, 248, 0.06); border: 1px solid rgba(138, 180, 248, 0.2); border-radius: 8px; padding: 12px 14px;">
+                    <h4 style="font-size: 13px; color: var(--gcp-blue); margin: 0 0 6px 0; font-weight: 600;">Impacto técnico no Google Cloud Platform:</h4>
+                    <p id="newsModalGcpImpact" style="font-size: 12.5px; color: #e8eaed; line-height: 1.55; margin: 0;"></p>
+                </div>
+
+                <div>
+                    <h4 style="font-size: 13px; color: #ffffff; margin: 0 0 6px 0; font-weight: 600;">Controles e Requisitos Relacionados:</h4>
+                    <div id="newsModalControls" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); padding: 14px 20px;">
+                <button class="btn-cancel" onclick="closeNewsModal()">Fechar</button>
+                <button class="btn-confirm" id="btnAuditNews" onclick="executeNewsAudit()" style="display: flex; align-items: center; gap: 8px;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <span>Auditar meu ambiente com esta norma (Opcional)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Upload IaC Template -->
     <div class="modal-overlay" id="uploadModal">
         <div class="modal-window">
@@ -4769,7 +4700,7 @@ Formulário preenchido com o subagente recomendado!`);
 
 
         // =========================================================================
-        // Sidekick Hero & Regulatory News Feed Scripts
+        // Agentic GRC Hero & Regulatory News Feed Scripts
         // =========================================================================
         let currentSelectedModel = "gemini-auto";
 
@@ -4899,8 +4830,122 @@ Formulário preenchido com o subagente recomendado!`);
             }
         }
 
-        function askAboutNews(newsTitle) {
-            const prompt = `Avaliar a conformidade do nosso ambiente GCP com relação à atualização normativa: "${newsTitle}". Quais controles do SGSI (ISO 27001) são impactados e que evidências técnicas devemos apresentar?`;
+                // =========================================================================
+        // Regulatory RSS News Database & Interactive Reading Modal
+        // =========================================================================
+        const regulatoryNewsDatabase = {
+            "iso-amd-1-2024": {
+                tag: "ISO/IEC 27001:2022",
+                tagColor: "#81c995",
+                date: "Setembro 2026",
+                issuer: "ISO / IAF (International Accreditation Forum)",
+                title: "Emenda Climática ISO 27001 Amd 1:2024 Obrigatória",
+                summary: "A ISO e o IAF publicaram emenda conjunta tornando mandatório que organizações considerem as mudanças climáticas e eventos meteorológicos extremos na determinação do contexto da organização (Cláusula 4.1) e nas necessidades das partes interessadas (Cláusula 4.2).",
+                gcpImpact: "No Google Cloud, exige evidências de resiliência climática física dos data centers, redundância geográfica multi-região (Cloud Storage Dual-Region/Multi-Region, Spanner multi-região) e planos de Disaster Recovery (RPO/RTO) testados contra indisponibilidades regionais.",
+                controls: ["Cláusula 4.1 (Contexto)", "Cláusula 4.2 (Partes Interessadas)", "A.5.29 (Continuidade em TI)", "A.5.30 (Prontidão de TIC)"],
+                auditPrompt: "Avaliar a conformidade do nosso ambiente Google Cloud com a Emenda Climática ISO 27001 Amd 1:2024 (Cláusulas 4.1 e 4.2). Verificar redundância geográfica, Disaster Recovery e políticas de continuidade de negócios nos projetos selecionados."
+            },
+            "nist-csf-2-0": {
+                tag: "NIST CSF 2.0",
+                tagColor: "#8ab4f8",
+                date: "Agosto 2026",
+                issuer: "NIST (National Institute of Standards and Technology)",
+                title: "NIST CSF 2.0: Nova Função Governança (GV)",
+                summary: "O NIST publicou oficialmente o Cybersecurity Framework 2.0, expandindo os cinco pilares tradicionais (Identify, Protect, Detect, Respond, Recover) com a nova função GOVERN (GV). A função exige que a estratégia de cibersegurança e o apetite a risco sejam formalmente estabelecidos e comunicados pela liderança.",
+                gcpImpact: "Integração nativa com Security Command Center (SCC Enterprise), políticas organizacionais (Org Policies) no nível raiz e métricas de risco compartilhadas com o conselho.",
+                controls: ["GV.OC (Contexto Organizacional)", "GV.RM (Gestão de Risco)", "GV.PO (Políticas de Segurança)", "A.5.1 (Políticas de Segurança)"],
+                auditPrompt: "Como o nosso ambiente Google Cloud atende aos requisitos da nova função Governança (GV) do NIST CSF 2.0? Avaliar postura do Security Command Center e alinhamento das políticas da organização."
+            },
+            "pci-dss-v4": {
+                tag: "PCI-DSS v4.0.1",
+                tagColor: "#c58af9",
+                date: "Julho 2026",
+                issuer: "PCI Security Standards Council (PCI SSC)",
+                title: "Transição Mandatória PCI-DSS v4.0 em Ambientes Cloud",
+                summary: "O PCI SSC concluiu a transição obrigatória para o PCI-DSS v4.0. Ambientes que processam dados de cartões de pagamento (CDE) agora devem comprovar autenticação multifator contínua, criptografia forte com gerenciamento automatizado de chaves e isolamento estrito de rede.",
+                gcpImpact: "Perímetros rigorosos via VPC Service Controls (VPC-SC), uso de Cloud KMS com nível de proteção HSM (FIPS 140-3 Nível 3) e inspeção de cabeçalhos contra ataques client-side.",
+                controls: ["Requisito 3 (Proteção de Dados)", "Requisito 8 (IAM & MFA)", "A.8.12 (DLP)", "A.8.24 (Criptografia)"],
+                auditPrompt: "Verificar se os perímetros VPC Service Controls e as chaves Cloud KMS com HSM do nosso projeto atendem aos requisitos de isolamento de CDE do PCI-DSS v4.0."
+            },
+            "anpd-lgpd": {
+                tag: "ANPD & LGPD",
+                tagColor: "#fdd663",
+                date: "Junho 2026",
+                issuer: "ANPD (Autoridade Nacional de Proteção de Dados)",
+                title: "Guia de Segurança da Informação da ANPD para Nuvem",
+                summary: "A ANPD emitiu novas diretrizes de segurança da informação para agentes de tratamento de pequeno, médio e grande porte que operam em nuvem pública, destacando criptografia em repouso e em trânsito, minimização de dados e elaboração de RIPD.",
+                gcpImpact: "Adoção de Cloud DLP (Sensitive Data Protection) para descoberta e mascaramento contínuo de PII (CPF, RG, dados bancários) no Cloud Storage e BigQuery.",
+                controls: ["Art. 46 a 48 LGPD", "A.8.11 (Mascaramento de Dados)", "A.8.12 (Prevenção de Vazamentos)", "A.5.34 (Privacidade e PII)"],
+                auditPrompt: "Auditar a conformidade de dados pessoais sensíveis (PII) nos buckets e datasets do GCP utilizando Cloud DLP, de acordo com o Guia de Segurança da Informação da ANPD."
+            },
+            "csa-guidance-v5": {
+                tag: "CSA Star",
+                tagColor: "#78d9ec",
+                date: "Maio 2026",
+                issuer: "Cloud Security Alliance (CSA)",
+                title: "CSA Guia v5 de Governança para Agentes de IA",
+                summary: "A Cloud Security Alliance lançou o Security Guidance v5 focado em arquiteturas híbridas e governança de agentes de inteligência artificial autônomos, definindo limites para acesso a dados, prevenção de vazamento de contexto e identidades de máquina.",
+                gcpImpact: "Implementação de Model Armor para inspeção de prompts/respostas, arquiteturas Zero-Copy (sem replicação de dados) e identidades SPIFFE emitidas para cada subagente.",
+                controls: ["CSA AIS-01 (Segurança de Modelos)", "CSA IAM-03 (Identidades Não-Humanas)", "A.8.28 (Codificação Segura)"],
+                auditPrompt: "Verificar como a arquitetura do Agentic GRC implementa as diretrizes do CSA Guidance v5 para governança e segurança de agentes autônomos de IA no Google Cloud."
+            },
+            "cis-gcp-v3": {
+                tag: "CIS Benchmark",
+                tagColor: "#fcad70",
+                date: "Abril 2026",
+                issuer: "Center for Internet Security (CIS)",
+                title: "CIS Google Cloud Foundation Benchmark v3.0 Atualizado",
+                summary: "O CIS lançou atualização abrangente para o benchmark de Google Cloud, reforçando regras de hardening para contas de serviço, chaves de API restritas, Cloud Storage sem acesso público e retenção centralizada de logs.",
+                gcpImpact: "Verificação automatizada de conformidade contra mais de 80 regras de hardening em IAM, Cloud Storage, VPC, Cloud Logging e Cloud KMS.",
+                controls: ["CIS GCP 1.x (IAM)", "CIS GCP 2.x (Storage)", "CIS GCP 3.x (Logging)", "A.8.9 (Gestão de Configuração)"],
+                auditPrompt: "Executar varredura de hardening baseada nas recomendações do CIS Google Cloud Foundation Benchmark v3.0 nos projetos em escopo."
+            }
+        };
+
+        let currentActiveNewsKey = null;
+
+        function openNewsModal(newsKey) {
+            const data = regulatoryNewsDatabase[newsKey];
+            if (!data) return;
+
+            currentActiveNewsKey = newsKey;
+            document.getElementById("newsModalTitle").innerText = data.title;
+            const tagEl = document.getElementById("newsModalTag");
+            tagEl.innerText = data.tag;
+            tagEl.style.background = `rgba(${parseInt(data.tagColor.slice(1,3),16)}, ${parseInt(data.tagColor.slice(3,5),16)}, ${parseInt(data.tagColor.slice(5,7),16)}, 0.15)`;
+            tagEl.style.color = data.tagColor;
+
+            document.getElementById("newsModalDate").innerText = data.date;
+            document.getElementById("newsModalIssuer").innerText = data.issuer;
+            document.getElementById("newsModalSummary").innerText = data.summary;
+            document.getElementById("newsModalGcpImpact").innerText = data.gcpImpact;
+
+            const controlsContainer = document.getElementById("newsModalControls");
+            controlsContainer.innerHTML = "";
+            data.controls.forEach(ctrl => {
+                const badge = document.createElement("span");
+                badge.style.cssText = "font-size: 11.5px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); padding: 3px 8px; border-radius: 4px; color: #e8eaed;";
+                badge.innerText = ctrl;
+                controlsContainer.appendChild(badge);
+            });
+
+            document.getElementById("newsModal").classList.add("active");
+        }
+
+        function closeNewsModal() {
+            document.getElementById("newsModal").classList.remove("active");
+            currentActiveNewsKey = null;
+        }
+
+        function executeNewsAudit() {
+            if (!currentActiveNewsKey) return;
+            const data = regulatoryNewsDatabase[currentActiveNewsKey];
+            closeNewsModal();
+            if (data && data.auditPrompt) {
+                promptPreFill(data.auditPrompt);
+            }
+        }
+". Quais controles do SGSI (ISO 27001) são impactados e que evidências técnicas devemos apresentar?`;
             promptPreFill(prompt);
         }
 
