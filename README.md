@@ -232,10 +232,10 @@ Access the interactive console at `http://localhost:8080/portal`.
 
 Detailed architecture and strategic pillars are maintained in [ROADMAP.md](ROADMAP.md):
 
-- **In Progress**: **CodeMender** — autonomous vulnerability remediation in code repositories (ISO Control A.8.28) with ephemeral container sandbox validation.
-- **Next Cycle**: **Interactive ISO Audit Questionnaires & Evidence Attachment** — structured interview workflows, evidence upload with SHA-256 anchoring, AI evaluation, and real-time report/metric updates.
-- **Planned**: **Multi-Cloud Connectors (AWS, Azure, OCI)** — zero-key telemetry ingestion via OIDC federation and unified control abstraction.
-- **Future Vision**: **Multi-Framework Expansion** — SOC 2 Type II, PCI-DSS v4.0, NIST CSF 2.0, LGPD/GDPR, and unified cross-mapping engine ("Collect Once, Comply Many").
+- **In Progress**: **Interactive ISO Audit Questionnaires & Evidence Attachment** — structured interview workflows, evidence upload with SHA-256 anchoring, AI evaluation, and real-time report/metric updates.
+- **In Progress**: **Multi-Cloud Connectors (AWS & Azure)** — zero-key telemetry ingestion via OIDC federation and unified control abstraction (KMS, Storage, IAM, Network).
+- **Next Cycle**: **CodeMender** — autonomous vulnerability remediation in code repositories (ISO Control A.8.28) with ephemeral container sandbox validation.
+- **Planned / Future Vision**: **Multi-Framework Expansion & OCI** — Oracle Cloud (OCI), SOC 2 Type II, PCI-DSS v4.0, NIST CSF 2.0, LGPD/GDPR, and unified cross-mapping engine ("Collect Once, Comply Many").
 
 ---
 

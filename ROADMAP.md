@@ -9,9 +9,9 @@ Planejamento de evolução da plataforma **Agentic GRC (GEAP)** para governança
 | Marco / Iniciativa | Foco Principal | Principais Entregas | Status |
 | :--- | :--- | :--- | :--- |
 | **Fundação Concluída** | **ISO 27001:2022 (GCP)** | 93 controles, servidor MCP, 4 fases autônomas, Grafo SHA-256, Dossiê C-Level e Relatório Stage 2 (PDF/JSON). | Concluído ✅ |
-| **Remediação Automatizada** | **CodeMender** | Subagente de correção de código (A.8.28) em sandbox isolado, abertura de PRs com aprovação humana (HITL). | Em Andamento 🚀 |
-| **Interatividade & Governança** | **Questionários ISO & Evidências** | Roteiro de perguntas de auditoria, upload de evidências com hash SHA-256, validação por IA e recálculo em tempo real de métricas e relatórios. | Próximo Ciclo 📋 |
-| **Telemetria Híbrida** | **Conectores Multi-Cloud (AWS & Azure)** | Ingestão de telemetria AWS e Azure via federação OIDC (Zero-Key), abstração unificada de controles (KMS, Storage, IAM, Rede). | Planejado 📋 |
+| **Interatividade & Governança** | **Questionários ISO & Evidências** | Roteiro de perguntas de auditoria, upload de evidências com hash SHA-256, validação por IA e recálculo em tempo real de métricas e relatórios. | Em Andamento 🚀 |
+| **Telemetria Híbrida** | **Conectores Multi-Cloud (AWS & Azure)** | Ingestão de telemetria AWS e Azure via federação OIDC (Zero-Key), abstração unificada de controles (KMS, Storage, IAM, Rede). | Em Andamento 🚀 |
+| **Remediação Automatizada** | **CodeMender** | Subagente de correção de código (A.8.28) em sandbox isolado, abertura de PRs com aprovação humana (HITL). | Próximo Ciclo 📋 |
 | **Nuvem & Frameworks B2B** | **OCI & SOC 2 / PCI-DSS** | Conector Oracle Cloud (OCI), seletor de certificações (Pré-deploy/Pré-acesso), catálogos SOC 2 Type II e PCI-DSS v4.0. | Backlog 💡 |
 | **Conformidade Global 360°** | **NIST CSF & LGPD/GDPR** | NIST CSF 2.0, LGPD/GDPR via Cloud DLP, motor de correlação cruzada (*Collect Once, Comply Many*) e auditoria contínua multi-cloud. | Visão Futura 🌐 |
 
