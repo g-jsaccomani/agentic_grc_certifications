@@ -4117,25 +4117,25 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <!-- KPI Cards Row -->
                 <div class="scorecard-stats-row">
                     <div class="stat-card">
-                        <div class="stat-label">Custo Total de IA Acumulado</div>
+                        <div class="stat-label" data-i18n="finops_kpi_total_cost">Custo Total de IA Acumulado</div>
                         <div class="stat-val" style="color: var(--gcp-green);" id="finopsTotalCostUsd">$ 1.86 USD</div>
                         <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 2px;" id="finopsTotalCostBrl">R$ 10,62 BRL (Cotação R$ 5,70)</div>
                         <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Orçamento: $50.00 / mês • <span id="finopsQuotaUsed" style="color: var(--gcp-green); font-weight: 600;">3.7% consumido</span></div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Tokens Totais Processados</div>
+                        <div class="stat-label" data-i18n="finops_kpi_tokens">Tokens Totais Processados</div>
                         <div class="stat-val" style="color: var(--gcp-blue);" id="finopsTotalTokens">2.253.000</div>
                         <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;" id="finopsTokensBreakdown">Prompt: 1.503k | Saída: 470k</div>
                         <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Execuções de Agentes: <strong id="finopsInvocations" style="color: var(--text-primary);">379 chamadas</strong></div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Economia Gemini Context Caching</div>
+                        <div class="stat-label" data-i18n="finops_kpi_caching">Economia Gemini Context Caching</div>
                         <div class="stat-val" style="color: #81c995;" id="finopsSavingsUsd">$ 7.42 USD</div>
                         <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;" id="finopsSavingsBrl">R$ 42,29 BRL economizados</div>
                         <div style="font-size: 11px; color: var(--gcp-green); margin-top: 4px;">Taxa de Cache Hit: <strong id="finopsCacheHitRatio">72.8%</strong> (Zero-Copy Evidence)</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Custo Médio por Controle ISO 27001</div>
+                        <div class="stat-label" data-i18n="finops_kpi_cost_per_ctrl">Custo Médio por Controle ISO 27001</div>
                         <div class="stat-val" style="color: #fdd663;" id="finopsCostPerControl">$ 0.020 USD</div>
                         <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">R$ 0,11 BRL por controle auditado</div>
                         <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Auditoria humana tradicional: ~R$ 350 / controle</div>
@@ -4144,33 +4144,33 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                 <!-- Detalhamento de Custos por Fase (Fases 1 a 4) -->
                 <div class="card-panel" style="margin-top: 16px;">
-                    <div class="card-title">Consumo de IA por Fase da Auditoria (Pipeline de Certificação)</div>
-                    <div class="card-desc">Divisão de tokens e custos em cada estágio do ciclo de conformidade autônoma.</div>
+                    <div class="card-title" data-i18n="finops_phase_title">Consumo de IA por Fase da Auditoria (Pipeline de Certificação)</div>
+                    <div class="card-desc" data-i18n="finops_phase_desc">Divisão de tokens e custos em cada estágio do ciclo de conformidade autônoma.</div>
                     
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 14px;">
                         <div class="stat-card" style="background: var(--bg-canvas);">
-                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-blue); text-transform: uppercase;">Fase 1: Triagem Zero-Copy</div>
+                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-blue); text-transform: uppercase;"><span data-i18n="finops_p1_title">Fase 1: Triagem Zero-Copy</span></div>
                             <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase1Cost">$ 0.42 USD</div>
                             <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase1Tokens">420.000 tokens • R$ 2,39</div>
-                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Ingestão documental semântica</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;" data-i18n="finops_p1_desc">Ingestão documental semântica</div>
                         </div>
                         <div class="stat-card" style="background: var(--bg-canvas);">
-                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-yellow); text-transform: uppercase;">Fase 2: Telemetria Técnica GCP</div>
+                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-yellow); text-transform: uppercase;"><span data-i18n="finops_p2_title">Fase 2: Telemetria Técnica GCP</span></div>
                             <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase2Cost">$ 0.88 USD</div>
                             <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase2Tokens">680.000 tokens • R$ 5,02</div>
-                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">IAM, KMS, SCC e Workload Identity</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;" data-i18n="finops_p2_desc">IAM, KMS, SCC e Workload Identity</div>
                         </div>
                         <div class="stat-card" style="background: var(--bg-canvas);">
-                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-red); text-transform: uppercase;">Fase 3: Teste de Eficácia & Drift</div>
+                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-red); text-transform: uppercase;"><span data-i18n="finops_p3_title">Fase 3: Teste de Eficácia & Drift</span></div>
                             <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase3Cost">$ 0.54 USD</div>
                             <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase3Tokens">390.000 tokens • R$ 3,08</div>
-                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Simulação de drift e verificação</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;" data-i18n="finops_p3_desc">Simulação de drift e verificação</div>
                         </div>
                         <div class="stat-card" style="background: var(--bg-canvas);">
-                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-green); text-transform: uppercase;">Fase 4: Parecer & Selagem</div>
+                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-green); text-transform: uppercase;"><span data-i18n="finops_p4_title">Fase 4: Parecer & Selagem</span></div>
                             <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase4Cost">$ 1.64 USD</div>
                             <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase4Tokens">352.650 tokens • R$ 9,35</div>
-                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Gemini 2.5 Pro Lead Auditor</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;" data-i18n="finops_p4_desc">Gemini 2.5 Pro Lead Auditor</div>
                         </div>
                     </div>
                 </div>
@@ -4179,11 +4179,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <div class="card-panel" style="margin-top: 16px;">
                     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                         <div>
-                            <div class="card-title">Detalhamento por Agente e Subagente (Métricas e Custos)</div>
-                            <div class="card-desc">Contabilização exata de prompt tokens, context cache hits, completion tokens e custo final em USD/BRL.</div>
+                            <div class="card-title" data-i18n="finops_agent_table_title">Detalhamento por Agente e Subagente (Métricas e Custos)</div>
+                            <div class="card-desc" data-i18n="finops_agent_table_desc">Contabilização exata de prompt tokens, context cache hits, completion tokens e custo final em USD/BRL.</div>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <input type="text" id="finopsAgentSearch" placeholder="Filtrar agentes..." oninput="filterFinopsTable(this.value)" style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 6px 12px; font-size: 12px; color: var(--text-primary); outline: none;">
+                            <input type="text" id="finopsAgentSearch" placeholder="Filtrar agentes..." data-i18n-placeholder="finops_filter_placeholder" oninput="filterFinopsTable(this.value)" style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 6px 12px; font-size: 12px; color: var(--text-primary); outline: none;">
                         </div>
                     </div>
 
@@ -4191,9 +4191,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
                             <thead>
                                 <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px;">
-                                    <th style="padding: 10px 12px;">Agente / Subagente</th>
-                                    <th style="padding: 10px 12px;">Modelo LLM</th>
-                                    <th style="padding: 10px 12px;">Chamadas</th>
+                                    <th style="padding: 10px 12px;" data-i18n="finops_th_agent">Agente / Subagente</th>
+                                    <th style="padding: 10px 12px;" data-i18n="finops_th_model">Modelo LLM</th>
+                                    <th style="padding: 10px 12px;" data-i18n="finops_th_invocations">Chamadas</th>
                                     <th style="padding: 10px 12px;">Prompt Tokens</th>
                                     <th style="padding: 10px 12px;">Cached Tokens</th>
                                     <th style="padding: 10px 12px;">Output Tokens</th>
@@ -4286,7 +4286,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                     <!-- Title & Subtitle in Google Sans -->
                     <h1 class="cloudstyle-doc-title">Continuous Compliance & Audit Dossier</h1>
-                    <div class="cloudstyle-doc-subtitle">
+                    <div class="cloudstyle-doc-subtitle" data-i18n="exec_doc_subtitle">
                         Avaliação autônoma de segurança da informação, conformidade contínua com a <strong>ISO/IEC 27001:2022</strong> (93 Controles do Anexo A) e validação de telemetria nos ambientes Google Cloud Platform.
                     </div>
 
@@ -4504,7 +4504,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
                                 <rect x="6" y="14" width="12" height="8"></rect>
                             </svg>
-                            <span>Imprimir / PDF</span>
+                            <span data-i18n="btn_print_pdf">Imprimir / PDF</span>
                         </button>
                         <a href="/api/reports/export?format=json" download class="btn-doc-action" title="Exportar JSON">
                             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
@@ -4522,7 +4522,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <span>Markdown</span>
                         </a>
                         <button class="btn-doc-action" onclick="openExecutiveReport()" title="Ver Dossiê Executivo">
-                            <span>Dossiê Executivo ›</span>
+                            <span data-i18n="btn_to_exec">Dossiê Executivo ›</span>
                         </button>
                     </div>
                 </div>
@@ -4537,45 +4537,45 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </span>
                     </div>
 
-                    <h1 class="cloudstyle-doc-title">Relatório Técnico de Auditoria Externa & Statement of Applicability (SoA)</h1>
-                    <div class="cloudstyle-doc-subtitle">
+                    <h1 class="cloudstyle-doc-title" data-i18n="tech_doc_title">Relatório Técnico de Auditoria Externa & Statement of Applicability (SoA)</h1>
+                    <div class="cloudstyle-doc-subtitle" data-i18n="tech_doc_subtitle">
                         Auditoria Independente de Eficácia Operacional dos 93 Controles ISO/IEC 27001:2022, ISO/IEC 27017 & ISO/IEC 27018 em Google Cloud
                     </div>
 
                     <!-- Ficha Técnica da Auditoria Externa -->
                     <table class="cloudstyle-meta-box">
                         <tr>
-                            <td>Código do Dossiê Técnico</td>
+                            <td data-i18n="tech_meta_dossier_code">Código do Dossiê Técnico</td>
                             <td><code style="font-family: monospace; font-weight: 700; color: #1a73e8;" id="techDossierCode">GCS-EXT-AUDIT-ISO27001-2022-TECH-001</code></td>
                         </tr>
                         <tr>
-                            <td>Normas & Critérios de Auditoria</td>
+                            <td data-i18n="tech_meta_criteria">Normas & Critérios de Auditoria</td>
                             <td>
                                 <strong>ABNT NBR ISO/IEC 27001:2022</strong> (Anexo A - 93 Controles)<br>
                                 <span style="font-size: 11px; color: var(--text-secondary);">Completado com: ISO/IEC 27017:2015 (Segurança em Nuvem) e ISO/IEC 27018:2019 (Privacidade de Dados PII em Nuvem Pública)</span>
                             </td>
                         </tr>
                         <tr>
-                            <td>Organismos Alvo & Entidades Receptoras</td>
+                            <td data-i18n="tech_meta_bodies">Organismos Alvo & Entidades Receptoras</td>
                             <td><strong>Organismo de Certificação Acreditado</strong> (BSI, DNV, TÜV, Bureau Veritas, A-LIGN, Schellman ou Big 4 Audit)</td>
                         </tr>
                         <tr>
-                            <td>Escopo de Auditoria (GCP Projects)</td>
+                            <td data-i18n="tech_meta_scope">Escopo de Auditoria (GCP Projects)</td>
                             <td><strong id="techProjectsAudited">agentic-grc-cd06</strong> (Google Cloud Multi-Region Tenant)</td>
                         </tr>
                         <tr>
-                            <td>Metodologia de Teste</td>
+                            <td data-i18n="tech_meta_methodology">Metodologia de Teste</td>
                             <td><strong>Teste Contínuo de População Total (100% Automated Population Testing)</strong> via Telemetria Contínua, Cloud Asset Inventory e SPIFFE Zero-Copy Connectors (Zero-Sampling Error)</td>
                         </tr>
                         <tr>
-                            <td>Data e Hora da Emissão</td>
+                            <td data-i18n="tech_meta_date">Data e Hora da Emissão</td>
                             <td><span id="techGeneratedAt">2026-09-04 14:15:00 UTC</span></td>
                         </tr>
                         <tr>
-                            <td>Parecer Técnico Conclusivo</td>
+                            <td data-i18n="tech_meta_conclusion">Parecer Técnico Conclusivo</td>
                             <td>
                                 <span class="cloudstyle-badge-success" style="background: #e6f4ea; color: #137333; font-weight: 700;">
-                                    RECOMENDAÇÃO DE CERTIFICAÇÃO SEM RESSALVAS (UNQUALIFIED CLEAN OPINION)
+                                    <span data-i18n="tech_meta_opinion_badge">RECOMENDAÇÃO DE CERTIFICAÇÃO SEM RESSALVAS (UNQUALIFIED CLEAN OPINION)</span>
                                 </span>
                             </td>
                         </tr>
@@ -4583,7 +4583,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                     <!-- Parecer Formal do Auditor Líder -->
                     <div class="cloudstyle-quote-callout">
-                        <div class="cloudstyle-quote-text">
+                        <div class="cloudstyle-quote-text" data-i18n="tech_quote_text">
                             "Com base nos testes de desenho e de eficácia operacional contínua executados sobre 100% da infraestrutura em nuvem, certificamos que os controles do SGSI descritos na Declaração de Aplicabilidade (SoA) estão plenamente implementados, operando de forma autônoma e mitigando os riscos cibernéticos em estrita conformidade com os requisitos da norma ISO/IEC 27001:2022. Não foram identificadas Não-Conformidades Maiores ou Menores remanescentes."
                         </div>
                         <div class="cloudstyle-quote-author">
@@ -4593,9 +4593,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                     <!-- Cobertura da Auditoria Externa por Domínio ISO/IEC 27001:2022 -->
                     <div class="cloudstyle-heading-block">
-                        1. Resumo Quantitativo de Eficácia Operacional (4 Domínios ISO/IEC 27001:2022)
+                        <span data-i18n="tech_sec1_heading">1. Resumo Quantitativo de Eficácia Operacional (4 Domínios ISO/IEC 27001:2022)</span>
                     </div>
-                    <p class="tech-section-lead">
+                    <p class="tech-section-lead" data-i18n="tech_sec1_lead">
                         Em conformidade com a estrutura da ISO/IEC 27001:2022, todos os 93 controles distribuídos nos 4 domínios foram submetidos a testes contínuos de verificação técnica via APIs e agentes autônomos.
                     </p>
 
@@ -4624,7 +4624,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                     <!-- Matriz SoA (Statement of Applicability) -->
                     <div class="cloudstyle-heading-block">
-                        2. Declaração de Aplicabilidade Técnica (Statement of Applicability - SoA v2022.4)
+                        <span data-i18n="tech_sec2_heading">2. Declaração de Aplicabilidade Técnica (Statement of Applicability - SoA v2022.4)</span>
                     </div>
                     <p class="tech-section-lead">
                         A tabela a seguir documenta a rastreabilidade direta entre os requisitos normativos da ISO/IEC 27001:2022 e os mecanismos técnicos de implementação e comprovação operacional no Google Cloud:
@@ -4751,10 +4751,10 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                     <!-- Caderno de Evidências Técnicas Verificáveis -->
                     <div class="cloudstyle-heading-block">
-                        3. Caderno de Evidências Técnicas Verificáveis (Technical Evidence Repository)
+                        <span data-i18n="tech_sec3_heading">3. Caderno de Evidências Técnicas Verificáveis (Technical Evidence Repository)</span>
                     </div>
-                    <p class="tech-section-lead">
-                        As evidências técnicas a seguir contêm saídas de comandos oficiais do Google Cloud CLI (<code>gcloud</code>), telemetrias de APIs e hashes imutáveis que comprovam a operação contínua e sem falhas dos controles críticos de segurança:
+                    <p class="tech-section-lead" data-i18n="tech_sec3_lead">
+                        As evidências técnicas a seguir contêm saídas de comandos oficiais do Google Cloud CLI (gcloud), telemetrias de APIs e hashes imutáveis que comprovam a operação contínua e sem falhas dos controles críticos de segurança:
                     </p>
 
                     <!-- Evidência 1 -->
@@ -4920,9 +4920,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                     <!-- Matriz de Não-Conformidades e Ações Corretivas (CAPA) -->
                     <div class="cloudstyle-heading-block">
-                        4. Trilha de Eficácia Operacional e Tratamento de Desvios (CAPA Register)
+                        <span data-i18n="tech_sec4_heading">4. Trilha de Eficácia Operacional e Tratamento de Desvios (CAPA Register)</span>
                     </div>
-                    <p class="tech-section-lead">
+                    <p class="tech-section-lead" data-i18n="tech_sec4_lead">
                         Registro dos desvios identificados durante as rotinas de telemetria contínua, planos de ação gerados e histórico de aprovação humana (Human-in-the-Loop):
                     </p>
 
@@ -4960,7 +4960,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <!-- Selo Criptográfico de Integridade -->
                     <div class="cloudstyle-seal-wrapper">
                         <div class="cloudstyle-seal-box">
-                            <div class="cloudstyle-seal-tag">SELO CRIPTOGRÁFICO DE INTEGRIDADE DA AUDITORIA EXTERNA</div>
+                            <div class="cloudstyle-seal-tag" data-i18n="tech_seal_tag">SELO CRIPTOGRÁFICO DE INTEGRIDADE DA AUDITORIA EXTERNA</div>
                             <div class="cloudstyle-seal-hash">Merkle Root Hash: 9f8e7d6c5b4a39281726354859607182a3b4c5d6e7f8091a2b3c4d5e6f7a8b9c</div>
                             <div style="margin-top: 6px; font-size: 11px; color: var(--text-secondary);">
                                 Dossiê SHA-256: <code>e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</code> • Carimbo de Tempo RFC 3161 Atômico: <span id="techSealDate">2026-09-04 14:15:00 UTC</span>
@@ -4972,9 +4972,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <div class="tech-signature-grid">
                         <div class="tech-sig-box">
                             <div class="tech-sig-name">Agentic GRC Auditor</div>
-                            <div class="tech-sig-role">Auditor Líder Técnico Virtual (SPIFFE Validated)</div>
+                            <div class="tech-sig-role" data-i18n="tech_sig_role">Auditor Líder Técnico Virtual (SPIFFE Validated)</div>
                             <div class="tech-sig-line"></div>
-                            <span class="tech-sig-status">✓ Atestação Criptográfica Emitida</span>
+                            <span class="tech-sig-status" data-i18n="tech_sig_status">✓ Atestação Criptográfica Emitida</span>
                         </div>
                         <div class="tech-sig-box">
                             <div class="tech-sig-name">Chief Information Security Officer</div>
@@ -5299,7 +5299,59 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 
                 chat_input_placeholder: "Consulte o Agentic GRC Auditor (Google Cloud Security)...",
                 chat_disclaimer: "Google Cloud Security • As evidências e pareceres de conformidade são validados no Grafo Criptográfico SHA-256 e protegidos por Model Armor.",
-                bot_evaluating: "Agentic GRC Auditor (Google Cloud Security) avaliando telemetria e grafo de evidências..."
+                bot_evaluating: "Agentic GRC Auditor (Google Cloud Security) avaliando telemetria e grafo de evidências...",
+                finops_kpi_total_cost: "Custo Total de IA Acumulado",
+                finops_kpi_tokens: "Tokens Totais Processados",
+                finops_kpi_caching: "Economia Gemini Context Caching",
+                finops_kpi_cost_per_ctrl: "Custo Médio por Controle ISO 27001",
+                finops_phase_title: "Consumo de IA por Fase da Auditoria (Pipeline de Certificação)",
+                finops_phase_desc: "Divisão de tokens e custos em cada estágio do ciclo de conformidade autônoma.",
+                finops_p1_title: "Fase 1: Triagem Zero-Copy",
+                finops_p1_desc: "Ingestão documental semântica",
+                finops_p2_title: "Fase 2: Telemetria Técnica GCP",
+                finops_p2_desc: "IAM, KMS, SCC e Workload Identity",
+                finops_p3_title: "Fase 3: Teste de Eficácia & Drift",
+                finops_p3_desc: "Simulação de drift e verificação",
+                finops_p4_title: "Fase 4: Parecer & Selagem",
+                finops_p4_desc: "Gemini 2.5 Pro Lead Auditor",
+                finops_agent_table_title: "Detalhamento por Agente e Subagente (Métricas e Custos)",
+                finops_agent_table_desc: "Contabilização exata de prompt tokens, context cache hits, completion tokens e custo final em USD/BRL.",
+                finops_filter_placeholder: "Filtrar agentes...",
+                finops_th_agent: "Agente / Subagente",
+                finops_th_model: "Modelo LLM",
+                finops_th_invocations: "Chamadas",
+                finops_th_prompt_tokens: "Tokens Prompt",
+                finops_th_cached_tokens: "Tokens em Cache",
+                finops_th_output_tokens: "Tokens Saída",
+                finops_th_cost_usd: "Custo Total (USD)",
+                finops_th_cost_brl: "Custo Total (BRL)",
+                
+                tech_doc_title: "Relatório Técnico de Auditoria Externa & Statement of Applicability (SoA)",
+                tech_doc_subtitle: "Auditoria Independente de Eficácia Operacional dos 93 Controles ISO/IEC 27001:2022, ISO/IEC 27017 & ISO/IEC 27018 em Google Cloud",
+                tech_meta_dossier_code: "Código do Dossiê Técnico",
+                tech_meta_criteria: "Normas & Critérios de Auditoria",
+                tech_meta_bodies: "Organismos Alvo & Entidades Receptoras",
+                tech_meta_scope: "Escopo de Auditoria (GCP Projects)",
+                tech_meta_methodology: "Metodologia de Teste",
+                tech_meta_date: "Data e Hora da Emissão",
+                tech_meta_conclusion: "Parecer Técnico Conclusivo",
+                tech_meta_opinion_badge: "RECOMENDAÇÃO DE CERTIFICAÇÃO SEM RESSALVAS (UNQUALIFIED CLEAN OPINION)",
+                tech_quote_text: "\"Com base nos testes de desenho e de eficácia operacional contínua executados sobre 100% da infraestrutura em nuvem, certificamos que os controles do SGSI descritos na Declaração de Aplicabilidade (SoA) estão plenamente implementados, operando de forma autônoma e mitigando os riscos cibernéticos em estrita conformidade com os requisitos da norma ISO/IEC 27001:2022. Não foram identificadas Não-Conformidades Maiores ou Menores remanescentes.\"",
+                tech_sec1_heading: "1. Resumo Quantitativo de Eficácia Operacional (4 Domínios ISO/IEC 27001:2022)",
+                tech_sec1_lead: "Em conformidade com a estrutura da ISO/IEC 27001:2022, todos os 93 controles distribuídos nos 4 domínios foram submetidos a testes contínuos de verificação técnica via APIs e agentes autônomos.",
+                tech_sec2_heading: "2. Declaração de Aplicabilidade Técnica (Statement of Applicability - SoA v2022.4)",
+                tech_sec2_lead: "Atestação individual dos 93 controles normativos da ISO/IEC 27001:2022:",
+                tech_sec3_heading: "3. Caderno de Evidências Técnicas Verificáveis (Technical Evidence Repository)",
+                tech_sec3_lead: "As evidências técnicas a seguir contêm saídas de comandos oficiais do Google Cloud CLI (gcloud), telemetrias de APIs e hashes imutáveis que comprovam a operação contínua e sem falhas dos controles críticos de segurança:",
+                tech_sec4_heading: "4. Trilha de Eficácia Operacional e Tratamento de Desvios (CAPA Register)",
+                tech_sec4_lead: "Registro dos desvios identificados durante as rotinas de telemetria contínua, planos de ação gerados e histórico de aprovação humana (Human-in-the-Loop):",
+                tech_seal_tag: "SELO CRIPTOGRÁFICO DE INTEGRIDADE DA AUDITORIA EXTERNA",
+                tech_sig_role: "Auditor Líder Técnico Virtual (SPIFFE Validated)",
+                tech_sig_status: "✓ Atestação Criptográfica Emitida",
+                
+                exec_doc_subtitle: "Avaliação autônoma de segurança da informação, conformidade contínua com a ISO/IEC 27001:2022 (93 Controles do Anexo A) e validação de telemetria nos ambientes Google Cloud Platform.",
+                exec_sec1_heading: "1. Estrutura de Controles por Tema (ISO/IEC 27001:2022)",
+                exec_sec2_heading: "2. Amostra de Controles & Declaração de Aplicabilidade (SoA)",
             },
             en: {
                 status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
@@ -5449,7 +5501,59 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 
                 chat_input_placeholder: "Ask Agentic GRC Auditor (Google Cloud Security)...",
                 chat_disclaimer: "Google Cloud Security • Evidence and audit opinions validated on SHA-256 Cryptographic Graph and protected by Model Armor.",
-                bot_evaluating: "Agentic GRC Auditor (Google Cloud Security) evaluating telemetry and evidence graph..."
+                bot_evaluating: "Agentic GRC Auditor (Google Cloud Security) evaluating telemetry and evidence graph...",
+                finops_kpi_total_cost: "Cumulative Total AI Cost",
+                finops_kpi_tokens: "Total Tokens Processed",
+                finops_kpi_caching: "Gemini Context Caching Savings",
+                finops_kpi_cost_per_ctrl: "Average Cost per ISO 27001 Control",
+                finops_phase_title: "AI Consumption by Audit Phase (Certification Pipeline)",
+                finops_phase_desc: "Tokens and cost breakdown across each stage of autonomous compliance cycle.",
+                finops_p1_title: "Phase 1: Zero-Copy Triage",
+                finops_p1_desc: "Semantic document ingestion",
+                finops_p2_title: "Phase 2: Technical GCP Telemetry",
+                finops_p2_desc: "IAM, KMS, SCC and Workload Identity",
+                finops_p3_title: "Phase 3: Effectiveness Testing & Drift",
+                finops_p3_desc: "Drift simulation and verification",
+                finops_p4_title: "Phase 4: Opinion & Sealing",
+                finops_p4_desc: "Gemini 2.5 Pro Lead Auditor",
+                finops_agent_table_title: "Breakdown by Agent and Subagent (Metrics & Costs)",
+                finops_agent_table_desc: "Exact accounting of prompt tokens, context cache hits, completion tokens, and final cost in USD/BRL.",
+                finops_filter_placeholder: "Filter agents...",
+                finops_th_agent: "Agent / Subagent",
+                finops_th_model: "LLM Model",
+                finops_th_invocations: "Calls",
+                finops_th_prompt_tokens: "Prompt Tokens",
+                finops_th_cached_tokens: "Cached Tokens",
+                finops_th_output_tokens: "Output Tokens",
+                finops_th_cost_usd: "Total Cost (USD)",
+                finops_th_cost_brl: "Total Cost (BRL)",
+                
+                tech_doc_title: "External Audit Technical Report & Statement of Applicability (SoA)",
+                tech_doc_subtitle: "Independent Operating Effectiveness Audit of 93 ISO/IEC 27001:2022, ISO/IEC 27017 & ISO/IEC 27018 Controls in Google Cloud",
+                tech_meta_dossier_code: "Technical Dossier Code",
+                tech_meta_criteria: "Audit Standards & Criteria",
+                tech_meta_bodies: "Target Certification Bodies & External Auditors",
+                tech_meta_scope: "Audit Scope (GCP Projects)",
+                tech_meta_methodology: "Testing Methodology",
+                tech_meta_date: "Issuance Date and Time",
+                tech_meta_conclusion: "Conclusive Technical Opinion",
+                tech_meta_opinion_badge: "RECOMMENDATION FOR CERTIFICATION WITHOUT QUALIFICATIONS (UNQUALIFIED CLEAN OPINION)",
+                tech_quote_text: "\"Based on design and operating effectiveness tests performed across 100% of the cloud infrastructure, we certify that the ISMS controls described in the Statement of Applicability (SoA) are fully implemented, operating autonomously, and mitigating cybersecurity risks in strict compliance with ISO/IEC 27001:2022. No Major or Minor Non-Conformities remain.\"",
+                tech_sec1_heading: "1. Quantitative Summary of Operating Effectiveness (4 ISO/IEC 27001:2022 Domains)",
+                tech_sec1_lead: "In accordance with ISO/IEC 27001:2022 framework, all 93 controls across 4 domains underwent continuous technical verification via APIs and autonomous agents.",
+                tech_sec2_heading: "2. Technical Statement of Applicability (Statement of Applicability - SoA v2022.4)",
+                tech_sec2_lead: "Individual attestation of all 93 ISO/IEC 27001:2022 normative controls:",
+                tech_sec3_heading: "3. Verifiable Technical Evidence Repository",
+                tech_sec3_lead: "The technical evidence below contains outputs from official Google Cloud CLI (gcloud) commands, API telemetries, and immutable hashes proving continuous and flawless control operation:",
+                tech_sec4_heading: "4. Operating Effectiveness Trail & Corrective Actions (CAPA Register)",
+                tech_sec4_lead: "Register of observations identified during continuous telemetry routines, generated action plans, and Human-in-the-Loop approval history:",
+                tech_seal_tag: "EXTERNAL AUDIT CRYPTOGRAPHIC INTEGRITY SEAL",
+                tech_sig_role: "Virtual Lead Technical Auditor (SPIFFE Validated)",
+                tech_sig_status: "✓ Cryptographic Attestation Issued",
+                
+                exec_doc_subtitle: "Autonomous information security assessment, continuous compliance with ISO/IEC 27001:2022 (93 Annex A Controls) and telemetry validation across Google Cloud Platform environments.",
+                exec_sec1_heading: "1. Control Structure by Theme (ISO/IEC 27001:2022)",
+                exec_sec2_heading: "2. Controls Sample & Statement of Applicability (SoA)",
             },
             es: {
                 status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
@@ -5599,7 +5703,59 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 
                 chat_input_placeholder: "Consulte al Agentic GRC Auditor (Google Cloud Security)...",
                 chat_disclaimer: "Google Cloud Security • Evidencias y dictámenes de auditoría validados en Grafo Criptográfico SHA-256 y protegidos por Model Armor.",
-                bot_evaluating: "Agentic GRC Auditor (Google Cloud Security) evaluando telemetría y grafo de evidencias..."
+                bot_evaluating: "Agentic GRC Auditor (Google Cloud Security) evaluando telemetría y grafo de evidencias...",
+                finops_kpi_total_cost: "Costo Total de IA Acumulado",
+                finops_kpi_tokens: "Tokens Totales Procesados",
+                finops_kpi_caching: "Ahorro Gemini Context Caching",
+                finops_kpi_cost_per_ctrl: "Costo Promedio por Control ISO 27001",
+                finops_phase_title: "Consumo de IA por Fase de Auditoría (Pipeline de Certificación)",
+                finops_phase_desc: "Desglose de tokens y costos en cada etapa del ciclo de cumplimiento autónomo.",
+                finops_p1_title: "Fase 1: Triaje Zero-Copy",
+                finops_p1_desc: "Ingestión documental semántica",
+                finops_p2_title: "Fase 2: Telemetría Técnica GCP",
+                finops_p2_desc: "IAM, KMS, SCC y Workload Identity",
+                finops_p3_title: "Fase 3: Pruebas de Efectividad y Desvío",
+                finops_p3_desc: "Simulación de desvío y verificación",
+                finops_p4_title: "Fase 4: Dictamen y Sellado",
+                finops_p4_desc: "Gemini 2.5 Pro Lead Auditor",
+                finops_agent_table_title: "Desglose por Agente y Subagente (Métricas y Costos)",
+                finops_agent_table_desc: "Contabilización exacta de tokens de prompt, aciertos de caché de contexto, tokens de salida y costo final en USD/BRL.",
+                finops_filter_placeholder: "Filtrar agentes...",
+                finops_th_agent: "Agente / Subagente",
+                finops_th_model: "Modelo LLM",
+                finops_th_invocations: "Llamadas",
+                finops_th_prompt_tokens: "Tokens de Prompt",
+                finops_th_cached_tokens: "Tokens en Caché",
+                finops_th_output_tokens: "Tokens de Salida",
+                finops_th_cost_usd: "Costo Total (USD)",
+                finops_th_cost_brl: "Costo Total (BRL)",
+                
+                tech_doc_title: "Informe Técnico de Auditoría Externa y Declaración de Aplicabilidad (SoA)",
+                tech_doc_subtitle: "Auditoría Independiente de Eficacia Operativa de los 93 Controles ISO/IEC 27001:2022, ISO/IEC 27017 e ISO/IEC 27018 en Google Cloud",
+                tech_meta_dossier_code: "Código del Dossier Técnico",
+                tech_meta_criteria: "Normas y Criterios de Auditoría",
+                tech_meta_bodies: "Organismos de Certificación y Auditores Externos",
+                tech_meta_scope: "Alcance de Auditoría (Proyectos GCP)",
+                tech_meta_methodology: "Metodología de Prueba",
+                tech_meta_date: "Fecha y Hora de Emisión",
+                tech_meta_conclusion: "Dictamen Técnico Conclusivo",
+                tech_meta_opinion_badge: "RECOMENDACIÓN DE CERTIFICACIÓN SIN SALVEDADES (OPINIÓN LIMPIA / UNQUALIFIED)",
+                tech_quote_text: "\"Con base en las pruebas de diseño y de eficacia operativa continua ejecutadas sobre el 100% de la infraestructura en la nube, certificamos que los controles del SGSI descritos en la Declaración de Aplicabilidad (SoA) están plenamente implementados, operando de forma autónoma y mitigando los riesgos cibernéticos en estricto cumplimiento con la norma ISO/IEC 27001:2022. No se identificaron No Conformidades Mayores o Menores remanentes.\"",
+                tech_sec1_heading: "1. Resumen Cuantitativo de Eficacia Operativa (4 Dominios ISO/IEC 27001:2022)",
+                tech_sec1_lead: "De conformidad con la estructura de ISO/IEC 27001:2022, los 93 controles distribuidos en los 4 dominios fueron sometidos a pruebas continuas de verificación técnica vía APIs y agentes autónomos.",
+                tech_sec2_heading: "2. Declaración de Aplicabilidad Técnica (Statement of Applicability - SoA v2022.4)",
+                tech_sec2_lead: "Atestación individual de los 93 controles normativos de ISO/IEC 27001:2022:",
+                tech_sec3_heading: "3. Repositorio de Evidencias Técnicas Verificables",
+                tech_sec3_lead: "Las evidencias técnicas a continuación contienen salidas de comandos oficiales de Google Cloud CLI (gcloud), telemetrías de APIs y hashes inmutables que comprueban la operación continua y sin fallas de los controles críticos:",
+                tech_sec4_heading: "4. Registro de Eficacia Operativa y Acciones Correctivas (CAPA Register)",
+                tech_sec4_lead: "Registro de observaciones identificadas durante rutinas de telemetría continua, planes de acción generados e historial de aprobación humana (Human-in-the-Loop):",
+                tech_seal_tag: "SELLO CRIPTOGRÁFICO DE INTEGRIDAD DE LA AUDITORÍA EXTERNA",
+                tech_sig_role: "Auditor Líder Técnico Virtual (Validado por SPIFFE)",
+                tech_sig_status: "✓ Atestación Criptográfica Emitida",
+                
+                exec_doc_subtitle: "Evaluación autónoma de seguridad de la información, cumplimiento continuo con ISO/IEC 27001:2022 (93 Controles del Anexo A) y validación de telemetría en Google Cloud Platform.",
+                exec_sec1_heading: "1. Estructura de Controles por Tema (ISO/IEC 27001:2022)",
+                exec_sec2_heading: "2. Muestra de Controles y Declaración de Aplicabilidad (SoA)",
             }
         };
 window.currentLanguage = 'pt';
@@ -5691,6 +5847,11 @@ window.currentLanguage = 'pt';
             // Re-render matrix table if loaded
             if (typeof matrixControls !== 'undefined' && matrixControls.length > 0 && typeof renderMatrixTable === 'function') {
                 renderMatrixTable(matrixControls);
+            }
+
+            // Re-render FinOps dashboard if loaded
+            if (typeof finopsData !== 'undefined' && finopsData && typeof renderFinOpsDashboard === 'function') {
+                renderFinOpsDashboard(finopsData);
             }
 
             document.documentElement.lang = lang;
@@ -7571,33 +7732,42 @@ function openNewsModal(newsKey) {
         function renderFinOpsDashboard(data) {
             if (!data || !data.summary) return;
             const s = data.summary;
+            const lang = window.currentLanguage || 'pt';
+
+            // Localized text snippets
+            const rateLabel = lang === 'en' ? `(Exchange Rate R$ ${s.usd_to_brl_rate.toFixed(2)})` : (lang === 'es' ? `(Tipo de Cambio R$ ${s.usd_to_brl_rate.toFixed(2)})` : `(Cotação R$ ${s.usd_to_brl_rate.toFixed(2)})`);
+            const consumedWord = lang === 'en' ? 'consumed' : (lang === 'es' ? 'consumido' : 'consumido');
+            const outputWord = lang === 'en' ? 'Output' : (lang === 'es' ? 'Salida' : 'Saída');
+            const callsWord = lang === 'en' ? 'calls' : (lang === 'es' ? 'llamadas' : 'chamadas');
+            const savedWord = lang === 'en' ? 'saved' : (lang === 'es' ? 'ahorrados' : 'economizados');
+            const perCtrlWord = lang === 'en' ? 'per audited control' : (lang === 'es' ? 'por control auditado' : 'por controle auditado');
 
             // Summary KPIs
             const costUsdElem = document.getElementById("finopsTotalCostUsd");
             if (costUsdElem) costUsdElem.innerText = `$ ${s.total_cost_usd.toFixed(2)} USD`;
 
             const costBrlElem = document.getElementById("finopsTotalCostBrl");
-            if (costBrlElem) costBrlElem.innerText = `R$ ${s.total_cost_brl.toFixed(2).replace('.', ',')} BRL (Cotação R$ ${s.usd_to_brl_rate.toFixed(2)})`;
+            if (costBrlElem) costBrlElem.innerText = `R$ ${s.total_cost_brl.toFixed(2).replace('.', ',')} BRL ${rateLabel}`;
 
             const quotaElem = document.getElementById("finopsQuotaUsed");
-            if (quotaElem) quotaElem.innerText = `${s.quota_used_percent}% consumido`;
+            if (quotaElem) quotaElem.innerText = `${s.quota_used_percent}% ${consumedWord}`;
 
             const tokensElem = document.getElementById("finopsTotalTokens");
             if (tokensElem) tokensElem.innerText = Number(s.total_tokens).toLocaleString();
 
             const tokensBreakdownElem = document.getElementById("finopsTokensBreakdown");
             if (tokensBreakdownElem) {
-                tokensBreakdownElem.innerText = `Prompt: ${Math.round(s.total_prompt_tokens/1000)}k | Saída: ${Math.round(s.total_completion_tokens/1000)}k`;
+                tokensBreakdownElem.innerText = `Prompt: ${Math.round(s.total_prompt_tokens/1000)}k | ${outputWord}: ${Math.round(s.total_completion_tokens/1000)}k`;
             }
 
             const invocElem = document.getElementById("finopsInvocations");
-            if (invocElem) invocElem.innerText = `${s.total_invocations} chamadas`;
+            if (invocElem) invocElem.innerText = `${s.total_invocations} ${callsWord}`;
 
             const savingsUsdElem = document.getElementById("finopsSavingsUsd");
             if (savingsUsdElem) savingsUsdElem.innerText = `$ ${s.total_savings_usd.toFixed(2)} USD`;
 
             const savingsBrlElem = document.getElementById("finopsSavingsBrl");
-            if (savingsBrlElem) savingsBrlElem.innerText = `R$ ${s.total_savings_brl.toFixed(2).replace('.', ',')} BRL economizados`;
+            if (savingsBrlElem) savingsBrlElem.innerText = `R$ ${s.total_savings_brl.toFixed(2).replace('.', ',')} BRL ${savedWord}`;
 
             const cacheHitElem = document.getElementById("finopsCacheHitRatio");
             if (cacheHitElem) cacheHitElem.innerText = `${s.cache_hit_ratio_percent}%`;
