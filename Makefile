@@ -1,10 +1,21 @@
 .PHONY: install test lint run-mcp run-orchestrator clean journey
 
-PYTHON := .venv/bin/python
-UV := /Users/jsaccomani/.local/bin/uv
+VENV ?= .venv
+PYTHON ?= $(shell if [ -f $(VENV)/bin/python ]; then echo $(VENV)/bin/python; else echo python3; fi)
+UV ?= $(shell command -v uv 2>/dev/null || echo "")
 
 install:
-	$(UV) pip install -r requirements.txt --python $(PYTHON)
+	@if [ ! -d "$(VENV)" ]; then \
+		echo "Creating virtual environment in $(VENV)..."; \
+		python3 -m venv $(VENV); \
+	fi
+	@if [ -n "$(UV)" ]; then \
+		echo "Installing dependencies using uv..."; \
+		$(UV) pip install -r requirements.txt --python $(VENV)/bin/python; \
+	else \
+		echo "Installing dependencies using standard pip..."; \
+		$(VENV)/bin/pip install -r requirements.txt; \
+	fi
 
 test:
 	$(PYTHON) -m pytest tests/ -v

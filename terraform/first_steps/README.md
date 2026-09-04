@@ -66,8 +66,8 @@ Once the client sends back the `PROJECT_ID`:
 gcloud auth login
 gcloud auth application-default login
 
-# 2. Navigate to the repository
-cd "/Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certifications"
+# 2. Navigate to the repository root
+cd agentic_grc_certifications
 
 # 3. Export variables and deploy
 export PROJECT_ID="<OUTPUT_PROJECT_ID>"

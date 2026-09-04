@@ -25,8 +25,8 @@ output "next_step_deploy_commands" {
     gcloud auth login
     gcloud auth application-default login
 
-    # 2. Navigate to the project repository
-    cd "/Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certifications"
+    # 2. Navigate to the repository root
+    cd agentic_grc_certifications
 
     # 3. Export environment variables
     export PROJECT_ID="${google_project.grc_project.project_id}"
