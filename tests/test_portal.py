@@ -185,3 +185,21 @@ def test_agentic_recommendation_and_autonomous_policy_update():
     assert up_data["new_score"] == 100.0
 
 
+def test_cloudstyle_html_report_export():
+    res_html = client.get("/api/reports/export?format=html")
+    assert res_html.status_code == 200
+    assert "Continuous Compliance & Audit Dossier" in res_html.text
+    assert "data:image/png;base64," in res_html.text
+    assert "google-color-stripe-bar" in res_html.text
+
+    # Verify static assets
+    res_icon = client.get("/static/images/google_cloud_icon.png")
+    assert res_icon.status_code == 200
+    assert len(res_icon.content) > 1000
+
+    res_wordmark = client.get("/static/images/google_cloud_wordmark.png")
+    assert res_wordmark.status_code == 200
+    assert len(res_wordmark.content) > 1000
+
+
+

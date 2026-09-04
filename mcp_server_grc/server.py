@@ -24,6 +24,13 @@ app = FastAPI(
     description="StreamableHTTP MCP Server for automated ISO 27001:2022 and Cloud Security auditing.",
 )
 
+from fastapi.staticfiles import StaticFiles
+static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+elif os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
 app.include_router(portal_router)
 
 app.add_middleware(
