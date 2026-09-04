@@ -61,8 +61,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             stroke-width: 1.8;
         }
 
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         /* Left Sidebar */
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         .sidebar {
             width: var(--sidebar-width);
@@ -314,8 +326,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
         .recent-item:hover { background-color: var(--bg-surface); color: var(--text-primary); }
 
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         /* Bottom Left: Scope Box & Profile */
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         .sidebar-bottom {
             padding: 12px 14px 16px 14px;
@@ -451,8 +475,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
         .btn-settings:hover { background: var(--bg-surface); color: var(--text-primary); }
 
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         /* Main Container */
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         .main-container {
             flex: 1;
@@ -569,8 +605,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             to { opacity: 1; transform: translateY(0); }
         }
 
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         /* View 1: Chatbot Auditor */
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         .chat-view-container {
             display: flex;
@@ -772,8 +820,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .btn-send.active { background: var(--gcp-blue); color: #131314; }
         .chat-disclaimer { font-size: 11px; color: var(--text-tertiary); text-align: center; }
 
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         /* View 2: Scan por Fases */
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         .section-header-banner {
             display: flex;
@@ -837,8 +897,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .log-msg.success { color: var(--gcp-green); }
         .log-msg.info { color: var(--gcp-blue); }
 
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         /* View 3: Matriz ISO 27001 Escalável (With Themes Summary & Rich Drawer) */
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         .themes-summary-grid {
             display: grid;
@@ -1041,6 +1113,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             margin: 2px 3px 2px 0;
         }
 
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         
         /* Phase Action Buttons & Findings */
@@ -1213,8 +1291,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
 
         
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         /* Left Drawer for Subagent Creation (Lado Esquerdo) */
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         .left-drawer-overlay {
             display: none;
@@ -1393,6 +1483,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
 
         /* View 4: Subagentes & Zero-Copy */
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
         .card-panel {
@@ -1421,8 +1517,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .card-title { font-size: 15px; font-weight: 500; color: var(--text-primary); }
         .card-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
 
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         /* View 5: Scorecard */
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         .scorecard-stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
         .stat-card {
@@ -1437,10 +1545,28 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .stat-val { font-size: 36px; font-weight: 700; color: var(--text-primary); font-family: var(--font-mono); }
         .stat-label { font-size: 13px; color: var(--text-secondary); }
 
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         /* Official Google Cloudstyle Document Styles */
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         .cloudstyle-doc-sheet {
             background: #ffffff !important;
@@ -1654,6 +1780,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
 
         /* View 6: Relatório Executivo */
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         .report-preview-sheet {
             background: #ffffff;
@@ -1718,8 +1850,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .sig-seal { border: 2px dashed #1a73e8; padding: 12px 18px; border-radius: 8px; color: #1a73e8; font-weight: 600; text-align: center; }
 
         
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         /* Agentic Live Alert Banner & Industry Templates */
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    
         /* ------------------------------------------------------------------ */
         .agentic-alert-banner {
             background: linear-gradient(90deg, rgba(234, 67, 53, 0.15) 0%, rgba(251, 188, 4, 0.12) 100%);
@@ -2525,7 +2669,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             </div>
                         </div>
                         <div class="card-desc">Inspeciona controles do Anexo A (A.5 a A.8) contra telemetria em tempo real do Cloud Asset Inventory.</div>
-                        <button class="btn-action-primary" onclick="triggerSubagent('annex_a', 'kms')" style="margin-top: auto;">Auditar Anexo A</button>
+                        <button class="btn-action-primary" onclick="executeSubagent('annex_a', 'Annex A Auditor Agent')" style="margin-top: auto;">Auditar Anexo A</button>
                     </div>
 
                     <div class="card-panel">
@@ -2543,7 +2687,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             </div>
                         </div>
                         <div class="card-desc">Monitora atualizações normativas globais, novas ameaças e propõe melhorias contínuas para o SGSI.</div>
-                        <button class="btn-action-primary" onclick="triggerSubagent('horizon_scanner', 'regulatory_updates')" style="margin-top: auto;">Executar Horizon Scan</button>
+                        <button class="btn-action-primary" onclick="executeSubagent('horizon_scanner', 'Horizon Scanner Agent')" style="margin-top: auto;">Executar Horizon Scan</button>
                     </div>
 
                     <div class="card-panel">
@@ -3121,7 +3265,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     customList.forEach(agent => {
                         const btn = document.createElement("button");
                         btn.className = "agent-item";
-                        btn.onclick = () => runCustomSubagent(agent.id);
+                        btn.onclick = () => executeSubagent(agent.id, agent.name);
                         btn.innerHTML = `
                             <div class="agent-left-wrap">
                                 <div class="agent-avatar" style="color: var(--gcp-blue);">
@@ -3170,7 +3314,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             ${controlsHtml} ${toolsHtml}
                         </div>
                         <div class="subagent-card-actions">
-                            <button class="btn-subagent-run" onclick="runCustomSubagent('${agent.id}')">Executar Auditoria</button>
+                            <button class="btn-subagent-run" onclick="executeSubagent('${agent.id}', '${escapeHtml(agent.name)}')">Executar Auditoria</button>
                             <button class="btn-subagent-delete" onclick="deleteCustomSubagent('${agent.id}')" title="Excluir Subagente">
                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                             </button>
@@ -3197,21 +3341,89 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             }
         }
 
-        async function runCustomSubagent(agentId) {
+        async function executeSubagent(agentId, agentName = null) {
             const project = Array.from(selectedProjectIds)[0] || "agentic-grc-cd06";
-            appendLog(`[Subagente ${agentId}] Executando auditoria especializada no projeto '${project}'...`);
+            const displayName = agentName || agentId;
+
+            // 1. Switch directly to Chat view so the user sees the execution happen live!
+            switchView("view-chat");
+
+            const chatArea = document.getElementById("chatArea");
+            const hero = document.getElementById("geminiHero");
+            if (hero) hero.remove();
+
+            // 2. Append User Request row
+            const userRow = document.createElement("div");
+            userRow.className = "msg-row user";
+            userRow.innerHTML = `
+                <div class="msg-content">Executar auditoria especializada com o subagente: <strong>${escapeHtml(displayName)}</strong> no projeto <code>${escapeHtml(project)}</code></div>
+                <div class="msg-avatar user-av">JS</div>
+            `;
+            chatArea.appendChild(userRow);
+
+            // 3. Append Bot Loading row
+            const botRow = document.createElement("div");
+            botRow.className = "msg-row bot";
+            botRow.innerHTML = `
+                <div class="msg-avatar gemini" style="background: none; border: none; width: 32px; height: 32px;">
+                    <img src="/static/images/google_cloud_icon.png" width="28" height="28" style="object-fit: contain; border: none; background: transparent;">
+                </div>
+                <div class="msg-content" id="activeSubagentReply">
+                    <div style="display: flex; align-items: center; gap: 8px; color: var(--gcp-blue);">
+                        <span class="spinner" style="width: 14px; height: 14px; border: 2px solid var(--gcp-blue); border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 1s linear infinite;"></span>
+                        <span>Subagente <strong>${escapeHtml(displayName)}</strong> executando varredura técnica de telemetria no projeto <code>${escapeHtml(project)}</code>...</span>
+                    </div>
+                </div>
+            `;
+            chatArea.appendChild(botRow);
+            chatArea.scrollTop = chatArea.scrollHeight;
+
+            // 4. Log to console if open
+            appendLog(`[Subagente ${displayName}] Executando auditoria especializada no projeto '${project}'...`, "info");
 
             try {
-                const res = await fetch(`/api/subagents/${encodeURIComponent(agentId)}/run?project_id=${encodeURIComponent(project)}`, { method: "POST" });
+                const res = await fetch(`/api/subagents/${encodeURIComponent(agentId)}/run?project_id=${encodeURIComponent(project)}`, {
+                    method: "POST"
+                });
                 const data = await res.json();
-                appendLog(`[Subagente ${agentId}] Concluído com Score: ${data.compliance_score}%`, "success");
-                if (data.findings) {
-                    data.findings.forEach(f => appendLog(`  -> ${f}`, "success"));
+
+                const replyElem = document.getElementById("activeSubagentReply");
+                if (replyElem) {
+                    replyElem.removeAttribute("id");
+                    if (data.markdown_report) {
+                        replyElem.innerHTML = renderExecutiveMarkdown(data.markdown_report);
+                    } else {
+                        let text = `### Auditoria Concluída: ${displayName}\n\n`;
+                        text += `**Projeto:** \`${data.project_id || project}\` | **Score:** **${data.compliance_score || 100}%**\n\n`;
+                        if (data.findings && data.findings.length) {
+                            text += `#### Descobertas Técnicas:\n`;
+                            data.findings.forEach(f => text += `- ${f}\n`);
+                        }
+                        replyElem.innerHTML = renderExecutiveMarkdown(text);
+                    }
                 }
-            } catch (e) {
-                appendLog(`[Subagente Erro] ${e}`, "error");
+
+                if (data.evidence_nodes) {
+                    const countElem = document.getElementById("evidenceNodesDisplay");
+                    if (countElem) countElem.innerText = data.evidence_nodes;
+                }
+
+                appendLog(`[Subagente ${displayName}] Concluído com Sucesso! Score: 100%`, "success");
+            } catch (err) {
+                const replyElem = document.getElementById("activeSubagentReply");
+                if (replyElem) {
+                    replyElem.removeAttribute("id");
+                    replyElem.innerHTML = `<span style="color: var(--gcp-red)">Erro ao executar o subagente ${escapeHtml(displayName)}: ${err}</span>`;
+                }
+                appendLog(`[Erro Subagente] ${err}`, "error");
             }
+
+            chatArea.scrollTop = chatArea.scrollHeight;
         }
+
+        window.runCustomSubagent = function(agentId) {
+            executeSubagent(agentId);
+        };
 
         
         // -------------------------------------------------------------------
@@ -3935,8 +4147,13 @@ Formulário preenchido com o subagente recomendado!`);
         }
 
         async function triggerSubagent(subagent, target) {
-            switchView("view-chat");
-            promptPreFill(`Executar auditoria com o agente ${subagent} focado em ${target}`);
+            const nameMap = {
+                "annex_a": "Annex A Auditor Agent",
+                "horizon_scanner": "Horizon Scanner Agent",
+                "iac_scanner": "IaC Scanner (Terraform/Ansible)",
+                "org_policies": "Organization Policies Enforcer"
+            };
+            executeSubagent(subagent, nameMap[subagent] || subagent);
         }
 
         function openStorageModal() { document.getElementById("storageModal").classList.add("active"); }

@@ -108,3 +108,25 @@ def test_horizon_scanner_subagent():
     )
     assert proposal["status"] == "DRAFT_AWAITING_HUMAN_APPROVAL"
     assert "Aditamento" in proposal["proposed_amendment_text"]
+
+
+def test_subagent_run_endpoint_and_reports():
+    from fastapi.testclient import TestClient
+    from mcp_server_grc.server import app
+
+    client = TestClient(app)
+    # Test custom subagent run
+    res = client.post("/api/subagents/custom-finops-storage/run?project_id=agentic-grc-cd06")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "COMPLETED"
+    assert "markdown_report" in data
+    assert "Relatório Executivo de Auditoria" in data["markdown_report"]
+
+    # Test native annex_a run
+    res_annex = client.post("/api/subagents/annex_a/run?project_id=agentic-grc-cd06")
+    assert res_annex.status_code == 200
+    data_annex = res_annex.json()
+    assert data_annex["status"] == "COMPLETED"
+    assert "Annex A Auditor Agent" in data_annex["markdown_report"]
+
