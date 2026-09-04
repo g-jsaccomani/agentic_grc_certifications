@@ -4,6 +4,12 @@ Verifies end-to-end continuous intelligence audit cycle,
 scoring, and evidence graph mapping.
 """
 
+import sys
+import os
+
+# Ensure project root is on sys.path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from agent_orchestrator import ContinuousIntelligenceEngine
 
 def main():
