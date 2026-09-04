@@ -620,27 +620,45 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
     
         /* ------------------------------------------------------------------ */
+        /* View 1: Chatbot Auditor (Full Width Viewport, Scrollbar on Far Right Edge) */
+        #view-chat {
+            padding: 0 !important;
+            height: 100%;
+            width: 100%;
+        }
+
         .chat-view-container {
             display: flex;
             flex-direction: column;
             height: 100%;
-            max-width: 920px;
-            margin: 0 auto;
             width: 100%;
+            max-width: 100%;
             position: relative;
         }
 
         .chat-messages-area {
             flex: 1;
             overflow-y: auto;
-            padding: 16px 0 120px 0;
+            padding: 20px 32px 120px 32px;
             display: flex;
             flex-direction: column;
-            gap: 28px;
+            gap: 24px;
+            width: 100%;
         }
 
-        .chat-messages-area::-webkit-scrollbar { width: 6px; }
-        .chat-messages-area::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 6px; }
+        .chat-messages-area::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-messages-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-messages-area::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+        .chat-messages-area::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
 
         .gemini-hero {
             display: flex;
@@ -708,7 +726,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
         .hero-suggestion-card:hover { background: var(--bg-surface); border-color: var(--gcp-blue); transform: translateX(4px); }
 
-        .msg-row { display: flex; gap: 16px; width: 100%; animation: fadeIn 0.25s ease; }
+        .msg-row { display: flex; gap: 16px; width: 100%; max-width: 980px; margin: 0 auto; animation: fadeIn 0.25s ease; }
         .msg-row.user { justify-content: flex-end; }
         .msg-avatar { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
         .msg-avatar.gemini { background: transparent !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
@@ -2111,20 +2129,6 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             margin-bottom: 4px;
         }
 
-        .hero-work-badge {
-            font-size: 11.5px;
-            font-weight: 600;
-            color: var(--gcp-blue);
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            background: rgba(138, 180, 248, 0.1);
-            padding: 5px 14px;
-            border-radius: 14px;
-            border: 1px solid rgba(138, 180, 248, 0.25);
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-        }
 
         .hero-work-title {
             font-size: 40px;
@@ -2584,7 +2588,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
             <!-- Top Action Button (Gemini style) -->
             <div style="padding: 0 0 8px 0;">
-                <button class="btn-new-audit" id="navNewChat" onclick="openAgenticGrcAuditor()">
+                <button class="btn-new-audit" id="navNewChat" onclick="startNewConversation()">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink: 0;">
                         <line x1="12" y1="5" x2="12" y2="19"/>
                         <line x1="5" y1="12" x2="19" y2="12"/>
@@ -2595,7 +2599,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
             <!-- Merged Unified Navigation (No duplicates, pure borderless icons) -->
             <div class="agent-list">
-                <button class="agent-item active" id="agentBtnGrcAuditor" onclick="openAgenticGrcAuditor()">
+                <button class="agent-item active" id="agentBtnGrcAuditor" onclick="selectAuditorTab()">
                     <div class="agent-left-wrap">
                         <div class="agent-avatar" style="color: #4285f4;">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -2899,9 +2903,6 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <div class="gemini-hero" id="geminiHero">
                             <!-- Clean Header (Spacious, No distractions) -->
                             <div class="hero-work-header">
-                                <span class="hero-work-badge">
-                                    <span class="model-picker-dot"></span> Google Cloud Security • Agentic GRC Auditor
-                                </span>
                                 <h1 class="hero-work-title">Vamos trabalhar!</h1>
                                 <p class="hero-work-subtitle">
                                     Auditoria contínua autônoma e governança para Google Cloud & ISO/IEC 27001:2022
@@ -2985,23 +2986,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 </div>
                             </div>
 
-                            <!-- Clean Single-Row Suggestion Chips (5 Essentials) -->
-                            <div class="hero-quick-chips">
-                                <button class="chip-item" onclick="promptPreFill('Executar auditoria técnica completa de todos os 93 controles da ISO/IEC 27001:2022')">
-                                    <span class="chip-icon">✨</span> Auditoria Completa ISO 27001
-                                </button>
-                                <button class="chip-item" onclick="promptPreFill('Auditar controle A.8.24 de Criptografia Cloud KMS e rotação de chaves HSM')">
-                                    <span class="chip-icon">🛡️</span> Criptografia Cloud KMS (A.8.24)
-                                </button>
-                                <button class="chip-item" onclick="promptPreFill('Verificar perímetros VPC Service Controls e controle de fuga de dados A.8.12')">
-                                    <span class="chip-icon">🌐</span> Perímetros VPC-SC (A.8.12)
-                                </button>
-                                <button class="chip-item" onclick="promptPreFill('Auditar segurança do Cloud Storage e controle A.5.23 para serviços em nuvem')">
-                                    <span class="chip-icon">☁️</span> Armazenamento GCS (A.5.23)
-                                </button>
-                                <button class="chip-item" onclick="promptPreFill('Gerar Parecer Executivo Formal de Conformidade com selo criptográfico SHA-256')">
-                                    <span class="chip-icon">📑</span> Parecer Formal & Grafo SHA-256
-                                </button>
+                            <!-- Dynamic & Always-Altering Suggestion Chips -->
+                            <div class="hero-quick-chips" id="heroQuickChips">
+                                <!-- Populated dynamically by shuffleDynamicSuggestions() -->
                             </div>
 
                             <!-- Clean Regulatory RSS News Feed Strip -->
@@ -3112,7 +3099,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </div>
                     </div>
 
-                    <div class="chat-input-wrapper">
+                    <div class="chat-input-wrapper" style="display: none;">
                         <div class="chat-input-box">
                             <button class="btn-input-icon" onclick="openUploadModal()" title="Anexar arquivo de infraestrutura / IaC">
                                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
@@ -4781,7 +4768,126 @@ Formulário preenchido com o subagente recomendado!`);
             }
         }
 
-        function openAgenticGrcAuditor() {
+                // =========================================================================
+        // Dynamic & Always-Altering Suggestion Chips Pool
+        // =========================================================================
+        const dynamicSuggestionPool = [
+            { icon: "✨", label: "Auditoria Completa ISO 27001", prompt: "Executar auditoria técnica completa de todos os 93 controles da ISO/IEC 27001:2022" },
+            { icon: "🛡️", label: "Criptografia Cloud KMS (A.8.24)", prompt: "Auditar controle A.8.24 de Criptografia Cloud KMS e rotação de chaves HSM" },
+            { icon: "🌐", label: "Perímetros VPC-SC (A.8.12)", prompt: "Verificar perímetros VPC Service Controls e controle de fuga de dados A.8.12" },
+            { icon: "☁️", label: "Armazenamento GCS (A.5.23)", prompt: "Auditar segurança do Cloud Storage e controle A.5.23 para serviços em nuvem" },
+            { icon: "📜", label: "IAM & Menor Privilégio", prompt: "Auditar conformidade de IAM, segregação de funções e ausência de papéis primitivos" },
+            { icon: "🚨", label: "Logs 365 Dias (A.8.16)", prompt: "Verificar retenção de 365 dias dos logs de auditoria no BigQuery (A.8.16)" },
+            { icon: "🌱", label: "Amd 1:2024 Clima & DR", prompt: "Auditar conformidade com a Emenda Climática ISO 27001 Amd 1:2024 e Disaster Recovery" },
+            { icon: "📑", label: "Parecer Formal & Grafo SHA-256", prompt: "Gerar Parecer Executivo Formal de Conformidade com selo criptográfico SHA-256" },
+            { icon: "⚖️", label: "Governança PII & Cloud DLP", prompt: "Mapear dados pessoais sensíveis e inspecionar regras Cloud DLP para LGPD/GDPR" },
+            { icon: "💳", label: "Isolamento CDE / PCI-DSS v4.0", prompt: "Verificar requisitos de proteção de CDE e conformidade prévia com PCI-DSS v4.0" },
+            { icon: "🤖", label: "Orquestração de Subagentes", prompt: "Listar e recomendar subagentes especializados para este escopo" },
+            { icon: "💰", label: "FinOps & ROI de Tokens", prompt: "Calcular ROI de tokens e economia financeira obtida com Gemini Context Caching" },
+            { icon: "☸️", label: "Postura de Clusters GKE", prompt: "Auditar postura de segurança de clusters GKE, Workload Identity e binários assinados" },
+            { icon: "🔒", label: "Hardening CIS GCP v3.0", prompt: "Executar varredura de hardening baseada nas recomendações do CIS GCP Foundation Benchmark v3.0" },
+            { icon: "🔍", label: "Security Command Center (SCC)", prompt: "Avaliar findings críticos e de alta severidade no Security Command Center Enterprise" },
+            { icon: "🛡️", label: "Proteção Cloud Armor WAF", prompt: "Verificar regras de WAF no Cloud Armor e proteção contra DDoS para serviços públicos" },
+            { icon: "📑", label: "Declaração de Aplicabilidade (SoA)", prompt: "Gerar relatório completo da Declaração de Aplicabilidade (SoA) para os 93 controles" },
+            { icon: "⚡", label: "Tratamento Autônomo de Desvios", prompt: "Identificar desvios críticos ativos e propor remediações automatizadas Zero-Touch" }
+        ];
+
+        let lastPickedIndices = [];
+        let suggestionRotationTimer = null;
+
+        function shuffleDynamicSuggestions() {
+            const container = document.getElementById("heroQuickChips");
+            if (!container) return;
+
+            // Pick 5 random items distinct from last selection
+            let availableIndices = dynamicSuggestionPool
+                .map((_, i) => i)
+                .filter(i => !lastPickedIndices.includes(i));
+            
+            if (availableIndices.length < 5) {
+                availableIndices = dynamicSuggestionPool.map((_, i) => i);
+            }
+
+            for (let i = availableIndices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [availableIndices[i], availableIndices[j]] = [availableIndices[j], availableIndices[i]];
+            }
+
+            const selectedIndices = availableIndices.slice(0, 5);
+            lastPickedIndices = selectedIndices;
+
+            container.style.opacity = "0.2";
+            container.style.transition = "opacity 0.2s ease";
+
+            setTimeout(() => {
+                container.innerHTML = "";
+                selectedIndices.forEach(idx => {
+                    const item = dynamicSuggestionPool[idx];
+                    const btn = document.createElement("button");
+                    btn.className = "chip-item";
+                    btn.innerHTML = `<span class="chip-icon">${item.icon}</span> ${escapeHtml(item.label)}`;
+                    btn.onclick = () => promptPreFill(item.prompt);
+                    container.appendChild(btn);
+                });
+
+                // Shuffle button
+                const shuffleBtn = document.createElement("button");
+                shuffleBtn.className = "chip-item chip-shuffle";
+                shuffleBtn.title = "Alternar sugestões";
+                shuffleBtn.style.color = "var(--gcp-blue)";
+                shuffleBtn.style.borderColor = "rgba(138, 180, 248, 0.35)";
+                shuffleBtn.innerHTML = `<span class="chip-icon">🔀</span> Alternar`;
+                shuffleBtn.onclick = () => shuffleDynamicSuggestions();
+                container.appendChild(shuffleBtn);
+
+                container.style.opacity = "1";
+            }, 180);
+        }
+
+        function startSuggestionRotation() {
+            if (suggestionRotationTimer) clearInterval(suggestionRotationTimer);
+            suggestionRotationTimer = setInterval(() => {
+                const hero = document.getElementById("geminiHero");
+                const heroInput = document.getElementById("chatInputHero");
+                if (hero && hero.style.display !== "none" && (!heroInput || !heroInput.value.trim())) {
+                    shuffleDynamicSuggestions();
+                }
+            }, 12000);
+        }
+
+        // Distinct behavior:
+        // 1. selectAuditorTab(): Switches to Auditor tab, preserving active conversation if present!
+        function selectAuditorTab() {
+            switchView("view-chat");
+            const chatArea = document.getElementById("chatArea");
+            const hero = document.getElementById("geminiHero");
+            const msgRows = chatArea ? chatArea.querySelectorAll(".msg-row") : [];
+
+            if (msgRows.length > 0) {
+                // Keep ongoing chat session!
+                if (hero) hero.style.display = "none";
+                updateBottomInputVisibility();
+                const bottomInput = document.getElementById("chatInput");
+                if (bottomInput) bottomInput.focus();
+            } else {
+                // No chat history yet, show "Vamos trabalhar!"
+                if (hero) {
+                    hero.style.display = "flex";
+                    shuffleDynamicSuggestions();
+                }
+                updateBottomInputVisibility();
+                const heroInput = document.getElementById("chatInputHero");
+                if (heroInput) heroInput.focus();
+            }
+
+            document.querySelectorAll(".agent-item").forEach(el => el.classList.remove("active"));
+            const grcBtn = document.getElementById("agentBtnGrcAuditor") || document.getElementById("agentBtnChat");
+            if (grcBtn) grcBtn.classList.add("active");
+            document.getElementById("topActiveTitle").innerText = "Agentic GRC Auditor";
+        }
+
+        // 2. startNewConversation(): Explicitly starts a brand new conversation from scratch!
+        function startNewConversation() {
             switchView("view-chat");
             const chatArea = document.getElementById("chatArea");
             if (chatArea) {
@@ -4791,26 +4897,22 @@ Formulário preenchido com o subagente recomendado!`);
             const hero = document.getElementById("geminiHero");
             if (hero) {
                 hero.style.display = "flex";
+                shuffleDynamicSuggestions();
             }
             const heroInput = document.getElementById("chatInputHero");
             if (heroInput) {
                 heroInput.value = "";
-                heroInput.style.height = "54px";
+                heroInput.style.height = "52px";
                 heroInput.focus();
             }
             const bottomInput = document.getElementById("chatInput");
             if (bottomInput) bottomInput.value = "";
             updateBottomInputVisibility();
 
-            // Set active sidebar item
             document.querySelectorAll(".agent-item").forEach(el => el.classList.remove("active"));
             const grcBtn = document.getElementById("agentBtnGrcAuditor") || document.getElementById("agentBtnChat");
             if (grcBtn) grcBtn.classList.add("active");
             document.getElementById("topActiveTitle").innerText = "Agentic GRC Auditor";
-        }
-
-        function startNewConversation() {
-            openAgenticGrcAuditor();
         }
 
         function sendChatMessageFromHero() {
