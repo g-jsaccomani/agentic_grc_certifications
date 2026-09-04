@@ -2086,6 +2086,536 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             #view-report-exec { display: block !important; padding: 0 !important; }
             .report-preview-sheet { box-shadow: none !important; border-radius: 0 !important; max-width: 100% !important; padding: 0 !important; }
         }
+    
+        /* =========================================================================
+           Sidekick Hero Work & Regulatory RSS News Feed Styles
+           ========================================================================= */
+        .gemini-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin: 0 auto;
+            padding: 20px 16px 40px 16px;
+            width: 100%;
+            max-width: 960px;
+            gap: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .hero-work-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .hero-work-badge {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--gcp-blue);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            background: rgba(138, 180, 248, 0.1);
+            padding: 5px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(138, 180, 248, 0.25);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hero-work-title {
+            font-size: 38px;
+            font-weight: 500;
+            letter-spacing: -0.6px;
+            color: #ffffff;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .hero-work-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Hero Central Input Container */
+        .hero-input-container {
+            width: 100%;
+            max-width: 820px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 auto;
+        }
+
+        .hero-input-card {
+            background: #1e1f20;
+            border: 1px solid #3c4043;
+            border-radius: 24px;
+            padding: 16px 20px 12px 20px;
+            width: 100%;
+            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            text-align: left;
+        }
+
+        .hero-input-card:focus-within {
+            border-color: #8ab4f8;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px #8ab4f8;
+        }
+
+        .hero-textarea {
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+            color: #e8eaed;
+            font-size: 15.5px;
+            line-height: 1.55;
+            resize: none;
+            font-family: inherit;
+            min-height: 54px;
+        }
+
+        .hero-textarea::placeholder {
+            color: #9aa0a6;
+        }
+
+        .hero-input-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 10px;
+        }
+
+        .hero-input-left {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .btn-hero-tool {
+            background: transparent;
+            border: none;
+            color: #9aa0a6;
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-hero-tool:hover {
+            background: #282a2c;
+            color: #e8eaed;
+        }
+
+        .hero-input-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* Model Picker Dropdown */
+        .model-picker-wrapper {
+            position: relative;
+        }
+
+        .btn-model-picker {
+            background: #282a2c;
+            border: 1px solid #3c4043;
+            border-radius: 18px;
+            padding: 6px 12px;
+            font-size: 13px;
+            color: #e8eaed;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn-model-picker:hover {
+            background: #35373a;
+            border-color: #5f6368;
+        }
+
+        .model-picker-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #4285f4;
+            box-shadow: 0 0 8px #4285f4;
+        }
+
+        .model-picker-menu {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            right: 0;
+            background: #1e1f20;
+            border: 1px solid #3c4043;
+            border-radius: 14px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65);
+            padding: 8px;
+            width: 300px;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 100;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .model-picker-menu.show {
+            display: flex;
+        }
+
+        .model-option {
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            text-align: left;
+        }
+
+        .model-option:hover {
+            background: #2d2f31;
+        }
+
+        .model-option.selected {
+            background: rgba(66, 133, 244, 0.12);
+            border: 1px solid rgba(66, 133, 244, 0.35);
+        }
+
+        .model-opt-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            font-size: 13.5px;
+            color: #e8eaed;
+        }
+
+        .model-opt-desc {
+            font-size: 11.5px;
+            color: #9aa0a6;
+            line-height: 1.35;
+            padding-left: 15px;
+        }
+
+        .model-tag-rec {
+            background: rgba(129, 201, 149, 0.15);
+            color: #81c995;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .model-tag-new {
+            background: rgba(197, 138, 249, 0.15);
+            color: #c58af9;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        /* Send Button */
+        .btn-send-hero {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #3c4043;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-send-hero:hover {
+            background: #e8eaed;
+            color: #131314;
+            transform: scale(1.05);
+        }
+
+        /* Banner Callout */
+        .hero-banner-callout {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 9px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #e3e3e3;
+            margin-top: 12px;
+            width: 100%;
+        }
+
+        .banner-callout-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .banner-sparkle {
+            color: #8ab4f8;
+            font-size: 15px;
+        }
+
+        .btn-banner-close {
+            background: transparent;
+            border: none;
+            color: #9aa0a6;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+
+        .btn-banner-close:hover {
+            color: #ffffff;
+        }
+
+        /* Expanded Quick Suggestion Chips */
+        .hero-quick-chips {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            max-width: 860px;
+            width: 100%;
+            margin: 16px auto 0 auto;
+        }
+
+        .chip-item {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid #3c4043;
+            border-radius: 20px;
+            padding: 7px 14px;
+            font-size: 12.5px;
+            color: #bdc1c6;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .chip-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #8ab4f8;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .chip-icon {
+            font-size: 14px;
+        }
+
+        /* Regulatory RSS News Feed Carousel */
+        .hero-news-section {
+            max-width: 900px;
+            width: 100%;
+            margin: 32px auto 10px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .news-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 4px;
+        }
+
+        .news-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .news-pulse-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #ea4335;
+            box-shadow: 0 0 8px #ea4335;
+            animation: pulse 2s infinite;
+        }
+
+        .news-header-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #9aa0a6;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .news-nav-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-news-nav {
+            background: #1e1f20;
+            border: 1px solid #3c4043;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e8eaed;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 17px;
+            line-height: 1;
+        }
+
+        .btn-news-nav:hover {
+            background: #303134;
+            border-color: #8ab4f8;
+            color: #ffffff;
+        }
+
+        .news-carousel-track {
+            display: flex;
+            gap: 14px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding: 4px 2px 14px 2px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-subtle) transparent;
+        }
+
+        .news-carousel-track::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .news-carousel-track::-webkit-scrollbar-thumb {
+            background: var(--border-subtle);
+            border-radius: 4px;
+        }
+
+        .news-card {
+            flex: 0 0 260px;
+            background: #1e1f20;
+            border: 1px solid #303134;
+            border-radius: 14px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: left;
+        }
+
+        .news-card:hover {
+            border-color: #8ab4f8;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .news-card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .news-card-date {
+            font-size: 10.5px;
+            color: #9aa0a6;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .news-card-tag {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .news-card-graphic {
+            height: 72px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin: 2px 0;
+        }
+
+        .news-graphic-tag {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+        }
+
+        .news-card-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #e8eaed;
+            line-height: 1.35;
+        }
+
+        .news-card-snippet {
+            font-size: 11.5px;
+            color: #9aa0a6;
+            line-height: 1.45;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .news-card-footer {
+            margin-top: auto;
+            padding-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .news-action-link {
+            font-size: 11.5px;
+            color: #8ab4f8;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
     </style>
 </head>
 <body>
@@ -2112,7 +2642,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
             <!-- Top Action Button (Gemini style) -->
             <div style="padding: 0 0 8px 0;">
-                <button class="btn-new-audit" id="navNewChat" onclick="startNewConversation()">
+                <button class="btn-new-audit" id="navNewChat" onclick="openAgenticGrcAuditor()">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink: 0;">
                         <line x1="12" y1="5" x2="12" y2="19"/>
                         <line x1="5" y1="12" x2="19" y2="12"/>
@@ -2123,15 +2653,16 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
             <!-- Merged Unified Navigation (No duplicates, pure borderless icons) -->
             <div class="agent-list">
-                <button class="agent-item active" id="agentBtnChat" onclick="switchView('view-chat')">
+                <button class="agent-item active" id="agentBtnGrcAuditor" onclick="openAgenticGrcAuditor()">
                     <div class="agent-left-wrap">
-                        <div class="agent-avatar">
+                        <div class="agent-avatar" style="color: #4285f4;">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                <path d="M12 2L20 5.8V11.5C20 16.5 16.6 20.8 12 22C7.4 20.8 4 16.5 4 11.5V5.8L12 2Z"/>
                             </svg>
                         </div>
-                        <span class="agent-name">Chatbot Auditor</span>
+                        <span class="agent-name">Agentic GRC Auditor</span>
                     </div>
+                    <span class="agent-pin" title="Agente Principal de Auditoria">📌</span>
                 </button>
 
                 <button class="agent-item" id="agentBtnPhases" onclick="switchView('view-phases')">
@@ -2424,33 +2955,276 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                     <div class="chat-messages-area" id="chatArea">
                         <div class="gemini-hero" id="geminiHero">
-                            <div class="hero-avatar" style="background: transparent !important; border: none !important; outline: none !important; box-shadow: none !important; border-radius: 0 !important; width: 72px; height: 72px;">
-                                <img src="data:image/png;base64,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" alt="Google Cloud" width="72" height="72" style="object-fit: contain; border: none !important; outline: none !important; background: transparent !important; display: block;">
+                            <!-- Clean Header (No borders/circles) -->
+                            <div class="hero-work-header">
+                                <span class="hero-work-badge">
+                                    <span class="model-picker-dot"></span> Google Cloud Security • Sidekick Agent
+                                </span>
+                                <h1 class="hero-work-title">Vamos trabalhar!</h1>
+                                <p class="hero-work-subtitle">
+                                    Auditoria contínua autônoma, governança e certificação para <strong>ISO/IEC 27001:2022</strong> (93 Controles) integrada à telemetria real do Google Cloud e Grafo de Evidências imutável.
+                                </p>
                             </div>
-                            <span class="hero-badge-sec">Google Cloud Security</span>
-                            <h1 class="hero-title">Agentic GRC Auditor</h1>
-                            <p class="hero-subtitle">
-                                Auditoria contínua autônoma, governança e certificação para <strong>ISO/IEC 27001:2022</strong> (93 Controles do Anexo A) integrada à telemetria real do Google Cloud e Grafo de Evidências imutável.
-                            </p>
 
-                            <div class="hero-suggestions-stack">
-                                <div class="hero-suggestion-card" onclick="promptPreFill('Gerar Parecer Executivo de Conformidade para a ISO/IEC 27001:2022 nos projetos no escopo')">
-                                    <span>Gerar Parecer Executivo de Conformidade para a ISO/IEC 27001:2022 nos projetos no escopo</span>
-                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">
-                                        <polyline points="9 18 15 12 9 6"/>
-                                    </svg>
+                            <!-- Centered Main Input Box (Sidekick / Gemini Style) -->
+                            <div class="hero-input-container">
+                                <div class="hero-input-card">
+                                    <textarea id="chatInputHero" class="hero-textarea" placeholder="O que você gostaria de auditar hoje? (ex.: ISO 27001, Cloud KMS, VPC-SC, FinOps)" rows="2" onkeydown="handleHeroKey(event)" oninput="handleHeroInput(this)"></textarea>
+                                    
+                                    <div class="hero-input-controls">
+                                        <div class="hero-input-left">
+                                            <button type="button" class="btn-hero-tool" onclick="openUploadModal()" title="Anexar arquivo de infraestrutura / IaC">
+                                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                                </svg>
+                                            </button>
+                                            <button type="button" class="btn-hero-tool" onclick="openStorageModal()" title="Conectar repositório Zero-Copy (Drive / SharePoint / Jira)">
+                                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                                                </svg>
+                                            </button>
+                                            <button type="button" class="btn-hero-tool" onclick="promptPreFill('Listar e recomendar subagentes especializados para este escopo')" title="Delegar para Subagente Especializado">
+                                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <circle cx="12" cy="8" r="5"/>
+                                                    <path d="M20 21a8 8 0 1 0-16 0"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        <div class="hero-input-right">
+                                            <!-- Model Selector Dropdown -->
+                                            <div class="model-picker-wrapper">
+                                                <button type="button" class="btn-model-picker" id="btnModelPicker" onclick="toggleModelDropdown(event)">
+                                                    <span class="model-picker-dot" id="dotActiveModel"></span>
+                                                    <span id="lblModelPicker">Automático</span>
+                                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                                        <path d="M7 10l5 5 5-5z"/>
+                                                    </svg>
+                                                </button>
+                                                <div class="model-picker-menu" id="modelPickerMenu">
+                                                    <div class="model-option selected" data-model="gemini-auto" onclick="selectModel('gemini-auto', 'Automático')">
+                                                        <div class="model-opt-title">
+                                                            <span class="model-picker-dot" style="background:#4285f4; box-shadow: 0 0 6px #4285f4;"></span>
+                                                            <span>Automático</span>
+                                                            <span class="model-tag-rec">Recomendado</span>
+                                                        </div>
+                                                        <div class="model-opt-desc">Roteamento autônomo Gemini 2.5 com otimização FinOps</div>
+                                                    </div>
+                                                    <div class="model-option" data-model="gemini-2.5-pro" onclick="selectModel('gemini-2.5-pro', 'Gemini 2.5 Pro')">
+                                                        <div class="model-opt-title">
+                                                            <span class="model-picker-dot" style="background:#8ab4f8; box-shadow: 0 0 6px #8ab4f8;"></span>
+                                                            <span>Gemini 2.5 Pro</span>
+                                                        </div>
+                                                        <div class="model-opt-desc">Auditor Líder • Raciocínio normativo profundo & Pareceres</div>
+                                                    </div>
+                                                    <div class="model-option" data-model="gemini-2.5-flash" onclick="selectModel('gemini-2.5-flash', 'Gemini 2.5 Flash')">
+                                                        <div class="model-opt-title">
+                                                            <span class="model-picker-dot" style="background:#81c995; box-shadow: 0 0 6px #81c995;"></span>
+                                                            <span>Gemini 2.5 Flash</span>
+                                                        </div>
+                                                        <div class="model-opt-desc">Alta velocidade • Triagem de evidências e telemetria GCP</div>
+                                                    </div>
+                                                    <div class="model-option" data-model="gemini-3.5-flash" onclick="selectModel('gemini-3.5-flash', 'Gemini 3.5 Flash')">
+                                                        <div class="model-opt-title">
+                                                            <span class="model-picker-dot" style="background:#c58af9; box-shadow: 0 0 6px #c58af9;"></span>
+                                                            <span>Gemini 3.5 Flash</span>
+                                                            <span class="model-tag-new">Novo</span>
+                                                        </div>
+                                                        <div class="model-opt-desc">Nova geração • Context Caching de 1M tokens para varreduras contínuas</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Submit Upward Arrow Button -->
+                                            <button type="button" class="btn-send-hero" id="btnSendHero" onclick="sendChatMessageFromHero()" title="Enviar para o Auditor Líder">
+                                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6">
+                                                    <line x1="12" y1="19" x2="12" y2="5"/>
+                                                    <polyline points="5 12 12 5 19 12"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="hero-suggestion-card" onclick="promptPreFill('Executar Auditoria Técnica Completa em 4 Fases e selar o Grafo de Evidências')">
-                                    <span>Executar Auditoria Técnica Completa em 4 Fases e selar o Grafo de Evidências</span>
-                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">
-                                        <polyline points="9 18 15 12 9 6"/>
-                                    </svg>
+
+                                <!-- Banner Callout Underneath Input -->
+                                <div class="hero-banner-callout" id="heroBannerCallout">
+                                    <div class="banner-callout-left">
+                                        <span class="banner-sparkle">✦</span>
+                                        <span class="banner-text"><strong>NOVIDADE:</strong> teste o Gemini 3.5 Flash para varreduras contínuas com Context Caching de 1M tokens</span>
+                                    </div>
+                                    <button class="btn-banner-close" onclick="document.getElementById('heroBannerCallout').style.display='none'" title="Fechar aviso">✕</button>
                                 </div>
-                                <div class="hero-suggestion-card" onclick="promptPreFill('Auditar controles de Criptografia Cloud KMS (A.8.24) e Prevenção de Fuga de Dados DLP (A.8.12)')">
-                                    <span>Auditar controles de Criptografia Cloud KMS (A.8.24) e Prevenção de Fuga de Dados DLP (A.8.12)</span>
-                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">
-                                        <polyline points="9 18 15 12 9 6"/>
-                                    </svg>
+                            </div>
+
+                            <!-- Expanded Quick Suggestion Chips (User Request) -->
+                            <div class="hero-quick-chips">
+                                <button class="chip-item" onclick="promptPreFill('Executar auditoria técnica completa de todos os 93 controles da ISO/IEC 27001:2022')">
+                                    <span class="chip-icon">✨</span> Auditoria A.5 a A.8
+                                </button>
+                                <button class="chip-item" onclick="promptPreFill('Auditar controle A.8.24 de Criptografia Cloud KMS e rotação de chaves HSM')">
+                                    <span class="chip-icon">🛡️</span> Cloud KMS (A.8.24)
+                                </button>
+                                <button class="chip-item" onclick="promptPreFill('Verificar perímetros VPC Service Controls e controle de fuga de dados A.8.12')">
+                                    <span class="chip-icon">🌐</span> Perímetros VPC-SC (A.8.12)
+                                </button>
+                                <button class="chip-item" onclick="promptPreFill('Auditar segurança do Cloud Storage e controle A.5.23 para serviços em nuvem')">
+                                    <span class="chip-icon">☁️</span> Postura GCS (A.5.23)
+                                </button>
+                                <button class="chip-item" onclick="promptPreFill('Auditar conformidade de IAM, segregação de funções e ausência de papéis primitivos')">
+                                    <span class="chip-icon">📜</span> IAM & Menor Privilégio
+                                </button>
+                                <button class="chip-item" onclick="promptPreFill('Verificar retenção de 365 dias dos logs de auditoria no BigQuery (A.8.16)')">
+                                    <span class="chip-icon">🚨</span> Logs 365 Dias (A.8.16)
+                                </button>
+                                <button class="chip-item" onclick="promptPreFill('Auditar conformidade com a Emenda Climática ISO 27001 Amd 1:2024 e Disaster Recovery')">
+                                    <span class="chip-icon">🌱</span> Amd 1:2024 Clima
+                                </button>
+                                <button class="chip-item" onclick="promptPreFill('Gerar Parecer Executivo Formal de Conformidade com selo criptográfico SHA-256')">
+                                    <span class="chip-icon">📑</span> Dossiê Executivo
+                                </button>
+                                <button class="chip-item" onclick="promptPreFill('Mapear dados pessoais sensíveis e inspecionar regras Cloud DLP para LGPD/GDPR')">
+                                    <span class="chip-icon">⚖️</span> Governança PII & DLP
+                                </button>
+                                <button class="chip-item" onclick="promptPreFill('Verificar requisitos de proteção de CDE e conformidade prévia com PCI-DSS v4.0')">
+                                    <span class="chip-icon">💳</span> CDE / Pré-PCI-DSS
+                                </button>
+                                <button class="chip-item" onclick="promptPreFill('Listar e recomendar subagentes especializados para este escopo')">
+                                    <span class="chip-icon">🤖</span> Subagente Especialista
+                                </button>
+                                <button class="chip-item" onclick="promptPreFill('Calcular ROI de tokens e economia financeira obtida com Gemini Context Caching')">
+                                    <span class="chip-icon">💰</span> FinOps & Token ROI
+                                </button>
+                            </div>
+
+                            <!-- ISO & Certifications RSS News Feed Strip -->
+                            <div class="hero-news-section">
+                                <div class="news-section-header">
+                                    <div class="news-header-left">
+                                        <span class="news-pulse-dot"></span>
+                                        <span class="news-header-title">Novidades & Atualizações Regulatórias (RSS Feed)</span>
+                                    </div>
+                                    <div class="news-nav-buttons">
+                                        <button class="btn-news-nav" onclick="scrollNewsCarousel(-1)" title="Anterior">‹</button>
+                                        <button class="btn-news-nav" onclick="scrollNewsCarousel(1)" title="Próximo">›</button>
+                                    </div>
+                                </div>
+
+                                <div class="news-carousel-track" id="newsCarouselTrack">
+                                    <!-- News Card 1: ISO 27001 Amd 1:2024 -->
+                                    <div class="news-card" onclick="askAboutNews('Emenda Climática ISO 27001 Amd 1:2024')">
+                                        <div class="news-card-meta">
+                                            <span class="news-card-date">Setembro 2026</span>
+                                            <span class="news-card-tag" style="background: rgba(129,201,149,0.15); color: #81c995;">ISO 27001</span>
+                                        </div>
+                                        <div class="news-card-graphic" style="background: linear-gradient(135deg, rgba(129,201,149,0.2) 0%, rgba(30,31,32,0.9) 100%);">
+                                            <span style="font-size: 26px;">🌱</span>
+                                            <span class="news-graphic-tag">Amd 1:2024</span>
+                                        </div>
+                                        <div class="news-card-title">Emenda Climática ISO 27001 Obrigatória</div>
+                                        <div class="news-card-snippet">
+                                            A IAF determinou que auditorias devem checar se os riscos de mudanças climáticas foram avaliados nas cláusulas 4.1 e 4.2 do SGSI.
+                                        </div>
+                                        <div class="news-card-footer">
+                                            <span class="news-action-link">Auditar no GCP ➔</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- News Card 2: NIST CSF 2.0 -->
+                                    <div class="news-card" onclick="askAboutNews('NIST Cybersecurity Framework 2.0 - Função Governança')">
+                                        <div class="news-card-meta">
+                                            <span class="news-card-date">Agosto 2026</span>
+                                            <span class="news-card-tag" style="background: rgba(138,180,248,0.15); color: #8ab4f8;">NIST CSF 2.0</span>
+                                        </div>
+                                        <div class="news-card-graphic" style="background: linear-gradient(135deg, rgba(138,180,248,0.2) 0%, rgba(30,31,32,0.9) 100%);">
+                                            <span style="font-size: 26px;">🏛️</span>
+                                            <span class="news-graphic-tag">Govern (GV)</span>
+                                        </div>
+                                        <div class="news-card-title">NIST CSF 2.0: Nova Função Governança</div>
+                                        <div class="news-card-snippet">
+                                            A função GOVERN estabelece alinhamento formal de cibersegurança e apetite a risco ao conselho executivo.
+                                        </div>
+                                        <div class="news-card-footer">
+                                            <span class="news-action-link">Auditar no GCP ➔</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- News Card 3: PCI-DSS v4.0.1 -->
+                                    <div class="news-card" onclick="askAboutNews('Transição Obrigatória PCI-DSS v4.0 no Google Cloud')">
+                                        <div class="news-card-meta">
+                                            <span class="news-card-date">Julho 2026</span>
+                                            <span class="news-card-tag" style="background: rgba(197,138,249,0.15); color: #c58af9;">PCI-DSS v4.0</span>
+                                        </div>
+                                        <div class="news-card-graphic" style="background: linear-gradient(135deg, rgba(197,138,249,0.2) 0%, rgba(30,31,32,0.9) 100%);">
+                                            <span style="font-size: 26px;">💳</span>
+                                            <span class="news-graphic-tag">CDE Security</span>
+                                        </div>
+                                        <div class="news-card-title">Transição Mandatória PCI-DSS v4.0 em Nuvem</div>
+                                        <div class="news-card-snippet">
+                                            Exigências reforçadas para perímetros de dados de titulares de cartões (CDE) e criptografia KMS HSM.
+                                        </div>
+                                        <div class="news-card-footer">
+                                            <span class="news-action-link">Auditar no GCP ➔</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- News Card 4: ANPD & LGPD Nuvem -->
+                                    <div class="news-card" onclick="askAboutNews('Guia de Segurança da Informação da ANPD para Nuvem')">
+                                        <div class="news-card-meta">
+                                            <span class="news-card-date">Junho 2026</span>
+                                            <span class="news-card-tag" style="background: rgba(253,214,99,0.15); color: #fdd663;">ANPD / LGPD</span>
+                                        </div>
+                                        <div class="news-card-graphic" style="background: linear-gradient(135deg, rgba(253,214,99,0.2) 0%, rgba(30,31,32,0.9) 100%);">
+                                            <span style="font-size: 26px;">⚖️</span>
+                                            <span class="news-graphic-tag">Cloud DLP</span>
+                                        </div>
+                                        <div class="news-card-title">Guia de Segurança da ANPD para Nuvem</div>
+                                        <div class="news-card-snippet">
+                                            Diretrizes técnicas para uso de Cloud DLP, mascaramento de PII e elaboração de ROPA e RIPD.
+                                        </div>
+                                        <div class="news-card-footer">
+                                            <span class="news-action-link">Auditar no GCP ➔</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- News Card 5: CSA Guidance v5 -->
+                                    <div class="news-card" onclick="askAboutNews('CSA Security Guidance v5 para Agentes de IA')">
+                                        <div class="news-card-meta">
+                                            <span class="news-card-date">Maio 2026</span>
+                                            <span class="news-card-tag" style="background: rgba(120,217,236,0.15); color: #78d9ec;">CSA Star</span>
+                                        </div>
+                                        <div class="news-card-graphic" style="background: linear-gradient(135deg, rgba(120,217,236,0.2) 0%, rgba(30,31,32,0.9) 100%);">
+                                            <span style="font-size: 26px;">🤖</span>
+                                            <span class="news-graphic-tag">AI Guidance</span>
+                                        </div>
+                                        <div class="news-card-title">CSA Guia v5 de Governança para Agentes IA</div>
+                                        <div class="news-card-snippet">
+                                            Padrões internacionais de governança de contexto, prevenção de vazamento de credenciais e Zero-Copy.
+                                        </div>
+                                        <div class="news-card-footer">
+                                            <span class="news-action-link">Auditar no GCP ➔</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- News Card 6: CIS Google Cloud Benchmark v3.0 -->
+                                    <div class="news-card" onclick="askAboutNews('CIS Google Cloud Foundation Benchmark v3.0')">
+                                        <div class="news-card-meta">
+                                            <span class="news-card-date">Abril 2026</span>
+                                            <span class="news-card-tag" style="background: rgba(252,173,112,0.15); color: #fcad70;">CIS Benchmark</span>
+                                        </div>
+                                        <div class="news-card-graphic" style="background: linear-gradient(135deg, rgba(252,173,112,0.2) 0%, rgba(30,31,32,0.9) 100%);">
+                                            <span style="font-size: 26px;">🛡️</span>
+                                            <span class="news-graphic-tag">CIS GCP v3.0</span>
+                                        </div>
+                                        <div class="news-card-title">CIS GCP Benchmark v3.0 Atualizado</div>
+                                        <div class="news-card-snippet">
+                                            Requisitos atualizados de hardening para Cloud Storage, Workload Identity Federation e VPC Service Controls.
+                                        </div>
+                                        <div class="news-card-footer">
+                                            <span class="news-action-link">Auditar no GCP ➔</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -3589,7 +4363,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
             const chatArea = document.getElementById("chatArea");
             const hero = document.getElementById("geminiHero");
-            if (hero) hero.remove();
+            if (hero) hero.style.display = "none"; updateBottomInputVisibility();
 
             // 2. Append User Request row
             const userRow = document.createElement("div");
@@ -3870,7 +4644,7 @@ Formulário preenchido com o subagente recomendado!`);
             switchView("view-chat");
             const chatArea = document.getElementById("chatArea");
             const hero = document.getElementById("geminiHero");
-            if (hero) hero.remove();
+            if (hero) hero.style.display = "none"; updateBottomInputVisibility();
 
             const botRow = document.createElement("div");
             botRow.className = "msg-row bot";
@@ -3919,7 +4693,7 @@ Formulário preenchido com o subagente recomendado!`);
                 switchView("view-chat");
                 const chatArea = document.getElementById("chatArea");
                 const hero = document.getElementById("geminiHero");
-                if (hero) hero.remove();
+                if (hero) hero.style.display = "none"; updateBottomInputVisibility();
 
                 const botRow = document.createElement("div");
                 botRow.className = "msg-row bot";
@@ -3966,7 +4740,7 @@ Formulário preenchido com o subagente recomendado!`);
             if (target) target.classList.add("active");
 
             const agentMap = {
-                "view-chat": "agentBtnChat",
+                "view-chat": "agentBtnGrcAuditor",
                 "view-phases": "agentBtnPhases",
                 "view-matrix": "agentBtnMatrix",
                 "view-connectors": "agentBtnConnectors",
@@ -3977,12 +4751,12 @@ Formulário preenchido com o subagente recomendado!`);
 
             document.querySelectorAll(".agent-item").forEach(b => b.classList.remove("active"));
             if (agentMap[viewId]) {
-                const btn = document.getElementById(agentMap[viewId]);
+                const btn = document.getElementById(agentMap[viewId]) || document.getElementById("agentBtnChat");
                 if (btn) btn.classList.add("active");
             }
 
             const titleMap = {
-                "view-chat": "Chatbot Auditor",
+                "view-chat": "Agentic GRC Auditor",
                 "view-phases": "Scan por Fases",
                 "view-matrix": "Matriz ISO 27001 Escalável",
                 "view-connectors": "Subagentes & Zero-Copy",
@@ -3993,14 +4767,143 @@ Formulário preenchido com o subagente recomendado!`);
             document.getElementById("topActiveTitle").innerText = titleMap[viewId] || "Auditor";
         }
 
-        function startNewConversation() {
+
+        // =========================================================================
+        // Sidekick Hero & Regulatory News Feed Scripts
+        // =========================================================================
+        let currentSelectedModel = "gemini-auto";
+
+        function toggleModelDropdown(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById("modelPickerMenu");
+            if (menu) {
+                menu.classList.toggle("show");
+            }
+        }
+
+        function selectModel(modelId, modelLabel) {
+            currentSelectedModel = modelId;
+            const labelEl = document.getElementById("lblModelPicker");
+            if (labelEl) labelEl.innerText = modelLabel;
+
+            const dotEl = document.getElementById("dotActiveModel");
+            if (dotEl) {
+                if (modelId === "gemini-3.5-flash") {
+                    dotEl.style.background = "#c58af9";
+                    dotEl.style.boxShadow = "0 0 8px #c58af9";
+                } else if (modelId === "gemini-2.5-flash") {
+                    dotEl.style.background = "#81c995";
+                    dotEl.style.boxShadow = "0 0 8px #81c995";
+                } else if (modelId === "gemini-2.5-pro") {
+                    dotEl.style.background = "#8ab4f8";
+                    dotEl.style.boxShadow = "0 0 8px #8ab4f8";
+                } else {
+                    dotEl.style.background = "#4285f4";
+                    dotEl.style.boxShadow = "0 0 8px #4285f4";
+                }
+            }
+
+            const menu = document.getElementById("modelPickerMenu");
+            if (menu) {
+                menu.classList.remove("show");
+                const options = menu.querySelectorAll(".model-option");
+                options.forEach(opt => {
+                    if (opt.getAttribute("data-model") === modelId) {
+                        opt.classList.add("selected");
+                    } else {
+                        opt.classList.remove("selected");
+                    }
+                });
+            }
+        }
+
+        // Close model dropdown on document click
+        document.addEventListener("click", function(e) {
+            const menu = document.getElementById("modelPickerMenu");
+            const btn = document.getElementById("btnModelPicker");
+            if (menu && menu.classList.contains("show") && btn && !btn.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.remove("show");
+            }
+        });
+
+        function handleHeroKey(e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendChatMessageFromHero();
+            }
+        }
+
+        function handleHeroInput(textarea) {
+            textarea.style.height = "auto";
+            textarea.style.height = Math.min(textarea.scrollHeight, 180) + "px";
+        }
+
+        function updateBottomInputVisibility() {
+            const hero = document.getElementById("geminiHero");
+            const bottomWrapper = document.querySelector(".chat-input-wrapper");
+            if (bottomWrapper) {
+                if (hero && hero.style.display !== "none") {
+                    bottomWrapper.style.display = "none";
+                } else {
+                    bottomWrapper.style.display = "flex";
+                }
+            }
+        }
+
+        function openAgenticGrcAuditor() {
             switchView("view-chat");
             const chatArea = document.getElementById("chatArea");
+            if (chatArea) {
+                const msgRows = chatArea.querySelectorAll(".msg-row");
+                msgRows.forEach(r => r.remove());
+            }
             const hero = document.getElementById("geminiHero");
-            chatArea.innerHTML = "";
-            chatArea.appendChild(hero);
-            document.getElementById("chatInput").value = "";
+            if (hero) {
+                hero.style.display = "flex";
+            }
+            const heroInput = document.getElementById("chatInputHero");
+            if (heroInput) {
+                heroInput.value = "";
+                heroInput.style.height = "54px";
+                heroInput.focus();
+            }
+            const bottomInput = document.getElementById("chatInput");
+            if (bottomInput) bottomInput.value = "";
+            updateBottomInputVisibility();
+
+            // Set active sidebar item
+            document.querySelectorAll(".agent-item").forEach(el => el.classList.remove("active"));
+            const grcBtn = document.getElementById("agentBtnGrcAuditor") || document.getElementById("agentBtnChat");
+            if (grcBtn) grcBtn.classList.add("active");
+            document.getElementById("topActiveTitle").innerText = "Agentic GRC Auditor";
         }
+
+        function startNewConversation() {
+            openAgenticGrcAuditor();
+        }
+
+        function sendChatMessageFromHero() {
+            const heroInput = document.getElementById("chatInputHero");
+            const text = heroInput ? heroInput.value.trim() : "";
+            if (!text) return;
+
+            const bottomInput = document.getElementById("chatInput");
+            if (bottomInput) bottomInput.value = text;
+            sendChatMessage();
+        }
+
+        function scrollNewsCarousel(direction) {
+            const track = document.getElementById("newsCarouselTrack");
+            if (track) {
+                track.scrollBy({ left: direction * 280, behavior: "smooth" });
+            }
+        }
+
+        function askAboutNews(newsTitle) {
+            const prompt = `Avaliar a conformidade do nosso ambiente GCP com relação à atualização normativa: "${newsTitle}". Quais controles do SGSI (ISO 27001) são impactados e que evidências técnicas devemos apresentar?`;
+            promptPreFill(prompt);
+        }
+
 
         function openExecutiveReport() {
             switchView("view-report-exec");
@@ -4260,7 +5163,7 @@ Formulário preenchido com o subagente recomendado!`);
 
             const chatArea = document.getElementById("chatArea");
             const hero = document.getElementById("geminiHero");
-            if (hero) hero.remove();
+            if (hero) hero.style.display = "none"; updateBottomInputVisibility();
 
             const userRow = document.createElement("div");
             userRow.className = "msg-row user";
@@ -4294,7 +5197,7 @@ Formulário preenchido com o subagente recomendado!`);
                 const res = await fetch("/api/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ message: text, project_id: Array.from(selectedProjectIds)[0] })
+                    body: JSON.stringify({ message: text, project_id: Array.from(selectedProjectIds)[0], selected_projects: Array.from(selectedProjectIds), model: currentSelectedModel })
                 });
                 const data = await res.json();
                 const replyElem = document.getElementById("activeBotReply");
@@ -4572,7 +5475,7 @@ Formulário preenchido com o subagente recomendado!`);
                 switchView("view-chat");
                 const chatArea = document.getElementById("chatArea");
                 const hero = document.getElementById("geminiHero");
-                if (hero) hero.remove();
+                if (hero) hero.style.display = "none"; updateBottomInputVisibility();
 
                 const botRow = document.createElement("div");
                 botRow.className = "msg-row bot";

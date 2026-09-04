@@ -20,9 +20,15 @@ MODEL_PRICING = {
     },
     "gemini-2.5-flash": {
         "name": "Gemini 2.5 Flash",
-        "prompt_rate": 0.075,       # zsh.075 per 1M input tokens
-        "cached_rate": 0.01875,     # zsh.01875 per 1M cached prompt tokens
-        "completion_rate": 0.30,    # zsh.30 per 1M output tokens
+        "prompt_rate": 0.075,       # $0.075 per 1M input tokens
+        "cached_rate": 0.01875,     # $0.01875 per 1M cached prompt tokens
+        "completion_rate": 0.30,    # $0.30 per 1M output tokens
+    },
+    "gemini-3.5-flash": {
+        "name": "Gemini 3.5 Flash",
+        "prompt_rate": 0.050,       # $0.050 per 1M input tokens
+        "cached_rate": 0.0125,      # $0.0125 per 1M cached prompt tokens
+        "completion_rate": 0.20,    # $0.20 per 1M output tokens
     },
     "text-embedding-005": {
         "name": "Text Embedding 005",

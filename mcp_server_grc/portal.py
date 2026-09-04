@@ -63,6 +63,7 @@ class ChatRequest(BaseModel):
     message: str = Field(..., description="User prompt or audit command")
     user_token: Optional[str] = Field(default="portal-demo-user-token", description="User IDP Bearer Token")
     selected_projects: Optional[List[str]] = Field(default=["agentic-grc-cd06"])
+    model: Optional[str] = Field(default="gemini-auto", description="Selected model: gemini-auto, gemini-2.5-pro, gemini-2.5-flash, gemini-3.5-flash")
 
 
 class StorageLinkRequest(BaseModel):
@@ -1204,12 +1205,20 @@ Com base na coleta automatizada de telemetria, inspeção de políticas de organ
 async def handle_chat(req: ChatRequest):
     """Processes user chat prompts and routes to Vertex AI Gemini or specialized subagents."""
     msg = req.message.strip()
+    model_key = "gemini-2.5-pro"
+    if req.model:
+        if req.model == "gemini-3.5-flash":
+            model_key = "gemini-3.5-flash"
+        elif req.model == "gemini-2.5-flash":
+            model_key = "gemini-2.5-flash"
+        elif req.model == "gemini-2.5-pro":
+            model_key = "gemini-2.5-pro"
     finops_tracker.record_usage(
         "lead-auditor",
         prompt_tokens=len(msg) * 2 + 1400,
         completion_tokens=850,
         cached_tokens=3200,
-        model_key="gemini-2.5-pro",
+        model_key=model_key,
     )
     lower_msg = msg.lower()
     projects = req.selected_projects or ["agentic-grc-cd06"]
