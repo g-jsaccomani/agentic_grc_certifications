@@ -2096,19 +2096,19 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .btn-confirm { background: var(--gcp-blue); border: none; color: #131314; font-weight: 600; padding: 8px 18px; border-radius: 8px; cursor: pointer; }
 
 
-        /* Auditor Health & Compliance Dashboard (Speedometer & ISO Status) */
+        /* Minimalist Auditor Health & Compliance Dashboard */
         .auditor-health-dash {
             display: grid;
-            grid-template-columns: 360px 1fr;
-            gap: 16px;
+            grid-template-columns: 290px 1fr;
+            gap: 14px;
             width: 100%;
-            max-width: 1080px;
+            max-width: 1040px;
             margin: 4px auto 0 auto;
             text-align: left;
             animation: fadeIn 0.25s ease;
         }
 
-        @media (max-width: 920px) {
+        @media (max-width: 860px) {
             .auditor-health-dash {
                 grid-template-columns: 1fr;
             }
@@ -2118,11 +2118,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             background: #1e1f20;
             border: 1px solid var(--border-subtle);
             border-radius: 16px;
-            padding: 18px 20px;
+            padding: 16px 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
         }
 
         .health-card-header {
@@ -2132,167 +2133,132 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
 
         .health-card-title {
-            font-size: 13px;
+            font-size: 12.5px;
             font-weight: 600;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: #e8eaed;
+            letter-spacing: 0.3px;
         }
 
         .health-card-badge {
             font-size: 11px;
             font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 10px;
-            background: rgba(129, 201, 149, 0.15);
-            color: var(--gcp-green);
-            border: 1px solid rgba(129, 201, 149, 0.3);
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: rgba(138, 180, 248, 0.12);
+            color: var(--gcp-blue);
+            border: 1px solid rgba(138, 180, 248, 0.25);
         }
 
-        /* Speedometer Gauge Widget */
+        /* Minimal Speedometer */
         .speedometer-wrap {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 2px 0;
             position: relative;
+            padding: 2px 0;
         }
 
         .speedometer-svg {
-            width: 230px;
-            height: 130px;
+            width: 190px;
+            height: 105px;
             overflow: visible;
         }
 
         .gauge-bg {
             fill: none;
             stroke: #2d2f31;
-            stroke-width: 14;
+            stroke-width: 12;
             stroke-linecap: round;
         }
 
         .gauge-meter {
             fill: none;
             stroke: url(#speedoGradient);
-            stroke-width: 14;
+            stroke-width: 12;
             stroke-linecap: round;
+            stroke-dasharray: 236;
+            stroke-dashoffset: 8;
             transition: stroke-dashoffset 1s ease-in-out;
         }
 
         .speedo-center-val {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             fill: #ffffff;
             font-family: var(--font-headline);
         }
 
         .speedo-center-lbl {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             fill: #81c995;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.6px;
             font-family: var(--font-headline);
         }
 
-        .speedometer-mini-grid {
+        /* Minimal 2x2 Domain Grid */
+        .compliance-domains-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-top: 4px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            gap: 10px 18px;
         }
 
-        .speedo-mini-item {
+        @media (max-width: 560px) {
+            .compliance-domains-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .domain-item {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
         }
 
-        .speedo-mini-title {
-            font-size: 10.5px;
-            color: var(--text-secondary);
-        }
-
-        .speedo-mini-val {
-            font-size: 12px;
-            font-weight: 600;
-            color: #e8eaed;
-        }
-
-        /* Compliance Status Widget */
-        .compliance-domains-list {
-            display: flex;
-            flex-direction: column;
-            gap: 9px;
-        }
-
-        .domain-row {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .domain-row-top {
+        .domain-top {
             display: flex;
             justify-content: space-between;
             font-size: 11.5px;
-            font-weight: 500;
-            color: #d1d5db;
+            color: #c4c7c5;
         }
 
-        .domain-row-bar {
+        .domain-pct {
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .val-green { color: #81c995; }
+        .val-blue { color: #8ab4f8; }
+        .val-yellow { color: #fdd663; }
+
+        .domain-bar {
             width: 100%;
-            height: 6px;
+            height: 5px;
             background: #2d2f31;
             border-radius: 3px;
             overflow: hidden;
         }
 
-        .domain-row-fill {
+        .domain-fill {
             height: 100%;
             border-radius: 3px;
-            transition: width 0.6s ease;
         }
 
-        .compliance-meta-strip {
+        .bg-green { background: #81c995; }
+        .bg-blue { background: #8ab4f8; }
+        .bg-yellow { background: #fdd663; }
+
+        .compliance-footer-note {
+            font-size: 10.5px;
+            color: var(--text-tertiary);
+            padding-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 8px;
-            padding: 8px 12px;
-            margin-top: 2px;
         }
 
-        .compliance-meta-item {
-            display: flex;
-            flex-direction: column;
-            gap: 1px;
-        }
-
-        .compliance-meta-lbl {
-            font-size: 10px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-        }
-
-        .compliance-meta-val {
-            font-size: 12px;
-            font-weight: 600;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* RSS News Source Links */
         .btn-news-source-link {
             display: inline-flex;
             align-items: center;
@@ -2851,7 +2817,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </div>
                         <span class="agent-name">Agentic GRC Auditor</span>
                     </div>
-                    <span class="agent-pin" title="Agente Principal de Auditoria">📌</span>
+                    <span class="agent-pin" title="Auditor Líder" style="color: var(--gcp-blue); font-size: 11px;">●</span>
                 </button>
 
                 <button class="agent-item" id="agentBtnPhases" onclick="switchView('view-phases')">
@@ -3236,144 +3202,75 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                             <!-- Agentic GRC Auditor Health Dash (Speedometer & Compliance Status) -->
                             <div class="auditor-health-dash" id="auditorHealthDash" style="display: none;">
-                                <!-- Card 1: Velocímetro de Saúde do Ambiente -->
+                                <!-- Minimal Card 1: Velocímetro de Saúde -->
                                 <div class="health-card">
                                     <div class="health-card-header">
-                                        <div class="health-card-title">
-                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                                                <circle cx="12" cy="12" r="10"/>
-                                                <path d="M12 6v6l4 2"/>
-                                            </svg>
-                                            Saúde do Ambiente GCP
-                                        </div>
+                                        <div class="health-card-title">Saúde do Ambiente GCP</div>
                                         <span class="health-card-badge">Telemetria Ativa</span>
                                     </div>
-
                                     <div class="speedometer-wrap">
-                                        <svg class="speedometer-svg" viewBox="0 0 240 135">
+                                        <svg class="speedometer-svg" viewBox="0 0 200 110">
                                             <defs>
                                                 <linearGradient id="speedoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                                                     <stop offset="0%" stop-color="#4285f4"/>
-                                                    <stop offset="45%" stop-color="#8ab4f8"/>
-                                                    <stop offset="80%" stop-color="#81c995"/>
-                                                    <stop offset="100%" stop-color="#34a853"/>
+                                                    <stop offset="50%" stop-color="#8ab4f8"/>
+                                                    <stop offset="100%" stop-color="#81c995"/>
                                                 </linearGradient>
                                             </defs>
-                                            <!-- Arc Background -->
-                                            <path class="gauge-bg" d="M 30 115 A 90 90 0 0 1 210 115" />
-                                            <!-- Arc Progress (283 is full length; 96.4% = offset 10) -->
-                                            <path class="gauge-meter" d="M 30 115 A 90 90 0 0 1 210 115" style="stroke-dasharray: 283; stroke-dashoffset: 10;" />
-                                            <!-- Scale marks -->
-                                            <text x="32" y="130" font-size="10" fill="#9aa0a6" text-anchor="middle">0%</text>
-                                            <text x="120" y="20" font-size="10" fill="#9aa0a6" text-anchor="middle">50%</text>
-                                            <text x="208" y="130" font-size="10" fill="#9aa0a6" text-anchor="middle">100%</text>
-                                            <!-- Value Readout -->
-                                            <text x="120" y="96" class="speedo-center-val" text-anchor="middle">96.4%</text>
-                                            <text x="120" y="116" class="speedo-center-lbl" text-anchor="middle">POSTURA RESILIENTE</text>
+                                            <path class="gauge-bg" d="M 25 95 A 75 75 0 0 1 175 95" />
+                                            <path class="gauge-meter" d="M 25 95 A 75 75 0 0 1 175 95" style="stroke-dasharray: 236; stroke-dashoffset: 8;" />
+                                            <text x="100" y="80" class="speedo-center-val" text-anchor="middle">96.4%</text>
+                                            <text x="100" y="98" class="speedo-center-lbl" text-anchor="middle">POSTURA RESILIENTE</text>
                                         </svg>
-                                    </div>
-
-                                    <div class="speedometer-mini-grid">
-                                        <div class="speedo-mini-item">
-                                            <span class="speedo-mini-title">VPC Service Controls</span>
-                                            <span class="speedo-mini-val" style="color: #81c995;">✓ 100% Perímetro</span>
-                                        </div>
-                                        <div class="speedo-mini-item">
-                                            <span class="speedo-mini-title">Cloud KMS HSM</span>
-                                            <span class="speedo-mini-val" style="color: #8ab4f8;">🔑 92% Rotação &lt; 90d</span>
-                                        </div>
-                                        <div class="speedo-mini-item">
-                                            <span class="speedo-mini-title">IAM Menor Privilégio</span>
-                                            <span class="speedo-mini-val" style="color: #81c995;">🛡️ 98% Sem Primitivas</span>
-                                        </div>
-                                        <div class="speedo-mini-item">
-                                            <span class="speedo-mini-title">Logs 365d (A.8.16)</span>
-                                            <span class="speedo-mini-val" style="color: #81c995;">📦 BigQuery OK</span>
-                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Card 2: Compliance Status ISO/IEC 27001 x Ambiente -->
+                                <!-- Minimal Card 2: Status ISO/IEC 27001 -->
                                 <div class="health-card">
                                     <div class="health-card-header">
-                                        <div class="health-card-title">
-                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                                <polyline points="14 2 14 8 20 8"/>
-                                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                                <line x1="16" y1="17" x2="8" y2="17"/>
-                                            </svg>
-                                            Status ISO/IEC 27001:2022
-                                        </div>
-                                        <span class="health-card-badge" style="background: rgba(138, 180, 248, 0.15); color: var(--gcp-blue); border-color: rgba(138, 180, 248, 0.3);">
-                                            89/93 Conformes (95.7%)
-                                        </span>
+                                        <div class="health-card-title">Conformidade ISO/IEC 27001:2022</div>
+                                        <span class="health-card-badge">89 / 93 Controles (95.7%)</span>
                                     </div>
 
-                                    <div class="compliance-domains-list">
-                                        <div class="domain-row">
-                                            <div class="domain-row-top">
-                                                <span>🏢 Organizacional (37 controles)</span>
-                                                <span style="color: #81c995; font-weight: 600;">100% (37/37)</span>
+                                    <div class="compliance-domains-grid">
+                                        <div class="domain-item">
+                                            <div class="domain-top">
+                                                <span>Organizacional (A.5)</span>
+                                                <span class="domain-pct val-green">100%</span>
                                             </div>
-                                            <div class="domain-row-bar">
-                                                <div class="domain-row-fill" style="width: 100%; background: #81c995;"></div>
-                                            </div>
+                                            <div class="domain-bar"><div class="domain-fill bg-green" style="width: 100%;"></div></div>
                                         </div>
-
-                                        <div class="domain-row">
-                                            <div class="domain-row-top">
-                                                <span>👥 Pessoas (8 controles)</span>
-                                                <span style="color: #81c995; font-weight: 600;">100% (8/8)</span>
+                                        <div class="domain-item">
+                                            <div class="domain-top">
+                                                <span>Pessoas (A.6)</span>
+                                                <span class="domain-pct val-green">100%</span>
                                             </div>
-                                            <div class="domain-row-bar">
-                                                <div class="domain-row-fill" style="width: 100%; background: #81c995;"></div>
-                                            </div>
+                                            <div class="domain-bar"><div class="domain-fill bg-green" style="width: 100%;"></div></div>
                                         </div>
-
-                                        <div class="domain-row">
-                                            <div class="domain-row-top">
-                                                <span>🏗️ Físico & Clima (14 controles • Amd 1:2024)</span>
-                                                <span style="color: #8ab4f8; font-weight: 600;">93% (13/14)</span>
+                                        <div class="domain-item">
+                                            <div class="domain-top">
+                                                <span>Físico & Clima (A.7)</span>
+                                                <span class="domain-pct val-blue">93%</span>
                                             </div>
-                                            <div class="domain-row-bar">
-                                                <div class="domain-row-fill" style="width: 93%; background: #8ab4f8;"></div>
-                                            </div>
+                                            <div class="domain-bar"><div class="domain-fill bg-blue" style="width: 93%;"></div></div>
                                         </div>
-
-                                        <div class="domain-row">
-                                            <div class="domain-row-top">
-                                                <span>💻 Tecnológico (34 controles)</span>
-                                                <span style="color: #fdd663; font-weight: 600;">91% (31/34)</span>
+                                        <div class="domain-item">
+                                            <div class="domain-top">
+                                                <span>Tecnológico (A.8)</span>
+                                                <span class="domain-pct val-yellow">91%</span>
                                             </div>
-                                            <div class="domain-row-bar">
-                                                <div class="domain-row-fill" style="width: 91%; background: #fdd663;"></div>
-                                            </div>
+                                            <div class="domain-bar"><div class="domain-fill bg-yellow" style="width: 91%;"></div></div>
                                         </div>
                                     </div>
 
-                                    <div class="compliance-meta-strip">
-                                        <div class="compliance-meta-item">
-                                            <span class="compliance-meta-lbl">Grafo Criptográfico</span>
-                                            <span class="compliance-meta-val"><span style="color: #81c995;">✓</span> SHA-256 Validado</span>
-                                        </div>
-                                        <div class="compliance-meta-item">
-                                            <span class="compliance-meta-lbl">Model Armor</span>
-                                            <span class="compliance-meta-val"><span style="color: #8ab4f8;">🛡️</span> Zero Injection</span>
-                                        </div>
-                                        <div class="compliance-meta-item">
-                                            <span class="compliance-meta-lbl">Desvios Críticos</span>
-                                            <span class="compliance-meta-val"><span style="color: #81c995;">0</span> Bloqueantes</span>
-                                        </div>
-                                        <div class="compliance-meta-item">
-                                            <span class="compliance-meta-lbl">IA Auditor</span>
-                                            <span class="compliance-meta-val"><span style="color: #c58af9;">⚡</span> Vertex AI Gemini</span>
-                                        </div>
+                                    <div class="compliance-footer-note">
+                                        <span>Grafo SHA-256 Validado</span>
+                                        <span>Zero-Touch Ativo</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Clean Regulatory RSS News Feed Strip (Visible in Nova Conversa) -->
+                            <!-- Clean Regulatory RSS<!-- Clean Regulatory RSS News Feed Strip (Visible in Nova Conversa) -->
                             <div class="hero-news-section" id="heroNewsSection">
                                 <div class="news-section-header">
                                     <div class="news-header-left">
@@ -5171,25 +5068,23 @@ Formulário preenchido com o subagente recomendado!`);
                 // =========================================================================
         // Dynamic & Always-Altering Suggestion Chips Pool
         // =========================================================================
-        const dynamicSuggestionPool = [
-            { icon: "✨", label: "Auditoria Completa ISO 27001", prompt: "Executar auditoria técnica completa de todos os 93 controles da ISO/IEC 27001:2022" },
-            { icon: "🛡️", label: "Criptografia Cloud KMS (A.8.24)", prompt: "Auditar controle A.8.24 de Criptografia Cloud KMS e rotação de chaves HSM" },
-            { icon: "🌐", label: "Perímetros VPC-SC (A.8.12)", prompt: "Verificar perímetros VPC Service Controls e controle de fuga de dados A.8.12" },
-            { icon: "☁️", label: "Armazenamento GCS (A.5.23)", prompt: "Auditar segurança do Cloud Storage e controle A.5.23 para serviços em nuvem" },
-            { icon: "📜", label: "IAM & Menor Privilégio", prompt: "Auditar conformidade de IAM, segregação de funções e ausência de papéis primitivos" },
-            { icon: "🚨", label: "Logs 365 Dias (A.8.16)", prompt: "Verificar retenção de 365 dias dos logs de auditoria no BigQuery (A.8.16)" },
-            { icon: "🌱", label: "Amd 1:2024 Clima & DR", prompt: "Auditar conformidade com a Emenda Climática ISO 27001 Amd 1:2024 e Disaster Recovery" },
-            { icon: "📑", label: "Parecer Formal & Grafo SHA-256", prompt: "Gerar Parecer Executivo Formal de Conformidade com selo criptográfico SHA-256" },
-            { icon: "⚖️", label: "Governança PII & Cloud DLP", prompt: "Mapear dados pessoais sensíveis e inspecionar regras Cloud DLP para LGPD/GDPR" },
-            { icon: "💳", label: "Isolamento CDE / PCI-DSS v4.0", prompt: "Verificar requisitos de proteção de CDE e conformidade prévia com PCI-DSS v4.0" },
-            { icon: "🤖", label: "Orquestração de Subagentes", prompt: "Listar e recomendar subagentes especializados para este escopo" },
-            { icon: "💰", label: "FinOps & ROI de Tokens", prompt: "Calcular ROI de tokens e economia financeira obtida com Gemini Context Caching" },
-            { icon: "☸️", label: "Postura de Clusters GKE", prompt: "Auditar postura de segurança de clusters GKE, Workload Identity e binários assinados" },
-            { icon: "🔒", label: "Hardening CIS GCP v3.0", prompt: "Executar varredura de hardening baseada nas recomendações do CIS GCP Foundation Benchmark v3.0" },
-            { icon: "🔍", label: "Security Command Center (SCC)", prompt: "Avaliar findings críticos e de alta severidade no Security Command Center Enterprise" },
-            { icon: "🛡️", label: "Proteção Cloud Armor WAF", prompt: "Verificar regras de WAF no Cloud Armor e proteção contra DDoS para serviços públicos" },
-            { icon: "📑", label: "Declaração de Aplicabilidade (SoA)", prompt: "Gerar relatório completo da Declaração de Aplicabilidade (SoA) para os 93 controles" },
-            { icon: "⚡", label: "Tratamento Autônomo de Desvios", prompt: "Identificar desvios críticos ativos e propor remediações automatizadas Zero-Touch" }
+                const dynamicSuggestionPool = [
+            { label: "Auditoria Completa ISO 27001", prompt: "Executar auditoria técnica completa de todos os 93 controles da ISO/IEC 27001:2022" },
+            { label: "Criptografia Cloud KMS (A.8.24)", prompt: "Auditar controle A.8.24 de Criptografia Cloud KMS e rotação de chaves HSM" },
+            { label: "Perímetros VPC-SC (A.8.12)", prompt: "Verificar perímetros VPC Service Controls e controle de fuga de dados A.8.12" },
+            { label: "Armazenamento GCS (A.5.23)", prompt: "Auditar segurança do Cloud Storage e controle A.5.23 para serviços em nuvem" },
+            { label: "IAM & Menor Privilégio", prompt: "Auditar conformidade de IAM, segregação de funções e ausência de papéis primitivos" },
+            { label: "Logs 365 Dias (A.8.16)", prompt: "Verificar retenção de 365 dias dos logs de auditoria no BigQuery (A.8.16)" },
+            { label: "Amd 1:2024 Clima & DR", prompt: "Auditar conformidade com a Emenda Climática ISO 27001 Amd 1:2024 e Disaster Recovery" },
+            { label: "Parecer Formal & Grafo SHA-256", prompt: "Gerar Parecer Executivo Formal de Conformidade com selo criptográfico SHA-256" },
+            { label: "Governança PII & Cloud DLP", prompt: "Mapear dados pessoais sensíveis e inspecionar regras Cloud DLP para LGPD/GDPR" },
+            { label: "Isolamento CDE / PCI-DSS v4.0", prompt: "Verificar requisitos de proteção de CDE e conformidade prévia com PCI-DSS v4.0" },
+            { label: "Orquestração de Subagentes", prompt: "Listar e recomendar subagentes especializados para este escopo" },
+            { label: "FinOps & ROI de Tokens", prompt: "Calcular ROI de tokens e economia financeira obtida com Gemini Context Caching" },
+            { label: "Postura de Clusters GKE", prompt: "Auditar postura de segurança de clusters GKE, Workload Identity e binários assinados" },
+            { label: "Hardening CIS GCP v3.0", prompt: "Executar varredura de hardening baseada nas recomendações do CIS GCP Foundation Benchmark v3.0" },
+            { label: "Security Command Center (SCC)", prompt: "Avaliar findings críticos e de alta severidade no Security Command Center Enterprise" },
+            { label: "Zero-Copy & Evidências", prompt: "Auditar repositórios Zero-Copy conectados para políticas de segurança e SGSI" }
         ];
 
         let lastPickedIndices = [];
@@ -5225,18 +5120,18 @@ Formulário preenchido com o subagente recomendado!`);
                     const item = dynamicSuggestionPool[idx];
                     const btn = document.createElement("button");
                     btn.className = "chip-item";
-                    btn.innerHTML = `<span class="chip-icon">${item.icon}</span> ${escapeHtml(item.label)}`;
+                    btn.innerHTML = escapeHtml(item.label);
                     btn.onclick = () => promptPreFill(item.prompt);
                     container.appendChild(btn);
                 });
 
-                // Shuffle button
+                // Shuffle button with clean SVG icon (NO emoji)
                 const shuffleBtn = document.createElement("button");
                 shuffleBtn.className = "chip-item chip-shuffle";
                 shuffleBtn.title = "Alternar sugestões";
                 shuffleBtn.style.color = "var(--gcp-blue)";
                 shuffleBtn.style.borderColor = "rgba(138, 180, 248, 0.35)";
-                shuffleBtn.innerHTML = `<span class="chip-icon">🔀</span> Alternar`;
+                shuffleBtn.innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" style="margin-right: 5px;"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg><span>Alternar</span>`;
                 shuffleBtn.onclick = () => shuffleDynamicSuggestions();
                 container.appendChild(shuffleBtn);
 
@@ -6319,11 +6214,11 @@ Formulário preenchido com o subagente recomendado!`);
                     Recomendações e Templates de Subagentes
                 </div>
                 <div class="template-pills-row">
-                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('fintech')">🏦 Fintech / Bancos</button>
-                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('zerotrust')">🛡️ Zero-Trust / IAM</button>
-                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('k8s')">☸️ GKE / DevSecOps</button>
-                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('privacy')">🔐 LGPD / DLP</button>
-                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('finops')">☁️ FinOps / Storage</button>
+                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('fintech')">Fintech / Bancos</button>
+                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('zerotrust')">Zero-Trust / IAM</button>
+                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('k8s')">GKE / DevSecOps</button>
+                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('privacy')">LGPD / DLP</button>
+                    <button class="btn-template-pill" type="button" onclick="applyIndustryTemplate('finops')">FinOps / Storage</button>
                 </div>
                 <button class="btn-ai-recommend" type="button" onclick="getGeminiAgentRecommendation()">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
