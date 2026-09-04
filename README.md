@@ -228,14 +228,14 @@ Access the interactive console at `http://localhost:8080/portal`.
 
 ---
 
-## 6. Roadmap: Towards a Unified Multi-Framework Engine
+## 6. Strategic Roadmap
 
-Detailed architecture and release timeline are maintained in [ROADMAP.md](ROADMAP.md):
+Detailed architecture and strategic pillars are maintained in [ROADMAP.md](ROADMAP.md):
 
-- **v1.1.0 (Current Sprint)**: **CodeMender** autonomous vulnerability remediation in code repositories (ISO Control A.8.28) with ephemeral container sandbox validation.
-- **v1.2.0 (Q4 2026)**: **Multi-Framework Selector** (Pre-Deploy via environment variables / Terraform & Pre-Access via Onboarding Wizard) + **SOC 2 Type II** catalog.
-- **v1.3.0 (Q1 2027)**: **PCI-DSS v4.0** (CDE perimeter audit) & **LGPD / GDPR** (Cloud DLP integration and automated ROPA reports).
-- **v2.0.0 (Q2 2027)**: **NIST CSF 2.0**, **CIS Google Cloud Benchmark**, and Unified Multi-Framework Cross-Mapping Engine ("Collect Once, Comply Many").
+- **In Progress**: **CodeMender** — autonomous vulnerability remediation in code repositories (ISO Control A.8.28) with ephemeral container sandbox validation.
+- **Next Cycle**: **Interactive ISO Audit Questionnaires & Evidence Attachment** — structured interview workflows, evidence upload with SHA-256 anchoring, AI evaluation, and real-time report/metric updates.
+- **Planned**: **Multi-Cloud Connectors (AWS, Azure, OCI)** — zero-key telemetry ingestion via OIDC federation and unified control abstraction.
+- **Future Vision**: **Multi-Framework Expansion** — SOC 2 Type II, PCI-DSS v4.0, NIST CSF 2.0, LGPD/GDPR, and unified cross-mapping engine ("Collect Once, Comply Many").
 
 ---
 

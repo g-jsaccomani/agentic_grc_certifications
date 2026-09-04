@@ -4,16 +4,16 @@ Planejamento de evolução da plataforma **Agentic GRC (GEAP)** para governança
 
 ---
 
-## 1. Linha do Tempo & Versões (Release Plan)
+## 1. Fases e Marcos de Evolução (Milestones)
 
-| Versão | Marco / Foco | Principais Entregas | Status / Previsão |
+| Marco / Iniciativa | Foco Principal | Principais Entregas | Status |
 | :--- | :--- | :--- | :--- |
-| **v1.0.0** | **ISO 27001:2022 (GCP)** | 93 controles, servidor MCP, 4 fases autônomas, Grafo SHA-256, Dossiê C-Level e Relatório Stage 2 (PDF/JSON). | Concluído ✅ |
-| **v1.1.0** | **CodeMender & Remediação** | Subagente de correção de código (A.8.28) em sandbox isolado, abertura de PRs com aprovação humana (HITL). | Em Desenvolvimento 🚀 |
-| **v1.2.0** | **Questionários ISO & Evidências** | Roteiro de perguntas de auditoria, upload de evidências com hash SHA-256, validação por IA e recálculo em tempo real de métricas e relatórios. | Q4 2026 |
-| **v1.3.0** | **Conectores Multi-Cloud** | Ingestão de telemetria AWS e Azure via federação OIDC (Zero-Key), abstração unificada de controles (KMS, Storage, IAM, Rede). | Q1 2027 |
-| **v1.4.0** | **OCI & Novos Frameworks** | Conector Oracle Cloud (OCI), seletor de certificações (Pré-deploy/Pré-acesso), catálogos SOC 2 Type II e PCI-DSS v4.0. | Q2 2027 |
-| **v2.0.0** | **GRC 360° Multi-Norma** | NIST CSF 2.0, LGPD/GDPR via Cloud DLP, motor de correlação cruzada (*Collect Once, Comply Many*) e auditoria contínua multi-cloud. | H2 2027 |
+| **Fundação Concluída** | **ISO 27001:2022 (GCP)** | 93 controles, servidor MCP, 4 fases autônomas, Grafo SHA-256, Dossiê C-Level e Relatório Stage 2 (PDF/JSON). | Concluído ✅ |
+| **Remediação Automatizada** | **CodeMender** | Subagente de correção de código (A.8.28) em sandbox isolado, abertura de PRs com aprovação humana (HITL). | Em Andamento 🚀 |
+| **Interatividade & Governança** | **Questionários ISO & Evidências** | Roteiro de perguntas de auditoria, upload de evidências com hash SHA-256, validação por IA e recálculo em tempo real de métricas e relatórios. | Próximo Ciclo 📋 |
+| **Telemetria Híbrida** | **Conectores Multi-Cloud (AWS & Azure)** | Ingestão de telemetria AWS e Azure via federação OIDC (Zero-Key), abstração unificada de controles (KMS, Storage, IAM, Rede). | Planejado 📋 |
+| **Nuvem & Frameworks B2B** | **OCI & SOC 2 / PCI-DSS** | Conector Oracle Cloud (OCI), seletor de certificações (Pré-deploy/Pré-acesso), catálogos SOC 2 Type II e PCI-DSS v4.0. | Backlog 💡 |
+| **Conformidade Global 360°** | **NIST CSF & LGPD/GDPR** | NIST CSF 2.0, LGPD/GDPR via Cloud DLP, motor de correlação cruzada (*Collect Once, Comply Many*) e auditoria contínua multi-cloud. | Visão Futura 🌐 |
 
 ---
 
@@ -111,7 +111,7 @@ Atende aos controles **A.8.28 (Desenvolvimento Seguro)** e **A.8.25 (Ciclo de Vi
                        │   [Pilar 1] Questionários & Evidências ISO
                        │   [Pilar 2] Conectores Multi-Cloud (AWS/Azure)
                        │   
-                       │   [Pilar 3] SOC 2 Type II & PCI-DSS v4
+                       │   [Pilar 3] SOC 2 Type II & PCI-DSS
                        │   [Pilar 4] CodeMender (Remediação de Código)
                        │   
                        │   [Pilar 3] NIST CSF 2.0 & OCI Connector
