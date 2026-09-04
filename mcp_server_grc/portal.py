@@ -130,7 +130,7 @@ Posturas e Controles Auditados no Ambiente:
         client = genai.Client(vertexai=True, project=primary_project, location=region)
 
         system_instruction = (
-            "Você é o 'Agentic GRC Auditor', Auditor Líder Autônomo e Especialista Sênior da Prática de Google Cloud Security PSO (Professional Services Organization), operando sobre o Gemini Enterprise Agent Platform (GEAP).\n"
+            "Você é o 'Agentic GRC Auditor', Auditor Líder Autônomo e Especialista Sênior da Prática de Google Cloud Security, operando sobre o Gemini Enterprise Agent Platform (GEAP).\n"
             "Sua missão é conduzir análises de conformidade e auditorias contínuas de alto padrão técnico e executivo com rigor metodológico para os 93 controles da ISO/IEC 27001:2022.\n\n"
             "Diretrizes Obrigatórias de Formatação e Apresentação das Respostas:\n"
             "- Adote sempre um tom consultivo sênior, técnico, executivo e impecável.\n"
@@ -139,10 +139,10 @@ Posturas e Controles Auditados no Ambiente:
             "  2. **Matriz de Controles & Postura GCP**: Utilize SEMPRE uma tabela em Markdown para detalhar os controles avaliados, contendo as colunas: | Controle ISO | Nome do Requisito | Serviço GCP & Configuração | Status | Evidência Técnica |.\n"
             "  3. **Governança & Políticas Organizacionais (A.5)**: Destaque as políticas corporativas validadas via Zero-Copy e Organization Policies ativas.\n"
             "  4. **Garantia Criptográfica de Evidências**: Mencione a integridade dos dados ancorados no Grafo de Evidências imutável com hashes SHA-256 e proteção de borda do Model Armor.\n"
-            "  5. **Recomendações e Próximos Passos PSO**: Recomendações práticas e proativas para sustentar a certificação e aprimorar a postura.\n"
+            "  5. **Recomendações e Próximos Passos**: Recomendações práticas e proativas para sustentar a certificação e aprimorar a postura.\n"
             "- Conclua sempre com a assinatura oficial:\n"
             "  ---\n"
-            "  **Google Cloud Security PSO** | *Agentic GRC & Compliance Practice*\n"
+            "  **Google Cloud Security** | *Agentic GRC & Compliance Practice*\n"
             "  *Gemini Enterprise Agent Platform (GEAP) • Evidências Auditadas com Ancoragem SHA-256*"
         )
 
@@ -413,15 +413,15 @@ async def export_report(
 
     if format.lower() == "json":
         data = {
-            "document_title": "Google Cloud Security PSO - Continuous Compliance & Audit Dossier",
-            "organization": "Google Cloud Professional Services Organization (PSO)",
+            "document_title": "Google Cloud Security - Continuous Compliance & Audit Dossier",
+            "organization": "Google Cloud Security",
             "practice": "Cybersecurity, Cloud Governance & Regulatory Compliance Practice",
-            "report_id": f"PSO-GRC-ISO27001-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}",
+            "report_id": f"GCS-GRC-ISO27001-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}",
             "generated_at": timestamp,
             "classification": "CONFIDENTIAL / FORMAL AUDIT DOSSIER",
             "standard": "ABNT NBR ISO/IEC 27001:2022 (Sistemas de Gestão de Segurança da Informação)",
             "projects_audited": project_list,
-            "lead_auditor": "Agentic GRC Auditor (Google Cloud Security PSO Virtual Lead Auditor)",
+            "lead_auditor": "Agentic GRC Auditor (Google Cloud Security Virtual Lead Auditor)",
             "platform": "Gemini Enterprise Agent Platform (GEAP)",
             "overall_score": 100.0,
             "rating": "EXCELLENT (UNQUALIFIED CLEAN OPINION)",
@@ -442,11 +442,11 @@ async def export_report(
         )
 
     elif format.lower() == "markdown":
-        md = f"""# GOOGLE CLOUD SECURITY PSO
+        md = f"""# GOOGLE CLOUD SECURITY
 ## DOSSIÊ EXECUTIVO DE AUDITORIA & CONFORMIDADE CONTÍNUA
-**Organização:** Google Cloud — Professional Services Organization (PSO)  
+**Organização:** Google Cloud Security  
 **Prática Especializada:** Cybersecurity, Cloud Governance & Regulatory Compliance Advisory  
-**Código do Documento:** `PSO-GRC-ISO27001-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}`  
+**Código do Documento:** `GCS-GRC-ISO27001-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}`  
 **Data de Emissão:** {timestamp}  
 **Classificação da Informação:** CONFIDENCIAL / RELATÓRIO DE AUDITORIA FORMAL  
 **Auditor Líder Responsável:** Agentic GRC Auditor (Autonomous Cognitive Lead Auditor - SPIFFE Validated)  
@@ -458,11 +458,11 @@ async def export_report(
 ---
 
 ## 1. Parecer Executivo de Auditoria (Auditor Opinion)
-A prática de **Google Cloud Security PSO** realizou a auditoria contínua de conformidade e segurança da informação nos ambientes Google Cloud Platform especificados no escopo.
+A prática de **Google Cloud Security** realizou a auditoria contínua de conformidade e segurança da informação nos ambientes Google Cloud Platform especificados no escopo.
 
 Com base na coleta automatizada de telemetria, inspeção de políticas de organização e varredura de infraestrutura como código (IaC), emitimos uma **OPINIÃO LIMPA E SEM RESSALVAS (UNQUALIFIED OPINION)**, com índice de conformidade global de **100.0% (Classificação: EXCELLENT)** e trajetória de drift de segurança **ESTÁVEL**.
 
-| Métrica de Avaliação PSO | Resultado Auditado | Parecer Técnico |
+| Métrica de Avaliação | Resultado Auditado | Parecer Técnico |
 | :--- | :--- | :--- |
 | **Scorecard Global de Conformidade** | **100.0%** | **Excelente / Conforme** |
 | **Cobertura de Controles ISO 27001:2022** | 93 Controles (Anexo A) | 100% Auditado |
@@ -606,7 +606,7 @@ async def handle_chat(req: ChatRequest):
     elif "capability" in lower_msg or "capacidade" in lower_msg or lower_msg == "what is your capability?":
         return {
             "response": (
-                "Agentic GRC Auditor - GEAP Compliance & Continuous Audit Agent (Google Cloud Security PSO)\n\n"
+                "Agentic GRC Auditor - GEAP Compliance & Continuous Audit Agent (Google Cloud Security)\n\n"
                 "Capacidades Principais de Auditoria:\n"
                 "1. Auditoria Contínua e Parecer Executivo para ISO/IEC 27001:2022 (Controles A.5, A.6, A.7 e A.8).\n"
                 "2. Avaliação Contínua de Políticas Organizacionais e Governança do SGSI (Tema A.5).\n"
@@ -704,7 +704,7 @@ DEFAULT_CUSTOM_SUBAGENTS = [
         "name": "FinOps & Storage Compliance Auditor",
         "role": "Auditoria de Retenção e Ciclo de Vida GCS (A.5.9, A.8.10)",
         "description": "Inspeciona políticas de retenção, custos de armazenamento e regras de exclusão segura em Cloud Storage e BigQuery.",
-        "system_prompt": "Você é o FinOps & Storage Compliance Auditor do Google Cloud Security PSO. Analise as políticas de ciclo de vida (Object Lifecycle Management) e expiração de dados conforme A.5.9 e A.8.10.",
+        "system_prompt": "Você é o FinOps & Storage Compliance Auditor do Google Cloud Security. Analise as políticas de ciclo de vida (Object Lifecycle Management) e expiração de dados conforme A.5.9 e A.8.10.",
         "tools": ["asset_inventory", "gcs_audit", "bigquery_audit"],
         "model": "gemini-2.5-flash",
         "temperature": 0.1,
@@ -718,7 +718,7 @@ DEFAULT_CUSTOM_SUBAGENTS = [
         "name": "GKE & Container Security Specialist",
         "role": "Especialista em Segurança de Contêineres e GKE (A.5.21, A.8.28)",
         "description": "Avalia configurações de clusters GKE, Binary Authorization, nós Shielded e NetworkPolicies no GKE.",
-        "system_prompt": "Você é o GKE & Container Security Specialist do Google Cloud Security PSO. Valide assinaturas SLSA-3, imagens distroless e isolamento de redes no GKE.",
+        "system_prompt": "Você é o GKE & Container Security Specialist do Google Cloud Security. Valide assinaturas SLSA-3, imagens distroless e isolamento de redes no GKE.",
         "tools": ["gke_audit", "binary_authorization", "artifact_registry"],
         "model": "gemini-2.5-flash",
         "temperature": 0.1,
@@ -732,7 +732,7 @@ DEFAULT_CUSTOM_SUBAGENTS = [
         "name": "IAM Least Privilege & Zero Trust Enforcer",
         "role": "Auditor de Menor Privilégio e Zero Trust (A.5.15, A.8.2)",
         "description": "Identifica privilégios excessivos, contas de serviço órfãs e força adoção de PAM (Privileged Access Manager).",
-        "system_prompt": "Você é o IAM Least Privilege Enforcer do Google Cloud Security PSO. Audite atribuições de papéis administrativos, MFA mandatório e chaves de contas de serviço.",
+        "system_prompt": "Você é o IAM Least Privilege Enforcer do Google Cloud Security. Audite atribuições de papéis administrativos, MFA mandatório e chaves de contas de serviço.",
         "tools": ["iam_recommender", "privileged_access_manager", "beyondcorp"],
         "model": "gemini-2.5-flash",
         "temperature": 0.1,
@@ -878,7 +878,7 @@ async def run_subagent_task(agent_id: str, project_id: Optional[str] = Query(def
             f"Subagente '{agent['name']}' executou varredura especializada no projeto '{project_id}'.",
             f"Controles avaliados: {', '.join(agent.get('target_controls', ['A.5.1']))}.",
             f"Ferramentas acionadas: {', '.join(agent.get('tools', ['asset_inventory']))}.",
-            "Conformidade técnica: 100% de aderência às diretrizes de auditoria PSO.",
+            "Conformidade técnica: 100% de aderência às diretrizes de auditoria Google Cloud Security.",
         ]
         return {
             "status": "COMPLETED",

@@ -1,11 +1,11 @@
-"""Official Google Cloud Security PSO - Agentic GRC Auditor Web Portal."""
+"""Official Google Cloud Security - Agentic GRC Auditor Web Portal."""
 
 PORTAL_HTML = r"""<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Cloud Security PSO - Agentic GRC Auditor</title>
+    <title>Google Cloud Security - Agentic GRC Auditor</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -110,7 +110,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             color: inherit;
         }
 
-        .gcp-pso-logo-icon {
+        .gcp-sec-logo-icon {
             width: 32px;
             height: 32px;
             display: flex;
@@ -568,7 +568,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
 
         .hero-title { font-size: 32px; font-weight: 600; letter-spacing: -0.5px; color: #ffffff; }
-        .hero-badge-pso {
+        .hero-badge-sec {
             font-size: 12px;
             font-weight: 600;
             color: var(--gcp-blue);
@@ -1163,6 +1163,186 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             cursor: pointer;
         }
 
+        
+        /* ------------------------------------------------------------------ */
+        /* Left Drawer for Subagent Creation (Lado Esquerdo) */
+        /* ------------------------------------------------------------------ */
+        .left-drawer-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 1100;
+        }
+        .left-drawer-overlay.active { display: block; }
+        .left-drawer {
+            position: fixed;
+            top: 0;
+            left: -520px;
+            width: 480px;
+            max-width: 90vw;
+            height: 100vh;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border-subtle);
+            box-shadow: 6px 0 28px rgba(0, 0, 0, 0.75);
+            z-index: 1200;
+            display: flex;
+            flex-direction: column;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .left-drawer.open { left: 0; }
+        .left-drawer-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .left-drawer-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .left-drawer-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .left-drawer-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: var(--bg-canvas);
+        }
+
+        /* Phase Actions and Remediation Drawer in Scan por Fases */
+        .phase-actions-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .btn-phase-exec {
+            flex: 1;
+            background: rgba(138, 180, 248, 0.12);
+            color: var(--gcp-blue);
+            border: 1px solid rgba(138, 180, 248, 0.28);
+            padding: 7px 10px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .btn-phase-exec:hover {
+            background: var(--gcp-blue);
+            color: #fff;
+        }
+        .btn-phase-treat {
+            flex: 1;
+            background: rgba(234, 67, 53, 0.12);
+            color: #f28b82;
+            border: 1px solid rgba(234, 67, 53, 0.25);
+            padding: 7px 10px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .btn-phase-treat:hover {
+            background: rgba(234, 67, 53, 0.22);
+            border-color: var(--gcp-red);
+        }
+        .phase-findings-box {
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: var(--bg-canvas);
+            border-radius: 6px;
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            line-height: 1.45;
+            border-left: 3px solid var(--gcp-blue);
+            max-height: 90px;
+            overflow-y: auto;
+        }
+
+        /* Inline Phase Remediation Container in Scan por Fases */
+        .phase-remediation-drawer {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 18px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            border-left: 4px solid var(--gcp-green);
+        }
+        .rem-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .rem-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .rem-badge {
+            background: rgba(52, 168, 83, 0.15);
+            color: var(--gcp-green);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid rgba(52, 168, 83, 0.3);
+        }
+        .rem-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .btn-close-rem {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 20px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .btn-close-rem:hover { color: var(--text-primary); }
+        .rem-body {
+            font-size: 13px;
+            color: #d1d5db;
+            line-height: 1.6;
+            background: var(--bg-canvas);
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+        }
+        .rem-footer {
+            margin-top: 16px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
         /* View 4: Subagentes & Zero-Copy */
         /* ------------------------------------------------------------------ */
         .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
@@ -1209,7 +1389,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .stat-label { font-size: 13px; color: var(--text-secondary); }
 
         /* ------------------------------------------------------------------ */
-        /* View 6: Relatório Executivo PSO */
+        /* View 6: Relatório Executivo */
         /* ------------------------------------------------------------------ */
         .report-preview-sheet {
             background: #ffffff;
@@ -1229,9 +1409,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             padding-bottom: 20px;
             margin-bottom: 24px;
         }
-        .report-brand-pso { display: flex; align-items: center; gap: 16px; }
+        .report-brand-sec { display: flex; align-items: center; gap: 16px; }
         .report-title-meta h1 { font-size: 22px; font-weight: 700; color: #111827; margin-bottom: 4px; }
-        .report-title-meta .pso-subtitle { font-size: 12px; font-weight: 600; color: #1a73e8; text-transform: uppercase; letter-spacing: 0.8px; }
+        .report-title-meta .sec-subtitle { font-size: 12px; font-weight: 600; color: #1a73e8; text-transform: uppercase; letter-spacing: 0.8px; }
         .report-meta-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -1331,17 +1511,17 @@ PORTAL_HTML = r"""<!DOCTYPE html>
     <!-- Left Sidebar -->
     <aside class="sidebar" id="appSidebar">
         <div class="sidebar-top">
-            <!-- Brand Header: Google Cloud Security PSO & Agentic GRC Auditor -->
+            <!-- Brand Header: Google Cloud Security & Agentic GRC Auditor -->
             <div class="brand-header">
                 <a href="#" class="brand-left" onclick="switchView('view-chat')">
-                    <div class="gcp-pso-logo-icon">
+                    <div class="gcp-sec-logo-icon">
                         <svg viewBox="0 0 32 32" width="30" height="30" fill="none">
                             <path d="M16 3L28 8.5V17.5C28 23.5 22.8 28.5 16 30C9.2 28.5 4 23.5 4 17.5V8.5L16 3Z" fill="#1a73e8" fill-opacity="0.2" stroke="#8ab4f8" stroke-width="2"/>
-                            <path d="M16 7L24 10.8V17C24 21.2 20.6 24.8 16 26C11.4 24.8 8 21.2 8 17V10.8L16 7Z" fill="url(#pso-shield-grad)"/>
+                            <path d="M16 7L24 10.8V17C24 21.2 20.6 24.8 16 26C11.4 24.8 8 21.2 8 17V10.8L16 7Z" fill="url(#sec-shield-grad)"/>
                             <path d="M14 17L19 12" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
                             <path d="M12 15L14 17" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
                             <defs>
-                                <linearGradient id="pso-shield-grad" x1="8" y1="7" x2="24" y2="26">
+                                <linearGradient id="sec-shield-grad" x1="8" y1="7" x2="24" y2="26">
                                     <stop stop-color="#4285F4"/>
                                     <stop offset="0.5" stop-color="#1A73E8"/>
                                     <stop offset="1" stop-color="#34A853"/>
@@ -1351,7 +1531,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     </div>
                     <div class="brand-text-col">
                         <span class="brand-title">Agentic GRC Auditor</span>
-                        <span class="brand-subtitle-badge">Google Cloud Security PSO</span>
+                        <span class="brand-subtitle-badge">Google Cloud Security</span>
                     </div>
                 </a>
                 <button class="btn-collapse" onclick="toggleSidebar()" title="Recolher menu lateral">
@@ -1382,7 +1562,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <line x1="16" y1="17" x2="8" y2="17"/>
                         </svg>
                     </span>
-                    <span class="label">Dossiê Executivo PSO</span>
+                    <span class="label">Dossiê Executivo</span>
                 </button>
                 <button class="nav-action-item" onclick="switchView('view-scorecard')">
                     <span class="icon-svg">
@@ -1409,7 +1589,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                         </svg>
                     </span>
-                    <span class="label">Habilidades PSO</span>
+                    <span class="label">Habilidades de Segurança</span>
                 </button>
             </div>
 
@@ -1512,7 +1692,19 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </svg>
                     </span>
                 </button>
-            </div>
+                <button class="agent-item" id="agentBtnCreate" onclick="openCreateSubagentModal()" style="border: 1px dashed rgba(138, 180, 248, 0.4); margin-top: 6px; background: rgba(138, 180, 248, 0.05);">
+                    <div class="agent-left-wrap">
+                        <div class="agent-avatar" style="background: rgba(138, 180, 248, 0.2); color: var(--gcp-blue);">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                        </div>
+                        <span class="agent-name" style="color: var(--gcp-blue); font-weight: 600;">+ Criar Subagente</span>
+                    </div>
+                </button>
+                <div id="sidebarCustomAgentsList"></div>
+            </div>       </div>
 
             <!-- Recentes -->
             <div class="section-header" style="margin-top: 8px;">
@@ -1525,7 +1717,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             </div>
         </div>
 
-        <!-- Bottom Left: Escopo de Projetos & Perfil PSO -->
+        <!-- Bottom Left: Escopo de Projetos & Perfil -->
         <div class="sidebar-bottom">
             <div class="scope-box" id="scopeContainer">
                 <div class="scope-header">
@@ -1548,7 +1740,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <div class="user-avatar">JS</div>
                     <div class="user-meta">
                         <span class="user-name">Joabson Saccomani</span>
-                        <span class="user-plan">Google Cloud Security PSO</span>
+                        <span class="user-plan">Google Cloud Security</span>
                     </div>
                 </div>
                 <button class="btn-settings" title="Configurações">
@@ -1581,7 +1773,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <div class="top-right-actions">
                 <div class="top-status-indicator">
                     <span class="status-dot"></span>
-                    <span>Vertex AI gemini-2.5-flash (PSO Certified)</span>
+                    <span>Vertex AI gemini-2.5-flash (Google Cloud Security Certified)</span>
                 </div>
 
                 <div class="dropdown" id="exportDropdown">
@@ -1591,7 +1783,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <polyline points="7 10 12 15 17 10"/>
                             <line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
-                        Exportar Relatório PSO
+                        Exportar Relatório
                     </button>
                     <div class="dropdown-menu">
                         <a class="dropdown-item" href="javascript:void(0)" onclick="openExecutiveReport()">
@@ -1601,7 +1793,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <line x1="16" y1="13" x2="8" y2="13"/>
                                 <line x1="16" y1="17" x2="8" y2="17"/>
                             </svg>
-                            Visualizar Dossiê Executivo PSO
+                            Visualizar Dossiê Executivo
                         </a>
                         <a class="dropdown-item" href="javascript:void(0)" onclick="printExecutiveReport()">
                             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor">
@@ -1654,7 +1846,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                     </defs>
                                 </svg>
                             </div>
-                            <span class="hero-badge-pso">Google Cloud Security PSO</span>
+                            <span class="hero-badge-sec">Google Cloud Security</span>
                             <h1 class="hero-title">Agentic GRC Auditor</h1>
                             <p class="hero-subtitle">
                                 Auditoria contínua autônoma, governança e certificação para <strong>ISO/IEC 27001:2022</strong> (93 Controles do Anexo A) integrada à telemetria real do Google Cloud e Grafo de Evidências imutável.
@@ -1697,7 +1889,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                                 </svg>
                             </button>
-                            <textarea id="chatInput" class="chat-textarea" placeholder="Consulte o Agentic GRC Auditor (Google Cloud Security PSO)..." rows="1" onkeydown="handleChatKey(event)" oninput="handleChatInput(this)"></textarea>
+                            <textarea id="chatInput" class="chat-textarea" placeholder="Consulte o Agentic GRC Auditor (Google Cloud Security)..." rows="1" onkeydown="handleChatKey(event)" oninput="handleChatInput(this)"></textarea>
                             <button id="sendBtn" class="btn-send" onclick="sendChatMessage()" title="Enviar mensagem">
                                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
                                     <line x1="12" y1="19" x2="12" y2="5"/>
@@ -1706,7 +1898,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             </button>
                         </div>
                         <div class="chat-disclaimer">
-                            Google Cloud Security PSO • As evidências e pareceres de conformidade são validados no Grafo Criptográfico SHA-256 e protegidos por Model Armor.
+                            Google Cloud Security • As evidências e pareceres de conformidade são validados no Grafo Criptográfico SHA-256 e protegidos por Model Armor.
                         </div>
                     </div>
                 </div>
@@ -1716,7 +1908,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <section class="view-pane" id="view-phases">
                 <div class="section-header-banner">
                     <div class="view-title-group">
-                        <h2>Scan de Auditoria por Fases (Google Cloud PSO)</h2>
+                        <h2>Scan de Auditoria por Fases (Google Cloud Security)</h2>
                         <p>Pipeline estruturado de 4 fases para auditoria técnica, governança de dados e ancoragem criptográfica.</p>
                     </div>
                     <button class="btn-confirm" onclick="triggerPhasedAudit()">
@@ -1806,11 +1998,32 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <div class="console-logs" id="auditLogsContainer">
                         <div class="log-entry">
                             <span class="log-ts">--:--:--</span>
-                            <span class="log-msg">Motor de auditoria PSO pronto para inicialização das 4 fases nos projetos selecionados.</span>
+                            <span class="log-msg">Motor de auditoria Google Cloud Security pronto para inicialização das 4 fases nos projetos selecionados.</span>
                         </div>
                     </div>
                 </div>
-            </section>
+            
+                <!-- Painel de Tratamento de Desvios (Estritamente dentro de Scan por Fases) -->
+                <div class="phase-remediation-drawer" id="phaseRemediationContainer" style="display: none;">
+                    <div class="rem-header">
+                        <div class="rem-title-wrap">
+                            <span class="rem-badge" id="remBadge">Tratamento de Desvios</span>
+                            <div class="rem-title" id="remTitle">Plano de Remediação Automatizada (Zero-Drift)</div>
+                        </div>
+                        <button class="btn-close-rem" onclick="closePhaseRemediation()">&times;</button>
+                    </div>
+                    <input type="hidden" id="remPhaseNumber" value="1">
+                    <div class="rem-body" id="remBody">
+                        Carregando plano de remediação técnica...
+                    </div>
+                    <div class="rem-footer">
+                        <button class="btn-cancel" onclick="closePhaseRemediation()">Fechar</button>
+                        <button class="btn-confirm" onclick="executePhaseRemediation()" style="background: var(--gcp-green);">
+                            Executar Remediação Automática
+                        </button>
+                    </div>
+                </div>
+</section>
 
             <!-- View 3: Matriz ISO 27001 Escalável (With Themes Summary & Rich Drawer) -->
             <section class="view-pane" id="view-matrix">
@@ -1939,7 +2152,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                         </svg>
-                        Subagentes Nativos (Google Cloud Security PSO)
+                        Subagentes Nativos (Google Cloud Security)
                     </span>
                 </div>
                 <div class="cards-grid">
@@ -2054,11 +2267,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </div>
             </section>
 
-            <!-- View 6: Relatório Executivo PSO -->
+            <!-- View 6: Relatório Executivo -->
             <section class="view-pane" id="view-report-exec" style="background: var(--bg-canvas); overflow-y: auto;">
                 <div class="report-preview-sheet">
                     <div class="report-header-banner">
-                        <div class="report-brand-pso">
+                        <div class="report-brand-sec">
                             <svg viewBox="0 0 32 32" width="40" height="40" fill="none">
                                 <path d="M16 3L28 8.5V17.5C28 23.5 22.8 28.5 16 30C9.2 28.5 4 23.5 4 17.5V8.5L16 3Z" fill="#1a73e8" fill-opacity="0.15" stroke="#1a73e8" stroke-width="2"/>
                                 <path d="M16 7L24 10.8V17C24 21.2 20.6 24.8 16 26C11.4 24.8 8 21.2 8 17V10.8L16 7Z" fill="#1a73e8"/>
@@ -2066,8 +2279,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <path d="M12 15L14 17" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
                             </svg>
                             <div class="report-title-meta">
-                                <h1>Google Cloud Security PSO</h1>
-                                <div class="pso-subtitle">Professional Services Organization • Cybersecurity & Regulatory Practice</div>
+                                <h1>Google Cloud Security</h1>
+                                <div class="sec-subtitle">Google Cloud Security • Cybersecurity & Regulatory Practice</div>
                             </div>
                         </div>
                         <div style="text-align: right;">
@@ -2083,8 +2296,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <span class="report-meta-value">Dossiê Executivo de Auditoria & Conformidade Contínua</span>
                         </div>
                         <div class="report-meta-item">
-                            <span class="report-meta-label">ID de Registro PSO</span>
-                            <span class="report-meta-value" id="docReportId">PSO-GRC-ISO27001-2026-FINAL</span>
+                            <span class="report-meta-label">ID de Registro de Auditoria</span>
+                            <span class="report-meta-value" id="docReportId">GCS-GRC-ISO27001-2026-FINAL</span>
                         </div>
                         <div class="report-meta-item">
                             <span class="report-meta-label">Norma & Emendas</span>
@@ -2106,7 +2319,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                     <div class="report-score-box">
                         <div>
-                            <div class="report-score-label">Opinião do Auditor PSO: LIMPA E SEM RESSALVAS</div>
+                            <div class="report-score-label">Opinião do Auditor: LIMPA E SEM RESSALVAS</div>
                             <div style="font-size: 13px; color: #047857;">Ambiente com 100% dos controles auditados em estrita conformidade. Trajetória de drift estável.</div>
                         </div>
                         <div class="report-score-num">100.0%</div>
@@ -2114,7 +2327,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                     <div class="report-section-title">1. Parecer Executivo de Auditoria</div>
                     <p style="font-size: 13.5px; color: #374151; margin-bottom: 16px;">
-                        A prática de <strong>Google Cloud Security PSO (Professional Services Organization)</strong> realizou a auditoria autônoma de segurança e conformidade da informação sobre as instâncias do Google Cloud Platform indicadas no escopo. A avaliação contemplou integralmente os 93 controles normativos do Anexo A da ISO/IEC 27001:2022 consolidados nos 4 temas principais (Organizacional, Pessoas, Físico e Tecnológico).
+                        A prática de <strong>Google Cloud Security (Google Cloud Security)</strong> realizou a auditoria autônoma de segurança e conformidade da informação sobre as instâncias do Google Cloud Platform indicadas no escopo. A avaliação contemplou integralmente os 93 controles normativos do Anexo A da ISO/IEC 27001:2022 consolidados nos 4 temas principais (Organizacional, Pessoas, Físico e Tecnológico).
                     </p>
 
                     <div class="report-section-title">2. Resultados do Pipeline de Auditoria em 4 Fases</div>
@@ -2158,7 +2371,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <div class="report-section-title">3. Atestação Formal & Assinatura Digital</div>
                     <div class="report-signature-block">
                         <div>
-                            <div style="font-weight: 700; color: #111827;">Google Cloud Security PSO</div>
+                            <div style="font-weight: 700; color: #111827;">Google Cloud Security</div>
                             <div style="color: #6b7280;">Cybersecurity & Regulatory Advisory Practice</div>
                             <div style="color: #6b7280; font-size: 11px;">Gemini Enterprise Agent Platform (GEAP)</div>
                         </div>
@@ -2320,7 +2533,132 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             }
         }
 
+        
+        // -------------------------------------------------------------------
+        // Left-Side Subagent Creation Drawer
+        // -------------------------------------------------------------------
+        function openCreateSubagentModal(agentId = null) {
+            document.getElementById("drawerAgentEditId").value = agentId || "";
+            document.getElementById("drawerAgentName").value = "";
+            document.getElementById("drawerAgentRole").value = "";
+            document.getElementById("drawerAgentControls").value = "";
+            document.getElementById("drawerAgentDesc").value = "";
+            document.getElementById("drawerAgentPrompt").value = "";
+            document.getElementById("drawerTitle").innerText = agentId ? "Editar Subagente" : "Criar Novo Subagente";
+            
+            document.getElementById("subagentLeftDrawer").classList.add("open");
+            document.getElementById("leftDrawerOverlay").classList.add("active");
+        }
+
+        function closeCreateSubagentModal() {
+            document.getElementById("subagentLeftDrawer").classList.remove("open");
+            document.getElementById("leftDrawerOverlay").classList.remove("active");
+        }
+
+        async function saveCustomSubagentFromDrawer() {
+            const name = document.getElementById("drawerAgentName").value.trim();
+            const role = document.getElementById("drawerAgentRole").value.trim();
+            const controlsStr = document.getElementById("drawerAgentControls").value.trim();
+            const desc = document.getElementById("drawerAgentDesc").value.trim();
+            const prompt = document.getElementById("drawerAgentPrompt").value.trim();
+            const model = document.getElementById("drawerAgentModel").value;
+
+            if (!name || !role) {
+                alert("Por favor, preencha o Nome e o Cargo do Subagente.");
+                return;
+            }
+
+            const controls = controlsStr.split(",").map(c => c.trim()).filter(c => c);
+            const checkboxes = document.querySelectorAll("#subagentLeftDrawer .tool-checkbox-label input[type='checkbox']:checked");
+            const tools = Array.from(checkboxes).map(cb => cb.value);
+
+            const payload = {
+                id: document.getElementById("drawerAgentEditId").value || null,
+                name: name,
+                role: role,
+                description: desc || `Subagente customizado para auditoria de ${role}`,
+                system_prompt: prompt || `Você é o auditor ${name} focado em conformidade ISO 27001 no GCP.`,
+                tools: tools.length > 0 ? tools : ["asset_inventory"],
+                model: model,
+                temperature: 0.1,
+                target_controls: controls.length > 0 ? controls : ["A.5.1"]
+            };
+
+            try {
+                const res = await fetch("/api/subagents", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                closeCreateSubagentModal();
+                loadSubagents();
+                appendLog(`[Subagente Criado] '${data.subagent.name}' salvo e ativado no painel esquerdo!`, "success");
+            } catch (e) {
+                alert("Erro ao salvar subagente: " + e);
+            }
+        }
+
+        // -------------------------------------------------------------------
+        // Inline Phase Remediation inside Scan por Fases
+        // -------------------------------------------------------------------
         function openRemediationModal(phaseNum) {
+            switchView('view-phases');
+            const drawer = document.getElementById("phaseRemediationContainer");
+            if (!drawer) return;
+            drawer.style.display = "block";
+            document.getElementById("remPhaseNumber").value = phaseNum;
+            document.getElementById("remBadge").innerText = `Fase ${phaseNum}`;
+            document.getElementById("remTitle").innerText = `Plano de Remediação Automatizada: Fase ${phaseNum}`;
+            
+            const plans = {
+                1: "<strong>Plano de Remediação da Fase 1 (Descoberta & IAM):</strong><br>• Revogação preventiva de papéis herdados permissivos via IAM Recommender.<br>• Enforce de MFA/2FA mandatório para identidades com privilégios administrativos.<br>• Desativação de chaves de service account inativas e rotação de credenciais.",
+                2: "<strong>Plano de Remediação da Fase 2 (Auditoria Técnica & IaC):</strong><br>• Enforce de Public Access Prevention (PAP) e UBLA nos buckets Cloud Storage.<br>• Configuração de período de rotação de chaves Cloud KMS HSM para 60 dias (baseline <= 90 dias).<br>• Correção de portas administrativas abertas (SSH/RDP) no firewall VPC e sincronização de IaC Terraform.",
+                3: "<strong>Plano de Remediação da Fase 3 (Governança & Políticas):</strong><br>• Enforce de Organization Policies restritivas (restrição de localização geográfica).<br>• Sincronização e assinatura digital das políticas do SGSI via Zero-Copy (Google Drive).<br>• Registro formal da aprovação da diretoria no grafo de conformidade com hash SHA-256.",
+                4: "<strong>Plano de Remediação da Fase 4 (Grafo Criptográfico):</strong><br>• Recálculo completo de hashes SHA-256 para todos os nós de evidência.<br>• Emissão de novo recibo digital com garantia de não-repúdio.<br>• Reconciliação do Scorecard executivo em 100.0% (EXCELLENT)."
+            };
+            document.getElementById("remBody").innerHTML = plans[phaseNum] || "Plano de remediação para a fase selecionada.";
+            drawer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function closePhaseRemediation() {
+            const drawer = document.getElementById("phaseRemediationContainer");
+            if (drawer) drawer.style.display = "none";
+        }
+
+        async function executePhaseRemediation() {
+            const phaseNum = parseInt(document.getElementById("remPhaseNumber").value, 10);
+            const project = Array.from(selectedProjectIds)[0] || "agentic-grc-cd06";
+            appendLog(`[Remediação Fase ${phaseNum}] Aplicando remediação automatizada em '${project}'...`);
+
+            try {
+                const res = await fetch("/api/audit/remediate_phase", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phase: phaseNum, project_id: project })
+                });
+                const data = await res.json();
+                closePhaseRemediation();
+
+                appendLog(`[Remediação Fase ${phaseNum}] Sucesso! Status: ${data.details.status}`, "success");
+                data.details.actions_executed.forEach(a => appendLog(`  [Auto-Fix] ${a}`, "success"));
+
+                const statusTag = document.getElementById(`statusPhase${phaseNum}`);
+                if (statusTag) {
+                    statusTag.innerText = "Remediado (100%)";
+                    statusTag.className = "phase-status-tag compliant";
+                }
+                const findingsBox = document.getElementById(`findingsPhase${phaseNum}`);
+                if (findingsBox) {
+                    findingsBox.style.display = "block";
+                    findingsBox.innerHTML = `<span style="color: var(--gcp-green);"><strong>Fase ${phaseNum} Remediada com Sucesso:</strong></span><br>` + data.details.actions_executed.map(a => `✓ ${escapeHtml(a)}`).join("<br>");
+                }
+            } catch (e) {
+                appendLog(`[Remediação Erro] ${e}`, "error");
+            }
+        }
+
+        function old_openRemediationModal(phaseNum) {
             document.getElementById("remPhaseNumber").value = phaseNum;
             document.getElementById("remModalTitle").innerText = `Tratar Desvios da Fase ${phaseNum}`;
             const details = document.getElementById("remPlanDetails");
@@ -2557,7 +2895,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 "view-matrix": "Matriz ISO 27001 Escalável",
                 "view-connectors": "Subagentes & Zero-Copy",
                 "view-scorecard": "Scorecard & Grafo de Evidências",
-                "view-report-exec": "Dossiê Executivo PSO"
+                "view-report-exec": "Dossiê Executivo"
             };
             document.getElementById("topActiveTitle").innerText = titleMap[viewId] || "Auditor";
         }
@@ -2716,7 +3054,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     </svg>
                 </div>
                 <div class="msg-content" id="activeBotReply">
-                    <span style="color: var(--text-tertiary)">Agentic GRC Auditor (Google Cloud Security PSO) avaliando telemetria e grafo de evidências...</span>
+                    <span style="color: var(--text-tertiary)">Agentic GRC Auditor (Google Cloud Security) avaliando telemetria e grafo de evidências...</span>
                 </div>
             `;
             chatArea.appendChild(botRow);
@@ -2735,7 +3073,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             } catch (err) {
                 const replyElem = document.getElementById("activeBotReply");
                 replyElem.removeAttribute("id");
-                replyElem.innerHTML = `<span style="color: var(--gcp-red)">Erro na comunicação com o auditor PSO: ${err}</span>`;
+                replyElem.innerHTML = `<span style="color: var(--gcp-red)">Erro na comunicação com o auditor Google Cloud Security: ${err}</span>`;
             }
             chatArea.scrollTop = chatArea.scrollHeight;
         }
@@ -3073,96 +3411,74 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
     </script>
 
-    <!-- Modal: Criar / Editar Subagente Customizado -->
-    <div class="modal-backdrop" id="subagentModal">
-        <div class="modal-dialog" style="max-width: 580px;">
-            <div class="modal-header">
-                <span class="modal-title" id="subagentModalTitle">Criar Novo Subagente Customizado</span>
-                <span class="btn-modal-close" onclick="closeSubagentModal()">&times;</span>
+    
+
+
+    <!-- Overlay e Drawer de Criação de Subagente (Lado Esquerdo) -->
+    <div class="left-drawer-overlay" id="leftDrawerOverlay" onclick="closeCreateSubagentModal()"></div>
+    <div class="left-drawer" id="subagentLeftDrawer">
+        <div class="left-drawer-header">
+            <div class="left-drawer-title">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--gcp-blue)" stroke-width="2">
+                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+                    <path d="M12 6v6l4 2"/>
+                </svg>
+                <span id="drawerTitle">Criar Novo Subagente</span>
             </div>
-            <div class="modal-body">
-                <input type="hidden" id="subagentEditId" value="">
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Nome do Subagente</label>
-                        <input type="text" id="subagentName" class="form-control" placeholder="Ex: FinOps & Storage Compliance Auditor">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Cargo / Especialidade</label>
-                        <input type="text" id="subagentRole" class="form-control" placeholder="Ex: Auditor de Retenção e Ciclo de Vida">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Controles ISO Alvo (separados por vírgula)</label>
-                        <input type="text" id="subagentControls" class="form-control" placeholder="Ex: A.5.9, A.8.10, A.8.11">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Modelo Cognitivo</label>
-                        <select id="subagentModel" class="form-control">
-                            <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Recomendado / Baixa Latência)</option>
-                            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Raciocínio Profundo)</option>
-                            <option value="gemini-2.5-pro">Gemini 2.5 Pro (Lead Auditor Especialista)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Descrição do Propósito</label>
-                    <input type="text" id="subagentDesc" class="form-control" placeholder="Breve resumo do que este subagente avalia no ambiente GCP.">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">System Prompt / Instrução Especializada</label>
-                    <textarea id="subagentPrompt" class="form-control" rows="4" placeholder="Defina a metodologia e critérios do auditor: 'Você é o especialista PSO responsável por...'"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Ferramentas & Permissões GCP Habilitadas</label>
-                    <div class="tools-checkbox-grid">
-                        <label class="tool-checkbox-label"><input type="checkbox" value="asset_inventory" checked> Cloud Asset Inventory</label>
-                        <label class="tool-checkbox-label"><input type="checkbox" value="iam_recommender" checked> IAM Recommender</label>
-                        <label class="tool-checkbox-label"><input type="checkbox" value="cloud_kms"> Cloud KMS HSM</label>
-                        <label class="tool-checkbox-label"><input type="checkbox" value="vpc_sc"> VPC Service Controls</label>
-                        <label class="tool-checkbox-label"><input type="checkbox" value="iac_scanner"> IaC Terraform Scanner</label>
-                        <label class="tool-checkbox-label"><input type="checkbox" value="zero_copy_drive"> Zero-Copy Workspace Drive</label>
-                    </div>
-                </div>
+            <button class="btn-close-rem" onclick="closeCreateSubagentModal()">&times;</button>
+        </div>
+        <div class="left-drawer-body">
+            <input type="hidden" id="drawerAgentEditId" value="">
+            
+            <div class="form-group">
+                <label class="form-label">Nome do Subagente</label>
+                <input type="text" id="drawerAgentName" class="form-control" placeholder="Ex: FinOps & Storage Compliance Auditor">
             </div>
-            <div class="modal-footer">
-                <button class="btn-cancel" onclick="closeSubagentModal()">Cancelar</button>
-                <button class="btn-confirm" onclick="saveCustomSubagent()" style="background: var(--gcp-blue);">Salvar Subagente</button>
+
+            <div class="form-group">
+                <label class="form-label">Cargo / Especialidade</label>
+                <input type="text" id="drawerAgentRole" class="form-control" placeholder="Ex: Auditor de Ciclo de Vida e Retenção">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Controles ISO Alvo (separados por vírgula)</label>
+                <input type="text" id="drawerAgentControls" class="form-control" placeholder="Ex: A.5.9, A.8.10, A.8.11">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Modelo Cognitivo</label>
+                <select id="drawerAgentModel" class="form-control">
+                    <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Recomendado / Resposta Rápida)</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro (Raciocínio Profundo)</option>
+                    <option value="gemini-2.5-pro">Gemini 2.5 Pro (Especialista em Auditoria)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Descrição do Propósito</label>
+                <input type="text" id="drawerAgentDesc" class="form-control" placeholder="Breve resumo do que este subagente avalia no ambiente Google Cloud.">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">System Prompt / Instrução Especializada</label>
+                <textarea id="drawerAgentPrompt" class="form-control" rows="4" placeholder="Defina a metodologia e critérios do auditor: 'Você é o especialista de Google Cloud Security responsável por...'"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ferramentas & Permissões GCP Habilitadas</label>
+                <div class="tools-checkbox-grid">
+                    <label class="tool-checkbox-label"><input type="checkbox" value="asset_inventory" checked> Cloud Asset Inventory</label>
+                    <label class="tool-checkbox-label"><input type="checkbox" value="iam_recommender" checked> IAM Recommender</label>
+                    <label class="tool-checkbox-label"><input type="checkbox" value="cloud_kms"> Cloud KMS HSM</label>
+                    <label class="tool-checkbox-label"><input type="checkbox" value="vpc_sc"> VPC Service Controls</label>
+                    <label class="tool-checkbox-label"><input type="checkbox" value="iac_scanner"> IaC Terraform Scanner</label>
+                    <label class="tool-checkbox-label"><input type="checkbox" value="zero_copy_drive"> Zero-Copy Workspace Drive</label>
+                </div>
             </div>
         </div>
-    </div>
-
-    <!-- Modal: Tratar Desvios de Fase (Remediação) -->
-    <div class="modal-backdrop" id="remediationModal">
-        <div class="modal-dialog" style="max-width: 520px;">
-            <div class="modal-header">
-                <span class="modal-title" id="remModalTitle">Tratar Desvios da Fase</span>
-                <span class="btn-modal-close" onclick="closeRemediationModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="remPhaseNumber" value="1">
-                <div id="remPlanDetails" style="font-size: 13px; line-height: 1.6; color: #d1d5db;">
-                    Carregando plano de remediação...
-                </div>
-                <div style="margin-top: 14px; background: rgba(138, 180, 248, 0.1); border: 1px solid rgba(138, 180, 248, 0.25); border-radius: 8px; padding: 12px; font-size: 12px; color: var(--gcp-blue);">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 4px;">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="12" y1="8" x2="12" y2="12"/>
-                        <line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                    A execução registrará as alterações no Grafo de Evidências com novo hash SHA-256 para auditoria contínua.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancel" onclick="closeRemediationModal()">Fechar</button>
-                <button class="btn-confirm" onclick="executePhaseRemediation()" style="background: var(--gcp-green);">Executar Remediação Automática</button>
-            </div>
+        <div class="left-drawer-footer">
+            <button class="btn-cancel" onclick="closeCreateSubagentModal()">Cancelar</button>
+            <button class="btn-confirm" onclick="saveCustomSubagentFromDrawer()" style="background: var(--gcp-blue);">Salvar Subagente</button>
         </div>
     </div>
 
