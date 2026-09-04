@@ -27,7 +27,14 @@ from agent_orchestrator.zero_copy_connector import (
     ZeroCopyDocument,
 )
 from mcp_server_grc.tools.iac_scanner import scan_iac_configuration
-from mcp_server_grc.catalog import ACTIVE_PROJECTS, ISO_27001_CATALOG, THEMES_STRUCTURE
+from mcp_server_grc.catalog import (
+    ACTIVE_PROJECTS,
+    ALL_ORG_PROJECTS,
+    GCP_ORGANIZATION_METADATA,
+    ISO_27001_CATALOG,
+    THEMES_STRUCTURE,
+)
+from mcp_server_grc.finops import finops_tracker
 from mcp_server_grc.portal_html import PORTAL_HTML
 from mcp_server_grc.assets_b64 import (
     GOOGLE_CLOUD_WORDMARK_URI,
@@ -72,6 +79,11 @@ class SubagentTriggerRequest(BaseModel):
 class RemediationApprovalRequest(BaseModel):
     remediation_id: str
     approver: str = "security-officer@client.corp"
+
+
+class ProjectToggleScopeRequest(BaseModel):
+    project_id: str
+    in_scope: bool
 
 
 class ProjectAddRequest(BaseModel):
@@ -195,8 +207,68 @@ Posturas e Controles Auditados no Ambiente:
 
 @router.get("/api/projects")
 async def get_projects():
-    """Returns list of active monitored GCP projects."""
-    return {"projects": ACTIVE_PROJECTS, "count": len(ACTIVE_PROJECTS)}
+    """Returns list of active monitored GCP projects and organization discovery catalog."""
+    return {
+        "projects": ACTIVE_PROJECTS,
+        "count": len(ACTIVE_PROJECTS),
+        "all_org_projects": ALL_ORG_PROJECTS,
+        "total_org_projects": len(ALL_ORG_PROJECTS),
+        "org_metadata": GCP_ORGANIZATION_METADATA,
+    }
+
+
+@router.post("/api/projects/toggle_scope")
+async def toggle_project_scope(req: ProjectToggleScopeRequest):
+    """Toggles inclusion of an Organization-level GCP project in the active audit scope."""
+    pid = req.project_id.strip()
+    target_p = None
+    for p in ALL_ORG_PROJECTS:
+        if p["project_id"] == pid:
+            p["in_scope"] = req.in_scope
+            target_p = p
+            break
+
+    if req.in_scope:
+        if not any(p["project_id"] == pid for p in ACTIVE_PROJECTS):
+            if target_p:
+                ACTIVE_PROJECTS.append(target_p)
+            else:
+                new_p = {
+                    "project_id": pid,
+                    "environment": "ORGANIZATION",
+                    "region": "us-central1",
+                    "status": "COMPLIANT",
+                    "score": 100.0,
+                }
+                ACTIVE_PROJECTS.append(new_p)
+    else:
+        for i, p in enumerate(ACTIVE_PROJECTS):
+            if p["project_id"] == pid:
+                ACTIVE_PROJECTS.pop(i)
+                break
+
+    return {
+        "status": "ok",
+        "project_id": pid,
+        "in_scope": req.in_scope,
+        "active_count": len(ACTIVE_PROJECTS),
+        "projects": ACTIVE_PROJECTS,
+    }
+
+
+@router.get("/api/finops")
+async def get_finops_metrics():
+    """Returns real-time FinOps token metering, cost breakdown, and Context Caching ROI."""
+    return finops_tracker.get_summary()
+
+
+@router.post("/api/finops/simulate")
+async def simulate_finops_audit():
+    """Simulates an enterprise multi-project continuous audit run and updates FinOps telemetry."""
+    finops_tracker.record_usage("lead-auditor", prompt_tokens=25000, completion_tokens=8500, cached_tokens=40000, model_key="gemini-2.5-pro")
+    finops_tracker.record_usage("subagent-a8", prompt_tokens=18000, completion_tokens=6200, cached_tokens=30000, model_key="gemini-2.5-flash")
+    finops_tracker.record_usage("gcp-telemetry", prompt_tokens=22000, completion_tokens=7100, cached_tokens=35000, model_key="gemini-2.5-flash")
+    return finops_tracker.get_summary()
 
 
 @router.post("/api/projects/add")
@@ -1132,6 +1204,13 @@ Com base na coleta automatizada de telemetria, inspeção de políticas de organ
 async def handle_chat(req: ChatRequest):
     """Processes user chat prompts and routes to Vertex AI Gemini or specialized subagents."""
     msg = req.message.strip()
+    finops_tracker.record_usage(
+        "lead-auditor",
+        prompt_tokens=len(msg) * 2 + 1400,
+        completion_tokens=850,
+        cached_tokens=3200,
+        model_key="gemini-2.5-pro",
+    )
     lower_msg = msg.lower()
     projects = req.selected_projects or ["agentic-grc-cd06"]
 

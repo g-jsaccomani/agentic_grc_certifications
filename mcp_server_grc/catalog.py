@@ -5,6 +5,106 @@ with 5-attribute taxonomy (Type, Properties, Cybersecurity Concepts, Operational
 and detailed operational guidance on How to Check and How to Maintain continuous compliance.
 """
 
+GCP_ORGANIZATION_METADATA = {
+    "org_id": "108928374619",
+    "org_name": "Altostrat Global Enterprise (GCP Org)",
+    "display_name": "Google Cloud Organization",
+    "total_projects": 10,
+}
+
+ALL_ORG_PROJECTS = [
+    {
+        "project_id": "agentic-grc-cd06",
+        "environment": "PRODUCTION",
+        "region": "us-central1",
+        "folder": "Core-Workloads/Production",
+        "in_scope": True,
+        "status": "AUDITED",
+        "score": 100.0,
+    },
+    {
+        "project_id": "agentic-grc-staging",
+        "environment": "STAGING",
+        "region": "us-central1",
+        "folder": "Core-Workloads/Staging",
+        "in_scope": True,
+        "status": "COMPLIANT",
+        "score": 98.2,
+    },
+    {
+        "project_id": "agentic-grc-data-lake",
+        "environment": "ANALYTICS",
+        "region": "us-east4",
+        "folder": "Data-Platform",
+        "in_scope": True,
+        "status": "COMPLIANT",
+        "score": 100.0,
+    },
+    {
+        "project_id": "agentic-grc-dev-sandbox",
+        "environment": "DEVELOPMENT",
+        "region": "us-central1",
+        "folder": "Core-Workloads/Dev",
+        "in_scope": False,
+        "status": "DISCOVERED",
+        "score": 94.5,
+    },
+    {
+        "project_id": "agentic-grc-finops-billing",
+        "environment": "FINOPS",
+        "region": "us-central1",
+        "folder": "Operations/FinOps",
+        "in_scope": False,
+        "status": "DISCOVERED",
+        "score": 99.1,
+    },
+    {
+        "project_id": "agentic-grc-identity-iam",
+        "environment": "SECURITY",
+        "region": "global",
+        "folder": "Security-Perimeter",
+        "in_scope": False,
+        "status": "DISCOVERED",
+        "score": 100.0,
+    },
+    {
+        "project_id": "agentic-grc-dr-recovery",
+        "environment": "DISASTER RECOVERY",
+        "region": "us-west1",
+        "folder": "Resilience",
+        "in_scope": False,
+        "status": "DISCOVERED",
+        "score": 97.8,
+    },
+    {
+        "project_id": "agentic-grc-ai-workloads",
+        "environment": "AI & GEMINI",
+        "region": "us-central1",
+        "folder": "Machine-Learning",
+        "in_scope": False,
+        "status": "DISCOVERED",
+        "score": 98.9,
+    },
+    {
+        "project_id": "agentic-grc-perimeter-dmz",
+        "environment": "NETWORKING",
+        "region": "global",
+        "folder": "Security-Perimeter",
+        "in_scope": False,
+        "status": "DISCOVERED",
+        "score": 96.4,
+    },
+    {
+        "project_id": "agentic-grc-secrets-vault",
+        "environment": "KEY MANAGEMENT",
+        "region": "us-central1",
+        "folder": "Security-Perimeter",
+        "in_scope": False,
+        "status": "DISCOVERED",
+        "score": 100.0,
+    },
+]
+
 ACTIVE_PROJECTS = [
     {
         "project_id": "agentic-grc-cd06",

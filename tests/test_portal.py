@@ -202,4 +202,39 @@ def test_cloudstyle_html_report_export():
     assert len(res_wordmark.content) > 1000
 
 
+def test_finops_and_org_scope_toggle():
+    # Test GET /api/projects returns organization metadata and all_org_projects
+    res_proj = client.get("/api/projects")
+    assert res_proj.status_code == 200
+    data_proj = res_proj.json()
+    assert "all_org_projects" in data_proj
+    assert data_proj["total_org_projects"] >= 10
+    assert "org_metadata" in data_proj
+    assert data_proj["org_metadata"]["org_id"] == "108928374619"
+
+    # Test toggle scope endpoint
+    res_toggle = client.post("/api/projects/toggle_scope", json={"project_id": "agentic-grc-ai-workloads", "in_scope": True})
+    assert res_toggle.status_code == 200
+    toggle_data = res_toggle.json()
+    assert toggle_data["status"] == "ok"
+    assert toggle_data["in_scope"] is True
+
+    # Test FinOps API
+    res_finops = client.get("/api/finops")
+    assert res_finops.status_code == 200
+    data_finops = res_finops.json()
+    assert "summary" in data_finops
+    assert data_finops["summary"]["total_cost_usd"] > 0
+    assert data_finops["summary"]["total_tokens"] > 0
+    assert "agents" in data_finops
+    assert len(data_finops["agents"]) >= 8
+
+    # Test FinOps simulation
+    res_sim = client.post("/api/finops/simulate")
+    assert res_sim.status_code == 200
+    sim_data = res_sim.json()
+    assert sim_data["summary"]["total_invocations"] > data_finops["summary"]["total_invocations"]
+
+
+
 

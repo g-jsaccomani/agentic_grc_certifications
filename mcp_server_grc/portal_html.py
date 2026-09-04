@@ -2198,6 +2198,18 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <span class="agent-name">Dossiê Executivo (Cloudstyle)</span>
                     </div>
                 </button>
+
+                <button class="agent-item" id="agentBtnFinops" onclick="switchView('view-finops')">
+                    <div class="agent-left-wrap">
+                        <div class="agent-avatar" style="color: var(--gcp-green);">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="1" x2="12" y2="23"/>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                            </svg>
+                        </div>
+                        <span class="agent-name">FinOps & Custos de IA</span>
+                    </div>
+                </button>
             </div>
 
             <!-- Subagentes Customizados Section -->
@@ -2227,18 +2239,44 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         </div>
 
         <div class="sidebar-bottom">
-            <!-- Escopo de Projetos Selecionados -->
+            <!-- Escopo de Projetos Selecionados (GCP Organization Dropdown) -->
             <div class="scope-box" id="scopeContainer">
                 <div class="scope-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                    <span class="scope-label" style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Escopo de Projetos</span>
-                    <button class="btn-add-scope" onclick="openProjectModal()" title="Adicionar projeto GCP ao escopo" style="background: rgba(138, 180, 248, 0.1); border: 1px solid rgba(138, 180, 248, 0.25); color: var(--gcp-blue); border-radius: 6px; padding: 2px 7px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
+                    <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue); flex-shrink: 0;">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                         </svg>
-                        <span>+ Projeto</span>
+                        <span class="scope-label" style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;">Organização GCP</span>
+                    </div>
+                    <button class="btn-org-dropdown-toggle" id="btnOrgDropdownToggle" onclick="toggleOrgScopeDropdown()" title="Projetos da Organização GCP" style="background: rgba(138, 180, 248, 0.12); border: 1px solid rgba(138, 180, 248, 0.3); color: var(--gcp-blue); border-radius: 6px; padding: 2px 7px; font-size: 11px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: var(--transition-smooth);">
+                        <span id="orgScopeBadgeText">3/10 ativos</span>
+                        <svg id="orgDropdownChevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.2s ease;">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
                     </button>
                 </div>
+
+                <!-- Dropdown Retrátil da Organização GCP -->
+                <div class="org-scope-dropdown" id="orgScopeDropdown" style="display: none; background: var(--bg-canvas); border: 1px solid var(--border-focus); border-radius: 8px; padding: 8px; margin-bottom: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--text-tertiary); margin-bottom: 6px;">
+                        <span>Altostrat Global Org (108928374619)</span>
+                        <span style="color: var(--gcp-green); font-weight: 600;">Nível Org</span>
+                    </div>
+                    <input type="text" id="orgSearchInput" placeholder="Filtrar projetos da Org..." oninput="filterOrgDropdown(this.value)" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-primary); margin-bottom: 6px; outline: none; box-sizing: border-box;">
+                    
+                    <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                        <button onclick="selectAllOrgProjects()" style="flex: 1; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 9.5px; color: var(--text-secondary); padding: 3px 4px; cursor: pointer;">Marcar Todos</button>
+                        <button onclick="selectProdOnlyOrgProjects()" style="flex: 1; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 9.5px; color: var(--text-secondary); padding: 3px 4px; cursor: pointer;">Apenas Prod</button>
+                        <button onclick="openProjectModal()" style="background: rgba(138, 180, 248, 0.1); border: 1px solid rgba(138, 180, 248, 0.25); border-radius: 4px; font-size: 9.5px; color: var(--gcp-blue); padding: 3px 6px; cursor: pointer;">+ Manual</button>
+                    </div>
+
+                    <div class="org-dropdown-list" id="orgDropdownItemsList" style="display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto;">
+                        <!-- Dynamically populated with all organization projects -->
+                    </div>
+                </div>
+
+                <!-- Lista de projetos ativos no escopo -->
                 <div class="scope-projects-list" id="scopeProjectsList" style="display: flex; flex-direction: column; gap: 5px; max-height: 110px; overflow-y: auto;">
                     <div class="project-pill-item">
                         <div class="project-pill-left">
@@ -2810,7 +2848,159 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </div>
             </section>
 
-                        <!-- View 6: Relatório Executivo (Google Cloudstyle) -->
+                        <!-- View 7: FinOps & Gestão de Custos de IA -->
+            <section class="view-pane" id="view-finops">
+                <div class="section-header-banner">
+                    <div class="view-title-group">
+                        <h2>FinOps & Gestão de Custos de IA</h2>
+                        <p>Telemetria em tempo real de consumo de tokens (Prompt, Context Caching, Completion) e custos ($ USD / R$ BRL) por agente, subagente e fases de auditoria.</p>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn-action-primary" onclick="loadFinOpsMetrics()" title="Recarregar métricas em tempo real">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 4 23 10 17 10"/>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                            </svg>
+                            Atualizar Métricas
+                        </button>
+                        <button class="btn-action-primary" onclick="simulateFinOpsRun()" style="background: rgba(129, 201, 149, 0.12); border-color: rgba(129, 201, 149, 0.35); color: var(--gcp-green);">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                            Simular Auditoria Contínua
+                        </button>
+                        <button class="btn-action-primary" onclick="exportFinOpsJson()">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Exportar FinOps
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Cards Row -->
+                <div class="scorecard-stats-row">
+                    <div class="stat-card">
+                        <div class="stat-label">Custo Total de IA Acumulado</div>
+                        <div class="stat-val" style="color: var(--gcp-green);" id="finopsTotalCostUsd">$ 1.86 USD</div>
+                        <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 2px;" id="finopsTotalCostBrl">R$ 10,62 BRL (Cotação R$ 5,70)</div>
+                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Orçamento: $50.00 / mês • <span id="finopsQuotaUsed" style="color: var(--gcp-green); font-weight: 600;">3.7% consumido</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Tokens Totais Processados</div>
+                        <div class="stat-val" style="color: var(--gcp-blue);" id="finopsTotalTokens">2.253.000</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;" id="finopsTokensBreakdown">Prompt: 1.503k | Saída: 470k</div>
+                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Execuções de Agentes: <strong id="finopsInvocations" style="color: var(--text-primary);">379 chamadas</strong></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Economia Gemini Context Caching</div>
+                        <div class="stat-val" style="color: #81c995;" id="finopsSavingsUsd">$ 7.42 USD</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;" id="finopsSavingsBrl">R$ 42,29 BRL economizados</div>
+                        <div style="font-size: 11px; color: var(--gcp-green); margin-top: 4px;">Taxa de Cache Hit: <strong id="finopsCacheHitRatio">72.8%</strong> (Zero-Copy Evidence)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Custo Médio por Controle ISO 27001</div>
+                        <div class="stat-val" style="color: #fdd663;" id="finopsCostPerControl">$ 0.020 USD</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">R$ 0,11 BRL por controle auditado</div>
+                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Auditoria humana tradicional: ~R$ 350 / controle</div>
+                    </div>
+                </div>
+
+                <!-- Detalhamento de Custos por Fase (Fases 1 a 4) -->
+                <div class="card-panel" style="margin-top: 16px;">
+                    <div class="card-title">Consumo de IA por Fase da Auditoria (Pipeline de Certificação)</div>
+                    <div class="card-desc">Divisão de tokens e custos em cada estágio do ciclo de conformidade autônoma.</div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 14px;">
+                        <div class="stat-card" style="background: var(--bg-canvas);">
+                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-blue); text-transform: uppercase;">Fase 1: Triagem Zero-Copy</div>
+                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase1Cost">$ 0.42 USD</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase1Tokens">420.000 tokens • R$ 2,39</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Ingestão documental semântica</div>
+                        </div>
+                        <div class="stat-card" style="background: var(--bg-canvas);">
+                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-yellow); text-transform: uppercase;">Fase 2: Telemetria Técnica GCP</div>
+                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase2Cost">$ 0.88 USD</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase2Tokens">680.000 tokens • R$ 5,02</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">IAM, KMS, SCC e Workload Identity</div>
+                        </div>
+                        <div class="stat-card" style="background: var(--bg-canvas);">
+                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-red); text-transform: uppercase;">Fase 3: Teste de Eficácia & Drift</div>
+                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase3Cost">$ 0.54 USD</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase3Tokens">390.000 tokens • R$ 3,08</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Simulação de drift e verificação</div>
+                        </div>
+                        <div class="stat-card" style="background: var(--bg-canvas);">
+                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-green); text-transform: uppercase;">Fase 4: Parecer & Selagem</div>
+                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase4Cost">$ 1.64 USD</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase4Tokens">352.650 tokens • R$ 9,35</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Gemini 2.5 Pro Lead Auditor</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela Detalhada por Agente e Subagente -->
+                <div class="card-panel" style="margin-top: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <div class="card-title">Detalhamento por Agente e Subagente (Métricas e Custos)</div>
+                            <div class="card-desc">Contabilização exata de prompt tokens, context cache hits, completion tokens e custo final em USD/BRL.</div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="finopsAgentSearch" placeholder="Filtrar agentes..." oninput="filterFinopsTable(this.value)" style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 6px 12px; font-size: 12px; color: var(--text-primary); outline: none;">
+                        </div>
+                    </div>
+
+                    <div style="overflow-x: auto; margin-top: 14px;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    <th style="padding: 10px 12px;">Agente / Subagente</th>
+                                    <th style="padding: 10px 12px;">Modelo LLM</th>
+                                    <th style="padding: 10px 12px;">Chamadas</th>
+                                    <th style="padding: 10px 12px;">Prompt Tokens</th>
+                                    <th style="padding: 10px 12px;">Cached Tokens</th>
+                                    <th style="padding: 10px 12px;">Output Tokens</th>
+                                    <th style="padding: 10px 12px;">Total Tokens</th>
+                                    <th style="padding: 10px 12px;">Custo (USD)</th>
+                                    <th style="padding: 10px 12px;">Custo (BRL)</th>
+                                    <th style="padding: 10px 12px;">Economia Cache</th>
+                                </tr>
+                            </thead>
+                            <tbody id="finopsAgentsTableBody">
+                                <!-- Populated dynamically by renderFinOpsDashboard -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tabela de Referência de Tarifas Vertex AI / Gemini Enterprise -->
+                <div class="card-panel" style="margin-top: 16px;">
+                    <div class="card-title">Tabela de Tarifação Oficial de Referência (Google Cloud Vertex AI)</div>
+                    <div class="card-desc">Preços por milhão de tokens utilizados na apuração de custos em conformidade com as tabelas oficiais do Google Cloud.</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-top: 12px;">
+                        <div style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px;">
+                            <div style="font-weight: 600; color: var(--gcp-blue);">Gemini 2.5 Pro</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Prompt: $1.25 / 1M • Output: $5.00 / 1M</div>
+                            <div style="font-size: 11px; color: var(--gcp-green); margin-top: 2px;">Context Caching: $0.3125 / 1M (75% desconto)</div>
+                        </div>
+                        <div style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px;">
+                            <div style="font-weight: 600; color: var(--gcp-yellow);">Gemini 2.5 Flash</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Prompt: $0.075 / 1M • Output: $0.30 / 1M</div>
+                            <div style="font-size: 11px; color: var(--gcp-green); margin-top: 2px;">Context Caching: $0.01875 / 1M (75% desconto)</div>
+                        </div>
+                        <div style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px;">
+                            <div style="font-weight: 600; color: #a8c7fa;">Text Embedding 005</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Prompt: $0.025 / 1M • Output: $0.00</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Vetorização semântica e busca RAG</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- View 6: Relatório Executivo (Google Cloudstyle) -->
             <section class="view-pane" id="view-report-exec" style="background: var(--bg-canvas); overflow-y: auto; padding: 20px 0;">
                 <div class="cloudstyle-doc-sheet">
                     
@@ -3123,6 +3313,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         let selectedProjectIds = new Set(["agentic-grc-cd06", "agentic-grc-staging", "agentic-grc-data-lake"]);
         let currentThemeFilter = "Todos";
         let matrixControls = [];
+        let allOrgProjects = [];
+        let finopsData = null;
 
         // Configure Marked.js if loaded
         if (typeof marked !== 'undefined') {
@@ -3758,6 +3950,7 @@ Formulário preenchido com o subagente recomendado!`);
 
         document.addEventListener("DOMContentLoaded", () => {
             loadProjects();
+            loadFinOpsMetrics();
             loadIsoMatrix();
             loadSubagents();
         });
@@ -3778,7 +3971,8 @@ Formulário preenchido com o subagente recomendado!`);
                 "view-matrix": "agentBtnMatrix",
                 "view-connectors": "agentBtnConnectors",
                 "view-scorecard": "agentBtnScorecard",
-                "view-report-exec": "agentBtnReport"
+                "view-report-exec": "agentBtnReport",
+                "view-finops": "agentBtnFinops"
             };
 
             document.querySelectorAll(".agent-item").forEach(b => b.classList.remove("active"));
@@ -3793,7 +3987,8 @@ Formulário preenchido com o subagente recomendado!`);
                 "view-matrix": "Matriz ISO 27001 Escalável",
                 "view-connectors": "Subagentes & Zero-Copy",
                 "view-scorecard": "Scorecard & Grafo de Evidências",
-                "view-report-exec": "Dossiê Executivo"
+                "view-report-exec": "Dossiê Executivo",
+                "view-finops": "FinOps & Custos de IA"
             };
             document.getElementById("topActiveTitle").innerText = titleMap[viewId] || "Auditor";
         }
@@ -3817,7 +4012,7 @@ Formulário preenchido com o subagente recomendado!`);
             setTimeout(() => { window.print(); }, 250);
         }
 
-        // Project Scope Management
+        // Project Scope Management (GCP Organization Level)
         async function loadProjects() {
             try {
                 const res = await fetch("/api/projects");
@@ -3827,11 +4022,113 @@ Formulário preenchido com o subagente recomendado!`);
                         activeProjects = data.projects;
                         selectedProjectIds = new Set(activeProjects.map(p => p.project_id));
                     }
+                    if (data && data.all_org_projects) {
+                        allOrgProjects = data.all_org_projects;
+                    }
                 }
             } catch (e) {
                 console.error("Error loading projects", e);
             }
             renderScopeBox();
+            renderOrgDropdown();
+        }
+
+        function toggleOrgScopeDropdown() {
+            const dropdown = document.getElementById("orgScopeDropdown");
+            const chevron = document.getElementById("orgDropdownChevron");
+            if (!dropdown) return;
+            const isOpen = dropdown.style.display !== "none";
+            dropdown.style.display = isOpen ? "none" : "block";
+            if (chevron) {
+                chevron.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg)";
+            }
+            if (!isOpen) {
+                renderOrgDropdown();
+            }
+        }
+
+        function renderOrgDropdown(filterText = "") {
+            const list = document.getElementById("orgDropdownItemsList");
+            if (!list) return;
+            list.innerHTML = "";
+
+            const projectsToDisplay = allOrgProjects.length > 0 ? allOrgProjects : activeProjects;
+            const q = filterText.toLowerCase().trim();
+
+            let inScopeCount = 0;
+            projectsToDisplay.forEach(p => {
+                const isSelected = selectedProjectIds.has(p.project_id);
+                if (isSelected) inScopeCount++;
+
+                if (q && !p.project_id.toLowerCase().includes(q) && !(p.environment || "").toLowerCase().includes(q)) {
+                    return;
+                }
+
+                const row = document.createElement("div");
+                row.className = "project-pill-item";
+                row.style.padding = "5px 7px";
+                row.style.background = isSelected ? "rgba(138, 180, 248, 0.08)" : "var(--bg-surface)";
+                row.style.border = isSelected ? "1px solid var(--gcp-blue)" : "1px solid var(--border-subtle)";
+                row.innerHTML = `
+                    <div class="project-pill-left" style="gap: 7px;">
+                        <input type="checkbox" class="project-checkbox" ${isSelected ? "checked" : ""} onchange="toggleProjectSelection('${p.project_id}', this.checked)">
+                        <div style="display: flex; flex-direction: column;">
+                            <span class="project-id-text" style="font-size: 11.5px; font-weight: ${isSelected ? '600' : '400'}; color: ${isSelected ? 'var(--text-primary)' : 'var(--text-secondary)'};" title="${p.project_id}">${p.project_id}</span>
+                            <span style="font-size: 9px; color: var(--text-tertiary);">${p.folder || 'Folder: Workloads'}</span>
+                        </div>
+                    </div>
+                    <span class="env-badge" style="font-size: 8.5px;">${p.environment || "PROD"}</span>
+                `;
+                list.appendChild(row);
+            });
+
+            const badgeText = document.getElementById("orgScopeBadgeText");
+            if (badgeText) {
+                badgeText.innerText = `${selectedProjectIds.size}/${projectsToDisplay.length} ativos`;
+            }
+        }
+
+        function filterOrgDropdown(val) {
+            renderOrgDropdown(val);
+        }
+
+        async function selectAllOrgProjects() {
+            const list = allOrgProjects.length > 0 ? allOrgProjects : activeProjects;
+            for (const p of list) {
+                selectedProjectIds.add(p.project_id);
+                try {
+                    await fetch("/api/projects/toggle_scope", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ project_id: p.project_id, in_scope: true })
+                    });
+                } catch(e) {}
+            }
+            renderScopeBox();
+            renderOrgDropdown();
+        }
+
+        async function selectProdOnlyOrgProjects() {
+            const list = allOrgProjects.length > 0 ? allOrgProjects : activeProjects;
+            selectedProjectIds.clear();
+            for (const p of list) {
+                const isProd = (p.environment || "").toUpperCase() === "PRODUCTION";
+                if (isProd) {
+                    selectedProjectIds.add(p.project_id);
+                }
+                try {
+                    await fetch("/api/projects/toggle_scope", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ project_id: p.project_id, in_scope: isProd })
+                    });
+                } catch(e) {}
+            }
+            if (selectedProjectIds.size === 0 && list.length > 0) {
+                selectedProjectIds.add(list[0].project_id);
+            }
+            renderScopeBox();
+            renderOrgDropdown();
         }
 
         function renderScopeBox() {
@@ -3875,7 +4172,7 @@ Formulário preenchido com o subagente recomendado!`);
             openProjectModal();
         }
 
-        function toggleProjectSelection(pid, checked) {
+        async function toggleProjectSelection(pid, checked) {
             if (checked) {
                 selectedProjectIds.add(pid);
             } else {
@@ -3884,11 +4181,23 @@ Formulário preenchido com o subagente recomendado!`);
                 } else {
                     alert("Pelo menos um projeto deve permanecer no escopo de auditoria.");
                     renderScopeBox();
+                    renderOrgDropdown();
                     return;
                 }
             }
-            const count = selectedProjectIds.size;
-            document.getElementById("topProjectCountBadge").innerText = `${count} ${count === 1 ? 'projeto ativo' : 'projetos ativos'}`;
+
+            try {
+                await fetch("/api/projects/toggle_scope", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ project_id: pid, in_scope: checked })
+                });
+            } catch(e) {
+                console.warn("Failed to persist toggle scope", e);
+            }
+
+            renderScopeBox();
+            renderOrgDropdown();
         }
 
         function openProjectModal() { document.getElementById("projectModal").classList.add("active"); }
@@ -4335,6 +4644,161 @@ Formulário preenchido com o subagente recomendado!`);
                 .replace(/\n\n/gim, '<br><br>');
             return html;
         }
+    
+        // -------------------------------------------------------------------
+        // FinOps & Token Cost Analytics Engine
+        // -------------------------------------------------------------------
+        async function loadFinOpsMetrics() {
+            try {
+                const res = await fetch("/api/finops");
+                if (res.ok) {
+                    finopsData = await res.json();
+                    renderFinOpsDashboard(finopsData);
+                }
+            } catch(e) {
+                console.error("Error loading FinOps data", e);
+            }
+        }
+
+        function renderFinOpsDashboard(data) {
+            if (!data || !data.summary) return;
+            const s = data.summary;
+
+            // Summary KPIs
+            const costUsdElem = document.getElementById("finopsTotalCostUsd");
+            if (costUsdElem) costUsdElem.innerText = `$ ${s.total_cost_usd.toFixed(2)} USD`;
+
+            const costBrlElem = document.getElementById("finopsTotalCostBrl");
+            if (costBrlElem) costBrlElem.innerText = `R$ ${s.total_cost_brl.toFixed(2).replace('.', ',')} BRL (Cotação R$ ${s.usd_to_brl_rate.toFixed(2)})`;
+
+            const quotaElem = document.getElementById("finopsQuotaUsed");
+            if (quotaElem) quotaElem.innerText = `${s.quota_used_percent}% consumido`;
+
+            const tokensElem = document.getElementById("finopsTotalTokens");
+            if (tokensElem) tokensElem.innerText = Number(s.total_tokens).toLocaleString();
+
+            const tokensBreakdownElem = document.getElementById("finopsTokensBreakdown");
+            if (tokensBreakdownElem) {
+                tokensBreakdownElem.innerText = `Prompt: ${Math.round(s.total_prompt_tokens/1000)}k | Saída: ${Math.round(s.total_completion_tokens/1000)}k`;
+            }
+
+            const invocElem = document.getElementById("finopsInvocations");
+            if (invocElem) invocElem.innerText = `${s.total_invocations} chamadas`;
+
+            const savingsUsdElem = document.getElementById("finopsSavingsUsd");
+            if (savingsUsdElem) savingsUsdElem.innerText = `$ ${s.total_savings_usd.toFixed(2)} USD`;
+
+            const savingsBrlElem = document.getElementById("finopsSavingsBrl");
+            if (savingsBrlElem) savingsBrlElem.innerText = `R$ ${s.total_savings_brl.toFixed(2).replace('.', ',')} BRL economizados`;
+
+            const cacheHitElem = document.getElementById("finopsCacheHitRatio");
+            if (cacheHitElem) cacheHitElem.innerText = `${s.cache_hit_ratio_percent}%`;
+
+            const costPerCtrlElem = document.getElementById("finopsCostPerControl");
+            if (costPerCtrlElem) costPerCtrlElem.innerText = `$ ${s.cost_per_control_usd.toFixed(3)} USD`;
+
+            // Phases Breakdown
+            if (data.phases) {
+                const p1 = data.phases["Fase 1: Triagem Zero-Copy"];
+                if (p1) {
+                    const p1Cost = document.getElementById("finopsPhase1Cost");
+                    const p1Tok = document.getElementById("finopsPhase1Tokens");
+                    if (p1Cost) p1Cost.innerText = `$ ${p1.cost_usd.toFixed(2)} USD`;
+                    if (p1Tok) p1Tok.innerText = `${Number(p1.tokens).toLocaleString()} tokens • R$ ${(p1.cost_usd * s.usd_to_brl_rate).toFixed(2).replace('.', ',')}`;
+                }
+                const p2 = data.phases["Fase 2: Telemetria Técnica GCP"];
+                if (p2) {
+                    const p2Cost = document.getElementById("finopsPhase2Cost");
+                    const p2Tok = document.getElementById("finopsPhase2Tokens");
+                    if (p2Cost) p2Cost.innerText = `$ ${p2.cost_usd.toFixed(2)} USD`;
+                    if (p2Tok) p2Tok.innerText = `${Number(p2.tokens).toLocaleString()} tokens • R$ ${(p2.cost_usd * s.usd_to_brl_rate).toFixed(2).replace('.', ',')}`;
+                }
+                const p3 = data.phases["Fase 3: Testes de Eficácia & Drift"];
+                if (p3) {
+                    const p3Cost = document.getElementById("finopsPhase3Cost");
+                    const p3Tok = document.getElementById("finopsPhase3Tokens");
+                    if (p3Cost) p3Cost.innerText = `$ ${p3.cost_usd.toFixed(2)} USD`;
+                    if (p3Tok) p3Tok.innerText = `${Number(p3.tokens).toLocaleString()} tokens • R$ ${(p3.cost_usd * s.usd_to_brl_rate).toFixed(2).replace('.', ',')}`;
+                }
+                const p4 = data.phases["Fase 4: Parecer Executivo & Selo"];
+                if (p4) {
+                    const p4Cost = document.getElementById("finopsPhase4Cost");
+                    const p4Tok = document.getElementById("finopsPhase4Tokens");
+                    if (p4Cost) p4Cost.innerText = `$ ${p4.cost_usd.toFixed(2)} USD`;
+                    if (p4Tok) p4Tok.innerText = `${Number(p4.tokens).toLocaleString()} tokens • R$ ${(p4.cost_usd * s.usd_to_brl_rate).toFixed(2).replace('.', ',')}`;
+                }
+            }
+
+            // Agents Table
+            const tbody = document.getElementById("finopsAgentsTableBody");
+            if (tbody && data.agents) {
+                tbody.innerHTML = "";
+                data.agents.forEach(ag => {
+                    const tr = document.createElement("tr");
+                    tr.style.borderBottom = "1px solid var(--border-subtle)";
+                    tr.style.transition = "background 0.2s ease";
+                    tr.innerHTML = `
+                        <td style="padding: 10px 12px;">
+                            <div style="font-weight: 500; color: var(--text-primary);">${ag.name}</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary);">${ag.category}</div>
+                        </td>
+                        <td style="padding: 10px 12px;">
+                            <span class="env-badge" style="background: rgba(138, 180, 248, 0.12); color: var(--gcp-blue);">${ag.model}</span>
+                        </td>
+                        <td style="padding: 10px 12px; font-weight: 500;">${ag.invocations}</td>
+                        <td style="padding: 10px 12px; font-family: monospace;">${Number(ag.prompt_tokens).toLocaleString()}</td>
+                        <td style="padding: 10px 12px; font-family: monospace; color: var(--gcp-green); font-weight: 500;">${Number(ag.cached_tokens).toLocaleString()}</td>
+                        <td style="padding: 10px 12px; font-family: monospace;">${Number(ag.completion_tokens).toLocaleString()}</td>
+                        <td style="padding: 10px 12px; font-family: monospace; font-weight: 600;">${Number(ag.total_tokens).toLocaleString()}</td>
+                        <td style="padding: 10px 12px; font-weight: 600; color: var(--text-primary);">$ ${ag.cost_usd.toFixed(3)}</td>
+                        <td style="padding: 10px 12px; color: var(--text-secondary);">R$ ${ag.cost_brl.toFixed(2).replace('.', ',')}</td>
+                        <td style="padding: 10px 12px;">
+                            ${ag.savings_usd > 0 ? `<span style="color: var(--gcp-green); font-size: 11.5px; font-weight: 600;">+$ ${ag.savings_usd.toFixed(3)}</span>` : `<span style="color: var(--text-tertiary); font-size: 11px;">-</span>`}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        function filterFinopsTable(q) {
+            if (!finopsData || !finopsData.agents) return;
+            const query = q.toLowerCase().trim();
+            const filtered = {
+                ...finopsData,
+                agents: finopsData.agents.filter(a => 
+                    a.name.toLowerCase().includes(query) || 
+                    a.category.toLowerCase().includes(query) ||
+                    a.model.toLowerCase().includes(query)
+                )
+            };
+            renderFinOpsDashboard(filtered);
+        }
+
+        async function simulateFinOpsRun() {
+            try {
+                const res = await fetch("/api/finops/simulate", { method: "POST" });
+                if (res.ok) {
+                    finopsData = await res.json();
+                    renderFinOpsDashboard(finopsData);
+                    alert("Simulação de auditoria contínua executada! Telemetria de tokens e custos atualizada.");
+                }
+            } catch(e) {
+                console.error("Simulation error", e);
+            }
+        }
+
+        function exportFinOpsJson() {
+            if (!finopsData) return;
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(finopsData, null, 2));
+            const downloadAnchor = document.createElement("a");
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `finops_grc_metrics_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
     </script>
 
     
