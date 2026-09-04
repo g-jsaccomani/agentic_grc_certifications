@@ -182,15 +182,30 @@ To connect the deployed compliance agent into Vertex AI / Gemini Enterprise:
 
 ## 6. Client Web Portal Features
 
-The portal dashboard includes five primary operational tabs:
+The portal dashboard includes comprehensive operational modules accessible via the unified sidebar and top navbar:
 
-1. **Chatbot Auditor**: Natural language chat interface grounded in the live evidence graph and Model Armor guardrails.
-2. **Sub-Agents**: View and invoke specialized sub-agents (`AnnexASubAgent`, `GCPTelemetrySubAgent`, `OrgPoliciesSubAgent`, `HorizonScannerSubAgent`).
-3. **Upload & Connect**:
-   - Upload Terraform (`.tf`), Ansible (`.yml`), or policy files (`.json`, `.txt`) for instant local misconfiguration analysis.
-   - Configure Zero-Copy connectors (Google Drive, SharePoint, Jira, Confluence) to audit documentation at the source.
-4. **Audit Dashboard & HITL Gate**: Continuous compliance score, temporal drift velocity, and approval gate for remediation playbooks.
-5. **Gemini Integration**: Intranet embed code and REST/MCP endpoints.
+1. **Chatbot Auditor (Agentic GRC Virtual Lead Auditor)**:
+   - Natural language interactive auditing grounded in live cloud telemetry and Model Armor guardrails.
+   - Real-time subagent execution and generation of auditable markdown dossiers for all 93 controls.
+2. **Scan por Fases (4-Phase Certification Pipeline)**:
+   - Autonomous execution across Phase 1 (Document Triage), Phase 2 (Technical Telemetry), Phase 3 (Operating Effectiveness), and Phase 4 (Formal Opinion & Sealing).
+3. **Matriz ISO 27001 & SoA (93 Controls)**:
+   - Full 2022 taxonomy organized by Organizational (A.5), People (A.6), Physical (A.7), and Technological (A.8) themes with real-time pass/fail states.
+4. **Conectores & Zero-Copy**:
+   - Real-time querying of corporate documentation directly at the source (Google Drive, SharePoint, Jira, Confluence) without data duplication or model training.
+5. **Scorecard & Grafo de Evidências**:
+   - Epistemic evidence graph showing cryptographically anchored nodes with SHA-256 hashes and continuous drift velocity.
+6. **Dossiê Executivo (C-Level Executive Summary)**:
+   - Strategic dashboard tailored for Boards and CISOs with global compliance metrics (100%), FinOps ROI, and high-level attestation.
+7. **Relatório Técnico de Auditoria Externa (ISO/IEC 27001:2022 Stage 2)**:
+   - Formal certification audit deliverable designed for external accredited certification bodies (BSI, DNV, TÜV, A-LIGN, Schellman, Big 4).
+   - Full Statement of Applicability (SoA v2022.4) matrix with control traceability.
+   - Concrete technical evidence repository with verifiable GCP CLI (`gcloud`) outputs and policies (IAM key restrictions, Org Policies, VPC-SC, Cloud DLP, Cloud Armor WAF, Cloud KMS HSM CMEK, Binary Authorization).
+   - Corrective and Preventive Actions (CAPA) register with Human-in-the-Loop (HITL) approval history.
+   - Cryptographic audit trail with Merkle Root Hash and SHA-256 seal.
+   - Multi-format export: Official A4 print-ready PDF, structured machine-readable JSON (for Archer, ServiceNow, Vanta, Drata), and Markdown.
+8. **FinOps & Custos de IA**:
+   - Real-time token usage telemetry and financial ROI tracking from Gemini Context Caching.
 
 ---
 
@@ -199,7 +214,7 @@ The portal dashboard includes five primary operational tabs:
 | Command | Purpose |
 | :--- | :--- |
 | `make install` | Install Python dependencies into `.venv` using `uv`. |
-| `make test` | Run the complete 56-test suite with coverage reporting. |
+| `make test` | Run the complete 62-test suite with coverage reporting. |
 | `make run-portal` | Start the local web portal on `http://localhost:8080/portal`. |
 | `make audit-poc` | Run a standalone proof-of-concept audit script. |
 | `make provision-org` | Run the bash script to provision GCP folder, project, and org-level IAM roles. |

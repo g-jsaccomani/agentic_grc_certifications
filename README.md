@@ -25,10 +25,11 @@ Directly maps live cloud telemetry and organizational policies to **ISO/IEC 2700
 
 ### I. Complementary Operating Environments
 1. **Interactive Web Portal (`/portal`)**:
-   - Google Cloudstyle web dashboard for CISOs, audit directors, and compliance teams.
+   - Google Cloudstyle web dashboard for CISOs, audit directors, and external certification bodies.
    - Real-time **Chatbot Auditor** with streaming dossiers and specialized subagent delegation.
-   - Autonomous **4-Phase Certification Pipeline** (Document Triage, Technical Telemetry, Effectiveness Testing, Formal Opinion & Sealing).
+   - Autonomous **4-Phase Certification Pipeline** (Document Triage, Technical Telemetry, Operating Effectiveness, Formal Opinion & Sealing).
    - Interactive **ISO 27001 Matrix** covering all 93 controls across Organizational (A.5), People (A.6), Physical (A.7), and Technological (A.8) themes.
+   - **Dual Reporting Suite**: Instant toggle between **Dossiê Executivo (C-Level)** and **Relatório Técnico (Auditoria Externa - ISO 27001 Stage 2)** with official print-ready PDF, structured JSON, and Markdown export.
 2. **Agent Development Kit - ADK v1.0 (Code-First)**:
    - Python ADK for deep enterprise customization and programmable compliance pipelines.
    - Orchestrates a modular execution graph composed of specialized, autonomous sub-agents.
@@ -61,6 +62,15 @@ Connects directly to enterprise repositories (**Google Drive, Microsoft SharePoi
 - **Agent Cryptographic Identity (SPIFFE)**: Each sub-agent runs with a verifiable SPIFFE ID (`spiffe://grc.jetsky.gcp/ns/production/sa/...`) bound to GCP IAM least privilege.
 - **Agent Gateway & Model Armor**: Ingress inspection blocks prompt injections and redacts PII; Egress inspection redacts secrets, keys, and enforces a strict domain allowlist to prevent data exfiltration.
 - **Human-in-the-Loop (HITL) Gate**: All remediation plans are validated in an isolated sandbox (`SANDBOX_DRY_RUN`). Applying changes to production requires an authenticated human approval token (`HITL-APPROVED-...`).
+
+### VII. Dual Reporting Suite & Certification Deliverables
+- **Dossiê Executivo (C-Level)**: High-level executive scorecard, quantitative domain breakdown, FinOps ROI, and strategic compliance posture for executive leadership and boards.
+- **Relatório Técnico de Auditoria Externa (ISO/IEC 27001:2022 Stage 2)**:
+  - Full Statement of Applicability (SoA v2022.4) with normative clause mappings.
+  - Verifiable technical evidence blocks with real Google Cloud CLI (`gcloud`) outputs and policy inspection (Cloud KMS HSM FIPS 140-2, VPC-SC, Cloud DLP, Cloud Armor, IAM Least Privilege, Binary Authorization).
+  - Corrective & Preventive Action (CAPA) register with automated remediation tracking and HITL approval tokens.
+  - Merkle Root Hash and SHA-256 cryptographic sealing conforming to RFC 3161 audit trail standards.
+  - Triple-format exports: Official A4 print-ready PDF, structured machine-readable JSON (compatible with Archer, ServiceNow, Vanta, Drata), and Markdown.
 
 ---
 
