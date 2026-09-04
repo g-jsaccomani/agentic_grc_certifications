@@ -32,7 +32,7 @@ jobs:
 
       - name: Run Test Suite
         run: |
-          pytest -v --cov=. --cov-report=term-missing
+          PYTHONPATH=. pytest -v --cov=. --cov-report=term-missing
 
   build-and-deploy:
     needs: test-and-verify
