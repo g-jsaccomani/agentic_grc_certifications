@@ -2112,12 +2112,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             text-align: center;
             margin: 0 auto;
-            padding: 24px 20px 48px 20px;
+            padding: 30px 20px 50px 20px;
             width: 100%;
-            max-width: 1240px;
-            gap: 18px;
+            max-width: 1100px;
+            min-height: calc(100vh - 120px);
+            gap: 20px;
             animation: fadeIn 0.25s ease;
         }
 
@@ -2150,7 +2152,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         /* Spacious Central Input Container (Spacious, Not Polluted) */
         .hero-input-container {
             width: 100%;
-            max-width: 980px;
+            max-width: 1080px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -2369,7 +2371,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             flex-wrap: wrap;
             justify-content: center;
             gap: 10px;
-            max-width: 980px;
+            max-width: 1080px;
             width: 100%;
             margin: 14px auto 0 auto;
         }
@@ -2402,7 +2404,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
         /* Spacious Regulatory RSS News Feed Strip */
         .hero-news-section {
-            max-width: 1180px;
+            max-width: 1080px;
             width: 100%;
             margin: 28px auto 8px auto;
             display: flex;
@@ -4645,6 +4647,8 @@ Formulário preenchido com o subagente recomendado!`);
             loadFinOpsMetrics();
             loadIsoMatrix();
             loadSubagents();
+            shuffleDynamicSuggestions();
+            startSuggestionRotation();
         });
 
         function toggleSidebar() {
@@ -5046,9 +5050,6 @@ Formulário preenchido com o subagente recomendado!`);
             if (data && data.auditPrompt) {
                 promptPreFill(data.auditPrompt);
             }
-        }
-". Quais controles do SGSI (ISO 27001) são impactados e que evidências técnicas devemos apresentar?`;
-            promptPreFill(prompt);
         }
 
 
