@@ -2095,6 +2095,247 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .btn-cancel { background: transparent; border: 1px solid var(--border-subtle); color: var(--text-secondary); padding: 8px 16px; border-radius: 8px; cursor: pointer; }
         .btn-confirm { background: var(--gcp-blue); border: none; color: #131314; font-weight: 600; padding: 8px 18px; border-radius: 8px; cursor: pointer; }
 
+
+        /* Auditor Health & Compliance Dashboard (Speedometer & ISO Status) */
+        .auditor-health-dash {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 16px;
+            width: 100%;
+            max-width: 1080px;
+            margin: 4px auto 0 auto;
+            text-align: left;
+            animation: fadeIn 0.25s ease;
+        }
+
+        @media (max-width: 920px) {
+            .auditor-health-dash {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .health-card {
+            background: #1e1f20;
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+        }
+
+        .health-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .health-card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .health-card-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: rgba(129, 201, 149, 0.15);
+            color: var(--gcp-green);
+            border: 1px solid rgba(129, 201, 149, 0.3);
+        }
+
+        /* Speedometer Gauge Widget */
+        .speedometer-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 0;
+            position: relative;
+        }
+
+        .speedometer-svg {
+            width: 230px;
+            height: 130px;
+            overflow: visible;
+        }
+
+        .gauge-bg {
+            fill: none;
+            stroke: #2d2f31;
+            stroke-width: 14;
+            stroke-linecap: round;
+        }
+
+        .gauge-meter {
+            fill: none;
+            stroke: url(#speedoGradient);
+            stroke-width: 14;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease-in-out;
+        }
+
+        .speedo-center-val {
+            font-size: 32px;
+            font-weight: 700;
+            fill: #ffffff;
+            font-family: var(--font-headline);
+        }
+
+        .speedo-center-lbl {
+            font-size: 11px;
+            font-weight: 600;
+            fill: #81c995;
+            letter-spacing: 0.8px;
+            font-family: var(--font-headline);
+        }
+
+        .speedometer-mini-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 4px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .speedo-mini-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .speedo-mini-title {
+            font-size: 10.5px;
+            color: var(--text-secondary);
+        }
+
+        .speedo-mini-val {
+            font-size: 12px;
+            font-weight: 600;
+            color: #e8eaed;
+        }
+
+        /* Compliance Status Widget */
+        .compliance-domains-list {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .domain-row {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .domain-row-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11.5px;
+            font-weight: 500;
+            color: #d1d5db;
+        }
+
+        .domain-row-bar {
+            width: 100%;
+            height: 6px;
+            background: #2d2f31;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .domain-row-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+
+        .compliance-meta-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-top: 2px;
+        }
+
+        .compliance-meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .compliance-meta-lbl {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .compliance-meta-val {
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* RSS News Source Links */
+        .btn-news-source-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(138, 180, 248, 0.12);
+            color: var(--gcp-blue);
+            border: 1px solid rgba(138, 180, 248, 0.3);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-news-source-link:hover {
+            background: rgba(138, 180, 248, 0.22);
+            border-color: var(--gcp-blue);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .news-source-link {
+            font-size: 11px;
+            color: var(--gcp-blue);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            background: rgba(138, 180, 248, 0.08);
+            border: 1px solid rgba(138, 180, 248, 0.2);
+            transition: all 0.2s;
+        }
+
+        .news-source-link:hover {
+            background: rgba(138, 180, 248, 0.25);
+            color: #ffffff;
+            border-color: var(--gcp-blue);
+            text-decoration: none;
+        }
+
         @media print {
             body { background: #ffffff !important; color: #000000 !important; overflow: visible !important; }
             .sidebar, .top-navbar, .chat-input-wrapper, .modal-overlay, .matrix-toolbar, .btn-confirm, .btn-action-primary { display: none !important; }
@@ -2988,13 +3229,152 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 </div>
                             </div>
 
-                            <!-- Dynamic & Always-Altering Suggestion Chips -->
+                            <!-- Dynamic & Always-Altering Suggestion Chips (Visible in Agentic GRC Auditor) -->
                             <div class="hero-quick-chips" id="heroQuickChips">
                                 <!-- Populated dynamically by shuffleDynamicSuggestions() -->
                             </div>
 
-                            <!-- Clean Regulatory RSS News Feed Strip -->
-                            <div class="hero-news-section">
+                            <!-- Agentic GRC Auditor Health Dash (Speedometer & Compliance Status) -->
+                            <div class="auditor-health-dash" id="auditorHealthDash" style="display: none;">
+                                <!-- Card 1: Velocímetro de Saúde do Ambiente -->
+                                <div class="health-card">
+                                    <div class="health-card-header">
+                                        <div class="health-card-title">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <path d="M12 6v6l4 2"/>
+                                            </svg>
+                                            Saúde do Ambiente GCP
+                                        </div>
+                                        <span class="health-card-badge">Telemetria Ativa</span>
+                                    </div>
+
+                                    <div class="speedometer-wrap">
+                                        <svg class="speedometer-svg" viewBox="0 0 240 135">
+                                            <defs>
+                                                <linearGradient id="speedoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                    <stop offset="0%" stop-color="#4285f4"/>
+                                                    <stop offset="45%" stop-color="#8ab4f8"/>
+                                                    <stop offset="80%" stop-color="#81c995"/>
+                                                    <stop offset="100%" stop-color="#34a853"/>
+                                                </linearGradient>
+                                            </defs>
+                                            <!-- Arc Background -->
+                                            <path class="gauge-bg" d="M 30 115 A 90 90 0 0 1 210 115" />
+                                            <!-- Arc Progress (283 is full length; 96.4% = offset 10) -->
+                                            <path class="gauge-meter" d="M 30 115 A 90 90 0 0 1 210 115" style="stroke-dasharray: 283; stroke-dashoffset: 10;" />
+                                            <!-- Scale marks -->
+                                            <text x="32" y="130" font-size="10" fill="#9aa0a6" text-anchor="middle">0%</text>
+                                            <text x="120" y="20" font-size="10" fill="#9aa0a6" text-anchor="middle">50%</text>
+                                            <text x="208" y="130" font-size="10" fill="#9aa0a6" text-anchor="middle">100%</text>
+                                            <!-- Value Readout -->
+                                            <text x="120" y="96" class="speedo-center-val" text-anchor="middle">96.4%</text>
+                                            <text x="120" y="116" class="speedo-center-lbl" text-anchor="middle">POSTURA RESILIENTE</text>
+                                        </svg>
+                                    </div>
+
+                                    <div class="speedometer-mini-grid">
+                                        <div class="speedo-mini-item">
+                                            <span class="speedo-mini-title">VPC Service Controls</span>
+                                            <span class="speedo-mini-val" style="color: #81c995;">✓ 100% Perímetro</span>
+                                        </div>
+                                        <div class="speedo-mini-item">
+                                            <span class="speedo-mini-title">Cloud KMS HSM</span>
+                                            <span class="speedo-mini-val" style="color: #8ab4f8;">🔑 92% Rotação &lt; 90d</span>
+                                        </div>
+                                        <div class="speedo-mini-item">
+                                            <span class="speedo-mini-title">IAM Menor Privilégio</span>
+                                            <span class="speedo-mini-val" style="color: #81c995;">🛡️ 98% Sem Primitivas</span>
+                                        </div>
+                                        <div class="speedo-mini-item">
+                                            <span class="speedo-mini-title">Logs 365d (A.8.16)</span>
+                                            <span class="speedo-mini-val" style="color: #81c995;">📦 BigQuery OK</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card 2: Compliance Status ISO/IEC 27001 x Ambiente -->
+                                <div class="health-card">
+                                    <div class="health-card-header">
+                                        <div class="health-card-title">
+                                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                                <polyline points="14 2 14 8 20 8"/>
+                                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                            </svg>
+                                            Status ISO/IEC 27001:2022
+                                        </div>
+                                        <span class="health-card-badge" style="background: rgba(138, 180, 248, 0.15); color: var(--gcp-blue); border-color: rgba(138, 180, 248, 0.3);">
+                                            89/93 Conformes (95.7%)
+                                        </span>
+                                    </div>
+
+                                    <div class="compliance-domains-list">
+                                        <div class="domain-row">
+                                            <div class="domain-row-top">
+                                                <span>🏢 Organizacional (37 controles)</span>
+                                                <span style="color: #81c995; font-weight: 600;">100% (37/37)</span>
+                                            </div>
+                                            <div class="domain-row-bar">
+                                                <div class="domain-row-fill" style="width: 100%; background: #81c995;"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="domain-row">
+                                            <div class="domain-row-top">
+                                                <span>👥 Pessoas (8 controles)</span>
+                                                <span style="color: #81c995; font-weight: 600;">100% (8/8)</span>
+                                            </div>
+                                            <div class="domain-row-bar">
+                                                <div class="domain-row-fill" style="width: 100%; background: #81c995;"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="domain-row">
+                                            <div class="domain-row-top">
+                                                <span>🏗️ Físico & Clima (14 controles • Amd 1:2024)</span>
+                                                <span style="color: #8ab4f8; font-weight: 600;">93% (13/14)</span>
+                                            </div>
+                                            <div class="domain-row-bar">
+                                                <div class="domain-row-fill" style="width: 93%; background: #8ab4f8;"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="domain-row">
+                                            <div class="domain-row-top">
+                                                <span>💻 Tecnológico (34 controles)</span>
+                                                <span style="color: #fdd663; font-weight: 600;">91% (31/34)</span>
+                                            </div>
+                                            <div class="domain-row-bar">
+                                                <div class="domain-row-fill" style="width: 91%; background: #fdd663;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="compliance-meta-strip">
+                                        <div class="compliance-meta-item">
+                                            <span class="compliance-meta-lbl">Grafo Criptográfico</span>
+                                            <span class="compliance-meta-val"><span style="color: #81c995;">✓</span> SHA-256 Validado</span>
+                                        </div>
+                                        <div class="compliance-meta-item">
+                                            <span class="compliance-meta-lbl">Model Armor</span>
+                                            <span class="compliance-meta-val"><span style="color: #8ab4f8;">🛡️</span> Zero Injection</span>
+                                        </div>
+                                        <div class="compliance-meta-item">
+                                            <span class="compliance-meta-lbl">Desvios Críticos</span>
+                                            <span class="compliance-meta-val"><span style="color: #81c995;">0</span> Bloqueantes</span>
+                                        </div>
+                                        <div class="compliance-meta-item">
+                                            <span class="compliance-meta-lbl">IA Auditor</span>
+                                            <span class="compliance-meta-val"><span style="color: #c58af9;">⚡</span> Vertex AI Gemini</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Clean Regulatory RSS News Feed Strip (Visible in Nova Conversa) -->
+                            <div class="hero-news-section" id="heroNewsSection">
                                 <div class="news-section-header">
                                     <div class="news-header-left">
                                         <span class="news-pulse-dot"></span>
@@ -3017,8 +3397,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                         <div class="news-card-snippet">
                                             A IAF determinou que auditorias devem checar se os riscos de mudanças climáticas foram avaliados nas cláusulas 4.1 e 4.2 do SGSI.
                                         </div>
-                                        <div class="news-card-footer">
+                                        <div class="news-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
                                             <span class="news-action-link">Ler notícia completa ➔</span>
+                                            <a class="news-source-link" href="https://www.iso.org/standard/88435.html" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" title="Abrir portal oficial ISO">Fonte oficial ↗</a>
                                         </div>
                                     </div>
 
@@ -3032,8 +3413,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                         <div class="news-card-snippet">
                                             A função GOVERN estabelece alinhamento formal de cibersegurança e apetite a risco integrados à diretoria executiva.
                                         </div>
-                                        <div class="news-card-footer">
+                                        <div class="news-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
                                             <span class="news-action-link">Ler notícia completa ➔</span>
+                                            <a class="news-source-link" href="https://www.nist.gov/cyberframework" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" title="Abrir portal oficial NIST">Fonte oficial ↗</a>
                                         </div>
                                     </div>
 
@@ -3047,8 +3429,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                         <div class="news-card-snippet">
                                             Exigências reforçadas para perímetros de dados de titulares de cartões (CDE) e gerenciamento de chaves KMS HSM.
                                         </div>
-                                        <div class="news-card-footer">
+                                        <div class="news-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
                                             <span class="news-action-link">Ler notícia completa ➔</span>
+                                            <a class="news-source-link" href="https://www.pcisecuritystandards.org/document_library/?category=pcidss&document=pci_dss" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" title="Abrir portal oficial PCI">Fonte oficial ↗</a>
                                         </div>
                                     </div>
 
@@ -3062,8 +3445,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                         <div class="news-card-snippet">
                                             Diretrizes técnicas para uso de Cloud DLP, mascaramento de PII e elaboração de ROPA e relatórios de impacto.
                                         </div>
-                                        <div class="news-card-footer">
+                                        <div class="news-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
                                             <span class="news-action-link">Ler notícia completa ➔</span>
+                                            <a class="news-source-link" href="https://www.gov.br/anpd/pt-br/assuntos/noticias/anpd-publica-guia-orientativo-de-seguranca-da-informacao" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" title="Abrir portal oficial ANPD">Fonte oficial ↗</a>
                                         </div>
                                     </div>
 
@@ -3077,8 +3461,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                         <div class="news-card-snippet">
                                             Padrões internacionais de governança de contexto, isolamento de execução, prevenção de vazamento e Zero-Copy.
                                         </div>
-                                        <div class="news-card-footer">
+                                        <div class="news-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
                                             <span class="news-action-link">Ler notícia completa ➔</span>
+                                            <a class="news-source-link" href="https://cloudsecurityalliance.org/research/guidance/" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" title="Abrir portal oficial CSA">Fonte oficial ↗</a>
                                         </div>
                                     </div>
 
@@ -3092,8 +3477,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                         <div class="news-card-snippet">
                                             Requisitos atualizados de hardening para Cloud Storage, Workload Identity Federation e VPC Service Controls.
                                         </div>
-                                        <div class="news-card-footer">
+                                        <div class="news-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
                                             <span class="news-action-link">Ler notícia completa ➔</span>
+                                            <a class="news-source-link" href="https://www.cisecurity.org/benchmark/google_cloud_computing_platform" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" title="Abrir portal oficial CIS">Fonte oficial ↗</a>
                                         </div>
                                     </div>
                                 </div>
@@ -3962,7 +4348,17 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </div>
             </div>
             <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); padding: 14px 20px;">
-                <button class="btn-cancel" onclick="closeNewsModal()">Fechar</button>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="btn-cancel" onclick="closeNewsModal()">Fechar</button>
+                    <a id="newsModalOriginalLink" href="#" target="_blank" rel="noopener noreferrer" class="btn-news-source-link" style="display: none;">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                        </svg>
+                        <span id="newsModalSourceName">Notícia Original ↗</span>
+                    </a>
+                </div>
                 <button class="btn-confirm" id="btnAuditNews" onclick="executeNewsAudit()" style="display: flex; align-items: center; gap: 8px;">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"/>
@@ -4647,7 +5043,7 @@ Formulário preenchido com o subagente recomendado!`);
             loadFinOpsMetrics();
             loadIsoMatrix();
             loadSubagents();
-            shuffleDynamicSuggestions();
+            selectAuditorTab();
             startSuggestionRotation();
         });
 
@@ -4860,25 +5256,40 @@ Formulário preenchido com o subagente recomendado!`);
         }
 
         // Distinct behavior:
-        // 1. selectAuditorTab(): Switches to Auditor tab, preserving active conversation if present!
+        // 1. selectAuditorTab(): Agentic GRC Auditor
+        // Mostra: AS PÍLULAS APENAS + PEQUENO DASH DE SAÚDE (Velocímetro & Status ISO x GCP).
+        // NÃO mostra o RSS Feed.
         function selectAuditorTab() {
             switchView("view-chat");
             const chatArea = document.getElementById("chatArea");
             const hero = document.getElementById("geminiHero");
             const msgRows = chatArea ? chatArea.querySelectorAll(".msg-row") : [];
 
+            const titleEl = document.querySelector(".hero-work-title");
+            const subtitleEl = document.querySelector(".hero-work-subtitle");
+            const chipsEl = document.getElementById("heroQuickChips");
+            const healthDashEl = document.getElementById("auditorHealthDash");
+            const newsEl = document.getElementById("heroNewsSection");
+
+            if (titleEl) titleEl.innerText = "Agentic GRC Auditor";
+            if (subtitleEl) subtitleEl.innerText = "Auditor Líder Autônomo • Telemetria Google Cloud x ISO/IEC 27001:2022";
+
+            // Rules requested by user:
+            // "Ja no agentic, que quero as pilulas apenas, e um pequeno dash da saude... "
+            if (chipsEl) {
+                chipsEl.style.display = "flex";
+                shuffleDynamicSuggestions();
+            }
+            if (healthDashEl) healthDashEl.style.display = "grid";
+            if (newsEl) newsEl.style.display = "none"; // SEM RSS
+
             if (msgRows.length > 0) {
-                // Keep ongoing chat session!
                 if (hero) hero.style.display = "none";
                 updateBottomInputVisibility();
                 const bottomInput = document.getElementById("chatInput");
                 if (bottomInput) bottomInput.focus();
             } else {
-                // No chat history yet, show "Vamos trabalhar!"
-                if (hero) {
-                    hero.style.display = "flex";
-                    shuffleDynamicSuggestions();
-                }
+                if (hero) hero.style.display = "flex";
                 updateBottomInputVisibility();
                 const heroInput = document.getElementById("chatInputHero");
                 if (heroInput) heroInput.focus();
@@ -4890,7 +5301,9 @@ Formulário preenchido com o subagente recomendado!`);
             document.getElementById("topActiveTitle").innerText = "Agentic GRC Auditor";
         }
 
-        // 2. startNewConversation(): Explicitly starts a brand new conversation from scratch!
+        // 2. startNewConversation(): Nova Conversa
+        // Mostra: APENAS O RSS FEED.
+        // NÃO mostra as pílulas nem o dash.
         function startNewConversation() {
             switchView("view-chat");
             const chatArea = document.getElementById("chatArea");
@@ -4898,11 +5311,25 @@ Formulário preenchido com o subagente recomendado!`);
                 const msgRows = chatArea.querySelectorAll(".msg-row");
                 msgRows.forEach(r => r.remove());
             }
+
             const hero = document.getElementById("geminiHero");
-            if (hero) {
-                hero.style.display = "flex";
-                shuffleDynamicSuggestions();
-            }
+            if (hero) hero.style.display = "flex";
+
+            const titleEl = document.querySelector(".hero-work-title");
+            const subtitleEl = document.querySelector(".hero-work-subtitle");
+            const chipsEl = document.getElementById("heroQuickChips");
+            const healthDashEl = document.getElementById("auditorHealthDash");
+            const newsEl = document.getElementById("heroNewsSection");
+
+            if (titleEl) titleEl.innerText = "Vamos trabalhar!";
+            if (subtitleEl) subtitleEl.innerText = "Auditoria contínua autônoma e governança para Google Cloud & ISO/IEC 27001:2022";
+
+            // Rules requested by user:
+            // "Na nova conversa, não pode ter, apenas o RSS."
+            if (chipsEl) chipsEl.style.display = "none"; // SEM PÍLULAS
+            if (healthDashEl) healthDashEl.style.display = "none"; // SEM DASH
+            if (newsEl) newsEl.style.display = "flex"; // APENAS RSS
+
             const heroInput = document.getElementById("chatInputHero");
             if (heroInput) {
                 heroInput.value = "";
@@ -4914,9 +5341,7 @@ Formulário preenchido com o subagente recomendado!`);
             updateBottomInputVisibility();
 
             document.querySelectorAll(".agent-item").forEach(el => el.classList.remove("active"));
-            const grcBtn = document.getElementById("agentBtnGrcAuditor") || document.getElementById("agentBtnChat");
-            if (grcBtn) grcBtn.classList.add("active");
-            document.getElementById("topActiveTitle").innerText = "Agentic GRC Auditor";
+            document.getElementById("topActiveTitle").innerText = "Nova Conversa de Auditoria";
         }
 
         function sendChatMessageFromHero() {
@@ -4945,6 +5370,8 @@ Formulário preenchido com o subagente recomendado!`);
                 tagColor: "#81c995",
                 date: "Setembro 2026",
                 issuer: "ISO / IAF (International Accreditation Forum)",
+                originalUrl: "https://www.iso.org/standard/88435.html",
+                sourceName: "Portal Oficial ISO (iso.org)",
                 title: "Emenda Climática ISO 27001 Amd 1:2024 Obrigatória",
                 summary: "A ISO e o IAF publicaram emenda conjunta tornando mandatório que organizações considerem as mudanças climáticas e eventos meteorológicos extremos na determinação do contexto da organização (Cláusula 4.1) e nas necessidades das partes interessadas (Cláusula 4.2).",
                 gcpImpact: "No Google Cloud, exige evidências de resiliência climática física dos data centers, redundância geográfica multi-região (Cloud Storage Dual-Region/Multi-Region, Spanner multi-região) e planos de Disaster Recovery (RPO/RTO) testados contra indisponibilidades regionais.",
@@ -4956,6 +5383,8 @@ Formulário preenchido com o subagente recomendado!`);
                 tagColor: "#8ab4f8",
                 date: "Agosto 2026",
                 issuer: "NIST (National Institute of Standards and Technology)",
+                originalUrl: "https://www.nist.gov/cyberframework",
+                sourceName: "Portal Oficial NIST (nist.gov)",
                 title: "NIST CSF 2.0: Nova Função Governança (GV)",
                 summary: "O NIST publicou oficialmente o Cybersecurity Framework 2.0, expandindo os cinco pilares tradicionais (Identify, Protect, Detect, Respond, Recover) com a nova função GOVERN (GV). A função exige que a estratégia de cibersegurança e o apetite a risco sejam formalmente estabelecidos e comunicados pela liderança.",
                 gcpImpact: "Integração nativa com Security Command Center (SCC Enterprise), políticas organizacionais (Org Policies) no nível raiz e métricas de risco compartilhadas com o conselho.",
@@ -5034,6 +5463,17 @@ Formulário preenchido com o subagente recomendado!`);
                 badge.innerText = ctrl;
                 controlsContainer.appendChild(badge);
             });
+
+            // Set official source link
+            const linkEl = document.getElementById("newsModalOriginalLink");
+            const sourceNameEl = document.getElementById("newsModalSourceName");
+            if (linkEl && data.originalUrl) {
+                linkEl.href = data.originalUrl;
+                if (sourceNameEl) sourceNameEl.innerText = "Acessar Fonte Oficial (" + (data.sourceName || "Portal Oficial") + ") ↗";
+                linkEl.style.display = "inline-flex";
+            } else if (linkEl) {
+                linkEl.style.display = "none";
+            }
 
             document.getElementById("newsModal").classList.add("active");
         }
