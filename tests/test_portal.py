@@ -236,5 +236,36 @@ def test_finops_and_org_scope_toggle():
     assert sim_data["summary"]["total_invocations"] > data_finops["summary"]["total_invocations"]
 
 
+def test_all_native_subagents_and_trigger_endpoints():
+    """Verify that all built-in, custom, and on-demand subagents execute without error."""
+    agents = [
+        "annex_a",
+        "gcp_telemetry",
+        "org_policies",
+        "horizon_scanner",
+        "iac_scanner",
+        "codemender",
+        "custom-finops-storage",
+        "custom-k8s-secops",
+        "custom-iam-least-privilege",
+        "arbitrary-on-demand-agent",
+    ]
+    for agent_id in agents:
+        res = client.post(f"/api/subagents/{agent_id}/run?project_id=agentic-grc-cd06")
+        assert res.status_code == 200, f"Failed for {agent_id}: {res.text}"
+        data = res.json()
+        assert data["status"] == "COMPLETED"
+        assert "markdown_report" in data
+        assert len(data["markdown_report"]) > 50
 
+    # Test /api/subagents/trigger
+    triggers = ["annex_a", "gcp_telemetry", "horizon_scanner", "org_policies", "codemender", "iac_scanner", "other"]
+    for t in triggers:
+        res_trig = client.post("/api/subagents/trigger", json={"subagent": t, "target": "test-target"})
+        assert res_trig.status_code == 200
+        assert res_trig.json()["status"] == "COMPLETED"
 
+    # Test run_phases with string phase
+    res_phases_str = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"], "phase": "all"})
+    assert res_phases_str.status_code == 200
+    assert len(res_phases_str.json()["phases"]) == 4

@@ -3989,6 +3989,44 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                     <div class="card-panel">
                         <div class="card-panel-header">
+                            <div class="card-icon-avatar" style="color: var(--gcp-blue);">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
+                                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+                                    <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+                                    <line x1="6" y1="6" x2="6.01" y2="6"/>
+                                    <line x1="6" y1="18" x2="6.01" y2="18"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="card-title">GCP Telemetry & Infrastructure</div>
+                                <div style="font-size: 11px; color: var(--gcp-green)">Online</div>
+                            </div>
+                        </div>
+                        <div class="card-desc">Auditoria contínua de recursos ativos via Cloud Asset Inventory, sinks BigQuery e perímetros VPC-SC.</div>
+                        <button class="btn-action-primary" onclick="executeSubagent('gcp_telemetry', 'GCP Telemetry & Infrastructure Sub-Agent')" style="margin-top: auto;">Auditar Telemetria GCP</button>
+                    </div>
+
+                    <div class="card-panel">
+                        <div class="card-panel-header">
+                            <div class="card-icon-avatar" style="color: #c58af9;">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="card-title">Organization Policies Enforcer</div>
+                                <div style="font-size: 11px; color: var(--gcp-green)">Online</div>
+                            </div>
+                        </div>
+                        <div class="card-desc">Verificação e enforce de restrições hierárquicas da organização GCP e alinhamento normativo SGSI.</div>
+                        <button class="btn-action-primary" onclick="executeSubagent('org_policies', 'Organization Policies Enforcer')" style="margin-top: auto;">Auditar Org Policies</button>
+                    </div>
+
+                    <div class="card-panel">
+                        <div class="card-panel-header">
                             <div class="card-icon-avatar">
                                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
                                     <circle cx="12" cy="12" r="10"/>
@@ -4007,19 +4045,19 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                     <div class="card-panel">
                         <div class="card-panel-header">
-                            <div class="card-icon-avatar">
+                            <div class="card-icon-avatar" style="color: var(--gcp-yellow);">
                                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                    <line x1="9" y1="3" x2="9" y2="21"/>
+                                    <polyline points="16 18 22 12 16 6"/>
+                                    <polyline points="8 6 2 12 8 18"/>
                                 </svg>
                             </div>
                             <div>
-                                <div class="card-title">Google Drive (Zero-Copy)</div>
-                                <div style="font-size: 11px; color: var(--gcp-green)">Conectado</div>
+                                <div class="card-title">CodeMender (A.8.28 DevSecOps)</div>
+                                <div style="font-size: 11px; color: var(--gcp-blue)">Pronto</div>
                             </div>
                         </div>
-                        <div class="card-desc">Auditoria contínua de políticas corporativas armazenadas no Google Workspace via delegação SPIFFE.</div>
-                        <button class="btn-action-primary" onclick="openStorageModal()" style="margin-top: auto;">Sincronizar Políticas</button>
+                        <div class="card-desc">Varredura SAST de repositórios, simulação de remediação em sandbox efêmero e abertura de PRs com HITL.</div>
+                        <button class="btn-action-primary" onclick="executeSubagent('codemender', 'CodeMender Agent')" style="margin-top: auto;">Remediar Código</button>
                     </div>
 
                     <div class="card-panel">
@@ -4038,6 +4076,23 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </div>
                         <div class="card-desc">Varredura estática de templates de infraestrutura como código para validação prévia de conformidade.</div>
                         <button class="btn-action-primary" onclick="openUploadModal()" style="margin-top: auto;">Analisar Template IaC</button>
+                    </div>
+
+                    <div class="card-panel">
+                        <div class="card-panel-header">
+                            <div class="card-icon-avatar">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="9" y1="3" x2="9" y2="21"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="card-title">Google Drive (Zero-Copy)</div>
+                                <div style="font-size: 11px; color: var(--gcp-green)">Conectado</div>
+                            </div>
+                        </div>
+                        <div class="card-desc">Auditoria contínua de políticas corporativas armazenadas no Google Workspace via delegação SPIFFE.</div>
+                        <button class="btn-action-primary" onclick="openStorageModal()" style="margin-top: auto;">Sincronizar Políticas</button>
                     </div>
                 </div>
             </section>
@@ -5984,56 +6039,7 @@ window.currentLanguage = 'pt';
             }
         }
 
-        function old_openRemediationModal(phaseNum) {
-            document.getElementById("remPhaseNumber").value = phaseNum;
-            document.getElementById("remModalTitle").innerText = `Tratar Desvios da Fase ${phaseNum}`;
-            const details = document.getElementById("remPlanDetails");
-            
-            const plans = {
-                1: "<strong>Plano de Remediação Fase 1 (Descoberta & IAM):</strong><br>• Revogação de permissões excessivas identificadas pelo IAM Recommender.<br>• Aplicação mandatória de autenticação MFA/2FA para identidades de projeto.<br>• Desativação de chaves de service account inativas.",
-                2: "<strong>Plano de Remediação Fase 2 (Auditoria Técnica & IaC):</strong><br>• Enforce de Public Access Prevention (PAP) e UBLA nos buckets Cloud Storage.<br>• Configuração de período de rotação de chaves Cloud KMS HSM para 60 dias.<br>• Fechamento de portas administrativas abertas (SSH/RDP) no firewall VPC.",
-                3: "<strong>Plano de Remediação Fase 3 (Governança & Políticas):</strong><br>• Aplicação de Organization Policies restritivas (ex: restrição de localização geográfica).<br>• Sincronização e assinatura digital das políticas do SGSI via Zero-Copy (Google Drive).<br>• Registro formal da aprovação da diretoria no grafo de conformidade.",
-                4: "<strong>Plano de Remediação Fase 4 (Grafo Criptográfico):</strong><br>• Recálculo completo de hashes SHA-256 para todos os nós de evidência.<br>• Emissão de novo recibo digital com não-repúdio.<br>• Reconciliação do Scorecard executivo em 100.0% (EXCELLENT)."
-            };
-            details.innerHTML = plans[phaseNum] || "Plano de remediação automatizado para a fase selecionada.";
-            document.getElementById("remediationModal").classList.add("active");
-        }
 
-        function closeRemediationModal() {
-            document.getElementById("remediationModal").classList.remove("active");
-        }
-
-        async function executePhaseRemediation() {
-            const phaseNum = parseInt(document.getElementById("remPhaseNumber").value, 10);
-            const project = Array.from(selectedProjectIds)[0] || "agentic-grc-cd06";
-            appendLog(`[Remediação Fase ${phaseNum}] Aplicando ações corretivas automáticas no projeto ${project}...`);
-
-            try {
-                const res = await fetch("/api/audit/remediate_phase", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ phase: phaseNum, project_id: project })
-                });
-                const data = await res.json();
-                closeRemediationModal();
-
-                appendLog(`[Remediação Fase ${phaseNum}] Sucesso! Status: ${data.details.status}`, "success");
-                data.details.actions_executed.forEach(a => appendLog(`  [Auto-Fix] ${a}`, "success"));
-
-                const statusTag = document.getElementById(`statusPhase${phaseNum}`);
-                if (statusTag) {
-                    statusTag.innerText = "Remediado (100%)";
-                    statusTag.className = "phase-status-tag compliant";
-                }
-                const findingsBox = document.getElementById(`findingsPhase${phaseNum}`);
-                if (findingsBox) {
-                    findingsBox.style.display = "block";
-                    findingsBox.innerHTML = `<span style="color: var(--gcp-green);"><strong>Fase ${phaseNum} Remediada com Sucesso:</strong></span><br>` + data.details.actions_executed.map(a => `✓ ${escapeHtml(a)}`).join("<br>");
-                }
-            } catch (e) {
-                appendLog(`[Remediação Erro] ${e}`, "error");
-            }
-        }
 
         // -------------------------------------------------------------------
         // Custom Subagents Management
@@ -6536,7 +6542,7 @@ Formulário preenchido com o subagente recomendado!`);
 
             document.querySelectorAll(".agent-item").forEach(b => b.classList.remove("active"));
             if (agentMap[viewId]) {
-                const btn = document.getElementById(agentMap[viewId]) || document.getElementById("agentBtnChat");
+                const btn = document.getElementById(agentMap[viewId]) || document.getElementById("agentBtnGrcAuditor");
                 if (btn) btn.classList.add("active");
             }
 
@@ -6780,7 +6786,7 @@ Formulário preenchido com o subagente recomendado!`);
             }
 
             document.querySelectorAll(".agent-item").forEach(el => el.classList.remove("active"));
-            const grcBtn = document.getElementById("agentBtnGrcAuditor") || document.getElementById("agentBtnChat");
+            const grcBtn = document.getElementById("agentBtnGrcAuditor");
             if (grcBtn) grcBtn.classList.add("active");
             document.getElementById("topActiveTitle").innerText = "Agentic GRC Auditor";
         }
@@ -7040,7 +7046,9 @@ function openNewsModal(newsKey) {
 
         function executeNewsAudit() {
             if (!currentActiveNewsKey) return;
-            const data = regulatoryNewsDatabase[currentActiveNewsKey];
+            const lang = window.currentLanguage || 'pt';
+            const db = regulatoryNewsDatabases[lang] || regulatoryNewsDatabases.pt || regulatoryNewsDatabases.en;
+            const data = db ? db[currentActiveNewsKey] : null;
             closeNewsModal();
             if (data && data.auditPrompt) {
                 promptPreFill(data.auditPrompt);
@@ -7597,9 +7605,11 @@ function openNewsModal(newsKey) {
         async function triggerSubagent(subagent, target) {
             const nameMap = {
                 "annex_a": "Annex A Auditor Agent",
+                "gcp_telemetry": "GCP Telemetry & Infrastructure Sub-Agent",
+                "org_policies": "Organization Policies Enforcer",
                 "horizon_scanner": "Horizon Scanner Agent",
                 "iac_scanner": "IaC Scanner (Terraform/Ansible)",
-                "org_policies": "Organization Policies Enforcer"
+                "codemender": "CodeMender (A.8.28 Secure Development)"
             };
             executeSubagent(subagent, nameMap[subagent] || subagent);
         }
