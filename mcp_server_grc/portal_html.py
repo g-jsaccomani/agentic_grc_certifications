@@ -6309,7 +6309,6 @@ window.currentLanguage = 'pt';
         // -------------------------------------------------------------------
         // Custom Subagents Management
         // -------------------------------------------------------------------
-        async 
         function renderSidebarCustomAgentsList(container, customList) {
             if (!container) return;
             container.innerHTML = "";
@@ -6346,7 +6345,8 @@ window.currentLanguage = 'pt';
                 renderSidebarCustomAgentsList(sidebarList, window.lastLoadedCustomSubagents);
             }
         }
-    function loadSubagents() {
+
+        async function loadSubagents() {
             try {
                 const res = await fetch("/api/subagents");
                 const data = await res.json();
