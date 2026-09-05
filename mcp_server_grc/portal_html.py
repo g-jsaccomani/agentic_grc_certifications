@@ -312,10 +312,10 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .agent-pin { color: var(--text-tertiary); opacity: 0.6; transition: var(--transition-smooth); }
         .agent-item:hover .agent-pin { opacity: 1; color: var(--text-secondary); }
 
-        .recent-list { display: flex; flex-direction: column; gap: 2px; padding-left: 2px; }
+        .recent-list { display: flex; flex-direction: column; gap: 2px; padding-left: 2px; max-height: 220px; overflow-y: auto; }
         .recent-item {
-            padding: 7px 12px;
-            font-size: 13px;
+            padding: 6px 10px;
+            font-size: 12px;
             color: var(--text-secondary);
             border-radius: 8px;
             cursor: pointer;
@@ -323,8 +323,26 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             overflow: hidden;
             text-overflow: ellipsis;
             transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
         }
         .recent-item:hover { background-color: var(--bg-surface); color: var(--text-primary); }
+        .recent-item.active { background-color: rgba(138, 180, 248, 0.14); color: var(--gcp-blue); font-weight: 500; }
+        .recent-item .recent-del {
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .recent-item:hover .recent-del { opacity: 0.7; }
+        .recent-item .recent-del:hover { opacity: 1; color: var(--gcp-red); }
 
         
         @keyframes spin {
@@ -3205,13 +3223,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <div id="sidebarCustomAgentsList" style="margin-top: 4px; display: flex; flex-direction: column; gap: 2px;"></div>
 
             <!-- Histórico Recente -->
-            <div class="section-header" style="margin-top: 14px;">
+            <div class="section-header" style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between;">
                 <span>Histórico de Auditorias</span>
+                <span id="chatHistoryCount" style="font-size: 10.5px; color: var(--text-tertiary); font-weight: normal;"></span>
             </div>
-            <div class="recent-list">
-                <div class="recent-item" onclick="promptPreFill('Gerar parecer executivo formal de conformidade para agentic-grc-cd06')">Parecer ISO 27001 - agentic-grc-cd06</div>
-                <div class="recent-item" onclick="promptPreFill('Auditar conformidade do Cloud KMS e rotação de chaves HSM (A.8.24)')">Auditoria Criptografia KMS - A.8.24</div>
-                <div class="recent-item" onclick="promptPreFill('Verificar perímetros VPC Service Controls e proteção contra exfiltração')">Inspeção VPC-SC & DLP</div>
+            <div class="recent-list" id="chatSessionsHistory">
+                <div class="recent-item" onclick="promptPreFill('Gerar parecer executivo formal de conformidade para agentic-grc-cd06')"><span style="overflow: hidden; text-overflow: ellipsis;">Parecer ISO 27001 - agentic-grc-cd06</span></div>
+                <div class="recent-item" onclick="promptPreFill('Auditar conformidade do Cloud KMS e rotação de chaves HSM (A.8.24)')"><span style="overflow: hidden; text-overflow: ellipsis;">Auditoria Criptografia KMS - A.8.24</span></div>
+                <div class="recent-item" onclick="promptPreFill('Verificar perímetros VPC Service Controls e proteção contra exfiltração')"><span style="overflow: hidden; text-overflow: ellipsis;">Inspeção VPC-SC & DLP</span></div>
             </div>
         </div>
 
@@ -6139,16 +6158,101 @@ window.currentLanguage = 'pt';
             }
         }
 
-        async function executeSubagent(agentId, agentName = null) {
-            const project = Array.from(selectedProjectIds)[0] || "agentic-grc-cd06";
-            const displayName = agentName || agentId;
+        // Multi-Chat Sessions Management
+        let chatSessions = [];
+        let activeChatSessionId = null;
 
-            // 1. Switch directly to Chat view so the user sees the execution happen live!
+        function renderChatSessionsHistory() {
+            const container = document.getElementById("chatSessionsHistory");
+            if (!container) return;
+
+            const countEl = document.getElementById("chatHistoryCount");
+            if (countEl) {
+                countEl.innerText = chatSessions.length > 0 ? `${chatSessions.length}` : "";
+            }
+
+            if (chatSessions.length === 0) {
+                container.innerHTML = `
+                    <div class="recent-item" onclick="promptPreFill('Gerar parecer executivo formal de conformidade para agentic-grc-cd06')"><span style="overflow: hidden; text-overflow: ellipsis;">Parecer ISO 27001 - agentic-grc-cd06</span></div>
+                    <div class="recent-item" onclick="promptPreFill('Auditar conformidade do Cloud KMS e rotação de chaves HSM (A.8.24)')"><span style="overflow: hidden; text-overflow: ellipsis;">Auditoria Criptografia KMS - A.8.24</span></div>
+                    <div class="recent-item" onclick="promptPreFill('Verificar perímetros VPC Service Controls e proteção contra exfiltração')"><span style="overflow: hidden; text-overflow: ellipsis;">Inspeção VPC-SC & DLP</span></div>
+                `;
+                return;
+            }
+
+            container.innerHTML = chatSessions.map(s => {
+                const isActive = s.id === activeChatSessionId;
+                const statusDot = s.status === "running"
+                    ? `<span class="spinner" style="width: 10px; height: 10px; border: 1.5px solid var(--gcp-blue); border-top-color: transparent; border-radius: 50%; display: inline-block; flex-shrink: 0; animation: spin 1s linear infinite;"></span>`
+                    : `<span style="color: var(--gcp-green); font-size: 9px; flex-shrink: 0;">●</span>`;
+
+                return `
+                    <div class="recent-item ${isActive ? 'active' : ''}" onclick="switchChatSession('${s.id}')" title="${escapeHtml(s.title)} • ${s.subtitle || ''}">
+                        <div style="display: flex; align-items: center; gap: 7px; overflow: hidden; flex: 1;">
+                            ${statusDot}
+                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(s.title)}</span>
+                        </div>
+                        <span class="recent-del" onclick="deleteChatSession(event, '${s.id}')" title="Excluir chat">
+                            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </span>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function switchChatSession(sessionId) {
+            const session = chatSessions.find(s => s.id === sessionId);
+            if (!session) return;
+
+            activeChatSessionId = sessionId;
             switchView("view-chat");
 
             const chatArea = document.getElementById("chatArea");
             const hero = document.getElementById("geminiHero");
-            if (hero) hero.style.display = "none"; updateBottomInputVisibility();
+            if (hero) hero.style.display = "none";
+            updateBottomInputVisibility();
+
+            chatArea.innerHTML = session.messagesHtml || "";
+            chatArea.scrollTop = chatArea.scrollHeight;
+
+            const titleEl = document.getElementById("topActiveTitle");
+            if (titleEl) {
+                titleEl.innerText = session.title;
+            }
+
+            renderChatSessionsHistory();
+        }
+
+        function deleteChatSession(e, sessionId) {
+            if (e) e.stopPropagation();
+            chatSessions = chatSessions.filter(s => s.id !== sessionId);
+            if (activeChatSessionId === sessionId) {
+                startNewConversation();
+            } else {
+                renderChatSessionsHistory();
+            }
+        }
+
+        async function executeSubagent(agentId, agentName = null) {
+            const project = Array.from(selectedProjectIds)[0] || "agentic-grc-cd06";
+            const displayName = agentName || agentId;
+
+            // 1. Cada execução cria um chat novo isolado!
+            const sessionId = "exec_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6);
+            activeChatSessionId = sessionId;
+
+            // Switch to chat view
+            switchView("view-chat");
+
+            const chatArea = document.getElementById("chatArea");
+            const hero = document.getElementById("geminiHero");
+            if (hero) hero.style.display = "none";
+            updateBottomInputVisibility();
+
+            // Limpa mensagens de conversas anteriores para iniciar CHAT NOVO
+            chatArea.innerHTML = "";
+
+            const replyId = "reply_" + sessionId;
 
             // 2. Append User Request row
             const userRow = document.createElement("div");
@@ -6166,7 +6270,7 @@ window.currentLanguage = 'pt';
                 <div class="msg-avatar gemini" style="background: none; border: none; width: 32px; height: 32px;">
                     <img src="/static/images/google_cloud_icon.png" width="28" height="28" style="object-fit: contain; border: none; background: transparent;">
                 </div>
-                <div class="msg-content" id="activeSubagentReply">
+                <div class="msg-content" id="${replyId}">
                     <div style="display: flex; align-items: center; gap: 8px; color: var(--gcp-blue);">
                         <span class="spinner" style="width: 14px; height: 14px; border: 2px solid var(--gcp-blue); border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 1s linear infinite;"></span>
                         <span>Subagente <strong>${escapeHtml(displayName)}</strong> executando varredura técnica de telemetria no projeto <code>${escapeHtml(project)}</code>...</span>
@@ -6176,8 +6280,26 @@ window.currentLanguage = 'pt';
             chatArea.appendChild(botRow);
             chatArea.scrollTop = chatArea.scrollHeight;
 
-            // 4. Log to console if open
-            appendLog(`[Subagente ${displayName}] Executando auditoria especializada no projeto '${project}'...`, "info");
+            // Registra a nova sessão no histórico de auditorias
+            const newSession = {
+                id: sessionId,
+                title: displayName,
+                subtitle: `${project} • ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`,
+                agentId: agentId,
+                project: project,
+                timestamp: Date.now(),
+                messagesHtml: chatArea.innerHTML,
+                status: "running"
+            };
+            chatSessions.unshift(newSession);
+            renderChatSessionsHistory();
+
+            const titleEl = document.getElementById("topActiveTitle");
+            if (titleEl) {
+                titleEl.innerText = `Auditoria • ${displayName}`;
+            }
+
+            appendLog(`[Novo Chat • ${displayName}] Executando auditoria especializada no projeto '${project}'...`, "info");
 
             try {
                 const res = await fetch(`/api/subagents/${encodeURIComponent(agentId)}/run?project_id=${encodeURIComponent(project)}`, {
@@ -6185,21 +6307,38 @@ window.currentLanguage = 'pt';
                 });
                 const data = await res.json();
 
-                const replyElem = document.getElementById("activeSubagentReply");
-                if (replyElem) {
-                    replyElem.removeAttribute("id");
-                    if (data.markdown_report) {
-                        replyElem.innerHTML = renderExecutiveMarkdown(data.markdown_report);
-                    } else {
-                        let text = `### Auditoria Concluída: ${displayName}\n\n`;
-                        text += `**Projeto:** \`${data.project_id || project}\` | **Score:** **${data.compliance_score || 100}%**\n\n`;
-                        if (data.findings && data.findings.length) {
-                            text += `#### Descobertas Técnicas:\n`;
-                            data.findings.forEach(f => text += `- ${f}\n`);
-                        }
-                        replyElem.innerHTML = renderExecutiveMarkdown(text);
+                let renderedReport = "";
+                if (data.markdown_report) {
+                    renderedReport = renderExecutiveMarkdown(data.markdown_report);
+                } else {
+                    let text = `### Auditoria Concluída: ${displayName}\n\n`;
+                    text += `**Projeto:** \`${data.project_id || project}\` | **Score:** **${data.compliance_score || 100}%**\n\n`;
+                    if (data.findings && data.findings.length) {
+                        text += `#### Descobertas Técnicas:\n`;
+                        data.findings.forEach(f => text += `- ${f}\n`);
                     }
+                    renderedReport = renderExecutiveMarkdown(text);
                 }
+
+                const replyElem = document.getElementById(replyId);
+                if (replyElem) {
+                    replyElem.innerHTML = renderedReport;
+                }
+
+                newSession.status = "completed";
+                if (activeChatSessionId === sessionId) {
+                    newSession.messagesHtml = chatArea.innerHTML;
+                } else {
+                    newSession.messagesHtml = userRow.outerHTML + `
+                        <div class="msg-row bot">
+                            <div class="msg-avatar gemini" style="background: none; border: none; width: 32px; height: 32px;">
+                                <img src="/static/images/google_cloud_icon.png" width="28" height="28" style="object-fit: contain; border: none; background: transparent;">
+                            </div>
+                            <div class="msg-content">${renderedReport}</div>
+                        </div>
+                    `;
+                }
+                renderChatSessionsHistory();
 
                 if (data.evidence_nodes) {
                     const countElem = document.getElementById("evidenceNodesDisplay");
@@ -6208,11 +6347,16 @@ window.currentLanguage = 'pt';
 
                 appendLog(`[Subagente ${displayName}] Concluído com Sucesso! Score: 100%`, "success");
             } catch (err) {
-                const replyElem = document.getElementById("activeSubagentReply");
+                const errorHtml = `<span style="color: var(--gcp-red)">Erro ao executar o subagente ${escapeHtml(displayName)}: ${err}</span>`;
+                const replyElem = document.getElementById(replyId);
                 if (replyElem) {
-                    replyElem.removeAttribute("id");
-                    replyElem.innerHTML = `<span style="color: var(--gcp-red)">Erro ao executar o subagente ${escapeHtml(displayName)}: ${err}</span>`;
+                    replyElem.innerHTML = errorHtml;
                 }
+                newSession.status = "error";
+                if (activeChatSessionId === sessionId) {
+                    newSession.messagesHtml = chatArea.innerHTML;
+                }
+                renderChatSessionsHistory();
                 appendLog(`[Erro Subagente] ${err}`, "error");
             }
 
@@ -6795,11 +6939,11 @@ Formulário preenchido com o subagente recomendado!`);
         // Mostra: APENAS O RSS FEED.
         // NÃO mostra as pílulas nem o dash.
         function startNewConversation() {
+            activeChatSessionId = null;
             switchView("view-chat");
             const chatArea = document.getElementById("chatArea");
             if (chatArea) {
-                const msgRows = chatArea.querySelectorAll(".msg-row");
-                msgRows.forEach(r => r.remove());
+                chatArea.innerHTML = "";
             }
 
             const hero = document.getElementById("geminiHero");
@@ -6831,7 +6975,10 @@ Formulário preenchido com o subagente recomendado!`);
             updateBottomInputVisibility();
 
             document.querySelectorAll(".agent-item").forEach(el => el.classList.remove("active"));
-            document.getElementById("topActiveTitle").innerText = "Agentic GRC Auditor";
+            const topTitle = document.getElementById("topActiveTitle");
+            if (topTitle) topTitle.innerText = "Agentic GRC Auditor";
+
+            renderChatSessionsHistory();
         }
 
         function sendChatMessageFromHero() {
@@ -7330,7 +7477,30 @@ function openNewsModal(newsKey) {
 
             const chatArea = document.getElementById("chatArea");
             const hero = document.getElementById("geminiHero");
-            if (hero) hero.style.display = "none"; updateBottomInputVisibility();
+            const isHeroVisible = hero && hero.style.display !== "none";
+            if (hero) hero.style.display = "none";
+            updateBottomInputVisibility();
+
+            // Se for uma nova conversa iniciada da tela inicial, cria um chat novo dedicado
+            let sessionId = activeChatSessionId;
+            let currentSession = null;
+            if (!sessionId || isHeroVisible) {
+                chatArea.innerHTML = "";
+                sessionId = "chat_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6);
+                activeChatSessionId = sessionId;
+                currentSession = {
+                    id: sessionId,
+                    title: text.length > 28 ? text.substring(0, 28) + "..." : text,
+                    subtitle: `${Array.from(selectedProjectIds)[0] || 'agentic-grc-cd06'} • ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`,
+                    timestamp: Date.now(),
+                    messagesHtml: "",
+                    status: "running"
+                };
+                chatSessions.unshift(currentSession);
+                renderChatSessionsHistory();
+            } else {
+                currentSession = chatSessions.find(s => s.id === sessionId);
+            }
 
             const userRow = document.createElement("div");
             userRow.className = "msg-row user";
@@ -7344,6 +7514,7 @@ function openNewsModal(newsKey) {
             handleChatInput(input);
             chatArea.scrollTop = chatArea.scrollHeight;
 
+            const replyId = "bot_reply_" + Date.now();
             const botRow = document.createElement("div");
             botRow.className = "msg-row bot";
             botRow.innerHTML = `
@@ -7353,12 +7524,16 @@ function openNewsModal(newsKey) {
                         <path d="M12 5.5L17.5 8V12C17.5 15.5 15.2 18.5 12 19.5C8.8 18.5 6.5 15.5 6.5 12V8L12 5.5Z" fill="#1a73e8"/>
                     </svg>
                 </div>
-                <div class="msg-content" id="activeBotReply">
+                <div class="msg-content" id="${replyId}">
                     <span style="color: var(--text-tertiary)">Agentic GRC Auditor (Google Cloud Security) avaliando telemetria e grafo de evidências...</span>
                 </div>
             `;
             chatArea.appendChild(botRow);
             chatArea.scrollTop = chatArea.scrollHeight;
+
+            if (currentSession) {
+                currentSession.messagesHtml = chatArea.innerHTML;
+            }
 
             try {
                 const res = await fetch("/api/chat", {
@@ -7373,13 +7548,27 @@ function openNewsModal(newsKey) {
                     })
                 });
                 const data = await res.json();
-                const replyElem = document.getElementById("activeBotReply");
-                replyElem.removeAttribute("id");
-                replyElem.innerHTML = renderExecutiveMarkdown(data.response || "Sem resposta do auditor.");
+                const replyElem = document.getElementById(replyId);
+                const replyMarkdown = renderExecutiveMarkdown(data.response || "Sem resposta do auditor.");
+                if (replyElem) {
+                    replyElem.innerHTML = replyMarkdown;
+                }
+                if (currentSession) {
+                    currentSession.status = "completed";
+                    currentSession.messagesHtml = chatArea.innerHTML;
+                    renderChatSessionsHistory();
+                }
             } catch (err) {
-                const replyElem = document.getElementById("activeBotReply");
-                replyElem.removeAttribute("id");
-                replyElem.innerHTML = `<span style="color: var(--gcp-red)">Erro na comunicação com o auditor Google Cloud Security: ${err}</span>`;
+                const replyElem = document.getElementById(replyId);
+                const errHtml = `<span style="color: var(--gcp-red)">Erro na comunicação com o auditor Google Cloud Security: ${err}</span>`;
+                if (replyElem) {
+                    replyElem.innerHTML = errHtml;
+                }
+                if (currentSession) {
+                    currentSession.status = "error";
+                    currentSession.messagesHtml = chatArea.innerHTML;
+                    renderChatSessionsHistory();
+                }
             }
             chatArea.scrollTop = chatArea.scrollHeight;
         }
