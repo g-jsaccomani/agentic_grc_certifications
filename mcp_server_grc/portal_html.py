@@ -93,10 +93,10 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .sidebar.collapsed { width: var(--sidebar-collapsed-width); }
 
         .sidebar-top {
-            padding: 16px 14px 8px 14px;
+            padding: 12px 10px 8px 10px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 10px;
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
@@ -206,16 +206,188 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .sidebar.collapsed .agent-item { justify-content: center; padding: 12px; }
 
         /* Section Header */
+        /* Collapsible Sidebar Categories & Headers */
+        .sidebar-category {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
         .section-header {
-            font-size: 11.5px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--text-tertiary);
-            padding: 8px 12px 4px 12px;
+            padding: 6px 8px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             text-transform: uppercase;
             letter-spacing: 0.6px;
+            user-select: none;
+            border-radius: 6px;
+            transition: var(--transition-smooth);
+        }
+
+        .section-header.collapsible {
+            cursor: pointer;
+        }
+
+        .section-header.collapsible:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-secondary);
+        }
+
+        .section-header-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow: hidden;
+        }
+
+        .section-title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .section-badge {
+            font-size: 10px;
+            color: var(--text-tertiary);
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 1px 6px;
+            border-radius: 10px;
+            line-height: 1.2;
+        }
+
+        .section-chevron {
+            transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+
+        .section-chevron.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            transition: opacity 0.2s ease;
+        }
+
+        .section-content.collapsed {
+            display: none !important;
+        }
+
+        /* Pinned Items (Fixados - Sempre Aparentes) */
+        .pinned-list {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding-left: 2px;
+        }
+
+        .pinned-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 12px;
+            cursor: pointer;
+            background: rgba(138, 180, 248, 0.06);
+            border: 1px solid rgba(138, 180, 248, 0.2);
+            transition: var(--transition-smooth);
+            gap: 6px;
+        }
+
+        .pinned-item:hover {
+            background: rgba(138, 180, 248, 0.14);
+            border-color: rgba(138, 180, 248, 0.35);
+        }
+
+        .pinned-item.active {
+            background: rgba(138, 180, 248, 0.2);
+            border-color: var(--gcp-blue);
+            color: var(--gcp-blue);
+            font-weight: 500;
+        }
+
+        .pinned-item-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pinned-avatar {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .pinned-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .btn-unpin {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            color: var(--gcp-blue);
+            transition: var(--transition-smooth);
+            flex-shrink: 0;
+        }
+        .btn-unpin:hover {
+            background: rgba(234, 67, 53, 0.15);
+            color: var(--gcp-red);
+        }
+
+        .item-pin-btn {
+            opacity: 0;
+            cursor: pointer;
+            padding: 3px;
+            border-radius: 4px;
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.15s ease, color 0.15s ease;
+            flex-shrink: 0;
+            background: transparent;
+            border: none;
+        }
+
+        .agent-item:hover .item-pin-btn,
+        .recent-item:hover .item-pin-btn {
+            opacity: 0.7;
+        }
+
+        .item-pin-btn:hover {
+            opacity: 1 !important;
+            color: var(--gcp-blue) !important;
+        }
+
+        .item-pin-btn.pinned {
+            opacity: 1 !important;
+            color: var(--gcp-blue) !important;
+        }
+        .item-pin-btn.pinned svg {
+            fill: var(--gcp-blue) !important;
         }
 
         .agent-list { display: flex; flex-direction: column; gap: 2px; }
@@ -312,7 +484,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .agent-pin { color: var(--text-tertiary); opacity: 0.6; transition: var(--transition-smooth); }
         .agent-item:hover .agent-pin { opacity: 1; color: var(--text-secondary); }
 
-        .recent-list { display: flex; flex-direction: column; gap: 2px; padding-left: 2px; max-height: 220px; overflow-y: auto; }
+        .recent-list { display: flex; flex-direction: column; gap: 3px; padding-left: 2px; max-height: 280px; overflow-y: auto; }
+        .recent-list::-webkit-scrollbar { width: 3px; }
+        .recent-list::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 3px; }
         .recent-item {
             padding: 6px 10px;
             font-size: 12px;
@@ -3104,133 +3278,205 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </button>
             </div>
 
-            <!-- Merged Unified Navigation (No duplicates, pure borderless icons) -->
-            <div class="agent-list">
-                <button class="agent-item" id="agentBtnGrcAuditor" onclick="selectAuditorTab()">
-                    <div class="agent-left-wrap">
-                        <div class="agent-avatar" style="color: #4285f4;">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
-                                <path d="M12 2L20 5.8V11.5C20 16.5 16.6 20.8 12 22C7.4 20.8 4 16.5 4 11.5V5.8L12 2Z"/>
-                            </svg>
-                        </div>
-                        <span class="agent-name" data-i18n="nav_lead_auditor">Agentic GRC Auditor</span>
+            <!-- 1. Fixados (Pinned Items) - Always visible when items are pinned -->
+            <div class="sidebar-category" id="catPinned" style="display: none;">
+                <div class="section-header collapsible" onclick="toggleSidebarCategory('pinned')" title="Recolher/Expandir Fixados">
+                    <div class="section-header-left">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="var(--gcp-blue)" stroke="currentColor" stroke-width="1.2" style="color: var(--gcp-blue); flex-shrink: 0;">
+                            <line x1="12" y1="17" x2="12" y2="22"/>
+                            <path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/>
+                        </svg>
+                        <span class="section-title" style="color: var(--gcp-blue); font-weight: 600;">Fixados</span>
+                        <span class="section-badge" id="pinnedBadgeCount">0</span>
                     </div>
-                    <span class="agent-pin" title="Auditor Líder" style="color: var(--gcp-blue); font-size: 11px;">●</span>
-                </button>
-
-                <button class="agent-item" id="agentBtnPhases" onclick="switchView('view-phases')">
-                    <div class="agent-left-wrap">
-                        <div class="agent-avatar">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
-                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                            </svg>
-                        </div>
-                        <span class="agent-name" data-i18n="nav_phases">Scan por Fases</span>
-                    </div>
-                </button>
-
-                <button class="agent-item" id="agentBtnMatrix" onclick="switchView('view-matrix')">
-                    <div class="agent-left-wrap">
-                        <div class="agent-avatar">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                            </svg>
-                        </div>
-                        <span class="agent-name" data-i18n="nav_matrix">Matriz ISO 27001 & SoA</span>
-                    </div>
-                </button>
-
-                <button class="agent-item" id="agentBtnConnectors" onclick="switchView('view-connectors')">
-                    <div class="agent-left-wrap">
-                        <div class="agent-avatar">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
-                                <circle cx="18" cy="5" r="3"/>
-                                <circle cx="6" cy="12" r="3"/>
-                                <circle cx="18" cy="19" r="3"/>
-                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                            </svg>
-                        </div>
-                        <span class="agent-name">Subagentes & Zero-Copy</span>
-                    </div>
-                </button>
-
-                <button class="agent-item" id="agentBtnScorecard" onclick="switchView('view-scorecard')">
-                    <div class="agent-left-wrap">
-                        <div class="agent-avatar">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                            </svg>
-                        </div>
-                        <span class="agent-name" data-i18n="nav_scorecard">Scorecard & Evidências</span>
-                    </div>
-                </button>
-
-                <button class="agent-item" id="agentBtnReport" onclick="openExecutiveReport()">
-                    <div class="agent-left-wrap">
-                        <div class="agent-avatar" style="color: var(--gcp-blue);">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                                <line x1="12" y1="18" x2="12" y2="12"/>
-                                <line x1="9" y1="15" x2="15" y2="15"/>
-                            </svg>
-                        </div>
-                        <span class="agent-name" data-i18n="nav_exec_report">Dossiê Executivo</span>
-                    </div>
-                </button>
-
-                <button class="agent-item" id="agentBtnTechReport" onclick="openTechnicalReport()">
-                    <div class="agent-left-wrap">
-                        <div class="agent-avatar" style="color: #ea4335;">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
-                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                        </div>
-                        <span class="agent-name" data-i18n="nav_tech_report">Relatório Técnico (Auditoria Externa)</span>
-                    </div>
-                </button>
-
-                <button class="agent-item" id="agentBtnFinops" onclick="switchView('view-finops')">
-                    <div class="agent-left-wrap">
-                        <div class="agent-avatar" style="color: var(--gcp-green);">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="1" x2="12" y2="23"/>
-                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                            </svg>
-                        </div>
-                        <span class="agent-name" data-i18n="nav_finops">FinOps & Custos de IA</span>
-                    </div>
-                </button>
+                    <svg class="section-chevron" id="chevronPinned" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+                <div class="section-content" id="catPinnedContent">
+                    <div class="pinned-list" id="pinnedItemsList"></div>
+                </div>
             </div>
 
-            <!-- Subagentes Customizados Section -->
-            <div class="section-header" style="margin-top: 14px;">
-                <span>Subagentes Customizados</span>
+            <!-- 2. Menu Principal & Módulos -->
+            <div class="sidebar-category" id="catNav">
+                <div class="section-header collapsible" onclick="toggleSidebarCategory('nav')" title="Recolher/Expandir Menu Principal">
+                    <div class="section-header-left">
+                        <span class="section-title" data-i18n="cat_navigation">Menu Principal</span>
+                    </div>
+                    <svg class="section-chevron" id="chevronNav" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+                <div class="section-content" id="catNavContent">
+                    <div class="agent-list">
+                        <button class="agent-item" id="agentBtnGrcAuditor" onclick="selectAuditorTab()">
+                            <div class="agent-left-wrap">
+                                <div class="agent-avatar" style="color: #4285f4;">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <path d="M12 2L20 5.8V11.5C20 16.5 16.6 20.8 12 22C7.4 20.8 4 16.5 4 11.5V5.8L12 2Z"/>
+                                    </svg>
+                                </div>
+                                <span class="agent-name" data-i18n="nav_lead_auditor">Agentic GRC Auditor</span>
+                            </div>
+                            <span class="item-pin-btn" id="pinBtn_agentBtnGrcAuditor" onclick="togglePinNav(event, 'agentBtnGrcAuditor', 'Agentic GRC Auditor')" title="Fixar no topo">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
+                            </span>
+                        </button>
+
+                        <button class="agent-item" id="agentBtnPhases" onclick="switchView('view-phases')">
+                            <div class="agent-left-wrap">
+                                <div class="agent-avatar">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                                    </svg>
+                                </div>
+                                <span class="agent-name" data-i18n="nav_phases">Scan por Fases</span>
+                            </div>
+                            <span class="item-pin-btn" id="pinBtn_agentBtnPhases" onclick="togglePinNav(event, 'agentBtnPhases', 'Scan por Fases')" title="Fixar no topo">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
+                            </span>
+                        </button>
+
+                        <button class="agent-item" id="agentBtnMatrix" onclick="switchView('view-matrix')">
+                            <div class="agent-left-wrap">
+                                <div class="agent-avatar">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                        <polyline points="14 2 14 8 20 8"/>
+                                        <line x1="16" y1="13" x2="8" y2="13"/>
+                                        <line x1="16" y1="17" x2="8" y2="17"/>
+                                    </svg>
+                                </div>
+                                <span class="agent-name" data-i18n="nav_matrix">Matriz ISO 27001 & SoA</span>
+                            </div>
+                            <span class="item-pin-btn" id="pinBtn_agentBtnMatrix" onclick="togglePinNav(event, 'agentBtnMatrix', 'Matriz ISO 27001 & SoA')" title="Fixar no topo">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
+                            </span>
+                        </button>
+
+                        <button class="agent-item" id="agentBtnConnectors" onclick="switchView('view-connectors')">
+                            <div class="agent-left-wrap">
+                                <div class="agent-avatar">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <circle cx="18" cy="5" r="3"/>
+                                        <circle cx="6" cy="12" r="3"/>
+                                        <circle cx="18" cy="19" r="3"/>
+                                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                                    </svg>
+                                </div>
+                                <span class="agent-name">Subagentes & Zero-Copy</span>
+                            </div>
+                            <span class="item-pin-btn" id="pinBtn_agentBtnConnectors" onclick="togglePinNav(event, 'agentBtnConnectors', 'Subagentes & Zero-Copy')" title="Fixar no topo">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
+                            </span>
+                        </button>
+
+                        <button class="agent-item" id="agentBtnScorecard" onclick="switchView('view-scorecard')">
+                            <div class="agent-left-wrap">
+                                <div class="agent-avatar">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                </div>
+                                <span class="agent-name" data-i18n="nav_scorecard">Scorecard & Evidências</span>
+                            </div>
+                            <span class="item-pin-btn" id="pinBtn_agentBtnScorecard" onclick="togglePinNav(event, 'agentBtnScorecard', 'Scorecard & Evidências')" title="Fixar no topo">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
+                            </span>
+                        </button>
+
+                        <button class="agent-item" id="agentBtnReport" onclick="openExecutiveReport()">
+                            <div class="agent-left-wrap">
+                                <div class="agent-avatar" style="color: var(--gcp-blue);">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                        <polyline points="14 2 14 8 20 8"/>
+                                        <line x1="12" y1="18" x2="12" y2="12"/>
+                                        <line x1="9" y1="15" x2="15" y2="15"/>
+                                    </svg>
+                                </div>
+                                <span class="agent-name" data-i18n="nav_exec_report">Dossiê Executivo</span>
+                            </div>
+                            <span class="item-pin-btn" id="pinBtn_agentBtnReport" onclick="togglePinNav(event, 'agentBtnReport', 'Dossiê Executivo')" title="Fixar no topo">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
+                            </span>
+                        </button>
+
+                        <button class="agent-item" id="agentBtnTechReport" onclick="openTechnicalReport()">
+                            <div class="agent-left-wrap">
+                                <div class="agent-avatar" style="color: #ea4335;">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                                <span class="agent-name" data-i18n="nav_tech_report">Relatório Técnico (Auditoria Externa)</span>
+                            </div>
+                            <span class="item-pin-btn" id="pinBtn_agentBtnTechReport" onclick="togglePinNav(event, 'agentBtnTechReport', 'Relatório Técnico (Auditoria Externa)')" title="Fixar no topo">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
+                            </span>
+                        </button>
+
+                        <button class="agent-item" id="agentBtnFinops" onclick="switchView('view-finops')">
+                            <div class="agent-left-wrap">
+                                <div class="agent-avatar" style="color: var(--gcp-green);">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="1" x2="12" y2="23"/>
+                                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                    </svg>
+                                </div>
+                                <span class="agent-name" data-i18n="nav_finops">FinOps & Custos de IA</span>
+                            </div>
+                            <span class="item-pin-btn" id="pinBtn_agentBtnFinops" onclick="togglePinNav(event, 'agentBtnFinops', 'FinOps & Custos de IA')" title="Fixar no topo">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
+                            </span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <button class="btn-create-subagent-clean" id="agentBtnCreate" onclick="openCreateSubagentModal()">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2">
-                    <line x1="12" y1="5" x2="12" y2="19"/>
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                <span>+ Criar Subagente</span>
-            </button>
-
-            <div id="sidebarCustomAgentsList" style="margin-top: 4px; display: flex; flex-direction: column; gap: 2px;"></div>
-
-            <!-- Histórico Recente -->
-            <div class="section-header" style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between;">
-                <span>Histórico de Auditorias</span>
-                <span id="chatHistoryCount" style="font-size: 10.5px; color: var(--text-tertiary); font-weight: normal;"></span>
+            <!-- 3. Subagentes Customizados -->
+            <div class="sidebar-category" id="catCustomAgents">
+                <div class="section-header collapsible" onclick="toggleSidebarCategory('customAgents')" title="Recolher/Expandir Subagentes">
+                    <div class="section-header-left">
+                        <span class="section-title">Subagentes Customizados</span>
+                        <span class="section-badge" id="customAgentsCountBadge"></span>
+                    </div>
+                    <svg class="section-chevron" id="chevronCustomAgents" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+                <div class="section-content" id="catCustomAgentsContent">
+                    <button class="btn-create-subagent-clean" id="agentBtnCreate" onclick="openCreateSubagentModal()">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        <span>+ Criar Subagente</span>
+                    </button>
+                    <div id="sidebarCustomAgentsList" style="margin-top: 4px; display: flex; flex-direction: column; gap: 2px;"></div>
+                </div>
             </div>
-            <div class="recent-list" id="chatSessionsHistory">
-                <div class="recent-item" onclick="promptPreFill('Gerar parecer executivo formal de conformidade para agentic-grc-cd06')"><span style="overflow: hidden; text-overflow: ellipsis;">Parecer ISO 27001 - agentic-grc-cd06</span></div>
-                <div class="recent-item" onclick="promptPreFill('Auditar conformidade do Cloud KMS e rotação de chaves HSM (A.8.24)')"><span style="overflow: hidden; text-overflow: ellipsis;">Auditoria Criptografia KMS - A.8.24</span></div>
-                <div class="recent-item" onclick="promptPreFill('Verificar perímetros VPC Service Controls e proteção contra exfiltração')"><span style="overflow: hidden; text-overflow: ellipsis;">Inspeção VPC-SC & DLP</span></div>
+
+            <!-- 4. Histórico de Auditorias -->
+            <div class="sidebar-category" id="catHistory">
+                <div class="section-header collapsible" onclick="toggleSidebarCategory('history')" title="Recolher/Expandir Histórico">
+                    <div class="section-header-left">
+                        <span class="section-title">Histórico de Auditorias</span>
+                        <span class="section-badge" id="chatHistoryCount"></span>
+                    </div>
+                    <svg class="section-chevron" id="chevronHistory" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+                <div class="section-content" id="catHistoryContent">
+                    <div class="recent-list" id="chatSessionsHistory">
+                        <div class="recent-item" onclick="promptPreFill('Gerar parecer executivo formal de conformidade para agentic-grc-cd06')"><span style="overflow: hidden; text-overflow: ellipsis;">Parecer ISO 27001 - agentic-grc-cd06</span></div>
+                        <div class="recent-item" onclick="promptPreFill('Auditar conformidade do Cloud KMS e rotação de chaves HSM (A.8.24)')"><span style="overflow: hidden; text-overflow: ellipsis;">Auditoria Criptografia KMS - A.8.24</span></div>
+                        <div class="recent-item" onclick="promptPreFill('Verificar perímetros VPC Service Controls e proteção contra exfiltração')"><span style="overflow: hidden; text-overflow: ellipsis;">Inspeção VPC-SC & DLP</span></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -6063,7 +6309,44 @@ window.currentLanguage = 'pt';
         // -------------------------------------------------------------------
         // Custom Subagents Management
         // -------------------------------------------------------------------
-        async function loadSubagents() {
+        async 
+        function renderSidebarCustomAgentsList(container, customList) {
+            if (!container) return;
+            container.innerHTML = "";
+            (customList || []).forEach(agent => {
+                const isPinned = isItemPinned('subagent', agent.id);
+                const itemDiv = document.createElement("div");
+                itemDiv.className = "agent-item";
+                itemDiv.style.display = "flex";
+                itemDiv.style.alignItems = "center";
+                itemDiv.style.justifyContent = "space-between";
+                itemDiv.innerHTML = `
+                    <div class="agent-left-wrap" onclick="executeSubagent('${escapeJs(agent.id)}', '${escapeJs(agent.name)}')" style="flex: 1; cursor: pointer; overflow: hidden;">
+                        <div class="agent-avatar" style="color: var(--gcp-blue);">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                        </div>
+                        <span class="agent-name" title="${escapeHtml(agent.name)}">${escapeHtml(agent.name)}</span>
+                    </div>
+                    <span class="item-pin-btn ${isPinned ? 'pinned' : ''}" onclick="togglePinItem(event, 'subagent', '${escapeJs(agent.id)}', '${escapeJs(agent.name)}')" title="${isPinned ? 'Desafixar' : 'Fixar no topo'}">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="${isPinned ? 'var(--gcp-blue)' : 'none'}" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="17" x2="12" y2="22"/>
+                            <path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/>
+                        </svg>
+                    </span>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        function updateCustomSubagentPinButtons() {
+            const sidebarList = document.getElementById("sidebarCustomAgentsList");
+            if (sidebarList && window.lastLoadedCustomSubagents) {
+                renderSidebarCustomAgentsList(sidebarList, window.lastLoadedCustomSubagents);
+            }
+        }
+    function loadSubagents() {
             try {
                 const res = await fetch("/api/subagents");
                 const data = await res.json();
@@ -6076,25 +6359,15 @@ window.currentLanguage = 'pt';
                     countDisplay.innerText = `${customList.length} subagente(s) ativo(s)`;
                 }
 
+                window.lastLoadedCustomSubagents = customList;
+                const countBadge = document.getElementById("customAgentsCountBadge");
+                if (countBadge) {
+                    countBadge.innerText = customList.length > 0 ? `${customList.length}` : "";
+                }
+
                 const sidebarList = document.getElementById("sidebarCustomAgentsList");
                 if (sidebarList) {
-                    sidebarList.innerHTML = "";
-                    customList.forEach(agent => {
-                        const btn = document.createElement("button");
-                        btn.className = "agent-item";
-                        btn.onclick = () => executeSubagent(agent.id, agent.name);
-                        btn.innerHTML = `
-                            <div class="agent-left-wrap">
-                                <div class="agent-avatar" style="color: var(--gcp-blue);">
-                                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8">
-                                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                                    </svg>
-                                </div>
-                                <span class="agent-name" title="${escapeHtml(agent.name)}">${escapeHtml(agent.name)}</span>
-                            </div>
-                        `;
-                        sidebarList.appendChild(btn);
-                    });
+                    renderSidebarCustomAgentsList(sidebarList, customList);
                 }
 
                 if (customList.length === 0) {
@@ -6158,9 +6431,235 @@ window.currentLanguage = 'pt';
             }
         }
 
-        // Multi-Chat Sessions Management
+        // Multi-Chat Sessions & Pin Management (Sempre Aparentes)
         let chatSessions = [];
         let activeChatSessionId = null;
+        let pinnedItems = [];
+
+        function escapeJs(str) {
+            if (!str) return '';
+            return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        // --- Pinned Items Management ---
+        function loadPinnedItems() {
+            try {
+                pinnedItems = JSON.parse(localStorage.getItem("grc_pinned_items") || "[]");
+            } catch (e) {
+                pinnedItems = [];
+            }
+            renderPinnedItems();
+            updateNavPinIcons();
+        }
+
+        function savePinnedItems() {
+            try {
+                localStorage.setItem("grc_pinned_items", JSON.stringify(pinnedItems));
+            } catch (e) {}
+            renderPinnedItems();
+            updateNavPinIcons();
+        }
+
+        function isItemPinned(type, id) {
+            return pinnedItems.some(p => p.type === type && p.id === id);
+        }
+
+        function togglePinItem(e, type, id, title) {
+            if (e) e.stopPropagation();
+            const idx = pinnedItems.findIndex(p => p.type === type && p.id === id);
+            if (idx >= 0) {
+                pinnedItems.splice(idx, 1);
+            } else {
+                pinnedItems.push({ type, id, title });
+                const catContent = document.getElementById("catPinnedContent");
+                const chevron = document.getElementById("chevronPinned");
+                if (catContent) catContent.classList.remove("collapsed");
+                if (chevron) chevron.classList.remove("collapsed");
+            }
+            savePinnedItems();
+            renderChatSessionsHistory();
+            if (typeof updateCustomSubagentPinButtons === "function") {
+                updateCustomSubagentPinButtons();
+            }
+        }
+
+        function togglePinNav(e, btnId, title) {
+            togglePinItem(e, 'nav', btnId, title);
+        }
+
+        function getNavClickHandler(btnId) {
+            switch (btnId) {
+                case 'agentBtnGrcAuditor': return 'selectAuditorTab()';
+                case 'agentBtnPhases': return "switchView('view-phases')";
+                case 'agentBtnMatrix': return "switchView('view-matrix')";
+                case 'agentBtnConnectors': return "switchView('view-connectors')";
+                case 'agentBtnScorecard': return "switchView('view-scorecard')";
+                case 'agentBtnReport': return 'openExecutiveReport()';
+                case 'agentBtnTechReport': return 'openTechnicalReport()';
+                case 'agentBtnFinops': return "switchView('view-finops')";
+                default: return `document.getElementById('${btnId}')?.click()`;
+            }
+        }
+
+        function getNavIconSvg(btnId) {
+            switch (btnId) {
+                case 'agentBtnGrcAuditor':
+                    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" style="color: #4285f4;"><path d="M12 2L20 5.8V11.5C20 16.5 16.6 20.8 12 22C7.4 20.8 4 16.5 4 11.5V5.8L12 2Z"/></svg>`;
+                case 'agentBtnPhases':
+                    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`;
+                case 'agentBtnMatrix':
+                    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+                case 'agentBtnConnectors':
+                    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
+                case 'agentBtnScorecard':
+                    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`;
+                case 'agentBtnReport':
+                    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" style="color: var(--gcp-blue);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>`;
+                case 'agentBtnTechReport':
+                    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" style="color: #ea4335;"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`;
+                case 'agentBtnFinops':
+                    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-green);"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`;
+                default:
+                    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/></svg>`;
+            }
+        }
+
+        function updateNavPinIcons() {
+            const navBtnIds = ['agentBtnGrcAuditor', 'agentBtnPhases', 'agentBtnMatrix', 'agentBtnConnectors', 'agentBtnScorecard', 'agentBtnReport', 'agentBtnTechReport', 'agentBtnFinops'];
+            navBtnIds.forEach(id => {
+                const pinBtn = document.getElementById(`pinBtn_${id}`);
+                if (pinBtn) {
+                    const isPinned = pinnedItems.some(p => p.type === 'nav' && p.id === id);
+                    if (isPinned) {
+                        pinBtn.classList.add('pinned');
+                        pinBtn.title = 'Desafixar';
+                        const svg = pinBtn.querySelector('svg');
+                        if (svg) svg.setAttribute('fill', 'var(--gcp-blue)');
+                    } else {
+                        pinBtn.classList.remove('pinned');
+                        pinBtn.title = 'Fixar no topo';
+                        const svg = pinBtn.querySelector('svg');
+                        if (svg) svg.setAttribute('fill', 'none');
+                    }
+                }
+            });
+        }
+
+        function renderPinnedItems() {
+            const catPinned = document.getElementById("catPinned");
+            const container = document.getElementById("pinnedItemsList");
+            const badge = document.getElementById("pinnedBadgeCount");
+            if (!container || !catPinned) return;
+
+            if (pinnedItems.length === 0) {
+                catPinned.style.display = "none";
+                return;
+            }
+
+            catPinned.style.display = "flex";
+            if (badge) badge.innerText = `${pinnedItems.length}`;
+
+            container.innerHTML = pinnedItems.map(p => {
+                let iconSvg = '';
+                let clickHandler = '';
+                let activeClass = '';
+
+                if (p.type === 'chat') {
+                    iconSvg = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" style="color: var(--gcp-green); flex-shrink: 0;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+                    clickHandler = `switchChatSession('${p.id}')`;
+                    if (p.id === activeChatSessionId) activeClass = 'active';
+                } else if (p.type === 'subagent') {
+                    iconSvg = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" style="color: var(--gcp-blue); flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+                    clickHandler = `executeSubagent('${p.id}', '${escapeJs(p.title)}')`;
+                } else if (p.type === 'nav') {
+                    iconSvg = getNavIconSvg(p.id);
+                    clickHandler = getNavClickHandler(p.id);
+                }
+
+                return `
+                    <div class="pinned-item ${activeClass}" onclick="${clickHandler}" title="${escapeHtml(p.title)}">
+                        <div class="pinned-item-left">
+                            <div class="pinned-avatar">${iconSvg}</div>
+                            <span class="pinned-title">${escapeHtml(p.title)}</span>
+                        </div>
+                        <button class="btn-unpin" onclick="togglePinItem(event, '${p.type}', '${p.id}', '${escapeJs(p.title)}')" title="Desafixar">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="var(--gcp-blue)" stroke="currentColor" stroke-width="1.5">
+                                <line x1="12" y1="17" x2="12" y2="22"/>
+                                <path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        // --- Category Collapsing Management ---
+        function toggleSidebarCategory(catId) {
+            const capitalized = catId.charAt(0).toUpperCase() + catId.slice(1);
+            const content = document.getElementById(`cat${capitalized}Content`);
+            const chevron = document.getElementById(`chevron${capitalized}`);
+            if (!content) return;
+
+            const isCollapsed = content.classList.contains("collapsed");
+            if (isCollapsed) {
+                content.classList.remove("collapsed");
+                if (chevron) chevron.classList.remove("collapsed");
+            } else {
+                content.classList.add("collapsed");
+                if (chevron) chevron.classList.add("collapsed");
+            }
+
+            try {
+                const saved = JSON.parse(localStorage.getItem("grc_collapsed_categories") || "{}");
+                saved[catId] = !isCollapsed;
+                localStorage.setItem("grc_collapsed_categories", JSON.stringify(saved));
+            } catch (e) {}
+        }
+
+        function initSidebarCategories() {
+            try {
+                const saved = JSON.parse(localStorage.getItem("grc_collapsed_categories") || "{}");
+                ['pinned', 'nav', 'customAgents', 'history'].forEach(catId => {
+                    const capitalized = catId.charAt(0).toUpperCase() + catId.slice(1);
+                    const content = document.getElementById(`cat${capitalized}Content`);
+                    const chevron = document.getElementById(`chevron${capitalized}`);
+                    if (content && saved[catId] === true) {
+                        content.classList.add("collapsed");
+                        if (chevron) chevron.classList.add("collapsed");
+                    }
+                });
+            } catch (e) {}
+        }
+
+        // --- Chat Sessions Persistence ---
+        function saveChatSessions() {
+            try {
+                const toSave = chatSessions.slice(0, 30).map(s => ({
+                    id: s.id,
+                    title: s.title,
+                    subtitle: s.subtitle,
+                    agentId: s.agentId || null,
+                    project: s.project || null,
+                    timestamp: s.timestamp || Date.now(),
+                    status: s.status || "completed",
+                    messagesHtml: s.messagesHtml ? (s.messagesHtml.length > 250000 ? s.messagesHtml.slice(-250000) : s.messagesHtml) : ""
+                }));
+                localStorage.setItem("grc_chat_sessions", JSON.stringify(toSave));
+            } catch (e) {
+                console.warn("Could not save chat sessions:", e);
+            }
+        }
+
+        function loadChatSessions() {
+            try {
+                const saved = localStorage.getItem("grc_chat_sessions");
+                if (saved) {
+                    chatSessions = JSON.parse(saved);
+                }
+            } catch (e) {
+                chatSessions = [];
+            }
+        }
 
         function renderChatSessionsHistory() {
             const container = document.getElementById("chatSessionsHistory");
@@ -6173,15 +6672,31 @@ window.currentLanguage = 'pt';
 
             if (chatSessions.length === 0) {
                 container.innerHTML = `
-                    <div class="recent-item" onclick="promptPreFill('Gerar parecer executivo formal de conformidade para agentic-grc-cd06')"><span style="overflow: hidden; text-overflow: ellipsis;">Parecer ISO 27001 - agentic-grc-cd06</span></div>
-                    <div class="recent-item" onclick="promptPreFill('Auditar conformidade do Cloud KMS e rotação de chaves HSM (A.8.24)')"><span style="overflow: hidden; text-overflow: ellipsis;">Auditoria Criptografia KMS - A.8.24</span></div>
-                    <div class="recent-item" onclick="promptPreFill('Verificar perímetros VPC Service Controls e proteção contra exfiltração')"><span style="overflow: hidden; text-overflow: ellipsis;">Inspeção VPC-SC & DLP</span></div>
+                    <div class="recent-item" onclick="promptPreFill('Gerar parecer executivo formal de conformidade para agentic-grc-cd06')">
+                        <div style="display: flex; align-items: center; gap: 7px; overflow: hidden; flex: 1;">
+                            <span style="color: var(--text-tertiary); font-size: 9px; flex-shrink: 0;">○</span>
+                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Parecer ISO 27001 - agentic-grc-cd06</span>
+                        </div>
+                    </div>
+                    <div class="recent-item" onclick="promptPreFill('Auditar conformidade do Cloud KMS e rotação de chaves HSM (A.8.24)')">
+                        <div style="display: flex; align-items: center; gap: 7px; overflow: hidden; flex: 1;">
+                            <span style="color: var(--text-tertiary); font-size: 9px; flex-shrink: 0;">○</span>
+                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Auditoria Criptografia KMS - A.8.24</span>
+                        </div>
+                    </div>
+                    <div class="recent-item" onclick="promptPreFill('Verificar perímetros VPC Service Controls e proteção contra exfiltração')">
+                        <div style="display: flex; align-items: center; gap: 7px; overflow: hidden; flex: 1;">
+                            <span style="color: var(--text-tertiary); font-size: 9px; flex-shrink: 0;">○</span>
+                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Inspeção VPC-SC & DLP</span>
+                        </div>
+                    </div>
                 `;
                 return;
             }
 
             container.innerHTML = chatSessions.map(s => {
                 const isActive = s.id === activeChatSessionId;
+                const isPinned = isItemPinned('chat', s.id);
                 const statusDot = s.status === "running"
                     ? `<span class="spinner" style="width: 10px; height: 10px; border: 1.5px solid var(--gcp-blue); border-top-color: transparent; border-radius: 50%; display: inline-block; flex-shrink: 0; animation: spin 1s linear infinite;"></span>`
                     : `<span style="color: var(--gcp-green); font-size: 9px; flex-shrink: 0;">●</span>`;
@@ -6192,9 +6707,17 @@ window.currentLanguage = 'pt';
                             ${statusDot}
                             <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(s.title)}</span>
                         </div>
-                        <span class="recent-del" onclick="deleteChatSession(event, '${s.id}')" title="Excluir chat">
-                            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        </span>
+                        <div style="display: flex; align-items: center; gap: 3px;">
+                            <span class="item-pin-btn ${isPinned ? 'pinned' : ''}" onclick="togglePinItem(event, 'chat', '${s.id}', '${escapeJs(s.title)}')" title="${isPinned ? 'Desafixar' : 'Fixar no topo'}">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="${isPinned ? 'var(--gcp-blue)' : 'none'}" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="17" x2="12" y2="22"/>
+                                    <path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/>
+                                </svg>
+                            </span>
+                            <span class="recent-del" onclick="deleteChatSession(event, '${s.id}')" title="Excluir chat">
+                                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </span>
+                        </div>
                     </div>
                 `;
             }).join("");
@@ -6221,11 +6744,15 @@ window.currentLanguage = 'pt';
             }
 
             renderChatSessionsHistory();
+            renderPinnedItems();
         }
 
         function deleteChatSession(e, sessionId) {
             if (e) e.stopPropagation();
             chatSessions = chatSessions.filter(s => s.id !== sessionId);
+            pinnedItems = pinnedItems.filter(p => !(p.type === 'chat' && p.id === sessionId));
+            saveChatSessions();
+            savePinnedItems();
             if (activeChatSessionId === sessionId) {
                 startNewConversation();
             } else {
@@ -6292,6 +6819,7 @@ window.currentLanguage = 'pt';
                 status: "running"
             };
             chatSessions.unshift(newSession);
+            saveChatSessions();
             renderChatSessionsHistory();
 
             const titleEl = document.getElementById("topActiveTitle");
@@ -6326,6 +6854,7 @@ window.currentLanguage = 'pt';
                 }
 
                 newSession.status = "completed";
+                saveChatSessions();
                 if (activeChatSessionId === sessionId) {
                     newSession.messagesHtml = chatArea.innerHTML;
                 } else {
@@ -6659,6 +7188,10 @@ Formulário preenchido com o subagente recomendado!`);
             loadIsoMatrix();
             loadSubagents();
             renderNewsCarousel();
+            initSidebarCategories();
+            loadPinnedItems();
+            loadChatSessions();
+            renderChatSessionsHistory();
             startNewConversation();
             startSuggestionRotation();
         });
@@ -7497,6 +8030,7 @@ function openNewsModal(newsKey) {
                     status: "running"
                 };
                 chatSessions.unshift(currentSession);
+                saveChatSessions();
                 renderChatSessionsHistory();
             } else {
                 currentSession = chatSessions.find(s => s.id === sessionId);
@@ -7556,6 +8090,7 @@ function openNewsModal(newsKey) {
                 if (currentSession) {
                     currentSession.status = "completed";
                     currentSession.messagesHtml = chatArea.innerHTML;
+                    saveChatSessions();
                     renderChatSessionsHistory();
                 }
             } catch (err) {
