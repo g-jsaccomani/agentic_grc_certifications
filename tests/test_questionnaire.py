@@ -407,7 +407,10 @@ def test_submit_questionnaire_answer_with_attached_file():
     assert len(matched_nodes) > 0
     ev_node = matched_nodes[-1]
     assert ev_node.framework == "ISO27001:2022"
+    assert ev_node.verification_tier == EvidenceVerificationTier.SELF_ATTESTED
+    assert ev_node.verification_tier != EvidenceVerificationTier.VERIFIED
     assert ev_node.raw_payload["file_id"] == file_id
+
 
     # Verify link in EvidenceGraph
     matched_links = [
@@ -654,4 +657,138 @@ def test_upload_with_workspace_id_token(monkeypatch):
     res = client.post("/api/questionnaire/A.5.1/evidence-file", files=files, headers=id_header)
     assert res.status_code == 200
     assert res.json()["stored_as"] == "binary"
+
+
+# ---------------------------------------------------------------------------
+# 9. Regression Tests: EvidenceVerificationTier.SELF_ATTESTED & AI Consistency
+# ---------------------------------------------------------------------------
+
+def test_evidence_verification_tier_self_attested_enum():
+    """Verifies that SELF_ATTESTED exists on EvidenceVerificationTier and in graph summary."""
+    assert hasattr(EvidenceVerificationTier, "SELF_ATTESTED")
+    assert EvidenceVerificationTier.SELF_ATTESTED.value == "SELF_ATTESTED"
+
+    summary = ci_engine.evidence_graph.get_summary()
+    assert "SELF_ATTESTED" in summary["verification_tiers"]
+
+
+def test_questionnaire_answer_creates_self_attested_node():
+    """Verifies that questionnaire answer submissions create SELF_ATTESTED nodes, not VERIFIED."""
+    payload = {
+        "control_id": "A.5.1",
+        "framework": "ISO27001:2022",
+        "status": "COMPLIANT",
+        "justification": "Approved corporate policies published on intranet.",
+        "evidence_text": "Policy approved by board of directors on 2026-01-15.",
+    }
+    res = client.post("/api/questionnaire/A.5.1/answer", json=payload, headers=AUTH_HEADER)
+    assert res.status_code == 200
+    ans_data = res.json()
+    assert ans_data["control_id"] == "A.5.1"
+    assert ans_data["status"] == "COMPLIANT"
+
+    # Verify node in EvidenceGraph
+    matched_nodes = [
+        n for n in ci_engine.evidence_graph.nodes.values()
+        if n.control_id == "A.5.1" and n.resource_type == "questionnaire_response"
+    ]
+    assert len(matched_nodes) > 0
+    node = matched_nodes[-1]
+    assert node.verification_tier == EvidenceVerificationTier.SELF_ATTESTED
+    assert node.verification_tier.value == "SELF_ATTESTED"
+    assert node.verification_tier != EvidenceVerificationTier.VERIFIED
+    assert node.verification_tier != EvidenceVerificationTier.TELEMETRY
+
+
+def test_ai_consistency_validation_offline_fallback_with_evidence(monkeypatch):
+    """When evidence text is provided and LLM is offline/unreachable: default to COMPLIANT_WITH_OBSERVATION."""
+    from agent_orchestrator.llm_subagent import LLMSubAgent
+    # Simulate LLMSubAgent client being None (offline Vertex AI)
+    monkeypatch.setattr(LLMSubAgent, "__init__", lambda self, *args, **kwargs: setattr(self, "client", None) or setattr(self, "name", "mock"))
+
+    payload = {
+        "control_id": "A.5.2",
+        "framework": "ISO27001:2022",
+        "status": "COMPLIANT",
+        "justification": "Information security roles allocated to CISO and SecOps leads.",
+        "evidence_text": "Organizational chart signed by VP of Engineering.",
+    }
+    res = client.post("/api/questionnaire/A.5.2/answer", json=payload, headers=AUTH_HEADER)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "COMPLIANT"  # Never overwrites user declared status
+    assert data["ai_consistency_verdict"] == "COMPLIANT_WITH_OBSERVATION"
+    assert "Evidence received; pending automated analysis (AI engine offline)" in data["ai_consistency_reasoning"]
+
+
+def test_ai_consistency_validation_no_evidence_fallback():
+    """When no evidence text or file is provided: verdict is NON_COMPLIANT with explicit reasoning."""
+    payload = {
+        "control_id": "A.5.3",
+        "framework": "ISO27001:2022",
+        "status": "COMPLIANT",
+        "justification": "Segregation of duties implemented across payment systems.",
+        # No evidence_text, no evidence_uri, no file_id
+    }
+    res = client.post("/api/questionnaire/A.5.3/answer", json=payload, headers=AUTH_HEADER)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "COMPLIANT"  # Declared status is preserved!
+    assert data["ai_consistency_verdict"] == "NON_COMPLIANT"
+    assert "No evidence provided to support declared status" in data["ai_consistency_reasoning"]
+
+
+def test_ai_consistency_validation_with_mocked_llm_compliant(monkeypatch):
+    """When LLM is available and evaluates evidence as COMPLIANT."""
+    from agent_orchestrator.llm_subagent import LLMSubAgent
+    mock_run_result = {
+        "agent": "QuestionnaireConsistencyAuditor",
+        "status": "SUCCESS",
+        "narrative": '{"verdict": "COMPLIANT", "reasoning": "Cryptographic key rotation logs confirm 60-day cycle."}',
+        "execution_mode": "llm_function_calling",
+    }
+    monkeypatch.setattr(LLMSubAgent, "__init__", lambda self, *args, **kwargs: setattr(self, "client", "mock_client") or setattr(self, "name", "mock"))
+    monkeypatch.setattr(LLMSubAgent, "run", lambda self, *args, **kwargs: mock_run_result)
+
+    payload = {
+        "control_id": "A.8.24",
+        "framework": "ISO27001:2022",
+        "status": "COMPLIANT",
+        "justification": "Cloud KMS CMEK key configured with 60-day auto-rotation.",
+        "evidence_text": "gcloud kms keys describe kr-iso/cryptoKey/key-1 --format=json shows rotationPeriod=5184000s.",
+    }
+    res = client.post("/api/questionnaire/A.8.24/answer", json=payload, headers=AUTH_HEADER)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "COMPLIANT"
+    assert data["ai_consistency_verdict"] == "COMPLIANT_WITH_OBSERVATION" or data["ai_consistency_verdict"] == "COMPLIANT"
+    assert "Cryptographic key rotation logs confirm" in data["ai_consistency_reasoning"]
+
+
+def test_ai_consistency_validation_with_mocked_llm_non_compliant(monkeypatch):
+    """When LLM is available and evaluates evidence as NON_COMPLIANT despite user claim."""
+    from agent_orchestrator.llm_subagent import LLMSubAgent
+    mock_run_result = {
+        "agent": "QuestionnaireConsistencyAuditor",
+        "status": "SUCCESS",
+        "narrative": '{"verdict": "NON_COMPLIANT", "reasoning": "Submitted screenshot shows SSH port 22 open to 0.0.0.0/0, violating perimeter policy."}',
+        "execution_mode": "llm_function_calling",
+    }
+    monkeypatch.setattr(LLMSubAgent, "__init__", lambda self, *args, **kwargs: setattr(self, "client", "mock_client") or setattr(self, "name", "mock"))
+    monkeypatch.setattr(LLMSubAgent, "run", lambda self, *args, **kwargs: mock_run_result)
+
+    payload = {
+        "control_id": "A.8.20",
+        "framework": "ISO27001:2022",
+        "status": "COMPLIANT",
+        "justification": "Firewalls restricted.",
+        "evidence_text": "Attached firewall rule fw-allow-all.",
+    }
+    res = client.post("/api/questionnaire/A.8.20/answer", json=payload, headers=AUTH_HEADER)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "COMPLIANT"  # Never overwrites user declared status
+    assert data["ai_consistency_verdict"] == "NON_COMPLIANT"
+    assert "Submitted screenshot shows SSH port 22 open" in data["ai_consistency_reasoning"]
+
 

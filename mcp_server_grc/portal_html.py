@@ -4209,6 +4209,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .quest-status-badge.PARTIAL { background: rgba(251, 188, 5, 0.15); color: #fbbc05; }
         .quest-status-badge.NOT_APPLICABLE { background: rgba(255, 255, 255, 0.08); color: var(--text-secondary); }
         .quest-status-badge.NOT_ANSWERED { background: rgba(255, 255, 255, 0.05); color: var(--text-tertiary); }
+        .quest-ai-verdict-chip {
+            font-size: 10.5px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            letter-spacing: 0.2px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .quest-ai-verdict-chip.COMPLIANT { background: rgba(52, 168, 83, 0.2); color: #81c995; border: 1px solid rgba(52, 168, 83, 0.4); }
+        .quest-ai-verdict-chip.COMPLIANT_WITH_OBSERVATION { background: rgba(251, 188, 5, 0.2); color: #fdd663; border: 1px solid rgba(251, 188, 5, 0.4); }
+        .quest-ai-verdict-chip.NON_COMPLIANT { background: rgba(234, 67, 53, 0.2); color: #f28b82; border: 1px solid rgba(234, 67, 53, 0.4); }
+
         .quest-control-desc {
             font-size: 12px;
             color: var(--text-secondary);
@@ -11390,6 +11404,8 @@ function openNewsModal(newsKey) {
                     const uriVal = ans.evidence_uri || '';
                     const fileId = ans.file_id || '';
                     const fileName = ans.original_filename || '';
+                    const aiVerdict = ans.ai_consistency_verdict || '';
+                    const aiReasoning = ans.ai_consistency_reasoning || '';
 
                     // Translations awareness
                     const tr = (ctrl.translations && ctrl.translations[currentLang]) ? ctrl.translations[currentLang] : {};
@@ -11409,8 +11425,14 @@ function openNewsModal(newsKey) {
                                 <span class="quest-control-code">${ctrl.id}</span>
                                 <span class="quest-control-name">${escapeHtml(ctrlName)}</span>
                             </div>
-                            <span class="quest-status-badge ${currentStatus}" id="badge_${ctrl.id}">${currentStatus}</span>
+                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                <span id="aiVerdict_${ctrl.id}" class="${aiVerdict ? 'quest-ai-verdict-chip ' + aiVerdict : ''}" title="${escapeHtml(aiReasoning)}" style="${aiVerdict ? '' : 'display:none;'}">
+                                    ${aiVerdict ? `🤖 IA: ${aiVerdict}` : ''}
+                                </span>
+                                <span class="quest-status-badge ${currentStatus}" id="badge_${ctrl.id}">${currentStatus}</span>
+                            </div>
                         </div>
+
 
                         <!-- Audit Question Callout Box -->
                         <div class="quest-callout-box">
@@ -11611,6 +11633,18 @@ function openNewsModal(newsKey) {
                     if (item) {
                         item.answer = ans;
                         item.status = ans.status;
+                    }
+                    const aiSpan = document.getElementById('aiVerdict_' + controlId);
+                    if (aiSpan && ans.ai_consistency_verdict) {
+                        aiSpan.className = 'quest-ai-verdict-chip ' + ans.ai_consistency_verdict;
+                        aiSpan.title = ans.ai_consistency_reasoning || '';
+                        aiSpan.innerText = '🤖 IA: ' + ans.ai_consistency_verdict;
+                        aiSpan.style.display = 'inline-flex';
+                    }
+                    const badge = document.getElementById('badge_' + controlId);
+                    if (badge) {
+                        badge.className = 'quest-status-badge ' + ans.status;
+                        badge.innerText = ans.status;
                     }
                     loadQuestionnaireSummary();
                 } else {

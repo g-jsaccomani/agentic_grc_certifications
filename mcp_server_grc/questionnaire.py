@@ -26,12 +26,14 @@ from pydantic import BaseModel, Field
 
 from mcp_server_grc.auth import WorkspaceUserContext, get_current_workspace_user
 from agent_orchestrator.evidence_graph import EvidenceVerificationTier
+from agent_orchestrator.llm_subagent import LLMSubAgent
 from mcp_server_grc.catalog import ISO_27001_CATALOG
 from mcp_server_grc.questionnaire_catalog import (
     get_localized_catalog,
     get_localized_themes,
     THEMES_I18N,
 )
+
 
 logger = logging.getLogger("questionnaire")
 router = APIRouter(prefix="/api", tags=["Questionnaire"])
@@ -110,7 +112,7 @@ SOC2_CATALOG = [
 class QuestionnaireAnswer(BaseModel):
     control_id: str = Field(..., description="Control ID (e.g. A.5.1 or CC6.1)")
     framework: str = Field(default="ISO27001:2022", description="Compliance framework identifier")
-    status: str = Field(..., description="COMPLIANT, NON_COMPLIANT, NOT_APPLICABLE, IN_PROGRESS")
+    status: str = Field(..., description="COMPLIANT, NON_COMPLIANT, NOT_APPLICABLE, IN_PROGRESS, PARTIAL")
     justification: str = Field(..., description="Auditor explanation or rationale")
     evidence_text: Optional[str] = Field(default=None, description="Extracted or textual evidence content")
     evidence_uri: Optional[str] = Field(default=None, description="Storage URI or link")
@@ -118,6 +120,8 @@ class QuestionnaireAnswer(BaseModel):
     original_filename: Optional[str] = Field(default=None, description="Safe filename of attached evidence")
     updated_at: Optional[float] = Field(default=None, description="Timestamp of submission")
     user_email: Optional[str] = Field(default=None, description="Submitting auditor email")
+    ai_consistency_verdict: Optional[str] = Field(default=None, description="AI consistency verdict: COMPLIANT, COMPLIANT_WITH_OBSERVATION, NON_COMPLIANT")
+    ai_consistency_reasoning: Optional[str] = Field(default=None, description="AI reasoning for the consistency verdict")
 
 
 class EvidenceFileUploadResponse(BaseModel):
@@ -467,6 +471,127 @@ async def get_evidence_file(
     )
 
 
+def evaluate_answer_ai_consistency(
+    control_id: str,
+    framework: str,
+    declared_status: str,
+    justification: str,
+    evidence_text: Optional[str] = None,
+    evidence_uri: Optional[str] = None,
+    original_filename: Optional[str] = None,
+) -> Tuple[str, str]:
+    """Evaluates consistency between declared status and submitted evidence using LLMSubAgent.
+    
+    Returns (verdict, reasoning):
+      verdict in ("COMPLIANT", "COMPLIANT_WITH_OBSERVATION", "NON_COMPLIANT")
+    """
+    has_evidence = bool(
+        (evidence_text and evidence_text.strip())
+        or (evidence_uri and evidence_uri.strip())
+        or (original_filename and original_filename.strip())
+    )
+
+    # 1. Deterministic fallback if no evidence provided at all
+    if not has_evidence:
+        return (
+            "NON_COMPLIANT",
+            "No evidence provided to support declared status.",
+        )
+
+    # 2. Control requirement context lookup
+    control_context = ""
+    if framework == "ISO27001:2022":
+        for c in ISO_27001_CATALOG:
+            if c.get("id") == control_id:
+                control_context = f"Control Name: {c.get('name')}. Scope/Requirement: {c.get('description', '')}"
+                break
+    elif framework == "SOC2":
+        for c in SOC2_CATALOG:
+            if c.get("id") == control_id:
+                control_context = f"Control Name: {c.get('name')}. Scope/Requirement: {c.get('description', '')}"
+                break
+
+    # 3. Instantiate LLMSubAgent
+    system_instruction = (
+        "You are an expert ISO 27001 and SOC 2 compliance auditor in the Gemini Enterprise Agent Platform. "
+        "Your task is to analyze whether the submitted evidence text or attached files substantiate "
+        "the user's declared compliance status for a specific security control.\n"
+        "Requirements:\n"
+        "1. Strictly assess the evidence against the control requirement and declared status.\n"
+        "2. Output valid JSON with keys 'verdict' and 'reasoning'.\n"
+        "3. 'verdict' MUST be one of exactly three strings:\n"
+        "   - 'COMPLIANT': The evidence clearly and directly substantiates compliance with the control requirement.\n"
+        "   - 'COMPLIANT_WITH_OBSERVATION': The evidence is partially sufficient, is self-attested documentation requiring audit sampling, or has minor observations.\n"
+        "   - 'NON_COMPLIANT': The evidence is insufficient, contradictory, or fails to meet the control requirements.\n"
+        "4. 'reasoning' must provide a concise, factual explanation."
+    )
+
+    try:
+        subagent = LLMSubAgent(
+            name="QuestionnaireConsistencyAuditor",
+            system_instruction=system_instruction,
+            tools={},
+        )
+    except Exception as exc:
+        logger.warning("Failed to initialize LLMSubAgent for consistency validation: %s", exc)
+        return (
+            "COMPLIANT_WITH_OBSERVATION",
+            "Evidence received; pending automated analysis (AI engine offline).",
+        )
+
+    # If client is None (Vertex AI / Gemini unreachable or disabled)
+    if subagent.client is None:
+        return (
+            "COMPLIANT_WITH_OBSERVATION",
+            "Evidence received; pending automated analysis (AI engine offline).",
+        )
+
+    user_task = (
+        f"Framework: {framework}\n"
+        f"Control ID: {control_id}\n"
+        f"{control_context}\n"
+        f"User Declared Status: {declared_status}\n"
+        f"User Justification: {justification}\n"
+        f"Attached Evidence File: {original_filename or 'None'}\n"
+        f"Evidence URI: {evidence_uri or 'None'}\n"
+        f"Evidence Text Content: {evidence_text or 'None'}\n\n"
+        "Evaluate whether the evidence substantiates the declared status. Respond with JSON: "
+        '{"verdict": "COMPLIANT"|"COMPLIANT_WITH_OBSERVATION"|"NON_COMPLIANT", "reasoning": "..."}'
+    )
+
+    try:
+        res = subagent.run(user_task=user_task, max_turns=1)
+        narrative = res.get("narrative", "")
+
+        import json as pyjson
+        json_match = re.search(r"\{.*?\}", narrative, re.DOTALL)
+        if json_match:
+            try:
+                data = pyjson.loads(json_match.group(0))
+                verdict = str(data.get("verdict", "")).upper().strip()
+                reasoning = str(data.get("reasoning", "")).strip() or "Automated consistency evaluation completed."
+                if verdict in ("COMPLIANT", "COMPLIANT_WITH_OBSERVATION", "NON_COMPLIANT"):
+                    return verdict, reasoning
+            except Exception:
+                pass
+
+        if "NON_COMPLIANT" in narrative.upper():
+            return "NON_COMPLIANT", narrative[:250].strip()
+        elif "COMPLIANT_WITH_OBSERVATION" in narrative.upper() or "OBSERVATION" in narrative.upper():
+            return "COMPLIANT_WITH_OBSERVATION", narrative[:250].strip()
+        elif "COMPLIANT" in narrative.upper():
+            return "COMPLIANT", narrative[:250].strip()
+        else:
+            return "COMPLIANT_WITH_OBSERVATION", "Evidence received; pending auditor validation."
+
+    except Exception as exc:
+        logger.warning("LLMSubAgent execution error in consistency evaluation: %s", exc)
+        return (
+            "COMPLIANT_WITH_OBSERVATION",
+            "Evidence received; pending automated analysis (AI engine offline).",
+        )
+
+
 @router.post(
     "/questionnaire/{control_id}/answer",
     response_model=QuestionnaireAnswer,
@@ -477,7 +602,7 @@ async def submit_questionnaire_answer(
     answer: QuestionnaireAnswer,
     user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
-    """Records questionnaire answer with framework support and anchors to EvidenceGraph."""
+    """Records questionnaire answer with framework support and anchors to EvidenceGraph as SELF_ATTESTED."""
     answer.control_id = control_id
     answer.user_email = user_context.email
     answer.updated_at = time.time()
@@ -490,9 +615,22 @@ async def submit_questionnaire_answer(
         if not answer.evidence_text and f_meta.get("extracted_text"):
             answer.evidence_text = f_meta.get("extracted_text")
 
+    # Evaluate AI Consistency ("Análise & Scoring via Gemini 2.5")
+    verdict, reasoning = evaluate_answer_ai_consistency(
+        control_id=control_id,
+        framework=answer.framework,
+        declared_status=answer.status,
+        justification=answer.justification,
+        evidence_text=answer.evidence_text,
+        evidence_uri=answer.evidence_uri,
+        original_filename=answer.original_filename,
+    )
+    answer.ai_consistency_verdict = verdict
+    answer.ai_consistency_reasoning = reasoning
+
     QUESTIONNAIRE_ANSWERS[(answer.framework, control_id)] = answer
 
-    # Anchor to EvidenceGraph
+    # Anchor to EvidenceGraph strictly as SELF_ATTESTED (never conflated with machine telemetry)
     ci = get_ci_engine()
     import hashlib
     ev_node = ci.evidence_graph.add_evidence(
@@ -508,8 +646,10 @@ async def submit_questionnaire_answer(
             "file_id": answer.file_id,
             "original_filename": answer.original_filename,
             "user_email": answer.user_email,
+            "ai_consistency_verdict": answer.ai_consistency_verdict,
+            "ai_consistency_reasoning": answer.ai_consistency_reasoning,
         },
-        verification_tier=EvidenceVerificationTier.VERIFIED,
+        verification_tier=EvidenceVerificationTier.SELF_ATTESTED,
         framework=answer.framework,
     )
     node_id = f"ev-questionnaire_response-{hashlib.md5(f'questionnaire-{control_id}'.encode()).hexdigest()[:8]}"
@@ -517,12 +657,13 @@ async def submit_questionnaire_answer(
         source_node_id=node_id,
         control_id=control_id,
         status=answer.status,
-        justification=answer.justification,
+        justification=f"Self-attested by {answer.user_email or 'auditor'}: {answer.justification} [AI Validation: {answer.ai_consistency_verdict}]",
         violations=[] if answer.status == "COMPLIANT" else [answer.justification],
         framework=answer.framework,
     )
 
     return answer
+
 
 
 @router.get(

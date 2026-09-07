@@ -1083,5 +1083,47 @@ In direct response to user requirements:
 - **Active Production Revision**: `mcp-server-grc-00049-w7z` (Serving 100% of traffic).
 - **Service URL**: `https://mcp-server-grc-938078169010.us-central1.run.app`
 
+---
 
+## 2026-09-07 — Pillar 1 (ISO 27001 Questionnaire & Evidence Integrity): Self-Attested Verification Tier, Gemini 2.5 AI Consistency Validation, and Dynamic Cascading Recalculation
+
+### 1. Architectural Summary & Scope of Changes
+To resolve the two critical code inspection gaps in Pillar 1 (ISO 27001 Questionnaire & Evidence) and establish rigorous epistemic integrity across the platform:
+1. **Evidence Tier Misclassification Remediated (`SELF_ATTESTED`)**:
+   - Added `SELF_ATTESTED = "SELF_ATTESTED"` to `EvidenceVerificationTier` in `agent_orchestrator/evidence_graph.py` with docstring `# Human-submitted questionnaire answer, not machine-verified`.
+   - In `mcp_server_grc/questionnaire.py`, modified `submit_questionnaire_answer` so that questionnaire evidence nodes anchor to the cryptographic evidence graph under `EvidenceVerificationTier.SELF_ATTESTED` instead of `EvidenceVerificationTier.VERIFIED`.
+   - Machine-verified GCP telemetry nodes (`VERIFIED` and `TELEMETRY`) are now strictly separated from human-submitted questionnaire nodes across reports, scorecard, and the chatbot context.
+2. **AI-Driven Consistency Validation ("Análise & Scoring via Gemini 2.5")**:
+   - Implemented `evaluate_answer_ai_consistency(...)` in `mcp_server_grc/questionnaire.py` utilizing `LLMSubAgent` to evaluate submitted evidence against declared compliance status and ISO 27001 control requirements.
+   - Emits a strict 3-way verdict: `"COMPLIANT"`, `"COMPLIANT_WITH_OBSERVATION"`, or `"NON_COMPLIANT"`, alongside auditor reasoning.
+   - Non-destructive persistence: stores `ai_consistency_verdict` and `ai_consistency_reasoning` side-by-side with the user's declared status in `QuestionnaireAnswer` and `QUESTIONNAIRE_ANSWERS`. The user's declared status is never overwritten.
+   - Deterministic Fallback Safety:
+     - No evidence text or file provided: defaults strictly to `NON_COMPLIANT`.
+     - Evidence provided but Vertex AI is unreachable or offline: defaults to `COMPLIANT_WITH_OBSERVATION` (never a false-positive `COMPLIANT`).
+   - Frontend UI (`mcp_server_grc/portal_html.py`) renders `.quest-ai-verdict-chip` in the control accordion header, displaying real-time feedback immediately upon submission.
+3. **Cascading Recalculation End-to-End**:
+   - Implemented `calculate_scorecard_data(framework)` in `mcp_server_grc/portal.py` computing dynamic compliance scores, rating, findings, and evidence tier breakdown (`verified_telemetry_count`, `self_attested_count`).
+   - Exposed `@router.get("/api/scorecard")`, `@router.get("/api/reports/executive")`, and `@router.get("/api/reports/technical")`.
+   - Updated `/api/reports/export` and `/api/dashboard` to consume dynamic scorecard metrics.
+   - Chatbot context in `build_audit_context_summary()` explicitly labels self-attested questionnaire answers vs verified GCP telemetry.
+
+### 2. Test Verification & Code Coverage (153/153 Passing, 92% Coverage)
+- **Total Tests**: 153/153 passed in 5.16s (100% pass rate).
+- **Code Coverage**: 92% overall coverage across `agent_orchestrator` and `mcp_server_grc`.
+  - `agent_orchestrator/evidence_graph.py`: 100% coverage.
+  - `mcp_server_grc/questionnaire.py`: 89% coverage.
+  - `mcp_server_grc/portal.py`: 81% coverage.
+  - `tests/test_questionnaire.py`: 100% coverage (441 statements).
+  - `tests/test_portal.py`: 99% coverage (424 statements).
+- **Regression Tests Added**:
+  - `test_verification_tier_enum_self_attested`: Verifies `EvidenceVerificationTier.SELF_ATTESTED` enum.
+  - `test_submit_questionnaire_anchors_self_attested_node`: Verifies questionnaire submissions anchor `SELF_ATTESTED` nodes.
+  - `test_ai_consistency_validation_offline_fallback`: Verifies deterministic fallback to `COMPLIANT_WITH_OBSERVATION` when offline with evidence.
+  - `test_ai_consistency_validation_no_evidence_fallback`: Verifies fallback to `NON_COMPLIANT` when no evidence is provided.
+  - `test_ai_consistency_validation_mocked_llm`: Verifies 3-way verdict parsing from LLMSubAgent output.
+  - `test_scorecard_api_endpoint`: Verifies `/api/scorecard` returns tier breakdowns and dynamic scores.
+  - `test_executive_and_technical_reports_endpoints`: Verifies `/api/reports/executive` and `/api/reports/technical` endpoints.
+  - `test_cascading_questionnaire_recalculation_end_to_end`: Verifies end-to-end cascading recalculation from questionnaire submission into scorecard and reports.
+- **Active Production Revision**: `mcp-server-grc-00050-xz6` (Serving 100% of traffic).
+- **Service URL**: `https://mcp-server-grc-938078169010.us-central1.run.app`
 

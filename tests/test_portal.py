@@ -549,3 +549,124 @@ def test_frontend_redesign_navigation_and_views():
     assert 'id="view-finops"' in html
 
 
+# ---------------------------------------------------------------------------
+# Cascading Recalculation & Reports API Tests
+# ---------------------------------------------------------------------------
+
+def test_scorecard_api_endpoint():
+    """Verifies /api/scorecard returns dynamic scorecard with evidence tier breakdown."""
+    res = client.get("/api/scorecard")
+    assert res.status_code == 200
+    data = res.json()
+    assert "overall_score" in data
+    assert "rating" in data
+    assert "evidence_graph_summary" in data
+    assert "verification_tiers" in data["evidence_graph_summary"]
+    assert "SELF_ATTESTED" in data["evidence_graph_summary"]["verification_tiers"]
+    assert "VERIFIED" in data["evidence_graph_summary"]["verification_tiers"]
+    assert "evidence_nodes" in data
+
+
+def test_executive_and_technical_reports_endpoints():
+    """Verifies /api/reports/executive and /api/reports/technical endpoints across formats."""
+    # 1. Executive JSON
+    res_exec = client.get("/api/reports/executive?format=json")
+    assert res_exec.status_code == 200
+    data_exec = res_exec.json()
+    assert "Executive" in data_exec["document_title"]
+    assert "scorecard" in data_exec
+    assert "evidence_summary" in data_exec
+    assert "self_attested_nodes" in data_exec["evidence_summary"]
+    assert "verified_telemetry_nodes" in data_exec["evidence_summary"]
+    assert "executive_opinion" in data_exec
+
+    # 2. Executive HTML and Markdown
+    res_exec_html = client.get("/api/reports/executive?format=html")
+    assert res_exec_html.status_code == 200
+    assert "text/html" in res_exec_html.headers.get("content-type", "")
+
+    res_exec_md = client.get("/api/reports/executive?format=markdown")
+    assert res_exec_md.status_code == 200
+
+    # 3. Technical JSON
+    res_tech = client.get("/api/reports/technical?format=json")
+    assert res_tech.status_code == 200
+    data_tech = res_tech.json()
+    assert "Technical" in data_tech["document_title"]
+    assert "verification_tier_breakdown" in data_tech
+    assert "verified_telemetry" in data_tech["verification_tier_breakdown"]
+    assert "self_attested_questionnaire" in data_tech["verification_tier_breakdown"]
+    assert "evidence_chain" in data_tech
+
+    # 4. Technical HTML and Markdown
+    res_tech_html = client.get("/api/reports/technical?format=html")
+    assert res_tech_html.status_code == 200
+
+    res_tech_md = client.get("/api/reports/technical?format=markdown")
+    assert res_tech_md.status_code == 200
+
+
+def test_cascading_questionnaire_recalculation_end_to_end():
+    """Submits a questionnaire answer and asserts cascading recalculation across Scorecard, Executive Dossier, and Technical Report."""
+    auth_header = {"Authorization": "Bearer ya29.valid-auditor-access-token"}
+
+    # 1. Check scorecard before submission
+    res_before = client.get("/api/scorecard")
+    assert res_before.status_code == 200
+    sc_before = res_before.json()
+    score_before = sc_before["overall_score"]
+    self_attested_before = sc_before["evidence_graph_summary"]["self_attested_count"]
+
+    # 2. Submit questionnaire answer marking a non-compliant control as COMPLIANT with evidence text
+    answer_payload = {
+        "control_id": "A.5.17",
+        "framework": "ISO27001:2022",
+        "status": "COMPLIANT",
+        "justification": "Plaintext metadata secrets removed and migrated to Secret Manager with automated rotation.",
+        "evidence_text": "Secret Manager secret sm-legacy-credentials version 2 active; metadata attributes verified clean.",
+    }
+    ans_res = client.post("/api/questionnaire/A.5.17/answer", json=answer_payload, headers=auth_header)
+    assert ans_res.status_code == 200
+    ans_data = ans_res.json()
+    assert ans_data["status"] == "COMPLIANT"
+    assert ans_data["ai_consistency_verdict"] in ("COMPLIANT", "COMPLIANT_WITH_OBSERVATION")
+
+    # 3. Assert Scorecard recalculated immediately
+    res_after = client.get("/api/scorecard")
+    assert res_after.status_code == 200
+    sc_after = res_after.json()
+    score_after = sc_after["overall_score"]
+
+    # Score must recalculate upwards since non-compliant control A.5.17 was resolved
+    assert score_after >= score_before
+    assert sc_after["evidence_graph_summary"]["self_attested_count"] == self_attested_before + 1
+    assert sc_after["evidence_graph_summary"]["verification_tiers"]["SELF_ATTESTED"] >= 1
+
+    # Verify self-attested node is explicitly labeled and distinguished from telemetry
+    a517_nodes = [n for n in sc_after["evidence_nodes"] if n["control_id"] == "A.5.17"]
+    assert len(a517_nodes) > 0
+    node = a517_nodes[-1]
+    assert node["verification_tier"] == "SELF_ATTESTED"
+    assert "SELF_ATTESTED" in node["tier_label"]
+    assert "self-attested by" in node["provenance"]
+    assert node["ai_consistency_verdict"] in ("COMPLIANT", "COMPLIANT_WITH_OBSERVATION")
+
+    # 4. Assert Executive Dossier reflects recalculated score and explicit tier distinction
+    res_exec = client.get("/api/reports/executive?format=json")
+    assert res_exec.status_code == 200
+    dossier = res_exec.json()
+    assert dossier["overall_score"] == score_after
+    assert dossier["evidence_summary"]["self_attested_nodes"] >= 1
+    assert "self-attested questionnaire" in dossier["executive_opinion"]
+
+    # 5. Assert Technical Report contains granular provenance
+    res_tech = client.get("/api/reports/technical?format=json")
+    assert res_tech.status_code == 200
+    tech = res_tech.json()
+    assert tech["verification_tier_breakdown"]["self_attested_questionnaire"] >= 1
+    matched_ev = [e for e in tech["evidence_chain"] if e["control_id"] == "A.5.17"]
+    assert len(matched_ev) > 0
+    assert matched_ev[-1]["verification_tier"] == "SELF_ATTESTED"
+
+
+

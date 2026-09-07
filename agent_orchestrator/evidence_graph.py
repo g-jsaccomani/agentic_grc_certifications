@@ -16,8 +16,10 @@ from typing import Any, Dict, List, Optional
 class EvidenceVerificationTier(str, Enum):
     VERIFIED = "VERIFIED"          # Direct cryptographic or API-authenticated telemetry
     TELEMETRY = "TELEMETRY"        # Ingested cloud metrics / logs
+    SELF_ATTESTED = "SELF_ATTESTED"  # Human-submitted questionnaire answer, not machine-verified
     SIMULATION = "SIMULATION"      # Dry-run or test payload
     MOCK = "MOCK"                  # Unit test fixture
+
 
 
 @dataclass
