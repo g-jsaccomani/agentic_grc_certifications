@@ -8070,15 +8070,20 @@ function openNewsModal(newsKey) {
             }
 
             try {
+                const chatHeaders = { "Content-Type": "application/json" };
+                if (window.currentUserToken) {
+                    chatHeaders["Authorization"] = `Bearer ${window.currentUserToken}`;
+                }
                 const res = await fetch("/api/chat", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: chatHeaders,
                     body: JSON.stringify({
                         message: text,
                         project_id: Array.from(selectedProjectIds)[0],
                         selected_projects: Array.from(selectedProjectIds),
                         model: currentSelectedModel,
-                        locale: window.currentLanguage || 'pt'
+                        locale: window.currentLanguage || 'pt',
+                        user_token: window.currentUserToken || undefined
                     })
                 });
                 const data = await res.json();

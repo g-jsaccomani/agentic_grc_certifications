@@ -34,6 +34,11 @@ class MemoryBank:
         self.audit_history: List[AuditCycleRecord] = []
         self.recurring_violations: Dict[str, int] = {}  # control_id -> frequency count
 
+    @property
+    def history(self) -> List[AuditCycleRecord]:
+        """Convenience alias for audit_history."""
+        return self.audit_history
+
     def record_audit_cycle(
         self,
         cycle_id: str,

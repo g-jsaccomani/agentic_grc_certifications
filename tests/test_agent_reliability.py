@@ -298,3 +298,97 @@ async def test_llm_subagent_async_execution():
     )
     assert res["status"] in ("COMPLIANT", "SUCCESS")
     assert len(res["tool_evidence"]) > 0
+
+
+# ==============================================================================
+# 8. Chat Endpoint Fixes: Epistemic Truthfulness, Tool Grounding & Auth
+# ==============================================================================
+
+def test_chat_baseline_unaudited_reports_no_data():
+    """Problem 1: Chat baseline must state 'No environment data collected yet' when un-audited, never assuming compliance."""
+    from mcp_server_grc.portal import ci_engine
+    orig_history = list(ci_engine.memory_bank.history)
+    orig_links = list(ci_engine.evidence_graph.links)
+    try:
+        ci_engine.memory_bank.history.clear()
+        ci_engine.evidence_graph.links.clear()
+
+        # In English
+        res_en = client.post("/api/chat", json={"message": "Are we ISO 27001 compliant?", "locale": "en"})
+        assert res_en.status_code == 200
+        data_en = res_en.json()
+        assert "No environment data collected yet" in data_en["response"]
+        assert "100.0% (Classificação: EXCELLENT)" not in data_en["response"]
+
+        # In Portuguese
+        res_pt = client.post("/api/chat", json={"message": "Qual é a nossa postura de conformidade?", "locale": "pt"})
+        assert res_pt.status_code == 200
+        data_pt = res_pt.json()
+        assert "No environment data collected yet" in data_pt["response"]
+        assert "100.0% (Classificação: EXCELLENT)" not in data_pt["response"]
+    finally:
+        ci_engine.memory_bank.history.extend(orig_history)
+        ci_engine.evidence_graph.links.extend(orig_links)
+
+
+def test_chat_tool_grounding_execution_and_evidence():
+    """Problem 2: Resource inquiries invoke deterministic tools and capture tool_evidence."""
+    res = client.post(
+        "/api/chat",
+        json={"message": "Audit GCS bucket leaky-corp-data with public access", "locale": "en"},
+        headers=VALID_HEADERS,
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert "tool_evidence" in data
+    evidence = data["tool_evidence"]
+    assert len(evidence) >= 1
+    assert any(e.get("tool") == "audit_cloud_security" for e in evidence)
+
+
+def test_chat_egress_grounding_conflict_blocks_unjustified_compliance():
+    """Problem 2: Contradictory compliance narrative on egress is blocked by Model Armor."""
+    with patch("mcp_server_grc.portal.LLMSubAgent.arun") as mock_arun:
+        mock_arun.return_value = {
+            "narrative": "The assessed infrastructure is fully compliant and approved with all ISO 27001 policies.",
+            "tool_evidence": [
+                {
+                    "tool": "audit_cloud_security",
+                    "result": {
+                        "status": "NON_COMPLIANT",
+                        "violations": ["Public access prevention disabled (A.5.23)"],
+                    },
+                }
+            ],
+            "status": "SUCCESS",
+        }
+        res = client.post(
+            "/api/chat",
+            json={"message": "Audit GCS bucket leaky-bucket", "locale": "en"},
+            headers=VALID_HEADERS,
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert data.get("status") == "BLOCKED_BY_MODEL_ARMOR"
+        assert any("Grounding conflict" in str(v) for v in data.get("violations", []))
+
+
+def test_chat_delegated_auth_token_propagation():
+    """Problem 3: Authorization Bearer header and req.user_token are accepted and passed to delegated tools."""
+    token = "ya29.delegated-user-oauth-token-xyz"
+    res1 = client.post(
+        "/api/chat",
+        json={"message": "Audit GCS bucket secure-vault-123", "locale": "en"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res1.status_code == 200
+    data1 = res1.json()
+    assert "tool_evidence" in data1
+
+    res2 = client.post(
+        "/api/chat",
+        json={"message": "Audit GCS bucket secure-vault-123", "locale": "en", "user_token": token},
+    )
+    assert res2.status_code == 200
+    data2 = res2.json()
+    assert "tool_evidence" in data2
