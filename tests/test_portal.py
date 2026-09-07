@@ -12,9 +12,76 @@ def test_portal_html_serving():
     assert res.status_code == 200
     assert "Gemini Enterprise Agent Platform" in res.text
     assert "Chatbot Auditor" in res.text
+    assert "frameworkSelectorBar" in res.text
+    assert "ISO/IEC 27001:2022" in res.text
+    assert "fwCardIso27001" in res.text
+    assert "fwCardSoc2" in res.text
+    assert "fwCardPciDss" in res.text
+    assert "fwCardCmmi" in res.text
+    assert "fwCardMore" in res.text
 
     res_portal = client.get("/portal")
     assert res_portal.status_code == 200
+    assert "frameworkSelectorBar" in res_portal.text
+
+
+def test_certification_framework_selector_ui():
+    """Verify Certification Framework selector structure, ordering, i18n and locked states."""
+    res = client.get("/")
+    assert res.status_code == 200
+    html = res.text
+
+    # Verify container and cards presence
+    assert 'id="frameworkSelectorBar"' in html
+    assert 'class="framework-selector-bar"' in html
+    assert 'class="framework-cards-grid"' in html
+
+    # Verify order of cards in HTML
+    pos_iso = html.find('id="fwCardIso27001"')
+    pos_soc2 = html.find('id="fwCardSoc2"')
+    pos_pci = html.find('id="fwCardPciDss"')
+    pos_cmmi = html.find('id="fwCardCmmi"')
+    pos_more = html.find('id="fwCardMore"')
+
+    assert -1 < pos_iso < pos_soc2 < pos_pci < pos_cmmi < pos_more
+
+    # Verify active card attributes
+    assert 'fwCardIso27001" onclick="selectFramework(\'iso27001\')"' in html
+    assert 'class="framework-badge-active"' in html
+    assert 'data-i18n="framework_badge_active"' in html
+
+    # Verify locked cards (no click handler, locked class, coming soon badge)
+    for card_id in ["fwCardSoc2", "fwCardPciDss", "fwCardCmmi"]:
+        # Extract card chunk
+        card_start = html.find(f'id="{card_id}"')
+        card_end = html.find('</div>\n                </div>\n            </div>', card_start)
+        chunk = html[card_start:card_end]
+        assert 'onclick=' not in chunk
+        assert 'cursor: pointer' not in chunk
+        assert 'data-i18n="framework_badge_coming_soon"' in chunk
+        assert 'data-i18n-title="framework_tooltip_' in chunk
+
+    # Verify placeholder tile
+    assert 'id="fwCardMore"' in html
+    assert 'class="framework-card placeholder"' in html
+    assert 'data-i18n="framework_more"' in html
+
+    # Verify i18n dictionaries contain all framework keys for pt, en, es
+    for lang in ['pt:', 'en:', 'es:']:
+        assert 'framework_selector_title:' in html
+        assert 'framework_badge_active:' in html
+        assert 'framework_badge_coming_soon:' in html
+        assert 'framework_more:' in html
+        assert 'framework_tooltip_soc2:' in html
+        assert 'framework_tooltip_pcidss:' in html
+        assert 'framework_tooltip_cmmi:' in html
+
+    # Verify print media query hides framework-selector-bar
+    assert '.framework-selector-bar { display: none !important; }' in html
+
+    # Verify switchView hides frameworkSelectorBar on executive and technical report views
+    assert 'viewId === "view-report-exec" || viewId === "view-report-tech"' in html
+
 
 
 def test_portal_chat_endpoints():

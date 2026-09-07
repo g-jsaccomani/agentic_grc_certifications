@@ -776,6 +776,169 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
         .dropdown-item:hover { background: var(--bg-surface); color: var(--gcp-blue); }
 
+        /* Certification Framework Selector Bar */
+        .framework-selector-bar {
+            padding: 10px 24px 12px 24px;
+            background: rgba(19, 19, 20, 0.95);
+            border-bottom: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+            z-index: 30;
+        }
+
+        .framework-selector-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .framework-selector-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-tertiary);
+        }
+
+        .framework-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        @media (max-width: 1100px) {
+            .framework-cards-grid {
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            }
+        }
+
+        .framework-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-surface);
+            transition: var(--transition-smooth);
+            min-height: 50px;
+            box-sizing: border-box;
+        }
+
+        .framework-card.active {
+            border-color: var(--gcp-blue);
+            background: rgba(138, 180, 248, 0.08);
+            box-shadow: 0 0 0 1px var(--gcp-blue), 0 2px 8px rgba(138, 180, 248, 0.12);
+            cursor: pointer;
+        }
+
+        .framework-card.active:hover {
+            background: rgba(138, 180, 248, 0.12);
+        }
+
+        .framework-card.locked {
+            border-color: var(--border-subtle);
+            background: rgba(40, 42, 44, 0.45);
+            cursor: default;
+            opacity: 0.72;
+            user-select: none;
+        }
+
+        .framework-card.placeholder {
+            border: 1px dashed var(--border-focus);
+            background: transparent;
+            cursor: default;
+            opacity: 0.65;
+            user-select: none;
+        }
+
+        .framework-card-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .framework-card-icon.shield-active {
+            background: rgba(138, 180, 248, 0.16);
+            color: var(--gcp-blue);
+        }
+
+        .framework-card-icon.shield-locked {
+            background: rgba(94, 98, 102, 0.15);
+            color: var(--text-tertiary);
+        }
+
+        .framework-card-icon.placeholder-icon {
+            background: rgba(94, 98, 102, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .framework-card-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .framework-card-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .framework-card.locked .framework-card-name {
+            color: var(--text-secondary);
+        }
+
+        .framework-card.placeholder .framework-card-name {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .framework-card-sub {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .framework-badge-active {
+            font-size: 9.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--gcp-green);
+            background: rgba(129, 201, 149, 0.12);
+            border: 1px solid rgba(129, 201, 149, 0.28);
+            padding: 1px 5px;
+            border-radius: 4px;
+            line-height: 1.2;
+        }
+
+        .framework-badge-locked {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 9.5px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            background: rgba(94, 98, 102, 0.15);
+            border: 1px solid var(--border-subtle);
+            padding: 1px 5px;
+            border-radius: 4px;
+            line-height: 1.2;
+        }
+
         /* Viewport */
         .views-viewport {
             flex: 1;
@@ -2739,7 +2902,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
         @media print {
             body { background: #ffffff !important; color: #000000 !important; overflow: visible !important; }
-            .sidebar, .top-navbar, .chat-input-wrapper, .modal-overlay, .matrix-toolbar, .btn-confirm, .btn-action-primary { display: none !important; }
+            .sidebar, .top-navbar, .chat-input-wrapper, .modal-overlay, .matrix-toolbar, .btn-confirm, .btn-action-primary, .framework-selector-bar { display: none !important; }
             .main-container { height: auto !important; }
             .views-viewport { overflow: visible !important; }
             .view-pane { display: none !important; }
@@ -3752,6 +3915,114 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </div>
             </div>
         </header>
+
+        <!-- Certification Framework Selector -->
+        <div class="framework-selector-bar" id="frameworkSelectorBar">
+            <div class="framework-selector-header">
+                <div class="framework-selector-title">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--gcp-blue);">
+                        <rect x="3" y="3" width="7" height="7"/>
+                        <rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/>
+                        <rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                    <span data-i18n="framework_selector_title">Estrutura de Certificação</span>
+                </div>
+            </div>
+            <div class="framework-cards-grid">
+                <!-- 1. ISO/IEC 27001:2022 (Active) -->
+                <div class="framework-card active" id="fwCardIso27001" onclick="selectFramework('iso27001')" title="ISO/IEC 27001:2022 - Auditoria agêntica ativa" data-i18n-title="framework_tooltip_iso">
+                    <div class="framework-card-icon shield-active">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <path d="M9 12l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <div class="framework-card-content">
+                        <div class="framework-card-name">ISO/IEC 27001:2022</div>
+                        <div class="framework-card-sub">
+                            <span class="framework-badge-active" data-i18n="framework_badge_active">Ativo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. SOC 2 (Locked) -->
+                <div class="framework-card locked" id="fwCardSoc2" title="SOC 2 Type II - No roadmap de desenvolvimento" data-i18n-title="framework_tooltip_soc2">
+                    <div class="framework-card-icon shield-locked">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <div class="framework-card-content">
+                        <div class="framework-card-name">SOC 2</div>
+                        <div class="framework-card-sub">
+                            <span class="framework-badge-locked">
+                                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. PCI DSS (Locked) -->
+                <div class="framework-card locked" id="fwCardPciDss" title="PCI DSS v4.0 - No roadmap de desenvolvimento" data-i18n-title="framework_tooltip_pcidss">
+                    <div class="framework-card-icon shield-locked">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <div class="framework-card-content">
+                        <div class="framework-card-name">PCI DSS</div>
+                        <div class="framework-card-sub">
+                            <span class="framework-badge-locked">
+                                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. CMMI (Locked) -->
+                <div class="framework-card locked" id="fwCardCmmi" title="CMMI DEV/SVC - No roadmap de desenvolvimento" data-i18n-title="framework_tooltip_cmmi">
+                    <div class="framework-card-icon shield-locked">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <div class="framework-card-content">
+                        <div class="framework-card-name">CMMI</div>
+                        <div class="framework-card-sub">
+                            <span class="framework-badge-locked">
+                                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. More frameworks (Placeholder) -->
+                <div class="framework-card placeholder" id="fwCardMore" title="Novas estruturas regulatórias e normativas planejadas" data-i18n-title="framework_tooltip_more">
+                    <div class="framework-card-icon placeholder-icon">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </div>
+                    <div class="framework-card-content">
+                        <div class="framework-card-name" data-i18n="framework_more">Mais frameworks</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Dynamic Views Viewport -->
         <div class="views-viewport">
@@ -5783,6 +6054,15 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 exec_doc_subtitle: "Avaliação autônoma de segurança da informação, conformidade contínua com a ISO/IEC 27001:2022 (93 Controles do Anexo A) e validação de telemetria nos ambientes Google Cloud Platform.",
                 exec_sec1_heading: "1. Estrutura de Controles por Tema (ISO/IEC 27001:2022)",
                 exec_sec2_heading: "2. Amostra de Controles & Declaração de Aplicabilidade (SoA)",
+                framework_selector_title: "Estrutura de Certificação",
+                framework_badge_active: "Ativo",
+                framework_badge_coming_soon: "Em breve",
+                framework_more: "Mais frameworks",
+                framework_tooltip_iso: "ISO/IEC 27001:2022 - Auditoria agêntica ativa",
+                framework_tooltip_soc2: "SOC 2 Type II - No roadmap de desenvolvimento",
+                framework_tooltip_pcidss: "PCI DSS v4.0 - No roadmap de desenvolvimento",
+                framework_tooltip_cmmi: "CMMI DEV/SVC - No roadmap de desenvolvimento",
+                framework_tooltip_more: "Novas estruturas regulatórias e normativas planejadas",
             },
             en: {
                 status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
@@ -5985,6 +6265,15 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 exec_doc_subtitle: "Autonomous information security assessment, continuous compliance with ISO/IEC 27001:2022 (93 Annex A Controls) and telemetry validation across Google Cloud Platform environments.",
                 exec_sec1_heading: "1. Control Structure by Theme (ISO/IEC 27001:2022)",
                 exec_sec2_heading: "2. Controls Sample & Statement of Applicability (SoA)",
+                framework_selector_title: "Certification Framework",
+                framework_badge_active: "Active",
+                framework_badge_coming_soon: "Coming soon",
+                framework_more: "More frameworks",
+                framework_tooltip_iso: "ISO/IEC 27001:2022 - Active agentic audit",
+                framework_tooltip_soc2: "SOC 2 Type II - On the development roadmap",
+                framework_tooltip_pcidss: "PCI DSS v4.0 - On the development roadmap",
+                framework_tooltip_cmmi: "CMMI DEV/SVC - On the development roadmap",
+                framework_tooltip_more: "Additional regulatory and compliance frameworks planned",
             },
             es: {
                 status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
@@ -6187,6 +6476,15 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 exec_doc_subtitle: "Evaluación autónoma de seguridad de la información, cumplimiento continuo con ISO/IEC 27001:2022 (93 Controles del Anexo A) y validación de telemetría en Google Cloud Platform.",
                 exec_sec1_heading: "1. Estructura de Controles por Tema (ISO/IEC 27001:2022)",
                 exec_sec2_heading: "2. Muestra de Controles y Declaración de Aplicabilidad (SoA)",
+                framework_selector_title: "Marco de Certificación",
+                framework_badge_active: "Activo",
+                framework_badge_coming_soon: "Próximamente",
+                framework_more: "Más frameworks",
+                framework_tooltip_iso: "ISO/IEC 27001:2022 - Auditoría agéntica activa",
+                framework_tooltip_soc2: "SOC 2 Type II - En el roadmap de desarrollo",
+                framework_tooltip_pcidss: "PCI DSS v4.0 - En el roadmap de desarrollo",
+                framework_tooltip_cmmi: "CMMI DEV/SVC - En el roadmap de desarrollo",
+                framework_tooltip_more: "Nuevas estructuras regulatorias y normativas planificadas",
             }
         };
 window.currentLanguage = 'pt';
@@ -7473,8 +7771,23 @@ Formulário preenchido com o subagente recomendado!`);
             sidebar.classList.toggle("collapsed");
         }
 
+        function selectFramework(frameworkId) {
+            if (frameworkId === 'iso27001') {
+                const card = document.getElementById('fwCardIso27001');
+                if (card) card.classList.add('active');
+            }
+        }
+
         function switchView(viewId) {
             document.querySelectorAll(".view-pane").forEach(p => p.classList.remove("active"));
+            const fwBar = document.getElementById("frameworkSelectorBar");
+            if (fwBar) {
+                if (viewId === "view-report-exec" || viewId === "view-report-tech") {
+                    fwBar.style.display = "none";
+                } else {
+                    fwBar.style.display = "";
+                }
+            }
             const target = document.getElementById(viewId);
             if (target) target.classList.add("active");
 

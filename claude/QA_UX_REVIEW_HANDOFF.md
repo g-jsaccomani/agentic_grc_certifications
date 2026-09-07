@@ -4,7 +4,7 @@
 **Repository:** `agentic_grc_certifications`  
 **Execution Date:** 2026-09-06  
 **Implementation Source:** `handoff-agentic-grc-multiagente.md`  
-**Status:** COMPLETE & VERIFIED (93/93 Pytest Suite Passing, 86% Code Coverage, Google Workspace Auth Verified)
+**Status:** COMPLETE & VERIFIED (94/94 Pytest Suite Passing, 86% Code Coverage, Google Workspace Auth & Framework Selector Verified)
 
 ---
 
@@ -208,11 +208,24 @@ The following 3-turn interactive conversation illustrates the real-world operati
   A resposta gerada continha afirmações de conformidade contraditórias com a evidência técnica extraída pelas ferramentas MCP.
   ```
 
+### 3.7 Certification Framework Selector (Portal Header Component)
+- **Component:** `.framework-selector-bar` placed directly below `<header class="top-navbar">` and before `<div class="views-viewport">` in `mcp_server_grc/portal_html.py`.
+- **Styling:** Adheres strictly to the existing dark GCP-style theme reusing existing CSS variables (`--bg-surface`, `--gcp-blue`, `--border-subtle`, `--text-primary`, `--text-secondary`, `--text-tertiary`, `--gcp-green`).
+- **Cards & States (Exact Specified Order):**
+  1. `ISO/IEC 27001:2022`: Active card with accent-colored border (`var(--gcp-blue)`), small "Active" badge, shield-check SVG icon, and additive UI handler (`selectFramework('iso27001')`) that does not alter any existing audit behavior.
+  2. `SOC 2`: Locked card with desaturated shield icon, small padlock icon, "Coming soon" label, no cursor pointer, no click handler, and roadmap hover tooltip.
+  3. `PCI DSS`: Locked card matching SOC 2 specifications.
+  4. `CMMI`: Locked card matching SOC 2 specifications.
+  5. `More frameworks`: Dashed placeholder tile with plus icon (`+`).
+- **Behavior & Print/Report Integration:**
+  - Seamlessly hidden in printable PDF reports (`@media print`) and when switching to Dossiê Executivo or Relatório Técnico views via `switchView(viewId)`.
+  - Full i18n support across PT, EN, and ES (`framework_selector_title`, `framework_badge_active`, `framework_badge_coming_soon`, `framework_more`, tooltips) dynamically synced in `setLanguage(lang)`.
+
 ---
 
 ## 4. Quality Assurance & Test Validation
 
-All 86 tests in the test suite pass with zero failures:
+All 94 tests in the test suite pass with zero failures:
 
 ```bash
 .venv/bin/python -m pytest tests/ -v
@@ -227,7 +240,7 @@ rootdir: /Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certificatio
 configfile: pytest.ini
 plugins: cov-7.1.0, asyncio-1.4.0, anyio-4.15.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
-collecting ... collected 93 items
+collecting ... collected 94 items
 
 tests/test_agent_reliability.py::test_vuln01_cloud_security_empty_config_undetermined PASSED [  1%]
 tests/test_agent_reliability.py::test_vuln01_mcp_endpoint_config_none_with_bearer_returns_undetermined PASSED [  2%]
