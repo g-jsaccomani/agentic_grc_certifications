@@ -869,7 +869,7 @@ All 5 virtual machines across the organization (`jsaccomani.altostrat.com`) were
    - **Export Formats**: JSON (`vm_fleet_audit`), HTML (high-visibility red badges & VM table), Markdown (detailed gap analysis).
 
 4. **Production Cloud Run Service**:
-   - **Active Revision**: `mcp-server-grc-00046-lvz` (100% traffic)
+   - **Active Revision**: `mcp-server-grc-00047-ds6` (100% traffic)
    - **Service URL**: `https://mcp-server-grc-938078169010.us-central1.run.app`
 
 ---
