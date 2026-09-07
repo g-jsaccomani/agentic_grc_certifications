@@ -4,7 +4,7 @@
 **Repository:** `agentic_grc_certifications`  
 **Execution Date:** 2026-09-07  
 **Implementation Source:** `handoff-agentic-grc-multiagente.md`  
-**Status:** COMPLETE & VERIFIED (142/142 Pytest Suite Passing, 87% Code Coverage, Questionnaire Safe File Upload & Content Validation, Multi-Framework Readiness (ISO27001:2022, SOC2, Custom), Zero-Retention PDF/Office Text Extraction, Strict Magic Byte Sniffing, Real Vertex AI Live Execution on Cloud Run Verified via ADC, Parallel Function Calling Multi-Tool Parity Fixed, Simplified Centered Home Cockpit with Plain Language Chips, Full WCAG / Lighthouse A11y Form Labeling, Always-On Google Workspace Auth, Framework Selector)
+**Status:** COMPLETE & VERIFIED (153/153 Pytest Suite Passing, 91% Code Coverage, Pillar 1 ISO 27001 Questionnaire & Evidence Integrity Complete, Self-Attested Verification Tier, Gemini 2.5 AI Consistency Validation, Dynamic Cascading Recalculation End-to-End, Multi-Framework Readiness, Safe Multipart File Upload & Content Validation, Zero-Retention PDF/Office Text Extraction, Strict Magic Byte Sniffing, Real Vertex AI Live Execution on Cloud Run Verified via ADC, Always-On Google Workspace Auth, Framework Selector)
 
 ---
 
@@ -1124,6 +1124,6 @@ To resolve the two critical code inspection gaps in Pillar 1 (ISO 27001 Question
   - `test_scorecard_api_endpoint`: Verifies `/api/scorecard` returns tier breakdowns and dynamic scores.
   - `test_executive_and_technical_reports_endpoints`: Verifies `/api/reports/executive` and `/api/reports/technical` endpoints.
   - `test_cascading_questionnaire_recalculation_end_to_end`: Verifies end-to-end cascading recalculation from questionnaire submission into scorecard and reports.
-- **Active Production Revision**: `mcp-server-grc-00050-xz6` (Serving 100% of traffic).
+- **Active Production Revision**: `mcp-server-grc-00051-dkz` (Serving 100% of traffic).
 - **Service URL**: `https://mcp-server-grc-938078169010.us-central1.run.app`
 

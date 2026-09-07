@@ -1986,8 +1986,32 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             border-radius: 4px;
         }
 
-        .status-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; display: inline-block; }
-        .status-badge.compliant { background: rgba(129, 201, 149, 0.15); color: var(--gcp-green); }
+        .status-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; display: inline-flex; align-items: center; gap: 4px; }
+        .status-badge.compliant { background: rgba(129, 201, 149, 0.15); color: var(--gcp-green); border: 1px solid rgba(52, 168, 83, 0.25); }
+        .status-badge.non-compliant { background: rgba(234, 67, 53, 0.15); color: var(--gcp-red); border: 1px solid rgba(234, 67, 53, 0.35); }
+        .ctrl-id-badge.non-compliant { color: var(--gcp-red); background: rgba(234, 67, 53, 0.12); border: 1px solid rgba(234, 67, 53, 0.3); }
+        .ctrl-main-row.row-non-compliant { background: rgba(234, 67, 53, 0.02); }
+        .ctrl-main-row.row-non-compliant:hover { background: rgba(234, 67, 53, 0.06) !important; }
+
+        .btn-status-pill {
+            background: var(--bg-surface-elevated, #202124);
+            border: 1px solid var(--border-subtle, rgba(255,255,255,0.1));
+            color: var(--text-secondary);
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-status-pill:hover { border-color: var(--gcp-blue); color: var(--text-primary); }
+        .btn-status-pill.active { background: rgba(66, 133, 244, 0.15); border-color: var(--gcp-blue); color: var(--gcp-blue); font-weight: 600; }
+        .btn-status-pill.compliant.active { background: rgba(52, 168, 83, 0.18); border-color: var(--gcp-green); color: var(--gcp-green); }
+        .btn-status-pill.non-compliant.active { background: rgba(234, 67, 53, 0.18); border-color: var(--gcp-red); color: var(--gcp-red); }
+        .btn-status-pill .badge-count { font-size: 11px; opacity: 0.8; }
 
         .btn-expand-ctrl {
             background: transparent;
@@ -5075,7 +5099,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 </svg>
                             </div>
                             <div>
-                                <div class="home-kpi-val" style="color: var(--gcp-green);">100.0%</div>
+                                <div class="home-kpi-val" id="homeKpiPosture" style="color: var(--gcp-green);">100.0%</div>
                                 <div class="home-kpi-lbl" data-i18n="home_kpi_posture">Postura Global ISO 27001</div>
                             </div>
                         </div>
@@ -5090,7 +5114,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 </svg>
                             </div>
                             <div>
-                                <div class="home-kpi-val">93 / 93</div>
+                                <div class="home-kpi-val" id="homeKpiControls">93 / 93</div>
                                 <div class="home-kpi-lbl" data-i18n="home_kpi_controls">Controles do Anexo A Mapeados</div>
                             </div>
                         </div>
@@ -5099,11 +5123,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <div class="home-kpi-icon" style="background: rgba(251, 188, 4, 0.12); color: var(--gcp-yellow);">
                                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="12" cy="12" r="3"/>
-                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2-2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                                 </svg>
                             </div>
                             <div>
-                                <div class="home-kpi-val">14 Nós</div>
+                                <div class="home-kpi-val" id="homeKpiNodes">14 Nós</div>
                                 <div class="home-kpi-lbl" data-i18n="home_kpi_evidence">Grafo SHA-256 Imutável</div>
                             </div>
                         </div>
@@ -6029,6 +6053,24 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     </div>
                 </div>
 
+                <!-- Status Filter Bar: Todos, Conformes (Compliant), Não Conformes (Non-Compliant) -->
+                <div class="matrix-status-toolbar" id="matrixStatusToolbar" style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                    <div class="matrix-status-pills" id="matrixStatusPills" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span style="font-size: 11.5px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="matrix_filter_status_label">Filtrar por Postura:</span>
+                        <button type="button" class="btn-status-pill active" id="filterStatusAll" onclick="filterMatrixByStatus('ALL')">
+                            <span data-i18n="matrix_status_all">Todos</span> <span class="badge-count" id="countStatusAll">(93)</span>
+                        </button>
+                        <button type="button" class="btn-status-pill compliant" id="filterStatusCompliant" onclick="filterMatrixByStatus('COMPLIANT')">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-green); vertical-align: middle;"><polyline points="20 6 9 17 4 12"/></svg>
+                            <span data-i18n="matrix_status_compliant">Conformes (Compliant)</span> <span class="badge-count" id="countStatusCompliant">(84)</span>
+                        </button>
+                        <button type="button" class="btn-status-pill non-compliant" id="filterStatusNonCompliant" onclick="filterMatrixByStatus('NON_COMPLIANT')">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-red); vertical-align: middle;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                            <span data-i18n="matrix_status_non_compliant">Não Conformes (Non-Compliant)</span> <span class="badge-count" id="countStatusNonCompliant">(9)</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
@@ -6329,8 +6371,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <div class="scorecard-stats-row">
                     <div class="stat-card">
                         <div class="stat-label" data-i18n="scorecard_global_comp">Conformidade Global</div>
-                        <div class="stat-val" style="color: var(--gcp-green);" id="scoreDisplay">100.0%</div>
-                        <div style="font-size: 12px; color: var(--text-secondary)" data-i18n="scorecard_auditor_opinion">Opinião do Auditor: LIMPA / EXCELLENT</div>
+                        <div class="stat-val" style="color: var(--gcp-yellow);" id="scoreDisplay">78.5%</div>
+                        <div style="font-size: 12px; color: var(--text-secondary)" id="scorecardAuditorOpinion" data-i18n="scorecard_auditor_opinion">Opinião do Auditor: QUALIFIED (ACTION REQUIRED - 9 FINDINGS DETECTED)</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label" data-i18n="scorecard_nodes">Nós no Grafo de Evidências</div>
@@ -6341,6 +6383,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <div class="stat-label" data-i18n="scorecard_edge_protect">Proteção de Borda IA</div>
                         <div class="stat-val" style="color: var(--gcp-blue);">Ativo</div>
                         <div style="font-size: 12px; color: var(--text-secondary)">Model Armor (Anti-Jailbreak / DLP)</div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Non-Compliance Findings & Phased Scan Diagnostic -->
+                <div class="card-panel" id="scorecardFindingsPanel" style="margin-top: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                        <div class="card-title" style="margin-bottom: 0;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-yellow); vertical-align: -2px; margin-right: 6px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                            <span id="scorecardFindingsTitle">Diagnóstico do Scan por Fases & Achados de Auditoria</span>
+                        </div>
+                        <span class="status-badge non-compliant" id="scorecardFindingsBadge" style="font-size: 11px;">9 Não-Conformidades</span>
+                    </div>
+                    <div id="scorecardFindingsContent">
+                        <!-- Populated by loadScorecard() -->
                     </div>
                 </div>
 
@@ -8479,6 +8535,8 @@ window.currentLanguage = 'pt';
                         }
                     }
                 }
+                if (typeof loadScorecard === 'function') loadScorecard();
+                if (typeof loadIsoMatrix === 'function') loadIsoMatrix();
             } catch (e) {
                 statusTag.innerText = "Erro";
                 statusTag.className = "phase-status-tag failed";
@@ -8541,6 +8599,8 @@ window.currentLanguage = 'pt';
                     findingsBox.style.display = "block";
                     findingsBox.innerHTML = `<span style="color: var(--gcp-green);"><strong>Fase ${phaseNum} Remediada com Sucesso:</strong></span><br>` + data.details.actions_executed.map(a => `✓ ${escapeHtml(a)}`).join("<br>");
                 }
+                if (typeof loadScorecard === 'function') loadScorecard();
+                if (typeof loadIsoMatrix === 'function') loadIsoMatrix();
             } catch (e) {
                 appendLog(`[Remediação Erro] ${e}`, "error");
             }
@@ -9595,6 +9655,7 @@ Formulário preenchido com o subagente recomendado!`);
             loadProjects();
             loadFinOpsMetrics();
             loadIsoMatrix();
+            loadScorecard();
             loadSubagents();
             renderNewsCarousel();
             initSidebarCategories();
@@ -9666,7 +9727,9 @@ Formulário preenchido com o subagente recomendado!`);
                 }
             });
 
-            if (tabName === 'exec') {
+            if (tabName === 'scorecard') {
+                loadScorecard();
+            } else if (tabName === 'exec') {
                 const el = document.getElementById("docProjectsAudited");
                 if (el) el.innerText = Array.from(selectedProjectIds).join(", ") || "agentic-grc-cd06";
             } else if (tabName === 'tech') {
@@ -9710,6 +9773,9 @@ Formulário preenchido com o subagente recomendado!`);
             // If entering questionnaire, load data
             if (viewId === "view-questionnaire") {
                 loadQuestionnaireData();
+            }
+            if (viewId === "view-scorecard" || viewId === "view-reports" || viewId === "view-home") {
+                if (typeof loadScorecard === 'function') loadScorecard();
             }
 
             const agentMap = {
@@ -10696,28 +10762,84 @@ function openNewsModal(newsKey) {
             consoleBox.scrollTop = consoleBox.scrollHeight;
         }
 
-        // ISO Matrix Handling with Expandable Rows (How to Check & How to Maintain)
-        async function loadIsoMatrix(theme = "Todos", search = "") {
+        // ISO Matrix Handling with Expandable Rows, Status Filtering & Red Non-Compliant Icons
+        currentThemeFilter = "Todos";
+        let currentStatusFilter = "ALL";
+
+        async function loadIsoMatrix(theme = "Todos", search = "", status = currentStatusFilter) {
+            currentThemeFilter = theme;
+            currentStatusFilter = status;
+
             let url = `/api/iso_matrix?theme=${encodeURIComponent(theme)}`;
             if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (status && status !== "ALL") url += `&status=${encodeURIComponent(status)}`;
 
             try {
                 const res = await fetch(url);
                 const data = await res.json();
                 matrixControls = data.controls || [];
                 renderMatrixTable(matrixControls);
+
+                if (data.counts) {
+                    const allElem = document.getElementById("countStatusAll");
+                    const compElem = document.getElementById("countStatusCompliant");
+                    const ncElem = document.getElementById("countStatusNonCompliant");
+                    if (allElem) allElem.innerText = `(${data.counts.total ?? 93})`;
+                    if (compElem) compElem.innerText = `(${data.counts.compliant ?? 84})`;
+                    if (ncElem) ncElem.innerText = `(${data.counts.non_compliant ?? 9})`;
+                }
             } catch (e) {
                 console.error("Error loading matrix", e);
             }
         }
 
+        function filterMatrixByStatus(status) {
+            currentStatusFilter = status;
+            document.querySelectorAll(".btn-status-pill").forEach(b => {
+                b.classList.remove("active");
+            });
+            if (status === "ALL") {
+                const b = document.getElementById("filterStatusAll");
+                if (b) b.classList.add("active");
+            } else if (status === "COMPLIANT") {
+                const b = document.getElementById("filterStatusCompliant");
+                if (b) b.classList.add("active");
+            } else if (status === "NON_COMPLIANT") {
+                const b = document.getElementById("filterStatusNonCompliant");
+                if (b) b.classList.add("active");
+            }
+            const searchVal = document.getElementById("matrixSearchInput") ? document.getElementById("matrixSearchInput").value : "";
+            loadIsoMatrix(currentThemeFilter, searchVal, currentStatusFilter);
+        }
+
+        function filterMatrixByTheme(theme) {
+            currentThemeFilter = theme;
+            document.querySelectorAll(".btn-filter-pill").forEach(b => {
+                b.classList.toggle("active", b.innerText === theme);
+            });
+            document.querySelectorAll(".theme-card").forEach(c => {
+                const titleElem = c.querySelector(".theme-card-title");
+                if (titleElem) {
+                    const title = titleElem.innerText;
+                    c.classList.toggle("active", (theme === "Todos" && title.includes("Todos")) || (theme !== "Todos" && title.includes(theme.split(" ")[0])));
+                }
+            });
+            const searchVal = document.getElementById("matrixSearchInput") ? document.getElementById("matrixSearchInput").value : "";
+            loadIsoMatrix(currentThemeFilter, searchVal, currentStatusFilter);
+        }
+
+        function searchMatrix(val) {
+            loadIsoMatrix(currentThemeFilter, val, currentStatusFilter);
+        }
+
         function renderMatrixTable(items) {
             const dict = (I18N[window.currentLanguage || "pt"] || I18N.pt);
             const tbody = document.getElementById("matrixTableBody");
+            if (!tbody) return;
             tbody.innerHTML = "";
 
             if (items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-tertiary); padding: 24px;">Nenhum controle encontrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-tertiary); padding: 24px;">Nenhum controle encontrado para os filtros selecionados.</td></tr>`;
                 return;
             }
 
@@ -10725,10 +10847,11 @@ function openNewsModal(newsKey) {
                 const safeId = c.id.replace(/[^a-zA-Z0-9]/g, '_');
                 const rowId = `ctrl_row_${safeId}`;
                 const detailId = `ctrl_detail_${safeId}`;
+                const isNonCompliant = (c.status === 'NON_COMPLIANT');
 
                 // Main Row
                 const tr = document.createElement("tr");
-                tr.className = "ctrl-main-row";
+                tr.className = `ctrl-main-row ${isNonCompliant ? 'row-non-compliant' : ''}`;
                 tr.id = rowId;
                 tr.onclick = (e) => {
                     if (!e.target.closest("button")) {
@@ -10737,12 +10860,42 @@ function openNewsModal(newsKey) {
                 };
 
                 tr.innerHTML = `
-                    <td><span class="ctrl-id-badge">${c.id}</span></td>
+                    <td>
+                        <span class="ctrl-id-badge ${isNonCompliant ? 'non-compliant' : 'compliant'}">
+                            ${isNonCompliant ? `
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-red); vertical-align: -1px; margin-right: 3px;">
+                                    <circle cx="12" cy="12" r="10" stroke="var(--gcp-red)"/>
+                                    <line x1="15" y1="9" x2="9" y2="15" stroke="var(--gcp-red)"/>
+                                    <line x1="9" y1="9" x2="15" y2="15" stroke="var(--gcp-red)"/>
+                                </svg>
+                            ` : `
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-green); vertical-align: -1px; margin-right: 3px;">
+                                    <polyline points="20 6 9 17 4 12" stroke="var(--gcp-green)"/>
+                                </svg>
+                            `}
+                            ${c.id}
+                        </span>
+                    </td>
                     <td style="font-weight: 500;">${escapeHtml(c.name)}</td>
                     <td style="color: var(--text-secondary);">${escapeHtml(c.theme)}</td>
                     <td style="line-height: 1.5;">${escapeHtml(c.gcp_mapping)}</td>
-                    <td><span class="status-badge compliant">${c.status}</span></td>
-                    <td><span style="font-size: 11px; color: ${c.severity === 'CRITICAL' ? 'var(--gcp-red)' : 'var(--text-secondary)'}">${c.severity}</span></td>
+                    <td>
+                        <span class="status-badge ${isNonCompliant ? 'non-compliant' : 'compliant'}">
+                            ${isNonCompliant ? `
+                                <svg class="status-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-red); vertical-align: middle; margin-right: 3px;">
+                                    <circle cx="12" cy="12" r="10" stroke="var(--gcp-red)"/>
+                                    <line x1="15" y1="9" x2="9" y2="15" stroke="var(--gcp-red)"/>
+                                    <line x1="9" y1="9" x2="15" y2="15" stroke="var(--gcp-red)"/>
+                                </svg>
+                            ` : `
+                                <svg class="status-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-green); vertical-align: middle; margin-right: 3px;">
+                                    <polyline points="20 6 9 17 4 12" stroke="var(--gcp-green)"/>
+                                </svg>
+                            `}
+                            ${c.status}
+                        </span>
+                    </td>
+                    <td><span style="font-size: 11px; color: ${isNonCompliant || c.severity === 'CRITICAL' ? 'var(--gcp-red)' : 'var(--text-secondary)'}">${c.severity}</span></td>
                     <td style="text-align: center;">
                         <button class="btn-expand-ctrl" onclick="toggleControlRow('${detailId}')">
                             <span id="label_${detailId}">${dict.btn_view_details || "Ver Detalhes"}</span>
@@ -10792,13 +10945,29 @@ function openNewsModal(newsKey) {
                                         <div>${tagsHtml}</div>
                                     </div>
 
-                                    <div style="margin-top: 10px; font-size: 11.5px; color: var(--gcp-green);">
-                                        <strong>Declaração de Aplicabilidade (SoA):</strong> ${escapeHtml(c.soa_status || 'APLICÁVEL (INCLUÍDO NO SGSI)')}
+                                    <div style="margin-top: 10px; font-size: 11.5px; color: ${isNonCompliant ? 'var(--gcp-red)' : 'var(--gcp-green)'};">
+                                        <strong>Declaração de Aplicabilidade (SoA):</strong> ${escapeHtml(c.soa_status || 'APLICÁVEL (INCLUÍDO NO SGSI)')} — <span style="font-weight: 700;">${isNonCompliant ? 'NÃO CONFORME' : 'CONFORME'}</span>
                                     </div>
                                 </div>
 
-                                <!-- Coluna Direita: Como Checar & Como Manter Compliance -->
+                                <!-- Coluna Direita: Achado de Não Conformidade (se houver) & Como Checar / Manter -->
                                 <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    ${isNonCompliant ? `
+                                        <div class="detail-box" style="border-left: 3px solid var(--gcp-red); background: rgba(234, 67, 53, 0.06);">
+                                            <div class="detail-box-title" style="color: var(--gcp-red);">
+                                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                                                    <circle cx="12" cy="12" r="10" stroke="var(--gcp-red)"/>
+                                                    <line x1="15" y1="9" x2="9" y2="15" stroke="var(--gcp-red)"/>
+                                                    <line x1="9" y1="9" x2="15" y2="15" stroke="var(--gcp-red)"/>
+                                                </svg>
+                                                Evidência de Não Conformidade (Detectada pelo Scan por Fases)
+                                            </div>
+                                            <div class="detail-box-content" style="color: #fca5a5; font-weight: 500;">
+                                                ${escapeHtml(c.evidence || 'Falha de segurança ou configuração identificada durante a telemetria do GCP.')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
                                     <div class="detail-box" style="border-left: 3px solid var(--gcp-green);">
                                         <div class="detail-box-title" style="color: var(--gcp-green);">
                                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor">
@@ -10842,21 +11011,119 @@ function openNewsModal(newsKey) {
             }
         }
 
-        function filterMatrixByTheme(theme) {
-            currentThemeFilter = theme;
-            document.querySelectorAll(".btn-filter-pill").forEach(b => {
-                b.classList.toggle("active", b.innerText === theme);
-            });
-            document.querySelectorAll(".theme-card").forEach(c => {
-                const title = c.querySelector(".theme-card-title").innerText;
-                c.classList.toggle("active", (theme === "Todos" && title.includes("Todos")) || (theme !== "Todos" && title.includes(theme.split(" ")[0])));
-            });
-            const searchVal = document.getElementById("matrixSearchInput").value;
-            loadIsoMatrix(currentThemeFilter, searchVal);
+        // -------------------------------------------------------------------
+        // Dynamic Scorecard & Phased Audit Synchronizer
+        // -------------------------------------------------------------------
+        async function loadScorecard() {
+            try {
+                const res = await fetch("/api/scorecard");
+                if (!res.ok) return;
+                const data = await res.json();
+
+                // 1. Update Score Display
+                const scoreElem = document.getElementById("scoreDisplay");
+                if (scoreElem) {
+                    scoreElem.innerText = `${data.overall_score.toFixed(1)}%`;
+                    if (data.overall_score >= 90.0) {
+                        scoreElem.style.color = "var(--gcp-green)";
+                    } else if (data.overall_score >= 75.0) {
+                        scoreElem.style.color = "var(--gcp-yellow)";
+                    } else {
+                        scoreElem.style.color = "var(--gcp-red)";
+                    }
+                }
+
+                // 2. Update Auditor Opinion
+                const opinionElem = document.getElementById("scorecardAuditorOpinion");
+                if (opinionElem) {
+                    opinionElem.innerText = `Opinião do Auditor: ${data.rating}`;
+                }
+
+                // 3. Update Evidence Nodes Display
+                const nodesElem = document.getElementById("evidenceNodesDisplay");
+                const totalNodes = (data.evidence_nodes && data.evidence_nodes.length) || (data.evidence_graph_nodes) || 24;
+                if (nodesElem) {
+                    nodesElem.innerText = totalNodes;
+                }
+
+                // 4. Update Home Cockpit KPIs
+                const homeKpiPosture = document.getElementById("homeKpiPosture");
+                if (homeKpiPosture) {
+                    homeKpiPosture.innerText = `${data.overall_score.toFixed(1)}%`;
+                    homeKpiPosture.style.color = data.overall_score >= 90.0 ? "var(--gcp-green)" : "var(--gcp-yellow)";
+                }
+                const homeKpiNodes = document.getElementById("homeKpiNodes");
+                if (homeKpiNodes) {
+                    homeKpiNodes.innerText = `${totalNodes} Nós`;
+                }
+
+                // 5. Render Findings Diagnostic Panel
+                renderScorecardFindings(data);
+            } catch (err) {
+                console.error("Error loading scorecard:", err);
+            }
         }
 
-        function searchMatrix(val) {
-            loadIsoMatrix(currentThemeFilter, val);
+        function renderScorecardFindings(data) {
+            const container = document.getElementById("scorecardFindingsContent");
+            const badge = document.getElementById("scorecardFindingsBadge");
+            if (!container) return;
+
+            const ncCount = data.non_compliant_count ?? 0;
+            if (badge) {
+                badge.innerText = ncCount > 0 ? `${ncCount} Não-Conformidades Ativas` : `100% Conforme`;
+                badge.className = `status-badge ${ncCount > 0 ? 'non-compliant' : 'compliant'}`;
+            }
+
+            if (ncCount === 0) {
+                container.innerHTML = `
+                    <div style="background: rgba(52, 168, 83, 0.08); border: 1px solid rgba(52, 168, 83, 0.3); border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 12px;">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-green); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"/></svg>
+                        <div>
+                            <strong style="color: var(--gcp-green); font-size: 13px;">Ambiente Google Cloud em Plena Conformidade Técnica!</strong>
+                            <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--text-secondary); line-height: 1.45;">Todos os 93 controles da norma ISO/IEC 27001:2022 estão validados com sucesso pelo Scan por Fases e sem desvios ativos.</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const ncList = data.non_compliant_controls || [];
+            const ncDetails = {
+                "A.5.15": "Conta de serviço 'sa-ai-pipeline-dev' com papel roles/editor; vm-mgmt-bastion operando com conta padrão Compute Engine.",
+                "A.5.17": "Instância vm-legacy-crm armazena credenciais administrativas em texto plano nos metadados da VM.",
+                "A.5.23": "Bucket bkt-iso-noncompliant-legacy com PAP desativado, single-region e sem chave CMEK Cloud KMS.",
+                "A.8.14": "Frota de 5 instâncias Compute Engine alocada em zona única us-central1-a sem proteção contra exclusão.",
+                "A.8.15": "Perímetro VPC Service Controls ausente para isolamento estrito de serviços de armazenamento e big data.",
+                "A.8.16": "Monitoramento de segurança sem exportação contínua de logs de auditoria e trilhas do Cloud Logging.",
+                "A.8.20": "Regra de firewall fw-iso-noncompliant-open-ssh expõe porta 22 (SSH) para a Internet pública (0.0.0.0/0).",
+                "A.8.24": "Discos de boot sem chave de criptografia gerenciada pelo cliente (CMEK Cloud KMS HSM).",
+                "A.8.28": "Vulnerabilidade BOLA (/api/v1/customers/{id}) e endpoint com falha de Prompt Injection na vm-payment-api."
+            };
+
+            let html = `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px;">`;
+            ncList.forEach(cid => {
+                const desc = ncDetails[cid] || "Não conformidade técnica identificada pelo Scan de Auditoria do GCP.";
+                html += `
+                    <div style="background: rgba(234, 67, 53, 0.05); border: 1px solid rgba(234, 67, 53, 0.25); border-radius: 8px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span class="ctrl-id-badge non-compliant" style="font-weight: 700;">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-red); vertical-align: -1px; margin-right: 3px;"><circle cx="12" cy="12" r="10" stroke="var(--gcp-red)"/><line x1="15" y1="9" x2="9" y2="15" stroke="var(--gcp-red)"/><line x1="9" y1="9" x2="15" y2="15" stroke="var(--gcp-red)"/></svg>
+                                ${cid}
+                            </span>
+                            <span class="status-badge non-compliant" style="font-size: 10px;">CRÍTICA</span>
+                        </div>
+                        <p style="margin: 0; font-size: 11.5px; color: var(--text-secondary); line-height: 1.4;">${escapeHtml(desc)}</p>
+                        <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+                            <button type="button" class="btn-expand-ctrl" onclick="switchView('view-matrix'); filterMatrixByStatus('NON_COMPLIANT'); searchMatrix('${cid}');" style="font-size: 11px; padding: 3px 8px;">
+                                Inspecionar na Matriz ›
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
         }
 
         async function triggerSubagent(subagent, target) {
@@ -11647,6 +11914,8 @@ function openNewsModal(newsKey) {
                         badge.innerText = ans.status;
                     }
                     loadQuestionnaireSummary();
+                    if (typeof loadScorecard === 'function') loadScorecard();
+                    if (typeof loadIsoMatrix === 'function') loadIsoMatrix();
                 } else {
                     const err = await res.json().catch(() => ({}));
                     if (saveStatus) {

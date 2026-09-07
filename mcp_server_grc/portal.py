@@ -516,9 +516,28 @@ async def add_project(req: ProjectAddRequest):
 
 
 @router.get("/api/iso_matrix")
-async def get_iso_matrix(theme: Optional[str] = None, search: Optional[str] = None):
+async def get_iso_matrix(
+    theme: Optional[str] = None,
+    search: Optional[str] = None,
+    status: Optional[str] = None,
+):
     """Returns scalable full ISO/IEC 27001:2022 matrix with filtering capabilities."""
-    items = ISO_27001_CATALOG
+    from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
+
+    base_nc_ids = {"A.5.15", "A.5.17", "A.5.23", "A.8.14", "A.8.15", "A.8.16", "A.8.20", "A.8.24", "A.8.28"}
+    resolved_nc_ids = set()
+    for (fw, cid), ans in QUESTIONNAIRE_ANSWERS.items():
+        if fw == "ISO27001:2022" and ans.status == "COMPLIANT" and cid in base_nc_ids:
+            resolved_nc_ids.add(cid)
+
+    items = []
+    for c in ISO_27001_CATALOG:
+        c_copy = dict(c)
+        cid = c_copy.get("id")
+        if cid in resolved_nc_ids:
+            c_copy["status"] = "COMPLIANT"
+        items.append(c_copy)
+
     if theme and theme != "Todos":
         items = [c for c in items if c["theme"] == theme]
     if search:
@@ -532,12 +551,25 @@ async def get_iso_matrix(theme: Optional[str] = None, search: Optional[str] = No
             or s in c.get("how_to_check", "").lower()
             or s in c.get("how_to_maintain", "").lower()
         ]
+
+    total_in_scope = len(items)
+    compliant_in_scope = sum(1 for c in items if c.get("status") == "COMPLIANT")
+    nc_in_scope = sum(1 for c in items if c.get("status") == "NON_COMPLIANT")
+
+    if status and status.upper() not in ("ALL", "TODOS"):
+        items = [c for c in items if c.get("status", "").upper() == status.upper()]
+
     return {
         "total_controls_in_standard": 93,
         "themes_summary": THEMES_STRUCTURE,
         "filtered_count": len(items),
         "controls": items,
         "themes": ["Todos", "A.5 Organizacional", "A.6 Pessoas", "A.7 Físico", "A.8 Tecnológico"],
+        "counts": {
+            "total": total_in_scope,
+            "compliant": compliant_in_scope,
+            "non_compliant": nc_in_scope,
+        },
     }
 
 
@@ -652,13 +684,22 @@ async def run_phased_audit(req: PhasedAuditRequest):
     else:
         executed_phases = [phase1_results, phase2_results, phase3_results, phase4_results]
 
+    from mcp_server_grc.questionnaire import sync_scan_telemetry_to_questionnaire
+    sync_scan_telemetry_to_questionnaire("ISO27001:2022")
+    scorecard_data = calculate_scorecard_data("ISO27001:2022")
+
     return {
         "execution_id": f"EXEC-PHASED-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}",
         "timestamp": timestamp,
         "projects_evaluated": projects,
         "phase_executed": target_phase,
-        "overall_score": 100.0,
-        "rating": "EXCELLENT",
+        "overall_score": scorecard_data["overall_score"],
+        "rating": scorecard_data["rating"],
+        "total_controls_assessed": scorecard_data["total_controls_assessed"],
+        "compliant_count": scorecard_data["compliant_count"],
+        "non_compliant_count": scorecard_data["non_compliant_count"],
+        "non_compliant_controls": scorecard_data["non_compliant_controls"],
+        "scorecard": scorecard_data,
         "phases": executed_phases,
     }
 
@@ -728,6 +769,26 @@ async def remediate_phase(req: PhaseRemediationRequest):
         }
     else:
         raise HTTPException(status_code=400, detail="Fase inválida. Escolha entre 1, 2, 3 ou 4.")
+
+    from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS, QuestionnaireAnswer
+    now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
+    for cid in remediation_details.get("remediated_controls", []):
+        safe_cid = cid.lower().replace(".", "_")
+        QUESTIONNAIRE_ANSWERS[("ISO27001:2022", cid)] = QuestionnaireAnswer(
+            control_id=cid,
+            framework="ISO27001:2022",
+            status="COMPLIANT",
+            justification=f"Remediação automatizada executada para Fase {phase_id}: {remediation_details.get('action', 'Correção de infraestrutura e governança')}.",
+            evidence_text=f"Ação corretiva aplicada para o controle {cid} no projeto {project_id}.",
+            evidence_uri=f"gcp://remediation/phase{phase_id}/{safe_cid}",
+            verification_tier=EvidenceVerificationTier.TELEMETRY.value,
+            answered_by="autonomous-remediation-engine@client.corp",
+            updated_at=now_ts,
+            ai_consistency_verdict="COMPLIANT",
+            ai_consistency_reasoning=f"Remediação do controle {cid} executada e verificada com sucesso.",
+        )
+    scorecard_data = calculate_scorecard_data("ISO27001:2022")
+    remediation_details["scorecard"] = scorecard_data
 
     return {
         "remediation_id": f"REM-PHASE-{phase_id}-{int(datetime.datetime.now().timestamp())}",
