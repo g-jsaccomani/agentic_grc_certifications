@@ -245,15 +245,16 @@ The Home Screen (`<section class="view-pane active" id="view-home">`) is a premi
 - **Service Configuration:**
   - **GCP Project:** `agentic-grc-cd06`
   - **Service Name:** `mcp-server-grc`
+  - **Deployed Revision:** `mcp-server-grc-00040-q2b` (Serving 100% of traffic)
   - **Region:** `us-central1`
   - **Deploy Command:** `gcloud run deploy mcp-server-grc --source=. --region=us-central1 --platform=managed --allow-unauthenticated --set-env-vars="PROJECT_ID=agentic-grc-cd06,REGION=us-central1"`
   - **Live Service URL:** `https://mcp-server-grc-938078169010.us-central1.run.app/portal`
   - **Artifact Registry Image:** `us-central1-docker.pkg.dev/agentic-grc-cd06/cloud-run-source-deploy/mcp-server-grc`
-- **Verification on Live Production Container:**
+- **Verification on Live Production Container (revision mcp-server-grc-00040-q2b):**
   1. Default initial route: opens directly to `#view-home` (Modules Overview / Hub Central).
   2. Top navbar displays Certification Framework Selector (`.framework-selector-bar`).
   3. Sidebar displays and highlights `Visão Geral dos Módulos` (`#agentBtnHome`).
-  4. 100% WCAG / Lighthouse `<label>` accessibility compliance (all 13 form controls linked).
+  4. 100% WCAG / Lighthouse `<label>` accessibility compliance (0 violations on live HTML scan).
   5. Always-on Google Workspace identity verification (`id_token.verify_oauth2_token`).
 
 ---
