@@ -165,17 +165,24 @@ class LLMSubAgent:
         return declarations
 
     @staticmethod
-    def _extract_function_call(resp: Any) -> Optional[Any]:
-        """Extracts function call from Gemini response candidate."""
+    def _extract_function_calls(resp: Any) -> List[Any]:
+        """Extracts all function calls from Gemini response candidate."""
         if not resp or not getattr(resp, "candidates", None):
-            return None
+            return []
         candidate = resp.candidates[0]
         if not candidate.content or not candidate.content.parts:
-            return None
+            return []
+        calls = []
         for part in candidate.content.parts:
             if getattr(part, "function_call", None):
-                return part.function_call
-        return None
+                calls.append(part.function_call)
+        return calls
+
+    @staticmethod
+    def _extract_function_call(resp: Any) -> Optional[Any]:
+        """Extracts first function call from Gemini response candidate for backward compatibility."""
+        calls = LLMSubAgent._extract_function_calls(resp)
+        return calls[0] if calls else None
 
     def run(
         self,
@@ -198,8 +205,8 @@ class LLMSubAgent:
                     contents=contents,
                     config=self.config,
                 )
-                call = self._extract_function_call(resp)
-                if call is None:
+                calls = self._extract_function_calls(resp)
+                if not calls:
                     narrative = resp.text or "Audit analysis completed."
                     return {
                         "agent": self.name,
@@ -209,24 +216,27 @@ class LLMSubAgent:
                         "execution_mode": "llm_function_calling",
                     }
 
-                fn = self.tools.get(call.name)
-                args = dict(call.args) if call.args else {}
-                if fn:
-                    try:
-                        result = fn(**args)
-                    except Exception as err:
-                        result = {"status": "ERROR", "error": f"Tool execution failure: {str(err)}"}
-                else:
-                    result = {"status": "ERROR", "error": f"Unknown tool '{call.name}'"}
+                response_parts = []
+                for call in calls:
+                    fn = self.tools.get(call.name)
+                    args = dict(call.args) if call.args else {}
+                    if fn:
+                        try:
+                            result = fn(**args)
+                        except Exception as err:
+                            result = {"status": "ERROR", "error": f"Tool execution failure: {str(err)}"}
+                    else:
+                        result = {"status": "ERROR", "error": f"Unknown tool '{call.name}'"}
 
-                tool_evidence.append({"tool": call.name, "args": args, "result": result})
+                    tool_evidence.append({"tool": call.name, "args": args, "result": result})
+                    response_parts.append(types.Part.from_function_response(name=call.name, response=result))
 
-                # Append model thought and function response turn
+                # Append model thoughts and all function responses with exact parity
                 contents.append(resp.candidates[0].content)
                 contents.append(
                     types.Content(
                         role="user",
-                        parts=[types.Part.from_function_response(name=call.name, response=result)],
+                        parts=response_parts,
                     )
                 )
 
@@ -264,8 +274,8 @@ class LLMSubAgent:
                     contents=contents,
                     config=self.config,
                 )
-                call = self._extract_function_call(resp)
-                if call is None:
+                calls = self._extract_function_calls(resp)
+                if not calls:
                     narrative = resp.text or "Audit analysis completed."
                     return {
                         "agent": self.name,
@@ -275,26 +285,29 @@ class LLMSubAgent:
                         "execution_mode": "llm_async_function_calling",
                     }
 
-                fn = self.tools.get(call.name)
-                args = dict(call.args) if call.args else {}
-                if fn:
-                    try:
-                        if inspect.iscoroutinefunction(fn):
-                            result = await fn(**args)
-                        else:
-                            result = await asyncio.to_thread(fn, **args)
-                    except Exception as err:
-                        result = {"status": "ERROR", "error": f"Tool execution failure: {str(err)}"}
-                else:
-                    result = {"status": "ERROR", "error": f"Unknown tool '{call.name}'"}
+                response_parts = []
+                for call in calls:
+                    fn = self.tools.get(call.name)
+                    args = dict(call.args) if call.args else {}
+                    if fn:
+                        try:
+                            if inspect.iscoroutinefunction(fn):
+                                result = await fn(**args)
+                            else:
+                                result = await asyncio.to_thread(fn, **args)
+                        except Exception as err:
+                            result = {"status": "ERROR", "error": f"Tool execution failure: {str(err)}"}
+                    else:
+                        result = {"status": "ERROR", "error": f"Unknown tool '{call.name}'"}
 
-                tool_evidence.append({"tool": call.name, "args": args, "result": result})
+                    tool_evidence.append({"tool": call.name, "args": args, "result": result})
+                    response_parts.append(types.Part.from_function_response(name=call.name, response=result))
 
                 contents.append(resp.candidates[0].content)
                 contents.append(
                     types.Content(
                         role="user",
-                        parts=[types.Part.from_function_response(name=call.name, response=result)],
+                        parts=response_parts,
                     )
                 )
 
