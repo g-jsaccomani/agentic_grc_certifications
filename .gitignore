@@ -45,3 +45,7 @@ credentials.json
 service_account.json
 .env
 *.pem
+
+# Runtime evidence uploads
+data/evidence_uploads/
+data/*.bin

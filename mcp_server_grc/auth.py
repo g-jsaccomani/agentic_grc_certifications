@@ -200,14 +200,16 @@ async def get_current_workspace_user(
         else:
             access_token = token_candidate
 
-    # Try extracting body tokens if not in headers
+    # Try extracting body tokens if not in headers (skip for multipart/form-data file uploads to avoid buffering)
     req_body = {}
-    try:
-        body_bytes = await request.body()
-        if body_bytes:
-            req_body = json.loads(body_bytes.decode("utf-8"))
-    except Exception:
-        pass
+    content_type = request.headers.get("content-type", "")
+    if not content_type.startswith("multipart/"):
+        try:
+            body_bytes = await request.body()
+            if body_bytes:
+                req_body = json.loads(body_bytes.decode("utf-8"))
+        except Exception:
+            pass
 
     if not id_token_str and "id_token" in req_body and req_body.get("id_token"):
         id_token_str = req_body.get("id_token")

@@ -51,8 +51,11 @@ from mcp_server_grc.assets_b64 import (
     GOOGLE_CLOUD_DARK_WORDMARK_URI,
 )
 
+from mcp_server_grc.questionnaire import router as questionnaire_router
+
 logger = logging.getLogger("portal")
 router = APIRouter()
+router.include_router(questionnaire_router)
 
 # Global in-memory engines for the portal session
 ci_engine = ContinuousIntelligenceEngine(organization_name="Enterprise-Client-Environment")

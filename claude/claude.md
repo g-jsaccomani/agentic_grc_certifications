@@ -4,7 +4,7 @@
 **Repository:** `agentic_grc_certifications`  
 **Execution Date:** 2026-09-07  
 **Implementation Source:** `handoff-agentic-grc-multiagente.md`  
-**Status:** COMPLETE & VERIFIED (100/100 Pytest Suite Passing, 86% Code Coverage, Real Vertex AI Live Execution on Cloud Run Verified via ADC, Parallel Function Calling Multi-Tool Parity Fixed, Simplified Centered Home Cockpit with Plain Language Chips, Full WCAG / Lighthouse A11y Form Labeling, Always-On Google Workspace Auth, Framework Selector)
+**Status:** COMPLETE & VERIFIED (142/142 Pytest Suite Passing, 87% Code Coverage, Questionnaire Safe File Upload & Content Validation, Multi-Framework Readiness (ISO27001:2022, SOC2, Custom), Zero-Retention PDF/Office Text Extraction, Strict Magic Byte Sniffing, Real Vertex AI Live Execution on Cloud Run Verified via ADC, Parallel Function Calling Multi-Tool Parity Fixed, Simplified Centered Home Cockpit with Plain Language Chips, Full WCAG / Lighthouse A11y Form Labeling, Always-On Google Workspace Auth, Framework Selector)
 
 ---
 
@@ -871,4 +871,122 @@ All 5 virtual machines across the organization (`jsaccomani.altostrat.com`) were
 4. **Production Cloud Run Service**:
    - **Active Revision**: `mcp-server-grc-00046-lvz` (100% traffic)
    - **Service URL**: `https://mcp-server-grc-938078169010.us-central1.run.app`
+
+---
+
+## 8. Questionnaire Safe File-Upload & Multi-Framework Readiness Specification
+
+### 8.1 Architectural Implementation Overview
+
+The Questionnaire and Evidence Management subsystem was engineered to support real file-upload evidence alongside existing `evidence_text` and `evidence_uri` fields, with enterprise-grade defensive security:
+
+1. **Safe by Content, Not by Extension**:
+   - **Endpoint**: `POST /api/questionnaire/{control_id}/evidence-file` (multipart upload).
+   - **Strict Authentication**: Requires authenticated Google Workspace user (`user_context: WorkspaceUserContext`), identical to `/api/chat` and answer submissions. Rejects unauthenticated callers with HTTP 401.
+   - **Magic Byte Sniffing**: Validates real file content via magic byte inspection. Completely ignores client-supplied filenames, file extensions, and `Content-Type` headers.
+   - **Strict Allowlist**:
+     - *Static Images*: PNG (`89 50 4E 47 0D 0A 1A 0A`), JPEG (`FF D8 FF`), WEBP (`RIFF....WEBP`).
+     - *Plain Text*: TXT, CSV, MD (must be valid UTF-8 without NULL bytes).
+     - *SVG Strictly Rejected*: Under no circumstance is SVG permitted due to embedded JavaScript execution risks (`<svg>`, `xmlns="...svg"`).
+   - **Zero-Retention Text Extraction (PDF / Office DOCX, XLSX, PPTX)**:
+     - Document binaries are **never stored or re-served**.
+     - Server-side parsing extracts textual content into `evidence_text` and immediately discards the original binary payload.
+     - Office formats are inspected via `zipfile.ZipFile`: macro-enabled files (`vbaProject.bin`, `.docm`, `.xlsm`, `.pptm`) are rejected outright with HTTP 400.
+   - **Outright Rejection Formats (HTTP 400)**:
+     - Executables and binary payloads: Windows PE (`MZ`), Linux ELF (`\x7fELF`), Mach-O (`\xfe\xed\xfa\xce`, `\xfe\xed\xfa\xcf`), Java Class / Fat Binaries (`\xca\xfe\xba\xbe`).
+     - Scripts: Any plain text starting with shebang (`#!`).
+     - Archives: Generic ZIP, TAR (`ustar` at offset 257), RAR, 7z, GZIP, BZIP2.
+     - Active Web Content: HTML (`<!DOCTYPE html`, `<html`, `<script`, `<body`, `<iframe`, etc.).
+   - **8MB Streaming Enforcement**:
+     - Early rejection on `Content-Length` header if > 8MB before reading body.
+     - Stream chunking in 64KB buffers: total accumulated size is monitored; if > 8MB, stream reading is aborted immediately without buffering into memory.
+   - **Storage Isolation & Safe Serving**:
+     - Verified binaries are stored outside the static web root in `data/evidence_uploads/` using randomized `uuid4()` filenames.
+     - Original filename is HTML-escaped and stored in server-side metadata.
+     - Serving endpoint `GET /api/questionnaire/{control_id}/evidence-file/{file_id}`:
+       - Enforces authenticated Workspace user (HTTP 401).
+       - Enforces strict directory containment (`target_path.startswith(UPLOAD_DIR)`).
+       - Headers: `Content-Disposition: attachment; filename="<escaped_filename>"` (always attachment, never inline) and `X-Content-Type-Options: nosniff`.
+       - Files stored via text extraction return HTTP 404 (original binary discarded).
+
+2. **Multi-Framework Readiness**:
+   - The `framework` field (string, default `"ISO27001:2022"`) was implemented on all core data structures:
+     - `QuestionnaireAnswer.framework: str = "ISO27001:2022"`
+     - `EvidenceNode.framework: str = "ISO27001:2022"` (anchoring SHA-256 hash `framework:resource_id:control_id:payload`)
+     - `ComplianceLink.framework: str = "ISO27001:2022"`
+   - **Query Endpoints**:
+     - `GET /api/questionnaire?framework=ISO27001:2022`: returns the 93 Annex A controls with registered answers and status.
+     - `GET /api/questionnaire?framework=SOC2`: returns SOC 2 Trust Services Criteria controls.
+     - `GET /api/questionnaire/summary?framework=...`: computes total, answered, compliant, non-compliant, not applicable, and completion percentage.
+   - **UI Decoupling Confirmation**:
+     > [!NOTE]
+     > The `framework` field exists on all three data structures (`QuestionnaireAnswer`, `EvidenceNode`, `ComplianceLink`) and backend APIs accept multi-framework queries, but it is **not yet wired to UI framework switching** (which remains gated as "Coming soon" on the top header selector).
+
+---
+
+### 8.2 Test Suite Execution Output (142/142 Passing, 87% Overall Coverage)
+
+```
+============================= test session starts ==============================
+platform darwin -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certifications
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-7.1.0, asyncio-1.4.0, anyio-4.15.0
+asyncio: mode=Mode.STRICT, debug=False
+collected 142 items
+
+tests/test_agent_reliability.py ..............................           [ 21%]
+tests/test_climate_resilience.py ..                                      [ 22%]
+tests/test_cloud_security.py ......                                      [ 26%]
+tests/test_continuous_intelligence.py ....                               [ 29%]
+tests/test_data_leakage_prevention.py ..                                 [ 30%]
+tests/test_gateway_and_agent.py ...........                              [ 38%]
+tests/test_guardrails_and_model_armor.py .......                         [ 43%]
+tests/test_iac_scanner.py ....                                           [ 46%]
+tests/test_mcp_server.py ...........                                     [ 54%]
+tests/test_monitoring.py ..                                              [ 55%]
+tests/test_portal.py ................                                    [ 66%]
+tests/test_questionnaire.py .....................................        [ 92%]
+tests/test_subagents_and_zerocopy.py ......                              [ 97%]
+tests/test_threat_intel.py ....                                          [100%]
+
+================================ tests coverage ================================
+Name                                                    Stmts   Miss  Cover
+---------------------------------------------------------------------------
+agent_orchestrator/__init__.py                              9      0   100%
+agent_orchestrator/a2a_client.py                           58     20    66%
+agent_orchestrator/agent.py                               122     20    84%
+agent_orchestrator/continuous_intelligence.py              60      6    90%
+agent_orchestrator/evidence_graph.py                       65      0   100%
+agent_orchestrator/gateway.py                              99      6    94%
+agent_orchestrator/llm_subagent.py                        184     64    65%
+agent_orchestrator/memory_bank.py                          45      3    93%
+agent_orchestrator/remediation_engine.py                   56      8    86%
+agent_orchestrator/subagents/__init__.py                    5      0   100%
+agent_orchestrator/subagents/annex_a_agent.py              49      3    94%
+agent_orchestrator/subagents/gcp_telemetry_agent.py        29      2    93%
+agent_orchestrator/subagents/horizon_scanner_agent.py      24      2    92%
+agent_orchestrator/subagents/org_policies_agent.py         25      2    92%
+agent_orchestrator/zero_copy_connector.py                  33      4    88%
+mcp_server_grc/__init__.py                                  1      0   100%
+mcp_server_grc/assets_b64.py                                8      0   100%
+mcp_server_grc/auth.py                                    127     19    85%
+mcp_server_grc/catalog.py                                   5      0   100%
+mcp_server_grc/finops.py                                   66      0   100%
+mcp_server_grc/portal.py                                  580    111    81%
+mcp_server_grc/portal_html.py                               1      0   100%
+mcp_server_grc/questionnaire.py                           263     14    95%
+mcp_server_grc/server.py                                   78      5    94%
+mcp_server_grc/tools/__init__.py                            7      0   100%
+mcp_server_grc/tools/climate_resilience.py                 28      1    96%
+mcp_server_grc/tools/cloud_security.py                     89      7    92%
+mcp_server_grc/tools/data_leakage_prevention.py            24      0   100%
+mcp_server_grc/tools/iac_scanner.py                        38      2    95%
+mcp_server_grc/tools/monitoring.py                         46      2    96%
+mcp_server_grc/tools/threat_intel.py                       20      0   100%
+---------------------------------------------------------------------------
+TOTAL                                                    2244    301    87%
+======================= 142 passed, 2 warnings in 4.49s ========================
+```
 

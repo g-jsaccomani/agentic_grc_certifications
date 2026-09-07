@@ -28,13 +28,14 @@ class EvidenceNode:
     control_id: str
     verification_tier: EvidenceVerificationTier
     raw_payload: Dict[str, Any]
+    framework: str = "ISO27001:2022"
     timestamp: float = field(default_factory=time.time)
     evidence_hash: str = ""
 
     def __post_init__(self):
         if not self.evidence_hash:
             payload_str = json.dumps(self.raw_payload, sort_keys=True, default=str)
-            raw = f"{self.resource_id}:{self.control_id}:{payload_str}"
+            raw = f"{self.framework}:{self.resource_id}:{self.control_id}:{payload_str}"
             self.evidence_hash = hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
     def to_dict(self) -> Dict[str, Any]:
@@ -50,6 +51,7 @@ class ComplianceLink:
     status: str  # COMPLIANT, NON_COMPLIANT, WARNING
     justification: str
     violations: List[str] = field(default_factory=list)
+    framework: str = "ISO27001:2022"
 
 
 class EvidenceGraph:
@@ -66,6 +68,7 @@ class EvidenceGraph:
         control_id: str,
         raw_payload: Dict[str, Any],
         verification_tier: EvidenceVerificationTier = EvidenceVerificationTier.VERIFIED,
+        framework: str = "ISO27001:2022",
     ) -> EvidenceNode:
         """Creates and links a new verified evidence node in the compliance graph."""
         node_id = f"ev-{resource_type}-{hashlib.md5(resource_id.encode()).hexdigest()[:8]}"
@@ -76,6 +79,7 @@ class EvidenceGraph:
             control_id=control_id,
             verification_tier=verification_tier,
             raw_payload=raw_payload,
+            framework=framework,
         )
         self.nodes[node_id] = node
         return node
@@ -87,6 +91,7 @@ class EvidenceGraph:
         status: str,
         justification: str,
         violations: Optional[List[str]] = None,
+        framework: str = "ISO27001:2022",
     ) -> ComplianceLink:
         """Establishes an edge connecting evidence to a specific standard control outcome."""
         link = ComplianceLink(
@@ -95,6 +100,7 @@ class EvidenceGraph:
             status=status,
             justification=justification,
             violations=violations or [],
+            framework=framework,
         )
         self.links.append(link)
         return link
