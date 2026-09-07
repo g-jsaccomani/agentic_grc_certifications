@@ -141,6 +141,54 @@ class LLMSubAgent:
                 },
                 "required": [],
             },
+            "inspect_cloud_kms": {
+                "type": "object",
+                "properties": {
+                    "key_name": {"type": "string", "description": "KMS key identifier or name (e.g. 'my-key')"},
+                    "location": {"type": "string", "description": "Optional GCP region/location (e.g. 'global', 'us-central1')"},
+                    "keyring_name": {"type": "string", "description": "Optional KeyRing name"},
+                    "project_id": {"type": "string", "description": "GCP Project ID"},
+                },
+                "required": ["key_name"],
+            },
+            "inspect_cloud_storage": {
+                "type": "object",
+                "properties": {
+                    "bucket_name": {"type": "string", "description": "Cloud Storage bucket name to inspect"},
+                    "project_id": {"type": "string", "description": "GCP Project ID"},
+                },
+                "required": ["bucket_name"],
+            },
+            "inspect_cloud_iam": {
+                "type": "object",
+                "properties": {
+                    "project_id": {"type": "string", "description": "GCP Project ID to inspect IAM policy for"},
+                },
+                "required": [],
+            },
+            "inspect_cloud_run": {
+                "type": "object",
+                "properties": {
+                    "location": {"type": "string", "description": "GCP region (e.g. 'us-central1')"},
+                    "project_id": {"type": "string", "description": "GCP Project ID"},
+                },
+                "required": [],
+            },
+            "list_cloud_kms": {
+                "type": "object",
+                "properties": {
+                    "location": {"type": "string", "description": "Optional location"},
+                    "project_id": {"type": "string", "description": "GCP Project ID"},
+                },
+                "required": [],
+            },
+            "list_cloud_storage": {
+                "type": "object",
+                "properties": {
+                    "project_id": {"type": "string", "description": "GCP Project ID"},
+                },
+                "required": [],
+            },
         }
 
         for fn_name, fn in self.tools.items():

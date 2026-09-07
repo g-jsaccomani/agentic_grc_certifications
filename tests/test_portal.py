@@ -669,4 +669,82 @@ def test_cascading_questionnaire_recalculation_end_to_end():
     assert matched_ev[-1]["verification_tier"] == "SELF_ATTESTED"
 
 
+# ---------------------------------------------------------------------------
+# Live Cloud Inspection & Read-Only Auditor Tests
+# ---------------------------------------------------------------------------
 
+def test_live_cloud_kms_inspection_chat():
+    """Verifies that asking about a KMS key (e.g. 'my-key') executes live read inspection instead of a CLI tutorial."""
+    payload = {
+        "message": "Quero saber sobre a chave my-key, qual o período de rotação e o nível de proteção?",
+        "locale": "pt",
+        "selected_projects": ["agentic-grc-cd06"]
+    }
+    resp = client.post("/api/chat", json=payload, headers={"Authorization": "Bearer ya29.test-auditor-token"})
+    assert resp.status_code == 200
+    data = resp.json()
+    resp_text = data.get("response", "")
+
+    # Must provide live telemetry / inspection results
+    assert "Cloud KMS" in resp_text
+    assert "A.8.24" in resp_text
+    assert "my-key" in resp_text
+    assert "rotationPeriod" in resp_text or "Período de Rotação" in resp_text
+    assert "protectionLevel" in resp_text or "Nível de Proteção" in resp_text
+
+    # Must NEVER give manual command tutorials telling the user to run CLI commands
+    assert "Execute o comando abaixo, substituindo" not in resp_text
+    assert "Menu de Navegação > Security" not in resp_text
+
+    # Tool evidence must contain inspect_cloud_kms
+    tool_names = [e.get("tool") for e in data.get("tool_evidence", [])]
+    assert "inspect_cloud_kms" in tool_names
+
+
+def test_live_cloud_storage_inspection_chat():
+    """Verifies that asking about a storage bucket executes live inspection and returns PAP/UBLA telemetry."""
+    payload = {
+        "message": "Audite o bucket run-sources-agentic-grc-cd06-us-central1",
+        "locale": "pt",
+        "selected_projects": ["agentic-grc-cd06"]
+    }
+    resp = client.post("/api/chat", json=payload, headers={"Authorization": "Bearer ya29.test-auditor-token"})
+    assert resp.status_code == 200
+    data = resp.json()
+    resp_text = data.get("response", "")
+
+    assert "Cloud Storage" in resp_text
+    assert "run-sources-agentic-grc-cd06-us-central1" in resp_text
+    assert "Public Access Prevention" in resp_text
+    assert "Uniform Bucket-Level Access" in resp_text
+
+    tool_names = [e.get("tool") for e in data.get("tool_evidence", [])]
+    assert "inspect_cloud_storage" in tool_names
+
+
+def test_cloud_inspector_unit_tests():
+    """Directly tests cloud_inspector functions for KMS and Storage inspection."""
+    from mcp_server_grc.cloud_inspector import (
+        inspect_cloud_kms_key,
+        inspect_cloud_storage_bucket,
+        inspect_project_iam_policy,
+        inspect_cloud_run_services,
+    )
+
+    # 1. KMS key inspection (graceful return with scan summary when key not found)
+    kms_res = inspect_cloud_kms_key("my-test-key", project_id="agentic-grc-cd06")
+    assert kms_res["status"] in ("NOT_FOUND", "OFFLINE")
+    assert "compliance" in kms_res
+
+    # 2. Storage bucket inspection (returns real data or offline graceful format)
+    st_res = inspect_cloud_storage_bucket("non-existent-grc-test-bucket", project_id="agentic-grc-cd06")
+    assert st_res["status"] in ("NOT_FOUND", "OFFLINE")
+    assert "compliance" in st_res
+
+    # 3. IAM policy inspection
+    iam_res = inspect_project_iam_policy(project_id="agentic-grc-cd06")
+    assert iam_res["status"] in ("SUCCESS", "OFFLINE")
+
+    # 4. Cloud Run services inspection
+    run_res = inspect_cloud_run_services(project_id="agentic-grc-cd06")
+    assert run_res["status"] in ("SUCCESS", "OFFLINE")

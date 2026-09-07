@@ -1161,3 +1161,44 @@ To resolve the two critical code inspection gaps in Pillar 1 (ISO 27001 Question
 - **Active Production Revision**: `mcp-server-grc-00052-frm` (Serving 100% of traffic).
 - **Service URL**: `https://mcp-server-grc-938078169010.us-central1.run.app`
 
+---
+
+## 2026-09-07 — Auditor nas Nuvens: Telemetria & Execução Read-Only em Tempo Real (Google Cloud Live Inspection)
+
+### 1. Architectural Summary & Scope of Changes
+1. **User Requirement & Core Rationale**:
+   - The auditor asked about Cloud KMS key `my-key` (rotation period, protection level) in project `agentic-grc-cd06`.
+   - The legacy chatbot returned a tutorial teaching the user how to run `gcloud kms keys describe my-key ...` or navigate the GCP Console.
+   - The user mandated:
+     *"Quero poder ter o poder de auditor nas nuvens, que ele tenha o poder de executar os scripts e trazer as respostas em tempo real para o auditor do outro lado da tela... Eu já estou conectado, e, o agente tem que me trazer essa informação, pois é apenas leitura, não escrita."*
+   - As an autonomous cloud auditor, the platform must never give manual CLI/Console instructions to an authenticated auditor. It must execute read-only queries against Google Cloud APIs and bring back live empirical telemetry directly to the screen.
+
+2. **`mcp_server_grc/cloud_inspector.py` (Real-Time Cloud Inspection Engine)**:
+   - Live read-only Google Cloud inspection engine using `AuthorizedSession` from `google-auth` (Application Default Credentials / Cloud Run Service Account or delegated user OAuth token).
+   - **`inspect_cloud_kms_key`**: Scans locations (`global`, `us-central1`, `us`, `us-east1`, `us-east4`) and keyrings for target keys, extracts `rotationPeriod`, `protectionLevel`, algorithm, purpose, state, next rotation time, and evaluates compliance against ISO 27001 Control A.8.24.
+   - **`list_cloud_kms_keys`**: Aggregates all key rings and crypto keys across project locations.
+   - **`inspect_cloud_storage_bucket`**: Queries `storage.googleapis.com` for PAP (Public Access Prevention), UBLA (Uniform Bucket-Level Access), location, and CMEK settings, evaluating compliance against Control A.5.23.
+   - **`list_cloud_storage_buckets`**: Discovers all project buckets with PAP and UBLA status.
+   - **`inspect_project_iam_policy`**: Queries `cloudresourcemanager.googleapis.com` for IAM bindings, detects primitive roles (`roles/owner`, `roles/editor`), and public members (`allUsers`).
+   - **`inspect_cloud_run_services`**: Queries `run.googleapis.com` for deployed services and ingress settings.
+   - **Strict Read-Only Guarantee**: Only `GET` and read-only `POST` operations (`:getIamPolicy`). Zero mutation risk.
+
+3. **Eradication of CLI Tutorials & Autonomous Cloud Execution Prompts**:
+   - In `mcp_server_grc/portal.py` (`get_auditor_system_instruction`), updated system instructions in PT, EN, and ES.
+   - Strictly forbids instructing the user to run `gcloud ...` or visit the GCP Console.
+   - Mandates executing the live inspection tools (`inspect_cloud_kms`, `inspect_cloud_storage`, `inspect_cloud_iam`, `inspect_cloud_run`) and presenting structured Markdown tables with real-time empirical findings on screen.
+
+4. **Integration into Chat Endpoint & Function Calling**:
+   - Registered live inspection tools into `get_auditor_tools` in `mcp_server_grc/portal.py`.
+   - Added OpenAPI function declarations to `agent_orchestrator/llm_subagent.py` (`known_schemas`).
+   - Registered tools in `AnnexASubAgent` and `GCPTelemetrySubAgent`.
+   - Updated `handle_chat` in `portal.py` to trigger live inspection for KMS, Storage, IAM, and Cloud Run, returning empirical telemetry and compliance evaluation.
+
+### 2. Test Verification & Code Coverage (165/165 Passing, 86% Coverage)
+- **Pytest Suite**: 165/165 passed in 36.13s (100% pass rate).
+- **Coverage**: 86% overall coverage across `agent_orchestrator` and `mcp_server_grc`.
+- **New Test Files & Tests**:
+  - `tests/test_cloud_inspector.py`: 9 unit tests verifying token resolution, KMS full path, 404/403 handling, multi-location discovery, storage bucket inspection, IAM policy evaluation, and Cloud Run services inspection.
+  - `tests/test_portal.py::test_live_cloud_kms_inspection_chat`: Verifies asking about `my-key` returns live telemetry and A.8.24 evaluation, asserting that CLI tutorials are never emitted.
+  - `tests/test_portal.py::test_live_cloud_storage_inspection_chat`: Verifies asking about `run-sources-agentic-grc-cd06-us-central1` executes live storage inspection and returns PAP/UBLA findings.
+

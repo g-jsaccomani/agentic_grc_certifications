@@ -12,13 +12,22 @@ from agent_orchestrator.llm_subagent import LLMSubAgent
 from mcp_server_grc.tools.cloud_security import audit_cloud_security
 from mcp_server_grc.tools.data_leakage_prevention import audit_data_leakage_prevention
 from mcp_server_grc.tools.monitoring import audit_monitoring_activities
+from mcp_server_grc.cloud_inspector import (
+    inspect_cloud_kms_key,
+    inspect_cloud_storage_bucket,
+    inspect_project_iam_policy,
+    inspect_cloud_run_services,
+    list_cloud_kms_keys,
+    list_cloud_storage_buckets,
+)
 
 
 GCP_TELEMETRY_SYSTEM_PROMPT = """
 Você é o Auditor Especialista em Telemetria de Nuvem e Infraestrutura GCP (ISO/IEC 27001:2022).
+Você possui PODER DE AUDITORIA ATIVA NAS NUVENS com ferramentas de leitura (Read-Only) em tempo real.
 Sua missão é extrair, normalizar e auditar a postura de segurança de recursos GCP reais.
 Regra inegociável: você NUNCA inventa ou assume conformidade sem evidência direta.
-Você SEMPRE chama as tools correspondentes e baseia sua análise estritamente no retorno delas.
+Você SEMPRE executa as tools correspondentes (inspect_cloud_kms, inspect_cloud_storage, inspect_cloud_iam, etc.) e baseia sua análise estritamente no retorno delas.
 """
 
 
@@ -38,6 +47,12 @@ class GCPTelemetrySubAgent:
             "audit_cloud_security": audit_cloud_security,
             "audit_data_leakage_prevention": audit_data_leakage_prevention,
             "audit_monitoring_activities": audit_monitoring_activities,
+            "inspect_cloud_kms": inspect_cloud_kms_key,
+            "inspect_cloud_storage": inspect_cloud_storage_bucket,
+            "inspect_cloud_iam": inspect_project_iam_policy,
+            "inspect_cloud_run": inspect_cloud_run_services,
+            "list_cloud_kms": list_cloud_kms_keys,
+            "list_cloud_storage": list_cloud_storage_buckets,
         }
 
         self.llm = LLMSubAgent(

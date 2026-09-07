@@ -18,6 +18,8 @@ from agent_orchestrator.llm_subagent import LLMSubAgent
 from mcp_server_grc.tools.cloud_security import audit_cloud_security
 from mcp_server_grc.tools.data_leakage_prevention import audit_data_leakage_prevention
 from mcp_server_grc.tools.monitoring import audit_monitoring_activities
+from mcp_server_grc.tools.threat_intel import correlate_threat_intelligence
+from mcp_server_grc.cloud_inspector import inspect_cloud_kms_key
 from mcp_server_grc.tools.iac_scanner import scan_iac_configuration
 
 
@@ -51,6 +53,7 @@ class AnnexASubAgent:
             "scan_iac_configuration": scan_iac_configuration,
             "audit_cryptography_a824": self._eval_cryptography_a824,
             "audit_secure_development_a828": self._eval_secure_development_a828,
+            "inspect_cloud_kms": inspect_cloud_kms_key,
         }
 
         # Underlying LLM subagent engine
