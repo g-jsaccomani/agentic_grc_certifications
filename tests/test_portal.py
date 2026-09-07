@@ -23,6 +23,14 @@ def test_portal_html_serving():
     res_portal = client.get("/portal")
     assert res_portal.status_code == 200
     assert "frameworkSelectorBar" in res_portal.text
+    assert 'class="brand-left" onclick="switchView(\'view-home\')"' in res_portal.text
+
+
+def test_brand_logo_link_targets_view_home():
+    """Assert the brand/logo link in the sidebar targets view-home upon click."""
+    res = client.get("/")
+    assert res.status_code == 200
+    assert 'class="brand-left" onclick="switchView(\'view-home\')"' in res.text
 
 
 def test_certification_framework_selector_ui():

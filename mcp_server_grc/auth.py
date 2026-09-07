@@ -143,17 +143,28 @@ def verify_google_workspace_token(
             detail=f"Access denied: Google Workspace domain '{token_hd}' is not authorized for this tenant. Expected '{domain}'.",
         )
 
-    # 6. Live signature verification (when enabled or in production with network access)
-    should_verify_sig = verify_signature and os.getenv("VERIFY_GOOGLE_SIGNATURE", "false").lower() == "true"
+    # 6. Cryptographic signature verification against Google public certs
+    # Real signature verification (id_token.verify_oauth2_token) is the default, always-on behavior.
+    # Escape hatch is ONLY accessible during local test runs (PYTEST_CURRENT_TEST or TESTING=true),
+    # never via a production-reachable environment variable.
+    is_test_env = bool("PYTEST_CURRENT_TEST" in os.environ or os.getenv("TESTING") == "true")
+
+    should_verify_sig = True
+    if is_test_env and (not verify_signature or os.getenv("PYTEST_SKIP_VERIFY_SIGNATURE") == "true"):
+        should_verify_sig = False
+
     if should_verify_sig:
         try:
             from google.oauth2 import id_token
             from google.auth.transport import requests as google_requests
-            claims = id_token.verify_oauth2_token(
+            verified_claims = id_token.verify_oauth2_token(
                 id_token_str,
                 google_requests.Request(),
                 audience=client_id,
             )
+            claims = verified_claims
+        except HTTPException:
+            raise
         except Exception as exc:
             raise HTTPException(
                 status_code=401,

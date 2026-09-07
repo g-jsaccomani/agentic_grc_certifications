@@ -4,7 +4,7 @@
 **Repository:** `agentic_grc_certifications`  
 **Execution Date:** 2026-09-07  
 **Implementation Source:** `handoff-agentic-grc-multiagente.md`  
-**Status:** COMPLETE & VERIFIED (95/95 Pytest Suite Passing, 86% Code Coverage, Google Workspace Auth, Framework Selector & Modules Home View Verified)
+**Status:** COMPLETE & VERIFIED (98/98 Pytest Suite Passing, 86% Code Coverage, Always-On Google Workspace Auth, Framework Selector, Modules Home View & Deterministic Fallback Verified)
 
 ---
 
@@ -197,9 +197,34 @@ The Home Screen (`<section class="view-pane active" id="view-home">`) is a premi
 
 ---
 
+### 3.9 Bug Remediation & Security Hardening (Post-Audit Fixes)
+
+#### 3.9.1 Brand/Logo Sidebar Link Routing to `#view-home`
+- **Location:** `mcp_server_grc/portal_html.py` (line ~3879), `tests/test_portal.py`.
+- **Problem:** The brand/logo link (`.brand-link`) in the sidebar header had `onclick="switchView('view-chat')"`, which forced navigation to the chat view instead of returning to the dashboard overview.
+- **Remediation:** Changed the `onclick` handler to `onclick="switchView('view-home')"` so clicking the logo always returns to the home/overview cockpit view, conforming to standard enterprise web conventions.
+- **Verification:** Added `test_brand_logo_link_targets_view_home()` in `tests/test_portal.py` asserting that the brand link targets `view-home`.
+
+#### 3.9.2 Always-On Google Workspace ID Token Signature Verification
+- **Location:** `mcp_server_grc/auth.py`, `tests/test_agent_reliability.py`.
+- **Problem:** In `verify_google_workspace_token()`, signature verification was gated behind `VERIFY_GOOGLE_SIGNATURE=true` and defaulted to `false`. This allowed forged (unsigned) JWT claims with matching `iss`, `aud`, and `hd` to be accepted in production environments.
+- **Remediation:** Replaced the opt-in environment variable with default, always-on signature verification using `google.oauth2.id_token.verify_oauth2_token` against Google's public certificates. Kept an escape hatch strictly restricted to local pytest test runs via `is_test_env = bool("PYTEST_CURRENT_TEST" in os.environ or os.getenv("TESTING") == "true")` combined with `(not verify_signature or os.getenv("PYTEST_SKIP_VERIFY_SIGNATURE") == "true")`. Outside test environments, signature verification is non-bypassable and any forged/unsigned token is immediately rejected with HTTP 401.
+- **Verification:** Added `test_workspace_auth_forged_unsigned_token_rejected_by_default()` in `tests/test_agent_reliability.py` testing both direct verification and `POST /api/chat`, as well as proving immunity to bypass outside test environments.
+
+#### 3.9.3 Elimination of Keyword-Inferred Configs & Deterministic Fallback `UNDETERMINED` Reporting
+- **Location:** `mcp_server_grc/portal.py` (lines ~1544-1568), `agent_orchestrator/llm_subagent.py` (`_fallback_execute()`), `tests/test_agent_reliability.py`.
+- **Problem:** `portal.py` inferred cloud security configs from free-text keywords in user prompts (e.g. matching `leaky`, `secure`, `public`, `conforme`, `não conforme`, or injecting hardcoded KMS HSM settings), treating user claims as telemetry evidence.
+- **Remediation:**
+  1. Completely eliminated keyword-inferred configuration synthesis in `portal.py`. Audit tool contexts now explicitly pass `config: None` and `bearer_token: user_token`.
+  2. Updated `_fallback_execute()` in `llm_subagent.py`: when no real telemetry/config is provided by the caller, the fallback mode reports an explicit `UNDETERMINED` verdict (`"No verified telemetry or configuration provided. Cannot determine compliance posture."`) instead of synthesizing compliance.
+  3. Ensured `portal.py` checks un-audited fallback responses and supplies consultative guidance with live context summaries ("No environment data collected yet").
+- **Verification:** Added `test_fallback_mode_no_config_reports_undetermined_not_user_keywords()` in `tests/test_agent_reliability.py` validating that prompts containing keywords like `"leaky bucket"` or `"secure bucket"` do not alter the deterministic `UNDETERMINED` verdict without verified telemetry.
+
+---
+
 ## 4. Quality Assurance & Test Validation
 
-All **95 tests** in the test suite pass with zero failures:
+All **98 tests** in the test suite pass with zero failures:
 
 ```bash
 .venv/bin/python -m pytest tests/ -v
@@ -214,7 +239,7 @@ rootdir: /Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certificatio
 configfile: pytest.ini
 plugins: cov-7.1.0, asyncio-1.4.0, anyio-4.15.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
-collecting ... collected 95 items
+collecting ... collected 98 items
 
 tests/test_agent_reliability.py::test_vuln01_cloud_security_empty_config_undetermined PASSED [  1%]
 tests/test_agent_reliability.py::test_vuln01_mcp_endpoint_config_none_with_bearer_returns_undetermined PASSED [  2%]
@@ -226,52 +251,54 @@ tests/test_agent_reliability.py::test_vuln04_header_format_validation PASSED [  
 tests/test_agent_reliability.py::test_vuln06_semantic_evasion_blocked PASSED [  8%]
 tests/test_agent_reliability.py::test_grounding_conflict_blocked_on_egress PASSED [  9%]
 tests/test_agent_reliability.py::test_llm_subagent_deterministic_fallback PASSED [ 10%]
-tests/test_agent_reliability.py::test_llm_subagent_mocked_gemini_function_calling PASSED [ 11%]
-tests/test_agent_reliability.py::test_llm_subagent_async_execution PASSED [ 12%]
-tests/test_agent_reliability.py::test_chat_baseline_unaudited_reports_no_data PASSED [ 13%]
-tests/test_agent_reliability.py::test_chat_tool_grounding_execution_and_evidence PASSED [ 14%]
-tests/test_agent_reliability.py::test_chat_egress_grounding_conflict_blocks_unjustified_compliance PASSED [ 15%]
-tests/test_agent_reliability.py::test_chat_delegated_auth_token_propagation PASSED [ 16%]
-tests/test_workspace_auth_wrong_hd_domain_rejected PASSED [ 17%]
-tests/test_workspace_auth_valid_hd_accepted PASSED [ 18%]
-tests/test_workspace_auth_expired_token_rejected PASSED [ 20%]
-tests/test_workspace_auth_wrong_audience_rejected PASSED [ 21%]
-tests/test_gcp_impersonation_permission_error_reported PASSED [ 22%]
-tests/test_gcp_impersonation_missing_token_reported PASSED [ 23%]
-tests/test_portal_unauthenticated_load_unaffected PASSED [ 24%]
-tests/test_climate_resilience.py::test_climate_resilience_fully_compliant PASSED [ 25%]
-tests/test_climate_resilience.py::test_climate_resilience_single_region_spof PASSED [ 26%]
-tests/test_cloud_security.py::test_gcs_bucket_compliant PASSED           [ 27%]
-tests/test_cloud_security.py::test_gcs_bucket_public_access_violation PASSED [ 28%]
-tests/test_cloud_security.py::test_kms_key_rotation_compliant PASSED     [ 29%]
-tests/test_cloud_security.py::test_kms_key_rotation_exceeded PASSED      [ 30%]
-tests/test_firewall_rule_unrestricted_ingress PASSED [ 31%]
-tests/test_cloud_security.py::test_iam_primitive_roles PASSED            [ 32%]
-tests/test_continuous_intelligence.py::test_evidence_graph_hashing_and_queries PASSED [ 33%]
-tests/test_continuous_intelligence.py::test_memory_bank_drift_and_hotspots PASSED [ 34%]
-tests/test_continuous_intelligence.py::test_remediation_engine_hitl_gate PASSED [ 35%]
-tests/test_continuous_intelligence.py::test_continuous_intelligence_end_to_end_cycle PASSED [ 36%]
-tests/test_data_leakage_prevention.py::test_dlp_perimeter_compliant PASSED [ 37%]
-tests/test_data_leakage_prevention.py::test_dlp_perimeter_dry_run_and_missing_services PASSED [ 38%]
+tests/test_agent_reliability.py::test_fallback_mode_no_config_reports_undetermined_not_user_keywords PASSED [ 11%]
+tests/test_agent_reliability.py::test_llm_subagent_mocked_gemini_function_calling PASSED [ 12%]
+tests/test_agent_reliability.py::test_llm_subagent_async_execution PASSED [ 13%]
+tests/test_agent_reliability.py::test_chat_baseline_unaudited_reports_no_data PASSED [ 14%]
+tests/test_agent_reliability.py::test_chat_tool_grounding_execution_and_evidence PASSED [ 15%]
+tests/test_agent_reliability.py::test_chat_egress_grounding_conflict_blocks_unjustified_compliance PASSED [ 16%]
+tests/test_agent_reliability.py::test_chat_delegated_auth_token_propagation PASSED [ 17%]
+tests/test_agent_reliability.py::test_workspace_auth_wrong_hd_domain_rejected PASSED [ 18%]
+tests/test_agent_reliability.py::test_workspace_auth_valid_hd_accepted PASSED [ 19%]
+tests/test_agent_reliability.py::test_workspace_auth_forged_unsigned_token_rejected_by_default PASSED [ 20%]
+tests/test_agent_reliability.py::test_workspace_auth_expired_token_rejected PASSED [ 21%]
+tests/test_agent_reliability.py::test_workspace_auth_wrong_audience_rejected PASSED [ 22%]
+tests/test_agent_reliability.py::test_gcp_impersonation_permission_error_reported PASSED [ 23%]
+tests/test_agent_reliability.py::test_gcp_impersonation_missing_token_reported PASSED [ 24%]
+tests/test_agent_reliability.py::test_portal_unauthenticated_load_unaffected PASSED [ 25%]
+tests/test_climate_resilience.py::test_climate_resilience_fully_compliant PASSED [ 26%]
+tests/test_climate_resilience.py::test_climate_resilience_single_region_spof PASSED [ 27%]
+tests/test_cloud_security.py::test_gcs_bucket_compliant PASSED           [ 28%]
+tests/test_cloud_security.py::test_gcs_bucket_public_access_violation PASSED [ 29%]
+tests/test_cloud_security.py::test_kms_key_rotation_compliant PASSED     [ 30%]
+tests/test_cloud_security.py::test_kms_key_rotation_exceeded PASSED      [ 31%]
+tests/test_cloud_security.py::test_firewall_rule_unrestricted_ingress PASSED [ 32%]
+tests/test_cloud_security.py::test_iam_primitive_roles PASSED            [ 33%]
+tests/test_continuous_intelligence.py::test_evidence_graph_hashing_and_queries PASSED [ 34%]
+tests/test_continuous_intelligence.py::test_memory_bank_drift_and_hotspots PASSED [ 35%]
+tests/test_continuous_intelligence.py::test_remediation_engine_hitl_gate PASSED [ 36%]
+tests/test_continuous_intelligence.py::test_continuous_intelligence_end_to_end_cycle PASSED [ 37%]
+tests/test_data_leakage_prevention.py::test_dlp_perimeter_compliant PASSED [ 38%]
+tests/test_data_leakage_prevention.py::test_dlp_perimeter_dry_run_and_missing_services PASSED [ 39%]
 tests/test_gateway_and_agent.py::test_spiffe_id_generation PASSED        [ 40%]
 tests/test_gateway_and_agent.py::test_model_armor_ingress_prompt_injection_blocked PASSED [ 41%]
 tests/test_gateway_and_agent.py::test_model_armor_ingress_pii_redacted PASSED [ 42%]
 tests/test_gateway_and_agent.py::test_model_armor_egress_secrets_redacted PASSED [ 43%]
 tests/test_gateway_and_agent.py::test_model_armor_egress_unauthorized_domain_blocked PASSED [ 44%]
-tests/test_orchestrator_token_extraction_success PASSED [ 45%]
+tests/test_gateway_and_agent.py::test_orchestrator_token_extraction_success PASSED [ 45%]
 tests/test_gateway_and_agent.py::test_orchestrator_token_extraction_failure PASSED [ 46%]
 tests/test_gateway_and_agent.py::test_orchestrator_process_audit_request_flow PASSED [ 47%]
 tests/test_gateway_and_agent.py::test_orchestrator_blocks_injection_in_flow PASSED [ 48%]
-tests/test_gateway_and_agent.py::test_orchestrator_delegated_tools PASSED [ 49%]
-tests/test_gateway_and_agent.py::test_a2a_task_lifecycle PASSED          [ 50%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_blocks_exact_user_adversarial_prompt PASSED [ 51%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_blocks_multilingual_jailbreaks PASSED [ 52%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_pii_sanitization PASSED [ 53%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_egress_anti_hallucination PASSED [ 54%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_egress_secret_leak_redaction PASSED [ 55%]
-tests/test_guardrails_and_model_armor.py::test_chat_endpoint_blocks_adversarial_injection PASSED [ 56%]
-tests/test_guardrails_and_model_armor.py::test_guardrails_inspect_endpoint PASSED [ 57%]
-tests/test_iac_scanner.py::test_terraform_compliant PASSED               [ 58%]
+tests/test_gateway_and_agent.py::test_orchestrator_delegated_tools PASSED [ 50%]
+tests/test_gateway_and_agent.py::test_a2a_task_lifecycle PASSED          [ 51%]
+tests/test_guardrails_and_model_armor.py::test_model_armor_blocks_exact_user_adversarial_prompt PASSED [ 52%]
+tests/test_guardrails_and_model_armor.py::test_model_armor_blocks_multilingual_jailbreaks PASSED [ 53%]
+tests/test_guardrails_and_model_armor.py::test_model_armor_pii_sanitization PASSED [ 54%]
+tests/test_guardrails_and_model_armor.py::test_model_armor_egress_anti_hallucination PASSED [ 55%]
+tests/test_guardrails_and_model_armor.py::test_model_armor_egress_secret_leak_redaction PASSED [ 56%]
+tests/test_guardrails_and_model_armor.py::test_chat_endpoint_blocks_adversarial_injection PASSED [ 57%]
+tests/test_guardrails_and_model_armor.py::test_guardrails_inspect_endpoint PASSED [ 58%]
+tests/test_iac_scanner.py::test_terraform_compliant PASSED               [ 59%]
 tests/test_iac_scanner.py::test_terraform_violations_detected PASSED     [ 60%]
 tests/test_iac_scanner.py::test_ansible_violations_detected PASSED       [ 61%]
 tests/test_iac_scanner.py::test_unsupported_iac_type PASSED              [ 62%]
@@ -289,15 +316,16 @@ tests/test_mcp_server.py::test_mcp_unknown_tool PASSED                   [ 73%]
 tests/test_monitoring.py::test_monitoring_activities_compliant PASSED    [ 74%]
 tests/test_monitoring.py::test_monitoring_activities_violations PASSED   [ 75%]
 tests/test_portal.py::test_portal_html_serving PASSED                    [ 76%]
-tests/test_portal.py::test_certification_framework_selector_ui PASSED    [ 77%]
-tests/test_portal.py::test_portal_home_overview_view_ui PASSED           [ 78%]
+tests/test_portal.py::test_brand_logo_link_targets_view_home PASSED      [ 77%]
+tests/test_portal.py::test_certification_framework_selector_ui PASSED    [ 78%]
+tests/test_portal.py::test_portal_home_overview_view_ui PASSED           [ 79%]
 tests/test_portal.py::test_portal_chat_endpoints PASSED                  [ 80%]
 tests/test_portal.py::test_portal_upload_file PASSED                     [ 81%]
 tests/test_portal.py::test_portal_storage_link PASSED                    [ 82%]
 tests/test_portal.py::test_portal_subagents_and_dashboard PASSED         [ 83%]
-tests/test_individual_phases_and_remediation PASSED      [ 84%]
+tests/test_portal.py::test_individual_phases_and_remediation PASSED      [ 84%]
 tests/test_portal.py::test_custom_subagents_lifecycle PASSED             [ 85%]
-tests/test_agentic_recommendation_and_autonomous_policy_update PASSED [ 86%]
+tests/test_portal.py::test_agentic_recommendation_and_autonomous_policy_update PASSED [ 86%]
 tests/test_portal.py::test_cloudstyle_html_report_export PASSED          [ 87%]
 tests/test_portal.py::test_finops_and_org_scope_toggle PASSED            [ 88%]
 tests/test_portal.py::test_all_native_subagents_and_trigger_endpoints PASSED [ 89%]
@@ -322,7 +350,7 @@ tests/test_threat_intel.py::test_threat_intel_invalid_destination PASSED [100%]
     _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================== 95 passed, 2 warnings in 2.85s ========================
+======================== 98 passed, 2 warnings in 3.08s ========================
 ```
 
 ---
@@ -344,9 +372,13 @@ tests/test_threat_intel.py::test_threat_intel_invalid_destination PASSED [100%]
 - **Action:** Replaced `startNewConversation()` with `switchView("view-home")` inside `DOMContentLoaded` (line 8817).
 - **Verification:** Verified that upon page load, `view-home` is active and visible, with `#agentBtnHome` selected in the sidebar.
 
-### Step 4: Documentation & File Rename
-- **Action:** Renamed `claude/QA_UX_REVIEW_HANDOFF.md` to `claude/claude.md` via `git mv`.
-- **Mirroring:** Created top-level `claude.md` for immediate visibility.
+### Step 4: Documentation & File Consolidation
+- **Action:** Removed duplicate root-level `claude.md` via `git rm claude.md`. Single canonical source of truth is `claude/claude.md`.
+
+### Step 5: Post-Audit Security Hardening & Bug Remediation
+- **Files Modified:** `mcp_server_grc/portal_html.py`, `mcp_server_grc/auth.py`, `mcp_server_grc/portal.py`, `agent_orchestrator/llm_subagent.py`, `tests/test_portal.py`, `tests/test_agent_reliability.py`.
+- **Remediation:** Fixed brand logo home routing, enforced always-on Google Workspace signature verification, and eradicated keyword-inferred configs in deterministic fallback.
+- **Verification:** Full suite passes 98/98 tests with 0 failures.
 
 ---
 

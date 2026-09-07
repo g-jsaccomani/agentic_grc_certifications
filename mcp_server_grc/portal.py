@@ -1541,29 +1541,29 @@ async def handle_chat(
         model_id=model_key,
     )
 
-    # Heuristic context extraction for deterministic fallback execution
+    # Target resource reference for tool execution without keyword-inferred configurations.
+    # User free-text claims ("leaky", "secure", etc.) are NEVER treated as tool evidence.
     tool_context: Dict[str, Any] = {}
     import re
     bucket_match = re.search(r"(?:bucket|gcs)\s+['\"]?([a-zA-Z0-9_\-\.]+)", lower_msg)
     if bucket_match:
         b_name = bucket_match.group(1).strip("'\"")
-        b_cfg = None
-        if any(k in lower_msg for k in ["leaky", "public", "violation", "não conforme", "nao conforme", "non-compliant"]):
-            b_cfg = {"public_access_prevention": "inherited", "uniform_bucket_level_access": False}
-        elif any(k in lower_msg for k in ["secure", "compliant", "conforme"]):
-            b_cfg = {"public_access_prevention": "enforced", "uniform_bucket_level_access": True}
+        # No config is constructed from user's words; config=None ensures tool returns UNDETERMINED
+        # unless real GCP telemetry or verified caller payloads are present.
         tool_context["audit_cloud_security"] = {
             "resource_type": "gcs_bucket",
             "resource_name": b_name,
-            "config": b_cfg,
+            "config": None,
+            "bearer_token": user_token,
         }
 
     kms_match = re.search(r"(?:key|kms)\s+['\"]?([a-zA-Z0-9_\-\./]+)", lower_msg)
     if kms_match and ("kms" in lower_msg or "crypto" in lower_msg):
         k_name = kms_match.group(1).strip("'\"")
+        # No assumed HSM or rotation schedule; without verified telemetry, config is None.
         tool_context["audit_cryptography_a824"] = {
             "key_id": k_name,
-            "config": {"rotation_period_seconds": 7776000, "protection_level": "HSM"},
+            "config": None,
         }
 
     try:
@@ -1576,7 +1576,11 @@ async def handle_chat(
         tool_evidence = []
 
     # If in deterministic fallback with no specific tool context, format consultative guidance from dynamic context
-    if not tool_evidence and (not ai_response or "in deterministic baseline mode" in ai_response):
+    if not tool_evidence and (
+        not ai_response
+        or "in deterministic baseline mode" in ai_response
+        or "No verified telemetry" in ai_response
+    ):
         loc = (req.locale or "pt").lower()
         if loc.startswith("en"):
             ai_response = (

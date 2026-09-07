@@ -15,9 +15,11 @@ from unittest.mock import MagicMock, AsyncMock, patch
 from types import SimpleNamespace
 from fastapi.testclient import TestClient
 
+from fastapi import HTTPException
 from mcp_server_grc.server import app
 from mcp_server_grc.auth import (
     create_mock_id_token,
+    verify_google_workspace_token,
     execute_with_user_credentials,
     get_user_gcp_credentials,
     DEFAULT_WORKSPACE_DOMAIN,
@@ -252,6 +254,49 @@ def test_llm_subagent_deterministic_fallback():
     assert res["tool_evidence"][0]["tool"] == "audit_cryptography_a824"
 
 
+def test_fallback_mode_no_config_reports_undetermined_not_user_keywords():
+    """Fallback mode must report UNDETERMINED if no verified telemetry was provided, never inferring configs from user keywords."""
+    # 1. LLMSubAgent fallback without telemetry reports UNDETERMINED
+    agent = LLMSubAgent(
+        name="test_undetermined_agent",
+        system_instruction="Auditor",
+        tools={"audit_cloud_security": audit_cloud_security},
+        client=None,
+    )
+    res_empty = agent.run("Audit my GCS buckets", context={})
+    assert res_empty["status"] == "UNDETERMINED"
+    assert "No verified telemetry or configuration provided by caller" in res_empty["narrative"]
+
+    # 2. Free-text claims like 'secure' or 'compliant' do NOT construct compliant tool arguments
+    res_chat_secure = client.post(
+        "/api/chat",
+        json={"message": "Audit GCS bucket my-vault which is secure and compliant", "locale": "en"},
+        headers=VALID_HEADERS,
+    )
+    assert res_chat_secure.status_code == 200
+    data_sec = res_chat_secure.json()
+    evidence_sec = data_sec.get("tool_evidence", [])
+    assert len(evidence_sec) >= 1
+    # Tool must report UNDETERMINED, NOT COMPLIANT based on the user's 'secure' assertion
+    gcs_ev_sec = next(e for e in evidence_sec if e.get("tool") == "audit_cloud_security")
+    assert gcs_ev_sec["result"]["status"] == "UNDETERMINED"
+    assert gcs_ev_sec["args"]["config"] is None
+
+    # 3. Free-text claims like 'leaky' or 'public' do NOT construct non-compliant tool arguments
+    res_chat_leaky = client.post(
+        "/api/chat",
+        json={"message": "Audit GCS bucket my-vault which is leaky and public", "locale": "en"},
+        headers=VALID_HEADERS,
+    )
+    assert res_chat_leaky.status_code == 200
+    data_leak = res_chat_leaky.json()
+    evidence_leak = data_leak.get("tool_evidence", [])
+    assert len(evidence_leak) >= 1
+    gcs_ev_leak = next(e for e in evidence_leak if e.get("tool") == "audit_cloud_security")
+    assert gcs_ev_leak["result"]["status"] == "UNDETERMINED"
+    assert gcs_ev_leak["args"]["config"] is None
+
+
 def test_llm_subagent_mocked_gemini_function_calling():
     """Tests full function calling loop with mocked Gemini Client."""
     mock_client = MagicMock()
@@ -427,8 +472,9 @@ def test_workspace_auth_wrong_hd_domain_rejected():
     assert "Access denied: Google Workspace domain 'unauthorized.com' is not authorized" in data.get("detail", "")
 
 
-def test_workspace_auth_valid_hd_accepted():
-    """Tokens from the expected Google Workspace domain (client.corp) are accepted server-side."""
+def test_workspace_auth_valid_hd_accepted(monkeypatch):
+    """Tokens from the expected Google Workspace domain (client.corp) are accepted server-side using pytest-only escape hatch."""
+    monkeypatch.setenv("PYTEST_SKIP_VERIFY_SIGNATURE", "true")
     valid_id_token = create_mock_id_token(
         email="auditor@client.corp",
         hd="client.corp",
@@ -452,6 +498,37 @@ def test_workspace_auth_valid_hd_accepted():
     assert data.get("user_email") == "auditor@client.corp"
     assert data.get("user_hd") == "client.corp"
     assert "tool_evidence" in data
+
+
+def test_workspace_auth_forged_unsigned_token_rejected_by_default():
+    """A forged/unsigned token with valid iss/aud/hd is REJECTED by default because real signature verification is always-on."""
+    forged_token = create_mock_id_token(
+        email="auditor@client.corp",
+        hd=DEFAULT_WORKSPACE_DOMAIN,
+        aud=DEFAULT_CLIENT_ID,
+    )
+    
+    # 1. Direct function call with default parameters (verify_signature=True, no escape hatch)
+    with pytest.raises(HTTPException) as exc_info:
+        verify_google_workspace_token(forged_token)
+    assert exc_info.value.status_code == 401
+    assert "signature verification failed" in exc_info.value.detail.lower()
+
+    # 2. Via chat endpoint: forged token is rejected with 401 Unauthorized
+    res = client.post(
+        "/api/chat",
+        json={"message": "Audit GCS bucket secure-vault-123", "locale": "en"},
+        headers={"X-Goog-Id-Token": forged_token},
+    )
+    assert res.status_code == 401
+    assert "signature verification failed" in res.json().get("detail", "").lower()
+
+    # 3. In non-test environment (mocking is_test_env=False), passing verify_signature=False does NOT bypass verification
+    with patch("mcp_server_grc.auth.os.getenv", return_value=""), patch.dict("mcp_server_grc.auth.os.environ", {}, clear=True):
+        with pytest.raises(HTTPException) as exc_prod:
+            verify_google_workspace_token(forged_token, verify_signature=False)
+        assert exc_prod.value.status_code == 401
+        assert "signature verification failed" in exc_prod.value.detail.lower()
 
 
 def test_workspace_auth_expired_token_rejected():

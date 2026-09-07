@@ -348,8 +348,12 @@ class LLMSubAgent:
                     f"Auditor '{self.name}': Technical evidence validates full adherence to assessed ISO 27001 requirements."
                 )
         else:
-            verdict = "COMPLETED"
-            narrative = f"Auditor '{self.name}': Processed task '{user_task}' in deterministic baseline mode."
+            verdict = "UNDETERMINED"
+            narrative = (
+                f"Auditor '{self.name}': No verified telemetry or configuration provided by caller. "
+                "User claims or free-text descriptions cannot be treated as verified audit evidence. "
+                "Status remains UNDETERMINED."
+            )
 
         return {
             "agent": self.name,
