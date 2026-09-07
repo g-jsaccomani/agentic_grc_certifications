@@ -25,14 +25,6 @@ def audit_cloud_security(
     Returns:
         Structured audit finding with compliance verdict and remediation guidance.
     """
-    if config is None and bearer_token:
-        # Live query mode: With delegated bearer token, query live GCP asset posture
-        config = {
-            "public_access_prevention": "enforced",
-            "uniform_bucket_level_access": True,
-            "iam_bindings": [],
-        }
-
     if not isinstance(config, dict) or not config:
         return {
             "status": "UNDETERMINED",

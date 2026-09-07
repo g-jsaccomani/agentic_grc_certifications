@@ -45,6 +45,27 @@ def test_vuln01_cloud_security_empty_config_undetermined():
     assert res_none["status"] == "UNDETERMINED"
 
 
+def test_vuln01_mcp_endpoint_config_none_with_bearer_returns_undetermined():
+    """Regression test: /mcp endpoint with valid dual-token headers and config=None MUST return UNDETERMINED.
+    
+    Prevents regression where bearer_token presence fabricated a compliant configuration.
+    """
+    payload = {
+        "tool": "audit_cloud_security",
+        "arguments": {
+            "resource_type": "gcs_bucket",
+            "resource_name": "authenticated-empty-bucket",
+            "config": None,
+        },
+    }
+    response = client.post("/mcp", json=payload, headers=VALID_HEADERS)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["tool"] == "audit_cloud_security"
+    assert data["result"]["status"] == "UNDETERMINED"
+    assert "Insufficient configuration data" in data["result"]["violations"][0]
+
+
 def test_vuln01b_cloud_security_partial_telemetry_undetermined():
     """Bucket missing both PAP and UBLA telemetry must return UNDETERMINED."""
     partial_config = {"require_cmek": True}

@@ -146,9 +146,17 @@ def test_orchestrator_delegated_tools():
     empty_report = orchestrator.calculate_compliance_score([])
     assert empty_report["rating"] == "NOT_ASSESSED"
 
-    # Test audit_gcp_resource
+    # Test audit_gcp_resource (UNDETERMINED when config=None, COMPLIANT with valid config)
     tool_context = SimpleNamespace(state={"agent-grc-identity_999": "token-123"})
-    gcp_res = orchestrator.audit_gcp_resource("my-bucket", "A.5.23", resource_type="gcs_bucket", tool_context=tool_context)
+    gcp_res_none = orchestrator.audit_gcp_resource("my-bucket", "A.5.23", resource_type="gcs_bucket", tool_context=tool_context)
+    assert gcp_res_none["status"] == "UNDETERMINED"
+
+    compliant_config = {
+        "public_access_prevention": "enforced",
+        "uniform_bucket_level_access": True,
+        "iam_bindings": [],
+    }
+    gcp_res = orchestrator.audit_gcp_resource("my-bucket", "A.5.23", resource_type="gcs_bucket", config=compliant_config, tool_context=tool_context)
     assert gcp_res["status"] == "COMPLIANT"
 
     # Test agent instructions
