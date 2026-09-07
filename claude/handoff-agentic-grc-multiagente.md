@@ -206,3 +206,18 @@ def _grounding_conflict(self, narrative: str, tool_evidence: list) -> bool:
 - `mcp_server_grc/portal_html.py` — UI/JS do portal.
 - Contratos de retorno de `mcp_server_grc/tools/*.py` (`status`, `violations`, `evidence`, `remediation`)
   — essas funções continuam sendo a fonte de verdade determinística, chamadas pelas tools do LLM.
+
+---
+
+## 8. Ambiente Functional-Lab (`funcional-lab`): Frota de VMs e Escopo de Auditoria ISO 27001
+
+Abaixo o inventário consolidado das instâncias ativas no ambiente `funcional-lab` para análise e geração de evidências auditáveis:
+
+| VM | Projeto GCP | Tipo | IP Privado | Falha Crítica Detectada | Controle ISO 27001 Violado |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `vm-legacy-crm` | `fnlab-apps-8fa913` | `e2-micro` | `10.20.10.2` | Senha estática em metadados (`legacy-credentials: app_admin:StaticPasswordDemo2026`); sem CMEK | **A.5.17, A.8.24, A.8.14** |
+| `vm-payment-api` | `fnlab-apps-8fa913` | `e2-small` | `10.20.10.3` | Regra de firewall `fw-iso-noncompliant-open-ssh` (SSH aberto 0.0.0.0/0); BOLA/PII e prompt injection no startup script | **A.8.20, A.8.28, A.5.17** |
+| `vm-ai-inference` | `fnlab-ai-data-8fa913` | `e2-small` | `10.30.10.2` | SA `sa-ai-pipeline-dev` com `roles/editor` primitivo e `storage.admin`; sem CMEK | **A.5.15, A.8.24, A.8.14** |
+| `vm-mgmt-bastion` | `fnlab-sec-mgmt-8fa913` | `e2-micro` | `10.10.10.2` | Utiliza SA padrão Compute Engine; disco sem chave CMEK do KeyRing `kr-iso-compliance-mgmt` | **A.5.15, A.8.24** |
+
+> *Para o detalhamento completo dos metadados, scripts e plano de remediação, consulte a **Seção 7 de `claude/claude.md`**.*

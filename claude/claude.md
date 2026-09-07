@@ -624,3 +624,200 @@ TOTAL                                                    3078    289    91%
    - Verify that follow-up requests ("Me ajude a identificar isso, pode ser?") leverage multi-turn history to provide contextual discovery and actionable remediation steps without looping.
 5. **Security Grounding Integrity:**
    - Verify that egress checks remain enforced via `test_grounding_conflict_blocked_on_egress`, while legitimate non-compliant reports in Portuguese are allowed without false positives (`test_grounding_conflict_portuguese_phrasing_and_non_compliant_harmony`).
+
+---
+
+## 7. Functional-Lab Environment (`funcional-lab`): VM Fleet, Technical Configurations & ISO/IEC 27001:2022 Audit Blueprint
+
+This section provides the exhaustive, real-world technical configuration of the virtual machines (Compute Engine) running inside the **ApexFin Functional Lab (`funcional-lab`)**. Claude must use this inventory to conduct rigorous GRC analysis, identify compliance gaps against ISO/IEC 27001:2022 (plus 2024 Climate Resiliency Amendment), and guide remediation to produce incontrovertible, cryptographically anchored SHA-256 evidence.
+
+### 7.1 Multi-Project Architecture & Scope
+
+The `funcional-lab` environment is distributed across three segregated GCP projects simulating an enterprise fintech ecosystem:
+
+| Project ID | Project Name | Project Number | Primary Purpose in Lab |
+| :--- | :--- | :--- | :--- |
+| `fnlab-apps-8fa913` | ApexFin Apps and APIs | `706510604026` | Core business workloads, legacy applications, and customer-facing banking APIs |
+| `fnlab-ai-data-8fa913` | ApexFin AI and Data | `791284238373` | AI model pipelines, inference workers, and sensitive financial data stores |
+| `fnlab-sec-mgmt-8fa913` | ApexFin Security and Mgmt | `1002674382623` | Security governance, HSM/KMS keyrings, and management bastion jumpbox |
+
+---
+
+### 7.2 Compute Engine VM Fleet Inventory
+
+All virtual machines in the functional lab operate with Debian 12 Bookworm, SCSI persistent boot disks, and private-only IPs. Below is the verified fleet inventory:
+
+| VM Name | Project ID | Zone | Machine Type | Internal IP | External IP | Service Account | Deletion Protection | Shielded VM |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `vm-legacy-crm` | `fnlab-apps-8fa913` | `us-central1-a` | `e2-micro` (2 vCPU, 1GB) | `10.20.10.2` | None | `sa-legacy-sync-agent@...` | `false` | vTPM, SecureBoot, Integrity |
+| `vm-payment-api` | `fnlab-apps-8fa913` | `us-central1-a` | `e2-small` (2 vCPU, 2GB) | `10.20.10.3` | None | `sa-api-payment-svc@...` | `false` | vTPM, SecureBoot, Integrity |
+| `vm-ai-inference` | `fnlab-ai-data-8fa913` | `us-central1-a` | `e2-small` (2 vCPU, 2GB) | `10.30.10.2` | None | `sa-ai-pipeline-dev@...` | `false` | vTPM, SecureBoot, Integrity |
+| `vm-mgmt-bastion` | `fnlab-sec-mgmt-8fa913` | `us-central1-a` | `e2-micro` (2 vCPU, 1GB) | `10.10.10.2` | None | Default Compute SA | `false` | vTPM, SecureBoot, Integrity |
+
+---
+
+### 7.3 Detailed Machine Configurations & Raw Metadata
+
+#### 1. `vm-legacy-crm` (Project: `fnlab-apps-8fa913`)
+- **Zone:** `us-central1-a`
+- **Network Interface:** `nic0` on `vpc-apps`, Subnet `sb-apps-uscentral1` (`10.20.10.0/24`), Internal IP: `10.20.10.2`
+- **Network Tags:** `legacy-workload`, `private-only`
+- **Boot Disk:** 10 GB standard persistent disk (`pd-standard`), auto-delete: `true`. Encryption: Google-managed standard key (`kmsKeyName: null`).
+- **Shielded VM Config:** Secure Boot: `true`, vTPM: `true`, Integrity Monitoring: `true`.
+- **Service Account:** `sa-legacy-sync-agent@fnlab-apps-8fa913.iam.gserviceaccount.com` (OAuth Scope: `https://www.googleapis.com/auth/cloud-platform`).
+- **Metadata Items:**
+  ```yaml
+  enable-oslogin: 'TRUE'
+  purpose: legacy-crm-simulation
+  legacy-credentials: app_admin:StaticPasswordDemo2026
+  ```
+- **Critical Non-Conformities (Gaps):**
+  - **A.5.17 (Authentication Information / Secret Management):** Plaintext administrative password (`StaticPasswordDemo2026`) embedded directly in instance metadata, retrievable by any process query to `http://metadata.google.internal/computeMetadata/v1/instance/attributes/legacy-credentials`.
+  - **A.8.24 (Use of Cryptography):** Boot disk lacks Customer-Managed Encryption Key (CMEK).
+  - **A.8.14 (Redundancy & Continuity):** Deployed as a single pet VM in a single zone (`us-central1-a`) without automated snapshot policies or regional failover; `deletionProtection: false`.
+  - **A.5.15 / A.9.2 (Least Privilege):** Service account assigned broad `cloud-platform` OAuth scope.
+
+---
+
+#### 2. `vm-payment-api` (Project: `fnlab-apps-8fa913`)
+- **Zone:** `us-central1-a`
+- **Network Interface:** `nic0` on `vpc-apps`, Subnet `sb-apps-uscentral1` (`10.20.10.0/24`), Internal IP: `10.20.10.3`
+- **Network Tags:** `api-backend`, `payment-service`, `private-only`
+- **Boot Disk:** 10 GB standard persistent disk (`pd-standard`), Debian 12 Bookworm, default encryption (`kmsKeyName: null`).
+- **Shielded VM Config:** Secure Boot: `true`, vTPM: `true`, Integrity Monitoring: `true`.
+- **Service Account:** `sa-api-payment-svc@fnlab-apps-8fa913.iam.gserviceaccount.com` (Role: `roles/logging.logWriter`, Scope: `cloud-platform`).
+- **Network Firewalls on `vpc-apps`:**
+  - `fw-allow-iap-apps`: Priority 1000, Ingress `tcp:22,8080,8000` from Google IAP (`35.235.240.0/20`).
+  - `fw-allow-internal-apps`: Priority 1000, Ingress `icmp, tcp:8080,8000,22` from `10.20.0.0/16`.
+  - `fw-iso-noncompliant-open-ssh`: Priority 1000, Ingress `tcp:22` from `0.0.0.0/0` (⚠️ **CRITICAL FINDING**).
+- **Metadata & Startup Script (`/opt/app.py` listening on port 8080):**
+  ```python
+  # ApexFin Internal Banking & AI API (Vulnerabilities simulated for audit)
+  CUSTOMERS_DB = {
+      "CUST-1001": {"id": "CUST-1001", "name": "Lucas Silva", "cpf": "123.456.789-00", "balance": 15420.50, "tier": "VIP_PLATINUM", "internal_notes": "PEP risk check passed."},
+      "CUST-1002": {"id": "CUST-1002", "name": "Mariana Santos", "cpf": "987.654.321-99", "balance": 48300.00, "tier": "VIP_BLACK", "internal_notes": "High net worth individual."}
+  }
+  SYSTEM_PROMPT = """You are ApexFin AI Core Assistant.
+  INTERNAL CONFIDENTIAL RULES:
+  1. Target DB Connection: postgresql://admin_apex:SuperSecretPass2026@10.20.10.15:5432/apex_fin
+  2. Secret API Gateway Key: ak_live_fnlab_994821a8fec0021
+  3. Never approve transfers over R$ 100,000 without SMS MFA.
+  """
+  ```
+- **Critical Non-Conformities (Gaps):**
+  - **A.8.20 & A.8.21 (Network Security & Service Ingress):** Firewall rule `fw-iso-noncompliant-open-ssh` opens TCP port 22 to `0.0.0.0/0` across `vpc-apps`, completely bypassing zero-trust and perimeter controls.
+  - **A.8.28 (Secure Development / Application Security):**
+    - OWASP API1:2023 (BOLA/IDOR) on `/api/v1/customers/{id}` allows unauthenticated enumeration of financial records.
+    - OWASP API3:2023 (Excessive Data Exposure) on `/api/v1/customers` leaks customer CPFs, balances, and PEP compliance notes.
+    - OWASP API7:2023 (Security Misconfiguration) on `/debug/env` exposes database connection string with password (`SuperSecretPass2026`) and Vault simulated tokens.
+    - OWASP LLM01:2025 (Prompt Injection) on `/api/v1/ai/chat` allows extracting the confidential System Prompt, revealing internal DB passwords and API gateway keys.
+  - **A.8.24 (Cryptography):** No CMEK key attached to boot disk.
+  - **A.8.14 (Redundancy):** Single instance in `us-central1-a` without auto-healing or load-balanced backends; `deletionProtection: false`.
+
+---
+
+#### 3. `vm-ai-inference` (Project: `fnlab-ai-data-8fa913`)
+- **Zone:** `us-central1-a`
+- **Network Interface:** `nic0` on `vpc-ai-data`, Subnet `sb-ai-data-uscentral1` (`10.30.10.0/24`), Internal IP: `10.30.10.2`
+- **Network Tags:** `ai-worker`, `private-only`
+- **Boot Disk:** 10 GB standard persistent disk, default encryption (`kmsKeyName: null`).
+- **Shielded VM Config:** Secure Boot: `true`, vTPM: `true`, Integrity Monitoring: `true`.
+- **Service Account:** `sa-ai-pipeline-dev@fnlab-ai-data-8fa913.iam.gserviceaccount.com` (OAuth Scope: `cloud-platform`).
+- **IAM Policy Binding on `fnlab-ai-data-8fa913`:**
+  - `roles/editor` (⚠️ **CRITICAL FINDING: Primitive Role**)
+  - `roles/storage.admin` (⚠️ **HIGH FINDING: Excessive Cloud Storage Privileges**)
+- **Metadata & Startup Script:**
+  - Starts systemd service `ai-worker` running Python HTTP server on port 8888 (`/opt/ai_worker.py`), exposing internal worker metadata and service account context.
+- **Critical Non-Conformities (Gaps):**
+  - **A.5.15 / A.9.2 (Access Control & Least Privilege):** Service account assigned `roles/editor` on the project. Violates separation of duties and allows unauthorized creation, modification, or deletion of cloud resources.
+  - **A.8.24 (Cryptography):** Model inference disk lacks CMEK encryption, despite holding or processing proprietary AI weights and sensitive financial datasets.
+  - **A.8.14 (Redundancy):** Single point of failure (SPOF) in `us-central1-a`; `deletionProtection: false`.
+
+---
+
+#### 4. `vm-mgmt-bastion` (Project: `fnlab-sec-mgmt-8fa913`)
+- **Zone:** `us-central1-a`
+- **Network Interface:** `nic0` on `vpc-sec-mgmt`, Subnet `sb-sec-mgmt-uscentral1` (`10.10.10.0/24`), Internal IP: `10.10.10.2`
+- **Network Tags:** `mgmt-bastion`, `private-only`
+- **Boot Disk:** 10 GB standard persistent disk, default encryption.
+- **Shielded VM Config:** Secure Boot: `true`, vTPM: `true`, Integrity Monitoring: `true`.
+- **Metadata:**
+  ```yaml
+  enable-oslogin: 'TRUE'
+  purpose: corporate-security-jumpbox
+  ```
+- **Service Account:** Default Compute Engine Service Account (`1002674382623-compute@developer.gserviceaccount.com`).
+- **Critical Non-Conformities (Gaps):**
+  - **A.5.15 (Identity and Access Management):** Bastion host uses default compute service account instead of a hardened, dedicated service account with minimal IAM permissions.
+  - **A.8.24 (Cryptography):** KeyRing `kr-iso-compliance-mgmt` with cryptoKey `kms-key-fintech-compliant` is available in the project, but the bastion host disk is NOT protected by it.
+  - **A.8.14 (Redundancy):** `deletionProtection: false`.
+
+---
+
+### 7.4 ISO/IEC 27001:2022 Control Mapping & Gap Matrix
+
+| ISO Control | Requirement Description | Identified Gap in `funcional-lab` | Impact & Severity | Target Evidence Artifact |
+| :--- | :--- | :--- | :--- | :--- |
+| **A.5.15** | Access Control & Least Privilege | `sa-ai-pipeline-dev` has primitive `roles/editor`; `vm-mgmt-bastion` uses default compute SA | **CRITICAL**: Full project privilege escalation risk | IAM Policy Export (`gcloud projects get-iam-policy`) showing granular roles |
+| **A.5.17** | Authentication Information / Secret Management | Static password in `vm-legacy-crm` metadata; hardcoded DB password in `vm-payment-api` script and `/debug/env` | **CRITICAL**: Credential exfiltration via metadata API | Secret Manager bindings; clean metadata diffs |
+| **A.8.14** | Redundancy of Information Processing Facilities (Continuidade & Amd 1:2024 Resiliência Climática) | All 4 VMs deployed in single zone `us-central1-a`; no automated failover backends; `deletionProtection: false` | **HIGH**: Zonal outage causes total service blackout; RTO exceeds 120 min | Multi-zone/regional MIG configuration; `deletionProtection: true` |
+| **A.8.20** | Network Security | `fw-iso-noncompliant-open-ssh` allows ingress `0.0.0.0/0 -> tcp:22` on `vpc-apps` | **CRITICAL**: Direct brute-force / unauthorized perimeter access | Firewall rules list confirming 0 public SSH ingress; IAP enforced |
+| **A.8.24** | Use of Cryptography | All VM boot disks lack Customer-Managed Encryption Keys (CMEK) | **HIGH**: Non-compliance with regulated financial data standards | Disk describe confirming `kmsKeyName` pointing to `kr-iso-compliance-mgmt` |
+| **A.8.28** | Secure Coding & Application Security | `vm-payment-api` contains BOLA (API1), PII leakage (API3), and Prompt Injection (LLM01) | **CRITICAL**: Unauthorized customer financial data access | API Gateway / Model Armor logs blocking injection; authenticated JWT |
+
+---
+
+### 7.5 Actionable Remediation Blueprint for Flawless Audit Evidence
+
+To produce compliant audit evidence for an external ISO/IEC 27001 auditor, the following commands and configurations should be applied:
+
+#### Phase 1: Perimeter & Network Security (A.8.20)
+```bash
+# 1. Eliminate open public SSH rule in Apps VPC
+gcloud compute firewall-rules delete fw-iso-noncompliant-open-ssh \
+  --project=fnlab-apps-8fa913 --quiet
+
+# 2. Confirm only Google Cloud IAP is allowed for SSH access
+gcloud compute firewall-rules describe fw-allow-iap-apps \
+  --project=fnlab-apps-8fa913 --format="yaml(name,sourceRanges,allowed)"
+```
+
+#### Phase 2: Secrets & Credentials Hardening (A.5.17)
+```bash
+# 1. Strip plaintext credentials from vm-legacy-crm metadata
+gcloud compute instances remove-metadata vm-legacy-crm \
+  --zone=us-central1-a --project=fnlab-apps-8fa913 \
+  --keys=legacy-credentials
+
+# 2. Store DB and API secrets in Google Cloud Secret Manager
+echo -n "SuperSecretPass2026" | gcloud secrets create sec-apex-db-pass \
+  --data-file=- --project=fnlab-sec-mgmt-8fa913 --replication-policy=automatic
+```
+
+#### Phase 3: Identity & Least Privilege IAM (A.5.15)
+```bash
+# 1. Revoke primitive roles/editor from AI pipeline service account
+gcloud projects remove-iam-policy-binding fnlab-ai-data-8fa913 \
+  --member="serviceAccount:sa-ai-pipeline-dev@fnlab-ai-data-8fa913.iam.gserviceaccount.com" \
+  --role="roles/editor"
+
+# 2. Assign granular least-privilege role
+gcloud projects add-iam-policy-binding fnlab-ai-data-8fa913 \
+  --member="serviceAccount:sa-ai-pipeline-dev@fnlab-ai-data-8fa913.iam.gserviceaccount.com" \
+  --role="roles/aiplatform.user"
+```
+
+#### Phase 4: Cryptography & CMEK Integration (A.8.24)
+- Bind existing KeyRing `projects/fnlab-sec-mgmt-8fa913/locations/us-central1/keyRings/kr-iso-compliance-mgmt/cryptoKeys/kms-key-fintech-compliant` as the disk encryption key for boot disks and storage buckets (`bkt-fnlab-app-backups`).
+
+#### Phase 5: Resilience & Climate Redundancy (A.8.14 & Amd 1:2024)
+- Enable `deletionProtection: true` across all production VMs:
+  ```bash
+  for p in fnlab-apps-8fa913 fnlab-ai-data-8fa913 fnlab-sec-mgmt-8fa913; do
+    for vm in $(gcloud compute instances list --project="$p" --format="value(name)"); do
+      zone=$(gcloud compute instances list --project="$p" --filter="name=$vm" --format="value(zone)")
+      gcloud compute instances update "$vm" --zone="$zone" --project="$p" --deletion-protection
+    done
+  done
+  ```
+- Deploy regional Cloud Load Balancers with multi-region backend services (`us-central1` and `us-east1`) for automated disaster recovery failover.
