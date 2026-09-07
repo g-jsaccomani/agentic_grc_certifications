@@ -1080,6 +1080,8 @@ In direct response to user requirements:
   - `mcp_server_grc/finops.py`: 100% coverage.
 - **Accessibility / WCAG Verification**: Passed `test_all_labels_associated_with_form_fields`.
 - **FinOps Status**: Completely intact and operational.
+- **Active Production Revision**: `mcp-server-grc-00049-w7z` (Serving 100% of traffic).
+- **Service URL**: `https://mcp-server-grc-938078169010.us-central1.run.app`
 
 
 
