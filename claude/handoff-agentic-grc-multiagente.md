@@ -209,15 +209,18 @@ def _grounding_conflict(self, narrative: str, tool_evidence: list) -> bool:
 
 ---
 
-## 8. Ambiente Functional-Lab (`funcional-lab`): Frota de VMs e Escopo de Auditoria ISO 27001
+## 8. Inventário Completo da Frota de Computação (`funcional-lab` + `aispr-core`)
 
-Abaixo o inventário consolidado das instâncias ativas no ambiente `funcional-lab` para análise e geração de evidências auditáveis:
+Abaixo o inventário consolidado de todas as instâncias ativas na organização (`jsaccomani.altostrat.com`) para análise e geração de evidências auditáveis ISO 27001:
 
-| VM | Projeto GCP | Tipo | IP Privado | Falha Crítica Detectada | Controle ISO 27001 Violado |
+| Carga de Trabalho / VM | Projeto GCP | Tipo / Recurso | IP Privado | Falha Crítica Detectada | Controle ISO 27001 Violado |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `vm-legacy-crm` | `fnlab-apps-8fa913` | `e2-micro` | `10.20.10.2` | Senha estática em metadados (`legacy-credentials: app_admin:StaticPasswordDemo2026`); sem CMEK | **A.5.17, A.8.24, A.8.14** |
 | `vm-payment-api` | `fnlab-apps-8fa913` | `e2-small` | `10.20.10.3` | Regra de firewall `fw-iso-noncompliant-open-ssh` (SSH aberto 0.0.0.0/0); BOLA/PII e prompt injection no startup script | **A.8.20, A.8.28, A.5.17** |
 | `vm-ai-inference` | `fnlab-ai-data-8fa913` | `e2-small` | `10.30.10.2` | SA `sa-ai-pipeline-dev` com `roles/editor` primitivo e `storage.admin`; sem CMEK | **A.5.15, A.8.24, A.8.14** |
 | `vm-mgmt-bastion` | `fnlab-sec-mgmt-8fa913` | `e2-micro` | `10.10.10.2` | Utiliza SA padrão Compute Engine; disco sem chave CMEK do KeyRing `kr-iso-compliance-mgmt` | **A.5.15, A.8.24** |
+| `vm-aispr-runner` | `aispr-core-1cab11` | `e2-small` | `10.50.10.2` | SA `sa-aispr-engine` com escopo amplo `cloud-platform`; disco do daemon de IA sem CMEK | **A.5.15, A.8.24, A.8.14** |
+| `mcp-server-grc` | `agentic-grc-cd06` | Cloud Run Container | Serverless | Motor multi-agente central; requer validação de grounding de saída e autenticação Workspace | **A.5.15, A.8.15** |
 
-> *Para o detalhamento completo dos metadados, scripts e plano de remediação, consulte a **Seção 7 de `claude/claude.md`**.*
+> *Para o detalhamento completo dos metadados, scripts, regras de firewall e plano de remediação, consulte a **Seção 7 de `claude/claude.md`**.*
+

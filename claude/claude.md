@@ -627,32 +627,37 @@ TOTAL                                                    3078    289    91%
 
 ---
 
-## 7. Functional-Lab Environment (`funcional-lab`): VM Fleet, Technical Configurations & ISO/IEC 27001:2022 Audit Blueprint
+## 7. Complete Environment Fleet (`funcional-lab` + `aispr-platform`): VM Fleet, Technical Configurations & ISO/IEC 27001:2022 Audit Blueprint
 
-This section provides the exhaustive, real-world technical configuration of the virtual machines (Compute Engine) running inside the **ApexFin Functional Lab (`funcional-lab`)**. Claude must use this inventory to conduct rigorous GRC analysis, identify compliance gaps against ISO/IEC 27001:2022 (plus 2024 Climate Resiliency Amendment), and guide remediation to produce incontrovertible, cryptographically anchored SHA-256 evidence.
+This section provides the exhaustive, real-world technical configuration of all virtual machines (Compute Engine) and core computing workloads running inside the **Organization `jsaccomani.altostrat.com` (Org ID: `31564119954`)**, encompassing both the **ApexFin Functional Lab (`funcional-lab`)** and the **Agentic AISPR Platform (`aispr-core`)**. Claude must use this inventory to conduct rigorous GRC analysis, identify compliance gaps against ISO/IEC 27001:2022 (plus 2024 Climate Resiliency Amendment), and guide remediation to produce incontrovertible, cryptographically anchored SHA-256 evidence.
 
-### 7.1 Multi-Project Architecture & Scope
+### 7.1 Multi-Project Architecture & Organization Scope
 
-The `funcional-lab` environment is distributed across three segregated GCP projects simulating an enterprise fintech ecosystem:
+The environment is structured under 4 specialized Resource Manager folders across 6 dedicated GCP projects:
 
-| Project ID | Project Name | Project Number | Primary Purpose in Lab |
-| :--- | :--- | :--- | :--- |
-| `fnlab-apps-8fa913` | ApexFin Apps and APIs | `706510604026` | Core business workloads, legacy applications, and customer-facing banking APIs |
-| `fnlab-ai-data-8fa913` | ApexFin AI and Data | `791284238373` | AI model pipelines, inference workers, and sensitive financial data stores |
-| `fnlab-sec-mgmt-8fa913` | ApexFin Security and Mgmt | `1002674382623` | Security governance, HSM/KMS keyrings, and management bastion jumpbox |
+| Folder | Project ID | Project Name | Project Number | Primary Workload & Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| **`fldr-functional-lab`** | `fnlab-apps-8fa913` | ApexFin Apps and APIs | `706510604026` | Core business workloads, legacy CRM simulation, and banking payment APIs |
+| **`fldr-functional-lab`** | `fnlab-ai-data-8fa913` | ApexFin AI and Data | `791284238373` | AI model pipelines, inference workers, BigQuery analytics, and sensitive financial records |
+| **`fldr-functional-lab`** | `fnlab-sec-mgmt-8fa913` | ApexFin Security and Mgmt | `1002674382623` | Security governance, HSM/KMS keyrings, audit log sink, and management bastion jumpbox |
+| **`fldr-aispr-platform`** | `aispr-core-1cab11` | Agentic AISPR Core Platform | `513556439469` | Continuous AI-SPM audit runner daemon, CycloneDX AI-BOM generator, and Model Armor verifier |
+| **`fldr-agentic-grc`** | `agentic-grc-cd06` | Agentic GRC Platform | `938078169010` | Enterprise GRC Portal, Cloud Run multi-agent orchestrator (`mcp-server-grc`), Vertex AI integration |
+| **`fldr-security-agentic`**| `security-agentic-c84c3d`| Security Agentic | `479355329641` | Central security operations, identity federation, and cross-project audit boundary |
 
 ---
 
-### 7.2 Compute Engine VM Fleet Inventory
+### 7.2 Complete Compute Fleet Inventory (VMs & Serverless Engine)
 
-All virtual machines in the functional lab operate with Debian 12 Bookworm, SCSI persistent boot disks, and private-only IPs. Below is the verified fleet inventory:
+All virtual machines operate with Debian 12 Bookworm, SCSI persistent boot disks, Shielded VM features (vTPM, Secure Boot, Integrity Monitoring), and private-only IPs. Below is the complete verified fleet:
 
-| VM Name | Project ID | Zone | Machine Type | Internal IP | External IP | Service Account | Deletion Protection | Shielded VM |
+| Workload Name | Project ID | Zone / Region | Compute Type | Internal IP | External IP | Service Account | Deletion Protection | Primary Service / Port |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `vm-legacy-crm` | `fnlab-apps-8fa913` | `us-central1-a` | `e2-micro` (2 vCPU, 1GB) | `10.20.10.2` | None | `sa-legacy-sync-agent@...` | `false` | vTPM, SecureBoot, Integrity |
-| `vm-payment-api` | `fnlab-apps-8fa913` | `us-central1-a` | `e2-small` (2 vCPU, 2GB) | `10.20.10.3` | None | `sa-api-payment-svc@...` | `false` | vTPM, SecureBoot, Integrity |
-| `vm-ai-inference` | `fnlab-ai-data-8fa913` | `us-central1-a` | `e2-small` (2 vCPU, 2GB) | `10.30.10.2` | None | `sa-ai-pipeline-dev@...` | `false` | vTPM, SecureBoot, Integrity |
-| `vm-mgmt-bastion` | `fnlab-sec-mgmt-8fa913` | `us-central1-a` | `e2-micro` (2 vCPU, 1GB) | `10.10.10.2` | None | Default Compute SA | `false` | vTPM, SecureBoot, Integrity |
+| **`vm-legacy-crm`** | `fnlab-apps-8fa913` | `us-central1-a` | `e2-micro` (2 vCPU, 1GB) | `10.20.10.2` | None (Private) | `sa-legacy-sync-agent@...` | `false` | Legacy CRM Simulation |
+| **`vm-payment-api`** | `fnlab-apps-8fa913` | `us-central1-a` | `e2-small` (2 vCPU, 2GB) | `10.20.10.3` | None (Private) | `sa-api-payment-svc@...` | `false` | ApexFin Mock Banking API (:8080) |
+| **`vm-ai-inference`** | `fnlab-ai-data-8fa913` | `us-central1-a` | `e2-small` (2 vCPU, 2GB) | `10.30.10.2` | None (Private) | `sa-ai-pipeline-dev@...` | `false` | AI Inference Worker (:8888) |
+| **`vm-mgmt-bastion`** | `fnlab-sec-mgmt-8fa913`| `us-central1-a` | `e2-micro` (2 vCPU, 1GB) | `10.10.10.2` | None (Private) | Default Compute SA | `false` | Security Jumpbox (IAP SSH :22) |
+| **`vm-aispr-runner`** | `aispr-core-1cab11` | `us-central1-a` | `e2-small` (2 vCPU, 2GB) | `10.50.10.2` | None (Private) | `sa-aispr-engine@...` | `false` | AISPR Core Runner Daemon (:8501) |
+| **`mcp-server-grc`** | `agentic-grc-cd06` | `us-central1` | Cloud Run (2 vCPU, 2GB) | Serverless | HTTPS (Cloud Run)| Cloud Run Default / Delegated | N/A | GRC Portal & Multi-Agent Engine |
 
 ---
 
@@ -754,15 +759,33 @@ All virtual machines in the functional lab operate with Debian 12 Bookworm, SCSI
 
 ---
 
+#### 5. `vm-aispr-runner` (Project: `aispr-core-1cab11`)
+- **Zone:** `us-central1-a`
+- **Network Interface:** `nic0` on `vpc-aispr-core`, Subnet `sb-aispr-core-uscentral1` (`10.50.10.0/24`), Internal IP: `10.50.10.2`
+- **Network Tags:** `aispr-engine`, `private-only`
+- **Boot Disk:** 10 GB standard persistent disk (`pd-standard`), Debian 12 Bookworm, default encryption (`kmsKeyName: null`).
+- **Shielded VM Config:** Secure Boot: `true`, vTPM: `true`, Integrity Monitoring: `true`.
+- **Service Account:** `sa-aispr-engine@aispr-core-1cab11.iam.gserviceaccount.com` (OAuth Scope: `cloud-platform`).
+- **Metadata & Daemon Script (`/opt/aispr_service.py` listening on port 8501):**
+  - Runs systemd service `aispr-runner` implementing the Agentic AISPR Core Runner Daemon.
+  - Capabilities: 104-Control SAIF/NIST AI-SPM Audit, Automated CycloneDX AI-BOM Generation, Static Prompt SAST Threat Hunter, Model Armor / Vertex AI Guardrails Verification.
+  - Reports storage bucket: `bkt-aispr-reports-1cab11`.
+- **Critical Non-Conformities (Gaps):**
+  - **A.8.24 (Cryptography):** Model and audit artifact runner disk lacks CMEK encryption.
+  - **A.8.14 (Redundancy):** Single instance in `us-central1-a` without auto-healing or regional redundancy; `deletionProtection: false`.
+  - **A.5.15 (Least Privilege):** Service account assigned broad `cloud-platform` OAuth scope.
+
+---
+
 ### 7.4 ISO/IEC 27001:2022 Control Mapping & Gap Matrix
 
-| ISO Control | Requirement Description | Identified Gap in `funcional-lab` | Impact & Severity | Target Evidence Artifact |
+| ISO Control | Requirement Description | Identified Gap across Fleet (`fnlab` + `aispr`) | Impact & Severity | Target Evidence Artifact |
 | :--- | :--- | :--- | :--- | :--- |
-| **A.5.15** | Access Control & Least Privilege | `sa-ai-pipeline-dev` has primitive `roles/editor`; `vm-mgmt-bastion` uses default compute SA | **CRITICAL**: Full project privilege escalation risk | IAM Policy Export (`gcloud projects get-iam-policy`) showing granular roles |
+| **A.5.15** | Access Control & Least Privilege | `sa-ai-pipeline-dev` has primitive `roles/editor`; `vm-mgmt-bastion` uses default compute SA; `sa-aispr-engine` has broad scope | **CRITICAL**: Full project privilege escalation risk | IAM Policy Export (`gcloud projects get-iam-policy`) showing granular roles |
 | **A.5.17** | Authentication Information / Secret Management | Static password in `vm-legacy-crm` metadata; hardcoded DB password in `vm-payment-api` script and `/debug/env` | **CRITICAL**: Credential exfiltration via metadata API | Secret Manager bindings; clean metadata diffs |
-| **A.8.14** | Redundancy of Information Processing Facilities (Continuidade & Amd 1:2024 Resiliência Climática) | All 4 VMs deployed in single zone `us-central1-a`; no automated failover backends; `deletionProtection: false` | **HIGH**: Zonal outage causes total service blackout; RTO exceeds 120 min | Multi-zone/regional MIG configuration; `deletionProtection: true` |
+| **A.8.14** | Redundancy of Information Processing Facilities (Continuidade & Amd 1:2024 Resiliência Climática) | All 5 VMs deployed in single zone `us-central1-a`; no automated failover backends; `deletionProtection: false` | **HIGH**: Zonal outage causes total service blackout; RTO exceeds 120 min | Multi-zone/regional MIG configuration; `deletionProtection: true` |
 | **A.8.20** | Network Security | `fw-iso-noncompliant-open-ssh` allows ingress `0.0.0.0/0 -> tcp:22` on `vpc-apps` | **CRITICAL**: Direct brute-force / unauthorized perimeter access | Firewall rules list confirming 0 public SSH ingress; IAP enforced |
-| **A.8.24** | Use of Cryptography | All VM boot disks lack Customer-Managed Encryption Keys (CMEK) | **HIGH**: Non-compliance with regulated financial data standards | Disk describe confirming `kmsKeyName` pointing to `kr-iso-compliance-mgmt` |
+| **A.8.24** | Use of Cryptography | All 5 VM boot disks lack Customer-Managed Encryption Keys (CMEK) | **HIGH**: Non-compliance with regulated financial data standards | Disk describe confirming `kmsKeyName` pointing to `kr-iso-compliance-mgmt` |
 | **A.8.28** | Secure Coding & Application Security | `vm-payment-api` contains BOLA (API1), PII leakage (API3), and Prompt Injection (LLM01) | **CRITICAL**: Unauthorized customer financial data access | API Gateway / Model Armor logs blocking injection; authenticated JWT |
 
 ---
