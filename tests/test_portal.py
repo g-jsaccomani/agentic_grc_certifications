@@ -144,6 +144,46 @@ def test_portal_home_overview_view_ui():
         assert lang_key in html
 
 
+def test_simplified_home_cockpit_ui():
+    """Assert the simplified home cockpit structure: centered chat input, 3 plain language chips, divider, sublinks, and opt-in advanced grid."""
+    res = client.get("/")
+    assert res.status_code == 200
+    html = res.text
+
+    # Centered cockpit container and header
+    assert 'id="homeSimpleCockpit"' in html
+    assert 'class="home-simple-cockpit"' in html
+    assert 'data-i18n="home_search_title"' in html
+    assert 'data-i18n="home_search_subtitle"' in html
+
+    # Large chat input and WCAG label
+    assert 'id="homeSearchInput"' in html
+    assert '<label for="homeSearchInput"' in html
+    assert 'data-i18n-placeholder="home_search_placeholder"' in html
+    assert 'class="btn-home-search-send"' in html
+
+    # 3 Example plain-language chips
+    assert 'class="home-chips-container"' in html
+    assert 'data-i18n-prompt="home_chip_encrypted"' in html
+    assert 'data-i18n-prompt="home_chip_bucket_access"' in html
+    assert 'data-i18n-prompt="home_chip_what_fix_first"' in html
+
+    # Thin divider and 3 small text links
+    assert 'class="home-simple-divider"' in html
+    assert 'class="home-sublinks-row"' in html
+    assert 'data-i18n="home_link_last_report"' in html
+    assert 'data-i18n="home_link_history"' in html
+    assert 'id="homeAdvancedToggleLink"' in html
+
+    # Secondary / opt-in advanced modules grid (hidden by default on first load)
+    assert 'id="homeAdvancedGrid" style="display: none;' in html
+
+    # Functions exist
+    assert 'function submitHomeSearch' in html
+    assert 'function toggleHomeAdvancedView' in html
+
+
+
 
 
 def test_portal_chat_endpoints():

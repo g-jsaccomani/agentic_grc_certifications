@@ -971,6 +971,192 @@ PORTAL_HTML = r"""<!DOCTYPE html>
     
         
         /* ------------------------------------------------------------------ */
+        /* Simplified Home Cockpit (Plain Language & Minimal Decisions)      */
+        /* ------------------------------------------------------------------ */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        .home-simple-cockpit {
+            max-width: 820px;
+            margin: 48px auto 24px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 0 16px;
+        }
+        .home-simple-header {
+            margin-bottom: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .home-simple-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(66, 133, 244, 0.2), rgba(52, 168, 83, 0.15));
+            color: var(--gcp-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(138, 180, 248, 0.25);
+            box-shadow: 0 8px 24px rgba(66, 133, 244, 0.15);
+        }
+        .home-simple-title {
+            font-size: 30px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin: 0;
+        }
+        .home-simple-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            max-width: 540px;
+            line-height: 1.5;
+            margin: 0;
+        }
+        .home-search-card {
+            width: 100%;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 16px 20px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: var(--transition-smooth);
+        }
+        .home-search-card:focus-within {
+            border-color: var(--gcp-blue);
+            box-shadow: 0 12px 36px rgba(66, 133, 244, 0.2), 0 0 0 1px var(--gcp-blue);
+        }
+        .home-search-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 8px 14px;
+            transition: var(--transition-smooth);
+        }
+        .home-search-input-wrap:focus-within {
+            border-color: var(--border-focus);
+            background: var(--bg-surface);
+        }
+        .home-search-icon {
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+        .home-search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 15.5px;
+            padding: 6px 0;
+        }
+        .home-search-input::placeholder {
+            color: var(--text-tertiary);
+        }
+        .btn-home-search-send {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--gcp-blue);
+            color: #131314;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-smooth);
+            flex-shrink: 0;
+        }
+        .btn-home-search-send:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 14px rgba(66, 133, 244, 0.4);
+        }
+        .home-chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .home-chip {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            border-radius: 20px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition-smooth);
+        }
+        .home-chip:hover {
+            border-color: var(--gcp-blue);
+            background: rgba(138, 180, 248, 0.08);
+            color: var(--gcp-blue);
+            transform: translateY(-1px);
+        }
+        .home-chip-icon {
+            font-size: 14px;
+        }
+        .home-simple-divider {
+            width: 200px;
+            height: 1px;
+            background: var(--border-subtle);
+            margin: 24px auto 14px auto;
+        }
+        .home-sublinks-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 13px;
+        }
+        .home-sublink {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: var(--transition-smooth);
+        }
+        .home-sublink:hover {
+            color: var(--gcp-blue);
+            background: rgba(138, 180, 248, 0.08);
+            text-decoration: underline;
+        }
+        .home-sublink-bullet {
+            color: var(--text-tertiary);
+            font-size: 11px;
+            user-select: none;
+        }
+
+        /* ------------------------------------------------------------------ */
         /* View 0: Visão Geral dos Módulos (Tela Inicial / Home)               */
         /* ------------------------------------------------------------------ */
         #view-home {
@@ -4420,7 +4606,86 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <section class="view-pane active" id="view-home">
                 <div class="home-container">
                     
-                    <!-- Hero Banner -->
+                    <!-- Simplified Home Cockpit (Centered, minimal decisions for non-technical users) -->
+                    <div class="home-simple-cockpit" id="homeSimpleCockpit">
+                        <div class="home-simple-header">
+                            <div class="home-simple-icon">
+                                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2L20 5.8V11.5C20 16.5 16.6 20.8 12 22C7.4 20.8 4 16.5 4 11.5V5.8L12 2Z"/>
+                                </svg>
+                            </div>
+                            <h1 class="home-simple-title" data-i18n="home_search_title">O que você gostaria de verificar hoje?</h1>
+                            <p class="home-simple-subtitle" data-i18n="home_search_subtitle">Auditoria contínua de conformidade e segurança em nuvem com inteligência artificial.</p>
+                        </div>
+
+                        <!-- Large Centered Chat Input Box -->
+                        <div class="home-search-card">
+                            <label for="homeSearchInput" class="sr-only" data-i18n="home_search_label">O que você gostaria de verificar hoje?</label>
+                            <div class="home-search-input-wrap">
+                                <svg class="home-search-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                </svg>
+                                <input 
+                                    type="text" 
+                                    id="homeSearchInput" 
+                                    class="home-search-input" 
+                                    placeholder="Ex: Meus dados estão criptografados? ou digite sua dúvida..." 
+                                    data-i18n-placeholder="home_search_placeholder"
+                                    aria-label="O que você gostaria de verificar hoje?"
+                                    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitHomeSearch();}"
+                                />
+                                <button class="btn-home-search-send" onclick="submitHomeSearch()" aria-label="Enviar pergunta" data-i18n-aria="home_search_btn_aria">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="22" y1="2" x2="11" y2="13"/>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- 3 Example Questions in Plain, Non-Technical Language -->
+                            <div class="home-chips-container">
+                                <button class="home-chip" onclick="submitHomeSearch(this.getAttribute('data-prompt'))" data-prompt="Meus dados estão criptografados?" data-i18n-prompt="home_chip_encrypted">
+                                    <span class="home-chip-icon">🔒</span>
+                                    <span data-i18n="home_chip_encrypted">Meus dados estão criptografados?</span>
+                                </button>
+                                <button class="home-chip" onclick="submitHomeSearch(this.getAttribute('data-prompt'))" data-prompt="Quem pode acessar este bucket?" data-i18n-prompt="home_chip_bucket_access">
+                                    <span class="home-chip-icon">🪣</span>
+                                    <span data-i18n="home_chip_bucket_access">Quem pode acessar este bucket?</span>
+                                </button>
+                                <button class="home-chip" onclick="submitHomeSearch(this.getAttribute('data-prompt'))" data-prompt="O que devo corrigir primeiro?" data-i18n-prompt="home_chip_what_fix_first">
+                                    <span class="home-chip-icon">⚡</span>
+                                    <span data-i18n="home_chip_what_fix_first">O que devo corrigir primeiro?</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Thin Divider -->
+                        <div class="home-simple-divider"></div>
+
+                        <!-- 3 Small Text Links -->
+                        <div class="home-sublinks-row">
+                            <button class="home-sublink" onclick="openExecutiveReport()" data-i18n="home_link_last_report">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                <span data-i18n="home_link_last_report">Último relatório</span>
+                            </button>
+                            <span class="home-sublink-bullet">•</span>
+                            <button class="home-sublink" onclick="switchView('view-scorecard')" data-i18n="home_link_history">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                                <span data-i18n="home_link_history">Histórico</span>
+                            </button>
+                            <span class="home-sublink-bullet">•</span>
+                            <button class="home-sublink" id="homeAdvancedToggleLink" onclick="toggleHomeAdvancedView()">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                                <span data-i18n="home_link_advanced">Visão avançada</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Secondary / Opt-in Advanced Modules Grid (revealed when 'Visão avançada' is clicked) -->
+                    <div id="homeAdvancedGrid" style="display: none; margin-top: 36px; border-top: 1px solid var(--border-subtle); padding-top: 24px;">
+                    
+                        <!-- Hero Banner -->
                     <div class="home-hero-card">
                         <div class="home-hero-top">
                             <div class="home-hero-badge">
@@ -4906,6 +5171,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             </button>
                         </div>
                     </div>
+
+                    </div> <!-- /#homeAdvancedGrid -->
 
                 </div>
             </section>
@@ -6946,6 +7213,18 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 framework_tooltip_pcidss: "PCI DSS v4.0 - No roadmap de desenvolvimento",
                 framework_tooltip_cmmi: "CMMI DEV/SVC - No roadmap de desenvolvimento",
                 framework_tooltip_more: "Novas estruturas regulatórias e normativas planejadas",
+                home_search_title: "O que você gostaria de verificar hoje?",
+                home_search_subtitle: "Faça perguntas em linguagem natural sobre segurança, acesso e conformidade da sua nuvem.",
+                home_search_label: "O que você gostaria de verificar hoje?",
+                home_search_placeholder: "Ex: Meus dados estão criptografados? ou digite sua dúvida...",
+                home_search_btn_aria: "Enviar pergunta",
+                home_chip_encrypted: "Meus dados estão criptografados?",
+                home_chip_bucket_access: "Quem pode acessar este bucket?",
+                home_chip_what_fix_first: "O que devo corrigir primeiro?",
+                home_link_last_report: "Último relatório",
+                home_link_history: "Histórico",
+                home_link_advanced: "Visão avançada",
+                home_link_hide_advanced: "Recolher visão avançada",
                 top_title_home: "Visão Geral dos Módulos",
                 nav_home: "Visão Geral dos Módulos",
                 home_hero_badge: "Google Cloud Security • Agentic GRC Hub",
@@ -7212,6 +7491,18 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 framework_tooltip_pcidss: "PCI DSS v4.0 - On the development roadmap",
                 framework_tooltip_cmmi: "CMMI DEV/SVC - On the development roadmap",
                 framework_tooltip_more: "Additional regulatory and compliance frameworks planned",
+                home_search_title: "What would you like to check today?",
+                home_search_subtitle: "Ask questions in plain language about your cloud security, access, and compliance.",
+                home_search_label: "What would you like to check today?",
+                home_search_placeholder: "E.g.: Is my data encrypted? or type your question...",
+                home_search_btn_aria: "Send question",
+                home_chip_encrypted: "Is my data encrypted?",
+                home_chip_bucket_access: "Who can access this bucket?",
+                home_chip_what_fix_first: "What should I fix first?",
+                home_link_last_report: "Last report",
+                home_link_history: "History",
+                home_link_advanced: "Advanced view",
+                home_link_hide_advanced: "Collapse advanced view",
                 top_title_home: "Modules Overview",
                 nav_home: "Modules Overview",
                 home_hero_badge: "Google Cloud Security • Agentic GRC Hub",
@@ -7478,7 +7769,19 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 framework_tooltip_pcidss: "PCI DSS v4.0 - En el roadmap de desarrollo",
                 framework_tooltip_cmmi: "CMMI DEV/SVC - En el roadmap de desarrollo",
                 framework_tooltip_more: "Nuevas estructuras regulatorias y normativas planificadas",
-                top_title_home: "Visión General de Módulos",
+                home_search_title: "¿Qué te gustaría verificar hoy?",
+                home_search_subtitle: "Haz preguntas en lenguaje sencillo sobre la seguridad, el acceso y el cumplimiento de tu nube.",
+                home_search_label: "¿Qué te gustaría verificar hoy?",
+                home_search_placeholder: "Ej: ¿Mis datos están cifrados? o escribe tu duda...",
+                home_search_btn_aria: "Enviar pregunta",
+                home_chip_encrypted: "¿Mis datos están cifrados?",
+                home_chip_bucket_access: "¿Quién puede acceder a este bucket?",
+                home_chip_what_fix_first: "¿Qué debo corregir primero?",
+                home_link_last_report: "Último informe",
+                home_link_history: "Historial",
+                home_link_advanced: "Vista avanzada",
+                home_link_hide_advanced: "Contraer vista avanzada",
+                top_title_home: "Visión General de los Módulos",
                 nav_home: "Visión General de Módulos",
                 home_hero_badge: "Google Cloud Security • Agentic GRC Hub",
                 home_hero_title: "Hub de Módulos y Gobernanza de Certificaciones",
@@ -7582,6 +7885,14 @@ window.currentLanguage = 'pt';
                 const key = el.getAttribute('data-i18n-placeholder');
                 if (dict[key]) {
                     el.placeholder = dict[key];
+                }
+            });
+
+            // Update prompt attributes for chips
+            document.querySelectorAll('[data-i18n-prompt]').forEach(el => {
+                const key = el.getAttribute('data-i18n-prompt');
+                if (dict[key]) {
+                    el.setAttribute('data-prompt', dict[key]);
                 }
             });
 
@@ -9151,6 +9462,48 @@ Formulário preenchido com o subagente recomendado!`);
             if (topTitle) topTitle.innerText = "Agentic GRC Auditor";
 
             renderChatSessionsHistory();
+        }
+
+        function submitHomeSearch(customText) {
+            const homeInput = document.getElementById("homeSearchInput");
+            const text = (customText !== undefined && customText !== null) ? customText.trim() : (homeInput ? homeInput.value.trim() : "");
+            if (!text) return;
+
+            switchView('view-chat');
+            const bottomInput = document.getElementById("chatInput");
+            if (bottomInput) {
+                bottomInput.value = text;
+                bottomInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            sendChatMessage();
+            if (homeInput) homeInput.value = "";
+        }
+
+        function toggleHomeAdvancedView() {
+            const adv = document.getElementById("homeAdvancedGrid");
+            const toggleLink = document.getElementById("homeAdvancedToggleLink");
+            if (!adv) return;
+            const isHidden = (adv.style.display === "none" || !adv.style.display);
+            if (isHidden) {
+                adv.style.display = "block";
+                if (toggleLink) {
+                    const cur = (typeof window.currentLanguage !== 'undefined' ? window.currentLanguage : 'pt');
+                    const span = toggleLink.querySelector('span');
+                    if (span) {
+                        span.textContent = (I18N[cur] && I18N[cur].home_link_hide_advanced) ? I18N[cur].home_link_hide_advanced : "Recolher visão avançada";
+                    }
+                }
+                adv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                adv.style.display = "none";
+                if (toggleLink) {
+                    const cur = (typeof window.currentLanguage !== 'undefined' ? window.currentLanguage : 'pt');
+                    const span = toggleLink.querySelector('span');
+                    if (span) {
+                        span.textContent = (I18N[cur] && I18N[cur].home_link_advanced) ? I18N[cur].home_link_advanced : "Visão avançada";
+                    }
+                }
+            }
         }
 
         function sendChatMessageFromHero() {

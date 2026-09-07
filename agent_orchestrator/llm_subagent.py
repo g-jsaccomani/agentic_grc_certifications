@@ -28,7 +28,7 @@ class LLMSubAgent:
         tools: Optional[Dict[str, Callable[..., Dict[str, Any]]]] = None,
         tool_declarations: Optional[List[types.FunctionDeclaration]] = None,
         model_id: Optional[str] = None,
-        client: Optional[genai.Client] = None,
+        client: Any = "UNSET",
         timeout: float = 15.0,
     ):
         self.name = name
@@ -38,11 +38,18 @@ class LLMSubAgent:
         self.model_id = model_id or os.getenv("GEMINI_MODEL_ID", "gemini-2.5-flash")
 
         # Initialize Client if available
-        if client is not None:
+        if client != "UNSET":
             self.client = client
         else:
             try:
-                self.client = genai.Client()
+                use_vertex = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "").lower() in ("true", "1", "yes")
+                project = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("PROJECT_ID")
+                location = os.getenv("GOOGLE_CLOUD_LOCATION") or os.getenv("REGION", "us-central1")
+                if use_vertex or (project and not os.getenv("GEMINI_API_KEY") and not os.getenv("GOOGLE_API_KEY")):
+                    logger.info("Initializing GenAI client with Vertex AI: project=%s, location=%s", project, location)
+                    self.client = genai.Client(vertexai=True, project=project, location=location)
+                else:
+                    self.client = genai.Client()
             except Exception as exc:
                 logger.warning("Google GenAI client initialization failed for '%s': %s", name, exc)
                 self.client = None
@@ -300,8 +307,12 @@ class LLMSubAgent:
             }
 
         except Exception as exc:
-            logger.warning("Async LLM call failed for '%s' (%s); fallback to sync thread.", self.name, exc)
-            return await asyncio.to_thread(self._fallback_execute, user_task, context)
+            logger.warning("Async LLM call failed for '%s' (%s); trying sync runner.", self.name, exc)
+            try:
+                return await asyncio.to_thread(self.run, user_task, max_turns, context)
+            except Exception as sync_exc:
+                logger.warning("Sync LLM call failed for '%s' (%s); falling back to deterministic execution.", self.name, sync_exc)
+                return await asyncio.to_thread(self._fallback_execute, user_task, context)
 
     def _fallback_execute(
         self,

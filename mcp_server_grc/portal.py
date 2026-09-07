@@ -1570,13 +1570,18 @@ async def handle_chat(
         subagent_res = await chat_subagent.arun(sanitized_msg, context=tool_context)
         ai_response = subagent_res.get("narrative", "")
         tool_evidence = subagent_res.get("tool_evidence", [])
+        execution_mode = subagent_res.get("execution_mode", "unknown")
+        logger.info(
+            f"[Chat Audit] Subagent '{chat_subagent.name}' completed with execution_mode='{execution_mode}', status='{subagent_res.get('status')}', tool_evidence_count={len(tool_evidence)}"
+        )
     except Exception as err:
         logger.warning(f"Chat LLMSubAgent error: {err}")
         ai_response = ""
         tool_evidence = []
+        execution_mode = "error"
 
     # If in deterministic fallback with no specific tool context, format consultative guidance from dynamic context
-    if not tool_evidence and (
+    if (execution_mode == "deterministic_fallback" or not ai_response) and not tool_evidence and (
         not ai_response
         or "in deterministic baseline mode" in ai_response
         or "No verified telemetry" in ai_response
@@ -1610,11 +1615,13 @@ async def handle_chat(
                 "status": "BLOCKED_BY_MODEL_ARMOR",
                 "violations": egress_verdict.violations,
                 "subagent_used": "ModelArmorGateway (Egress Grounding Guardrail)",
+                "execution_mode": execution_mode,
                 "tool_evidence": tool_evidence,
             }
         return {
             "response": egress_verdict.sanitized_output,
             "subagent_used": f"VertexAI-Gemini-{model_key} (Lead Auditor Function Calling)",
+            "execution_mode": execution_mode,
             "tool_evidence": tool_evidence,
             "user_email": user_email,
             "user_hd": user_hd,
@@ -1633,6 +1640,7 @@ async def handle_chat(
     return {
         "response": response_text,
         "subagent_used": "OrchestratorCoordinator",
+        "execution_mode": execution_mode,
         "tool_evidence": tool_evidence,
         "user_email": user_email,
         "user_hd": user_hd,
