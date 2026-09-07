@@ -1,6 +1,7 @@
 """Unit tests for the Client Web Portal and its REST API."""
 
 import io
+from html.parser import HTMLParser
 from fastapi.testclient import TestClient
 from mcp_server_grc.server import app
 
@@ -397,3 +398,50 @@ def test_all_native_subagents_and_trigger_endpoints():
     res_phases_str = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"], "phase": "all"})
     assert res_phases_str.status_code == 200
     assert len(res_phases_str.json()["phases"]) == 4
+
+
+def test_all_labels_associated_with_form_fields():
+    """Verify WCAG / Lighthouse a11y requirement: all <label> elements are associated with form fields."""
+    res = client.get("/portal")
+    assert res.status_code == 200
+    html = res.text
+
+    class LabelValidator(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.all_ids = set()
+            self.labels = []
+            self.current_label = None
+
+        def handle_starttag(self, tag, attrs):
+            attr_dict = dict(attrs)
+            if "id" in attr_dict:
+                self.all_ids.add(attr_dict["id"])
+
+            if tag == "label":
+                lbl_info = {"for": attr_dict.get("for"), "has_nested_input": False}
+                self.labels.append(lbl_info)
+                self.current_label = lbl_info
+            elif tag in ("input", "select", "textarea") and self.current_label is not None:
+                self.current_label["has_nested_input"] = True
+
+        def handle_endtag(self, tag):
+            if tag == "label":
+                self.current_label = None
+
+    parser = LabelValidator()
+    parser.feed(html)
+
+    assert len(parser.labels) > 0, "Expected to find labels in the portal HTML"
+
+    violations = []
+    for i, l in enumerate(parser.labels):
+        for_id = l["for"]
+        nested = l["has_nested_input"]
+        if not for_id and not nested:
+            violations.append(f"Label #{i} has neither for attribute nor nested form field: {l}")
+        elif for_id and for_id not in parser.all_ids:
+            violations.append(f"Label #{i} has for='{for_id}' which does not match any id in document")
+
+    assert violations == [], f"Accessibility label violations detected: {violations}"
+

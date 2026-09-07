@@ -4,7 +4,7 @@
 **Repository:** `agentic_grc_certifications`  
 **Execution Date:** 2026-09-07  
 **Implementation Source:** `handoff-agentic-grc-multiagente.md`  
-**Status:** COMPLETE & VERIFIED (98/98 Pytest Suite Passing, 86% Code Coverage, Always-On Google Workspace Auth, Framework Selector, Modules Home View & Deterministic Fallback Verified)
+**Status:** COMPLETE & VERIFIED (99/99 Pytest Suite Passing, 86% Code Coverage, Full WCAG / Lighthouse A11y Form Labeling, Always-On Google Workspace Auth, Framework Selector, Modules Home View & Deterministic Fallback Verified)
 
 ---
 
@@ -222,9 +222,28 @@ The Home Screen (`<section class="view-pane active" id="view-home">`) is a premi
 
 ---
 
+### 3.10 Accessibility (A11y) & WCAG Label Association Remediation
+- **Lighthouse / DevTools Audit:** "A `<label>` isn’t associated with a form field. To fix this issue, nest the `<input>` in the `<label>` or provide a `for` attribute on the `<label>` that matches a form field `id` (13 resources violating node)."
+- **Root Cause:**
+  - 3 `<label>` elements in `projectModal` lacked `for` attributes.
+  - 2 `<label>` elements in `storageModal` lacked `for` attributes.
+  - 1 `<label>` element in `iacModal` lacked `for` attribute.
+  - 6 `<label>` elements in `customSubagentDrawer` lacked `for` attributes.
+  - 1 `<label>` element in `customSubagentDrawer` was used as a section header for the tools checkbox grid rather than a form field label.
+- **Remediation Implemented in `portal_html.py`:**
+  - Added explicit `for="modalProjectId"`, `for="modalEnvironment"`, and `for="modalRegion"` to Project Modal labels.
+  - Added explicit `for="storageSourceSelect"` and `for="storageUri"` to Zero-Copy Storage Modal labels.
+  - Added explicit `for="iacFileInput"` to IaC Template Modal label.
+  - Added explicit `for="drawerAgentName"`, `for="drawerAgentRole"`, `for="drawerAgentControls"`, `for="drawerAgentModel"`, `for="drawerAgentDesc"`, and `for="drawerAgentPrompt"` in the Custom Subagent Drawer.
+  - Converted the checkbox grid header from `<label>` to `<div class="form-label">` with `.form-label` CSS styles preserved, and added explicit `id` and `for` attributes to all 6 subagent permission checkboxes (`toolCheck_*`).
+  - Added `aria-label` attributes to standalone inputs (`orgSearchInput`, `matrixSearchInput`, `finopsAgentSearch`).
+- **Automated Verification:** Added `test_all_labels_associated_with_form_fields()` in `tests/test_portal.py` using standard library `HTMLParser` to dynamically scan the generated portal DOM and ensure that 100% of `<label>` tags either nest an input or have a `for` attribute pointing to a verified element `id` in the document.
+
+---
+
 ## 4. Quality Assurance & Test Validation
 
-All **98 tests** in the test suite pass with zero failures:
+All **99 tests** in the test suite pass with zero failures:
 
 ```bash
 .venv/bin/python -m pytest tests/ -v
@@ -239,7 +258,7 @@ rootdir: /Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certificatio
 configfile: pytest.ini
 plugins: cov-7.1.0, asyncio-1.4.0, anyio-4.15.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
-collecting ... collected 98 items
+collecting ... collected 99 items
 
 tests/test_agent_reliability.py::test_vuln01_cloud_security_empty_config_undetermined PASSED [  1%]
 tests/test_agent_reliability.py::test_vuln01_mcp_endpoint_config_none_with_bearer_returns_undetermined PASSED [  2%]
@@ -289,46 +308,47 @@ tests/test_gateway_and_agent.py::test_orchestrator_token_extraction_success PASS
 tests/test_gateway_and_agent.py::test_orchestrator_token_extraction_failure PASSED [ 46%]
 tests/test_gateway_and_agent.py::test_orchestrator_process_audit_request_flow PASSED [ 47%]
 tests/test_gateway_and_agent.py::test_orchestrator_blocks_injection_in_flow PASSED [ 48%]
-tests/test_gateway_and_agent.py::test_orchestrator_delegated_tools PASSED [ 50%]
-tests/test_gateway_and_agent.py::test_a2a_task_lifecycle PASSED          [ 51%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_blocks_exact_user_adversarial_prompt PASSED [ 52%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_blocks_multilingual_jailbreaks PASSED [ 53%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_pii_sanitization PASSED [ 54%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_egress_anti_hallucination PASSED [ 55%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_egress_secret_leak_redaction PASSED [ 56%]
-tests/test_guardrails_and_model_armor.py::test_chat_endpoint_blocks_adversarial_injection PASSED [ 57%]
-tests/test_guardrails_and_model_armor.py::test_guardrails_inspect_endpoint PASSED [ 58%]
-tests/test_iac_scanner.py::test_terraform_compliant PASSED               [ 59%]
-tests/test_iac_scanner.py::test_terraform_violations_detected PASSED     [ 60%]
-tests/test_iac_scanner.py::test_ansible_violations_detected PASSED       [ 61%]
-tests/test_iac_scanner.py::test_unsupported_iac_type PASSED              [ 62%]
-tests/test_mcp_server.py::test_health_endpoint PASSED                    [ 63%]
-tests/test_mcp_server.py::test_agent_card_discovery PASSED               [ 64%]
-tests/test_mcp_server.py::test_mcp_endpoint_missing_auth_headers PASSED  [ 65%]
-tests/test_mcp_server.py::test_mcp_get_iam_policy PASSED                 [ 66%]
-tests/test_mcp_server.py::test_mcp_audit_cloud_security PASSED           [ 67%]
-tests/test_mcp_server.py::test_mcp_scan_iac_configuration PASSED         [ 68%]
-tests/test_mcp_server.py::test_mcp_correlate_threat_intelligence PASSED  [ 69%]
-tests/test_mcp_server.py::test_mcp_audit_climate_resilience PASSED       [ 70%]
-tests/test_mcp_server.py::test_mcp_audit_data_leakage_prevention PASSED  [ 71%]
-tests/test_mcp_server.py::test_mcp_audit_monitoring_activities PASSED    [ 72%]
-tests/test_mcp_server.py::test_mcp_unknown_tool PASSED                   [ 73%]
-tests/test_monitoring.py::test_monitoring_activities_compliant PASSED    [ 74%]
-tests/test_monitoring.py::test_monitoring_activities_violations PASSED   [ 75%]
-tests/test_portal.py::test_portal_html_serving PASSED                    [ 76%]
-tests/test_portal.py::test_brand_logo_link_targets_view_home PASSED      [ 77%]
-tests/test_portal.py::test_certification_framework_selector_ui PASSED    [ 78%]
-tests/test_portal.py::test_portal_home_overview_view_ui PASSED           [ 79%]
-tests/test_portal.py::test_portal_chat_endpoints PASSED                  [ 80%]
-tests/test_portal.py::test_portal_upload_file PASSED                     [ 81%]
-tests/test_portal.py::test_portal_storage_link PASSED                    [ 82%]
-tests/test_portal.py::test_portal_subagents_and_dashboard PASSED         [ 83%]
-tests/test_portal.py::test_individual_phases_and_remediation PASSED      [ 84%]
-tests/test_portal.py::test_custom_subagents_lifecycle PASSED             [ 85%]
-tests/test_portal.py::test_agentic_recommendation_and_autonomous_policy_update PASSED [ 86%]
-tests/test_portal.py::test_cloudstyle_html_report_export PASSED          [ 87%]
-tests/test_portal.py::test_finops_and_org_scope_toggle PASSED            [ 88%]
-tests/test_portal.py::test_all_native_subagents_and_trigger_endpoints PASSED [ 89%]
+tests/test_gateway_and_agent.py::test_orchestrator_delegated_tools PASSED [ 49%]
+tests/test_gateway_and_agent.py::test_a2a_task_lifecycle PASSED          [ 50%]
+tests/test_guardrails_and_model_armor.py::test_model_armor_blocks_exact_user_adversarial_prompt PASSED [ 51%]
+tests/test_guardrails_and_model_armor.py::test_model_armor_blocks_multilingual_jailbreaks PASSED [ 52%]
+tests/test_guardrails_and_model_armor.py::test_model_armor_pii_sanitization PASSED [ 53%]
+tests/test_guardrails_and_model_armor.py::test_model_armor_egress_anti_hallucination PASSED [ 54%]
+tests/test_guardrails_and_model_armor.py::test_model_armor_egress_secret_leak_redaction PASSED [ 55%]
+tests/test_guardrails_and_model_armor.py::test_chat_endpoint_blocks_adversarial_injection PASSED [ 56%]
+tests/test_guardrails_and_model_armor.py::test_guardrails_inspect_endpoint PASSED [ 57%]
+tests/test_iac_scanner.py::test_terraform_compliant PASSED               [ 58%]
+tests/test_iac_scanner.py::test_terraform_violations_detected PASSED     [ 59%]
+tests/test_iac_scanner.py::test_ansible_violations_detected PASSED       [ 60%]
+tests/test_iac_scanner.py::test_unsupported_iac_type PASSED              [ 61%]
+tests/test_mcp_server.py::test_health_endpoint PASSED                    [ 62%]
+tests/test_mcp_server.py::test_agent_card_discovery PASSED               [ 63%]
+tests/test_mcp_server.py::test_mcp_endpoint_missing_auth_headers PASSED  [ 64%]
+tests/test_mcp_server.py::test_mcp_get_iam_policy PASSED                 [ 65%]
+tests/test_mcp_server.py::test_mcp_audit_cloud_security PASSED           [ 66%]
+tests/test_mcp_server.py::test_mcp_scan_iac_configuration PASSED         [ 67%]
+tests/test_mcp_server.py::test_mcp_correlate_threat_intelligence PASSED  [ 68%]
+tests/test_mcp_server.py::test_mcp_audit_climate_resilience PASSED       [ 69%]
+tests/test_mcp_server.py::test_mcp_audit_data_leakage_prevention PASSED  [ 70%]
+tests/test_mcp_server.py::test_mcp_audit_monitoring_activities PASSED    [ 71%]
+tests/test_mcp_server.py::test_mcp_unknown_tool PASSED                   [ 72%]
+tests/test_monitoring.py::test_monitoring_activities_compliant PASSED    [ 73%]
+tests/test_monitoring.py::test_monitoring_activities_violations PASSED   [ 74%]
+tests/test_portal.py::test_portal_html_serving PASSED                    [ 75%]
+tests/test_portal.py::test_brand_logo_link_targets_view_home PASSED      [ 76%]
+tests/test_portal.py::test_certification_framework_selector_ui PASSED    [ 77%]
+tests/test_portal.py::test_portal_home_overview_view_ui PASSED           [ 78%]
+tests/test_portal.py::test_portal_chat_endpoints PASSED                  [ 79%]
+tests/test_portal.py::test_portal_upload_file PASSED                     [ 80%]
+tests/test_portal.py::test_portal_storage_link PASSED                    [ 81%]
+tests/test_portal.py::test_portal_subagents_and_dashboard PASSED         [ 82%]
+tests/test_portal.py::test_individual_phases_and_remediation PASSED      [ 83%]
+tests/test_portal.py::test_custom_subagents_lifecycle PASSED             [ 84%]
+tests/test_portal.py::test_agentic_recommendation_and_autonomous_policy_update PASSED [ 85%]
+tests/test_portal.py::test_cloudstyle_html_report_export PASSED          [ 86%]
+tests/test_portal.py::test_finops_and_org_scope_toggle PASSED            [ 87%]
+tests/test_portal.py::test_all_native_subagents_and_trigger_endpoints PASSED [ 88%]
+tests/test_portal.py::test_all_labels_associated_with_form_fields PASSED [ 89%]
 tests/test_subagents_and_zerocopy.py::test_zero_copy_connectors_privacy_and_access PASSED [ 90%]
 tests/test_subagents_and_zerocopy.py::test_annex_a_subagent_cryptography_and_dev PASSED [ 91%]
 tests/test_subagents_and_zerocopy.py::test_gcp_telemetry_subagent_batch_scan PASSED [ 92%]
@@ -350,7 +370,7 @@ tests/test_threat_intel.py::test_threat_intel_invalid_destination PASSED [100%]
     _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================== 98 passed, 2 warnings in 3.08s ========================
+======================== 99 passed, 2 warnings in 3.23s ========================
 ```
 
 ---

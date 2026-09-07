@@ -4143,7 +4143,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <span>Altostrat Global Org (108928374619)</span>
                         <span style="color: var(--gcp-green); font-weight: 600;">Nível Org</span>
                     </div>
-                    <input type="text" id="orgSearchInput" placeholder="Filtrar projetos da Org..." oninput="filterOrgDropdown(this.value)" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-primary); margin-bottom: 6px; outline: none; box-sizing: border-box;">
+                    <input type="text" id="orgSearchInput" placeholder="Filtrar projetos da Org..." aria-label="Filtrar projetos da organização" oninput="filterOrgDropdown(this.value)" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-primary); margin-bottom: 6px; outline: none; box-sizing: border-box;">
                     
                     <div style="display: flex; gap: 4px; margin-bottom: 6px;">
                         <button onclick="selectAllOrgProjects()" style="flex: 1; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 9.5px; color: var(--text-secondary); padding: 3px 4px; cursor: pointer;">Marcar Todos</button>
@@ -5434,7 +5434,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                             </svg>
                         </span>
-                        <input type="text" id="matrixSearchInput" class="search-input" placeholder="Buscar por controle, serviço GCP ou comando..." data-i18n-placeholder="matrix_search_placeholder" oninput="searchMatrix(this.value)">
+                        <input type="text" id="matrixSearchInput" class="search-input" placeholder="Buscar por controle, serviço GCP ou comando..." aria-label="Buscar controle na matriz" data-i18n-placeholder="matrix_search_placeholder" oninput="searchMatrix(this.value)">
                     </div>
                 </div>
 
@@ -5768,7 +5768,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <div class="card-desc" data-i18n="finops_agent_table_desc">Contabilização exata de prompt tokens, context cache hits, completion tokens e custo final em USD/BRL.</div>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <input type="text" id="finopsAgentSearch" placeholder="Filtrar agentes..." data-i18n-placeholder="finops_filter_placeholder" oninput="filterFinopsTable(this.value)" style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 6px 12px; font-size: 12px; color: var(--text-primary); outline: none;">
+                            <input type="text" id="finopsAgentSearch" placeholder="Filtrar agentes..." aria-label="Filtrar agentes FinOps" data-i18n-placeholder="finops_filter_placeholder" oninput="filterFinopsTable(this.value)" style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 6px 12px; font-size: 12px; color: var(--text-primary); outline: none;">
                         </div>
                     </div>
 
@@ -6600,15 +6600,15 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </button>
             </div>
             <div class="form-group">
-                <label class="form-label">ID do Projeto no Google Cloud</label>
+                <label class="form-label" for="modalProjectId">ID do Projeto no Google Cloud</label>
                 <input type="text" id="modalProjectId" class="form-input" placeholder="ex.: agentic-grc-prod">
             </div>
             <div class="form-group">
-                <label class="form-label" data-i18n="modal_project_env">Ambiente</label>
+                <label class="form-label" for="modalEnvironment" data-i18n="modal_project_env">Ambiente</label>
                 <input type="text" id="modalEnvironment" class="form-input" placeholder="ex.: PRODUCTION ou STAGING">
             </div>
             <div class="form-group">
-                <label class="form-label">Região Primária</label>
+                <label class="form-label" for="modalRegion">Região Primária</label>
                 <input type="text" id="modalRegion" class="form-input" placeholder="ex.: us-central1" value="us-central1">
             </div>
             <div class="modal-actions">
@@ -6631,7 +6631,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </button>
             </div>
             <div class="form-group">
-                <label class="form-label" data-i18n="modal_storage_source">Fonte de Documentos</label>
+                <label class="form-label" for="storageSourceSelect" data-i18n="modal_storage_source">Fonte de Documentos</label>
                 <select id="storageSourceSelect" class="form-input">
                     <option value="google_drive">Google Drive (Workspace Enterprise)</option>
                     <option value="sharepoint">Microsoft SharePoint Online</option>
@@ -6639,7 +6639,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" data-i18n="modal_storage_uri">URI da Pasta / Espaço</label>
+                <label class="form-label" for="storageUri" data-i18n="modal_storage_uri">URI da Pasta / Espaço</label>
                 <input type="text" id="storageUri" class="form-input" placeholder="ex.: drive://security-policies" value="drive://iso27001-sgsi">
             </div>
             <div class="modal-actions">
@@ -6721,7 +6721,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </button>
             </div>
             <div class="form-group">
-                <label class="form-label" data-i18n="modal_upload_label">Selecione o arquivo Terraform (.tf) ou Ansible (.yml)</label>
+                <label class="form-label" for="iacFileInput" data-i18n="modal_upload_label">Selecione o arquivo Terraform (.tf) ou Ansible (.yml)</label>
                 <input type="file" id="iacFileInput" class="form-input" accept=".tf,.yml,.yaml,.json">
             </div>
             <div class="modal-actions">
@@ -10305,22 +10305,22 @@ function openNewsModal(newsKey) {
             <input type="hidden" id="drawerAgentEditId" value="">
             
             <div class="form-group">
-                <label class="form-label">Nome do Subagente</label>
+                <label class="form-label" for="drawerAgentName">Nome do Subagente</label>
                 <input type="text" id="drawerAgentName" class="form-control" placeholder="Ex: FinOps & Storage Compliance Auditor">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Cargo / Especialidade</label>
+                <label class="form-label" for="drawerAgentRole">Cargo / Especialidade</label>
                 <input type="text" id="drawerAgentRole" class="form-control" placeholder="Ex: Auditor de Ciclo de Vida e Retenção">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Controles ISO Alvo (separados por vírgula)</label>
+                <label class="form-label" for="drawerAgentControls">Controles ISO Alvo (separados por vírgula)</label>
                 <input type="text" id="drawerAgentControls" class="form-control" placeholder="Ex: A.5.9, A.8.10, A.8.11">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Modelo Cognitivo</label>
+                <label class="form-label" for="drawerAgentModel">Modelo Cognitivo</label>
                 <select id="drawerAgentModel" class="form-control">
                     <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Recomendado / Resposta Rápida)</option>
                     <option value="gemini-1.5-pro">Gemini 1.5 Pro (Raciocínio Profundo)</option>
@@ -10329,24 +10329,24 @@ function openNewsModal(newsKey) {
             </div>
 
             <div class="form-group">
-                <label class="form-label">Descrição do Propósito</label>
+                <label class="form-label" for="drawerAgentDesc">Descrição do Propósito</label>
                 <input type="text" id="drawerAgentDesc" class="form-control" placeholder="Breve resumo do que este subagente avalia no ambiente Google Cloud.">
             </div>
 
             <div class="form-group">
-                <label class="form-label">System Prompt / Instrução Especializada</label>
+                <label class="form-label" for="drawerAgentPrompt">System Prompt / Instrução Especializada</label>
                 <textarea id="drawerAgentPrompt" class="form-control" rows="4" placeholder="Defina a metodologia e critérios do auditor: 'Você é o especialista de Google Cloud Security responsável por...'"></textarea>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Ferramentas & Permissões GCP Habilitadas</label>
+                <div class="form-label">Ferramentas & Permissões GCP Habilitadas</div>
                 <div class="tools-checkbox-grid">
-                    <label class="tool-checkbox-label"><input type="checkbox" value="asset_inventory" checked> Cloud Asset Inventory</label>
-                    <label class="tool-checkbox-label"><input type="checkbox" value="iam_recommender" checked> IAM Recommender</label>
-                    <label class="tool-checkbox-label"><input type="checkbox" value="cloud_kms"> Cloud KMS HSM</label>
-                    <label class="tool-checkbox-label"><input type="checkbox" value="vpc_sc"> VPC Service Controls</label>
-                    <label class="tool-checkbox-label"><input type="checkbox" value="iac_scanner"> IaC Terraform Scanner</label>
-                    <label class="tool-checkbox-label"><input type="checkbox" value="zero_copy_drive"> Zero-Copy Workspace Drive</label>
+                    <label class="tool-checkbox-label" for="toolCheck_asset_inventory"><input type="checkbox" id="toolCheck_asset_inventory" value="asset_inventory" checked> Cloud Asset Inventory</label>
+                    <label class="tool-checkbox-label" for="toolCheck_iam_recommender"><input type="checkbox" id="toolCheck_iam_recommender" value="iam_recommender" checked> IAM Recommender</label>
+                    <label class="tool-checkbox-label" for="toolCheck_cloud_kms"><input type="checkbox" id="toolCheck_cloud_kms" value="cloud_kms"> Cloud KMS HSM</label>
+                    <label class="tool-checkbox-label" for="toolCheck_vpc_sc"><input type="checkbox" id="toolCheck_vpc_sc" value="vpc_sc"> VPC Service Controls</label>
+                    <label class="tool-checkbox-label" for="toolCheck_iac_scanner"><input type="checkbox" id="toolCheck_iac_scanner" value="iac_scanner"> IaC Terraform Scanner</label>
+                    <label class="tool-checkbox-label" for="toolCheck_zero_copy_drive"><input type="checkbox" id="toolCheck_zero_copy_drive" value="zero_copy_drive"> Zero-Copy Workspace Drive</label>
                 </div>
             </div>
         </div>
