@@ -227,6 +227,39 @@ def test_grounding_conflict_blocked_on_egress():
     assert verdict_ok.allowed is True
 
 
+def test_grounding_conflict_portuguese_phrasing_and_non_compliant_harmony():
+    """Portuguese conversational words (conformidade, conforme a norma) do not false-positive block legitimate non-compliant reports."""
+    gateway = ModelArmorGateway()
+
+    evidence_non_compliant = [
+        {
+            "tool": "audit_climate_resilience",
+            "result": {
+                "status": "NON_COMPLIANT",
+                "violations": ["Critical workload deployed in single region without redundancy"],
+            },
+        }
+    ]
+
+    # 1. Non-compliant report in Portuguese mentioning 'conformidade' and 'não conforme' - must be ALLOWED
+    narrative_non_compliant = (
+        "Conforme solicitado, avaliamos a conformidade da sua arquitetura de resiliência climática. "
+        "O parecer técnico indica que o ambiente está NÃO CONFORME (status: não conforme) devido a defeitos de resiliência."
+    )
+    verdict1 = gateway.inspect_egress(narrative_non_compliant, tool_evidence=evidence_non_compliant)
+    assert verdict1.allowed is True
+    assert verdict1.verdict == "ALLOW"
+
+    # 2. False affirmative in Portuguese ('ambiente conforme', '100% conforme') vs non-compliant evidence - must be BLOCKED
+    narrative_false_claim = (
+        "Avaliamos o ambiente e confirmamos que a infraestrutura está conforme e atende a todos os requisitos."
+    )
+    verdict2 = gateway.inspect_egress(narrative_false_claim, tool_evidence=evidence_non_compliant)
+    assert verdict2.allowed is False
+    assert verdict2.verdict == "BLOCK"
+    assert any("Grounding conflict" in v for v in verdict2.violations)
+
+
 # ==============================================================================
 # 7. LLMSubAgent: Function Calling & Fallback
 # ==============================================================================
@@ -603,3 +636,111 @@ def test_portal_unauthenticated_load_unaffected():
     assert "Google Cloud Security - Agentic GRC Auditor" in res.text
     assert "workspaceAuthContainer" in res.text
     assert "https://accounts.google.com/gsi/client" in res.text
+
+
+def test_chat_boilerplate_signature_stripped():
+    """Verify that /api/chat strips repetitive GEAP / SHA-256 signature footers from responses."""
+    from unittest.mock import patch
+    with patch("mcp_server_grc.portal.LLMSubAgent.arun") as mock_arun:
+        mock_arun.return_value = {
+            "narrative": (
+                "Parecer de Auditoria: A conformidade foi validada.\n\n"
+                "---\n"
+                "**Google Cloud Security** | *Agentic GRC & Compliance Practice*\n"
+                "*Gemini Enterprise Agent Platform (GEAP) • Evidências Auditadas com Ancoragem SHA-256*"
+            ),
+            "tool_evidence": [],
+            "execution_mode": "llm_async_function_calling",
+            "status": "SUCCESS",
+        }
+        res = client.post(
+            "/api/chat",
+            json={"message": "Avalie o escopo", "locale": "pt"},
+            headers=VALID_HEADERS,
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert "Parecer de Auditoria: A conformidade foi validada." in data["response"]
+        assert "Google Cloud Security | Agentic GRC & Compliance Practice" not in data["response"]
+        assert "Gemini Enterprise Agent Platform (GEAP)" not in data["response"]
+
+
+def test_chat_climate_resilience_tool_execution():
+    """Inquiries about climate resilience and multi-regional topology execute audit_climate_resilience automatically."""
+    res = client.post(
+        "/api/chat",
+        json={
+            "message": "Verifique nossa conformidade com o novo requisito de resiliência climática, analisando nossa topologia multi-regional.",
+            "locale": "pt",
+        },
+        headers=VALID_HEADERS,
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert "tool_evidence" in data
+    evidence = data["tool_evidence"]
+    assert any(e.get("tool") == "audit_climate_resilience" for e in evidence)
+    assert "Google Cloud Security | Agentic GRC & Compliance Practice" not in data.get("response", "")
+
+
+def test_chat_multiturn_history_and_discovery_guidance():
+    """When user follows up asking for help identifying workloads with history, actionable discovery steps are returned."""
+    history = [
+        {
+            "role": "user",
+            "content": "Verifique nossa conformidade com o novo requisito de resiliência climática, analisando nossa topologia multi-regional.",
+        },
+        {
+            "role": "model",
+            "content": "Para auditar a resiliência da sua arquitetura em nuvem contra eventos climáticos, analisei a topologia.",
+        },
+    ]
+    res = client.post(
+        "/api/chat",
+        json={
+            "message": "Me ajude a identificar isso, pode ser?",
+            "locale": "pt",
+            "history": history,
+        },
+        headers=VALID_HEADERS,
+    )
+    assert res.status_code == 200
+    data = res.json()
+    response_text = data.get("response", "")
+    assert len(response_text) > 50
+    # Must provide practical guidance or tool execution, never asking the user to start over
+    assert "Google Cloud Security | Agentic GRC & Compliance Practice" not in response_text
+    assert "Gemini Enterprise Agent Platform (GEAP)" not in response_text
+    # Should guide on GCP resources / storage / discovery
+    assert any(term in response_text.lower() for term in ["cloud", "gcs", "bucket", "workload", "regi", "clima", "resiliên", "gcloud"])
+
+
+def test_strip_boilerplate_signature_unit():
+    """Unit test verifying regex precision of strip_boilerplate_signature."""
+    from mcp_server_grc.portal import strip_boilerplate_signature
+    raw_pt = (
+        "Recomendamos migrar o bucket para dual-region.\n\n"
+        "---\n"
+        "**Google Cloud Security** | *Agentic GRC & Compliance Practice*\n"
+        "*Gemini Enterprise Agent Platform (GEAP) • Evidências Auditadas com Ancoragem SHA-256*"
+    )
+    cleaned_pt = strip_boilerplate_signature(raw_pt)
+    assert cleaned_pt == "Recomendamos migrar o bucket para dual-region."
+
+    raw_en = (
+        "Audit completed.\n\n"
+        "---\n"
+        "**Google Cloud Security** | *Agentic GRC & Compliance Practice*\n"
+        "*Gemini Enterprise Agent Platform (GEAP) • Audited Evidence with SHA-256 Anchoring*"
+    )
+    cleaned_en = strip_boilerplate_signature(raw_en)
+    assert cleaned_en == "Audit completed."
+
+    raw_es = (
+        "Dictamen favorable.\n\n"
+        "Google Cloud Security | Agentic GRC & Compliance Practice\n"
+        "Gemini Enterprise Agent Platform (GEAP) • Evidencias Auditadas con Anclaje SHA-256"
+    )
+    cleaned_es = strip_boilerplate_signature(raw_es)
+    assert cleaned_es == "Dictamen favorable."
+

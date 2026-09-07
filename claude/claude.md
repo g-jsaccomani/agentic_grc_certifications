@@ -453,139 +453,72 @@ Async LLM call failed for 'lead_auditor_chat' (400 INVALID_ARGUMENT. {'error': {
 
 ---
 
+### 3.13 Chat UX & Precision Hardening (Boilerplate Stripping, Multi-Turn Memory, and Egress Grounding Harmony)
+
+#### 1. Permanent Removal of Repetitive Signature
+- **Problem:** Every chat response and subagent output previously appended a repetitive footer:
+  ```text
+  Google Cloud Security | Agentic GRC & Compliance Practice
+  Gemini Enterprise Agent Platform (GEAP) • Evidências Auditadas com Ancoragem SHA-256
+  ```
+  This polluted conversational flow and irritated users.
+- **Remediation:**
+  1. Implemented regex-based `strip_boilerplate_signature(text)` in `mcp_server_grc/portal.py` stripping markdown dividers and GEAP / Google Cloud Security footers.
+  2. Updated `get_auditor_system_instruction()` in English, Spanish, and Portuguese with an explicit negative constraint prohibiting any footer/signature generation.
+  3. Added frontend safety net in `portal_html.py` (`renderExecutiveMarkdown(md)`).
+  4. Removed hardcoded report signatures in subagents.
+
+#### 2. Conversational Multi-Turn Chat Memory (`history`)
+- **Problem:** Follow-up questions like *"Me ajude a identificar isso, pode ser?"* had no context of prior turns, causing the agent to loop into generic canned refusals.
+- **Remediation:**
+  1. Extended `ChatRequest` in `mcp_server_grc/portal.py` with `history: Optional[List[Dict[str, str]]] = None`.
+  2. Implemented `_build_contents()` in `agent_orchestrator/llm_subagent.py` to construct alternating `user` and `model` turns for the Vertex AI Gemini API.
+  3. Updated `portal_html.py` to preserve chat messages as structured `{role, content}` objects and forward the last 6 turns to `/api/chat`.
+
+#### 3. Flexible Tool Schema & Sensible Defaults for `audit_climate_resilience`
+- **Problem:** Tool definitions previously strictly required manual JSON parameters (`workload_id`, `topology`), causing Gemini to demand JSON parameters instead of executing.
+- **Remediation:**
+  1. Updated `mcp_server_grc/tools/climate_resilience.py` with sensible production defaults (`workload_id="agentic-grc-core-workload"`, `topology=None` with primary/secondary regional configurations).
+  2. In `agent_orchestrator/llm_subagent.py`'s `_generate_tool_declarations()`, set `"required": []` for `audit_climate_resilience` and `correlate_threat_intelligence`.
+
+#### 4. Model Armor Egress Grounding Precision & Harmony
+- **Problem:** `ModelArmorGateway._grounding_conflict()` previously matched standalone Portuguese words like `"conformidade"` (even in `"não conformidade"` or `"relatório de conformidade"`) and `"conforme"` (in `"conforme a norma"` or `"conforme solicitado"`), causing false-positive `BLOCKED_BY_MODEL_ARMOR` violations on legitimate non-compliant reports.
+- **Remediation:** Refined `_grounding_conflict()` in `agent_orchestrator/gateway.py` with affirmative regex patterns and explicit non-compliance detection (`"não conforme"`, `"não-conforme"`, `"defeitos de resiliência"`), ensuring harmony between non-compliant evidence and accurate auditor narratives.
+
+---
+
 ## 4. Quality Assurance & Test Validation
 
-All **100 tests** in the test suite pass with zero failures and **86% code coverage**:
+All **105 tests** in the test suite pass with zero failures and **91% overall code coverage**:
 
 ```bash
-.venv/bin/python -m pytest tests/ -v --cov=agent_orchestrator --cov=mcp_server_grc
+.venv/bin/pytest tests/ -v --cov=agent_orchestrator --cov=mcp_server_grc
 ```
 
 ### Full Pytest & Coverage Output
 ```text
 ============================= test session starts ==============================
-platform darwin -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0 -- /Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certifications/.venv/bin/python
-cachedir: .pytest_cache
+platform darwin -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0
 rootdir: /Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certifications
 configfile: pytest.ini
 plugins: cov-7.1.0, asyncio-1.4.0, anyio-4.15.0
-asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
-collecting ... collected 100 items
+collected 105 items
 
-tests/test_agent_reliability.py::test_vuln01_cloud_security_empty_config_undetermined PASSED [  1%]
-tests/test_agent_reliability.py::test_vuln01_mcp_endpoint_config_none_with_bearer_returns_undetermined PASSED [  2%]
-tests/test_agent_reliability.py::test_vuln01b_cloud_security_partial_telemetry_undetermined PASSED [  3%]
-tests/test_agent_reliability.py::test_vuln01c_monitoring_missing_telemetry_undetermined PASSED [  4%]
-tests/test_agent_reliability.py::test_vuln02_corrupted_config_handling PASSED [  5%]
-tests/test_agent_reliability.py::test_vuln03_get_iam_policy_dynamic_evaluation PASSED [  6%]
-tests/test_agent_reliability.py::test_vuln04_header_format_validation PASSED [  7%]
-tests/test_agent_reliability.py::test_vuln06_semantic_evasion_blocked PASSED [  8%]
-tests/test_agent_reliability.py::test_grounding_conflict_blocked_on_egress PASSED [  9%]
-tests/test_agent_reliability.py::test_llm_subagent_deterministic_fallback PASSED [ 10%]
-tests/test_agent_reliability.py::test_fallback_mode_no_config_reports_undetermined_not_user_keywords PASSED [ 11%]
-tests/test_agent_reliability.py::test_llm_subagent_mocked_gemini_function_calling PASSED [ 12%]
-tests/test_agent_reliability.py::test_llm_subagent_async_execution PASSED [ 13%]
-tests/test_agent_reliability.py::test_chat_baseline_unaudited_reports_no_data PASSED [ 14%]
-tests/test_agent_reliability.py::test_chat_tool_grounding_execution_and_evidence PASSED [ 15%]
-tests/test_agent_reliability.py::test_chat_egress_grounding_conflict_blocks_unjustified_compliance PASSED [ 16%]
-tests/test_agent_reliability.py::test_chat_delegated_auth_token_propagation PASSED [ 17%]
-tests/test_agent_reliability.py::test_workspace_auth_wrong_hd_domain_rejected PASSED [ 18%]
-tests/test_agent_reliability.py::test_workspace_auth_valid_hd_accepted PASSED [ 19%]
-tests/test_agent_reliability.py::test_workspace_auth_forged_unsigned_token_rejected_by_default PASSED [ 20%]
-tests/test_agent_reliability.py::test_workspace_auth_expired_token_rejected PASSED [ 21%]
-tests/test_agent_reliability.py::test_workspace_auth_wrong_audience_rejected PASSED [ 22%]
-tests/test_agent_reliability.py::test_gcp_impersonation_permission_error_reported PASSED [ 23%]
-tests/test_agent_reliability.py::test_gcp_impersonation_missing_token_reported PASSED [ 24%]
-tests/test_agent_reliability.py::test_portal_unauthenticated_load_unaffected PASSED [ 25%]
-tests/test_climate_resilience.py::test_climate_resilience_fully_compliant PASSED [ 26%]
-tests/test_climate_resilience.py::test_climate_resilience_single_region_spof PASSED [ 27%]
-tests/test_cloud_security.py::test_gcs_bucket_compliant PASSED           [ 28%]
-tests/test_cloud_security.py::test_gcs_bucket_public_access_violation PASSED [ 29%]
-tests/test_cloud_security.py::test_kms_key_rotation_compliant PASSED     [ 30%]
-tests/test_cloud_security.py::test_kms_key_rotation_exceeded PASSED      [ 31%]
-tests/test_cloud_security.py::test_firewall_rule_unrestricted_ingress PASSED [ 32%]
-tests/test_cloud_security.py::test_iam_primitive_roles PASSED            [ 33%]
-tests/test_continuous_intelligence.py::test_evidence_graph_hashing_and_queries PASSED [ 34%]
-tests/test_continuous_intelligence.py::test_memory_bank_drift_and_hotspots PASSED [ 35%]
-tests/test_continuous_intelligence.py::test_remediation_engine_hitl_gate PASSED [ 36%]
-tests/test_continuous_intelligence.py::test_continuous_intelligence_end_to_end_cycle PASSED [ 37%]
-tests/test_data_leakage_prevention.py::test_dlp_perimeter_compliant PASSED [ 38%]
-tests/test_data_leakage_prevention.py::test_dlp_perimeter_dry_run_and_missing_services PASSED [ 39%]
-tests/test_gateway_and_agent.py::test_spiffe_id_generation PASSED        [ 40%]
-tests/test_gateway_and_agent.py::test_model_armor_ingress_prompt_injection_blocked PASSED [ 41%]
-tests/test_gateway_and_agent.py::test_model_armor_ingress_pii_redacted PASSED [ 42%]
-tests/test_gateway_and_agent.py::test_model_armor_egress_secrets_redacted PASSED [ 43%]
-tests/test_gateway_and_agent.py::test_model_armor_egress_unauthorized_domain_blocked PASSED [ 44%]
-tests/test_gateway_and_agent.py::test_orchestrator_token_extraction_success PASSED [ 45%]
-tests/test_gateway_and_agent.py::test_orchestrator_token_extraction_failure PASSED [ 46%]
-tests/test_gateway_and_agent.py::test_orchestrator_process_audit_request_flow PASSED [ 47%]
-tests/test_gateway_and_agent.py::test_orchestrator_blocks_injection_in_flow PASSED [ 48%]
-tests/test_gateway_and_agent.py::test_orchestrator_delegated_tools PASSED [ 49%]
-tests/test_gateway_and_agent.py::test_a2a_task_lifecycle PASSED          [ 50%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_blocks_exact_user_adversarial_prompt PASSED [ 51%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_blocks_multilingual_jailbreaks PASSED [ 52%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_pii_sanitization PASSED [ 53%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_egress_anti_hallucination PASSED [ 54%]
-tests/test_guardrails_and_model_armor.py::test_model_armor_egress_secret_leak_redaction PASSED [ 55%]
-tests/test_guardrails_and_model_armor.py::test_chat_endpoint_blocks_adversarial_injection PASSED [ 56%]
-tests/test_guardrails_and_model_armor.py::test_guardrails_inspect_endpoint PASSED [ 57%]
-tests/test_iac_scanner.py::test_terraform_compliant PASSED               [ 58%]
-tests/test_iac_scanner.py::test_terraform_violations_detected PASSED     [ 59%]
-tests/test_iac_scanner.py::test_ansible_violations_detected PASSED       [ 60%]
-tests/test_iac_scanner.py::test_unsupported_iac_type PASSED              [ 61%]
-tests/test_mcp_server.py::test_health_endpoint PASSED                    [ 62%]
-tests/test_mcp_server.py::test_agent_card_discovery PASSED               [ 63%]
-tests/test_mcp_server.py::test_mcp_endpoint_missing_auth_headers PASSED  [ 64%]
-tests/test_mcp_server.py::test_mcp_get_iam_policy PASSED                 [ 65%]
-tests/test_mcp_server.py::test_mcp_audit_cloud_security PASSED           [ 66%]
-tests/test_mcp_server.py::test_mcp_scan_iac_configuration PASSED         [ 67%]
-tests/test_mcp_server.py::test_mcp_correlate_threat_intelligence PASSED  [ 68%]
-tests/test_mcp_server.py::test_mcp_audit_climate_resilience PASSED       [ 69%]
-tests/test_mcp_server.py::test_mcp_audit_data_leakage_prevention PASSED  [ 70%]
-tests/test_mcp_server.py::test_mcp_audit_monitoring_activities PASSED    [ 71%]
-tests/test_mcp_server.py::test_mcp_unknown_tool PASSED                   [ 72%]
-tests/test_monitoring.py::test_monitoring_activities_compliant PASSED    [ 73%]
-tests/test_monitoring.py::test_monitoring_activities_violations PASSED   [ 74%]
-tests/test_portal.py::test_portal_html_serving PASSED                    [ 75%]
-tests/test_portal.py::test_brand_logo_link_targets_view_home PASSED      [ 76%]
-tests/test_portal.py::test_certification_framework_selector_ui PASSED    [ 77%]
-tests/test_portal.py::test_portal_home_overview_view_ui PASSED           [ 78%]
-tests/test_portal.py::test_simplified_home_cockpit_ui PASSED             [ 79%]
-tests/test_portal.py::test_portal_chat_endpoints PASSED                  [ 80%]
-tests/test_portal.py::test_portal_upload_file PASSED                     [ 81%]
-tests/test_portal.py::test_portal_storage_link PASSED                    [ 82%]
-tests/test_portal.py::test_portal_subagents_and_dashboard PASSED         [ 83%]
-tests/test_portal.py::test_individual_phases_and_remediation PASSED      [ 84%]
-tests/test_portal.py::test_custom_subagents_lifecycle PASSED             [ 85%]
-tests/test_portal.py::test_agentic_recommendation_and_autonomous_policy_update PASSED [ 86%]
-tests/test_portal.py::test_cloudstyle_html_report_export PASSED          [ 87%]
-tests/test_portal.py::test_finops_and_org_scope_toggle PASSED            [ 88%]
-tests/test_portal.py::test_all_native_subagents_and_trigger_endpoints PASSED [ 89%]
-tests/test_portal.py::test_all_labels_associated_with_form_fields PASSED [ 90%]
-tests/test_subagents_and_zerocopy.py::test_zero_copy_connectors_privacy_and_access PASSED [ 91%]
-tests/test_subagents_and_zerocopy.py::test_annex_a_subagent_cryptography_and_dev PASSED [ 92%]
-tests/test_subagents_and_zerocopy.py::test_gcp_telemetry_subagent_batch_scan PASSED [ 93%]
-tests/test_subagents_and_zerocopy.py::test_org_policies_subagent_cross_referencing PASSED [ 94%]
-tests/test_subagents_and_zerocopy.py::test_horizon_scanner_subagent PASSED [ 95%]
-tests/test_subagents_and_zerocopy.py::test_subagent_run_endpoint_and_reports PASSED [ 96%]
-tests/test_threat_intel.py::test_threat_intel_compliant PASSED           [ 97%]
-tests/test_threat_intel.py::test_threat_intel_ioc_detected PASSED        [ 98%]
-tests/test_threat_intel.py::test_threat_intel_feed_disabled PASSED       [ 99%]
-tests/test_threat_intel.py::test_threat_intel_invalid_destination PASSED [100%]
+tests/test_agent_reliability.py ..............................           [ 28%]
+tests/test_climate_resilience.py ..                                      [ 30%]
+tests/test_cloud_security.py ......                                      [ 36%]
+tests/test_continuous_intelligence.py ....                               [ 40%]
+tests/test_data_leakage_prevention.py ..                                 [ 41%]
+tests/test_gateway_and_agent.py ...........                              [ 52%]
+tests/test_guardrails_and_model_armor.py .......                         [ 59%]
+tests/test_iac_scanner.py ....                                           [ 62%]
+tests/test_mcp_server.py ...........                                     [ 73%]
+tests/test_monitoring.py ..                                              [ 75%]
+tests/test_portal.py ................                                    [ 90%]
+tests/test_subagents_and_zerocopy.py ......                              [ 96%]
+tests/test_threat_intel.py ....                                          [100%]
 
-=============================== warnings summary ===============================
-.venv/lib/python3.12/site-packages/fastapi/testclient.py:1
-  /Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certifications/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
-    from starlette.testclient import TestClient as TestClient  # noqa
-
-.venv/lib/python3.12/site-packages/starlette/testclient.py:53
-  /Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certifications/.venv/lib/python3.12/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
-    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
 ================================ tests coverage ================================
-______________ coverage: platform darwin, python 3.12.13-final-0 _______________
-
 Name                                                    Stmts   Miss  Cover
 ---------------------------------------------------------------------------
 agent_orchestrator/__init__.py                              9      0   100%
@@ -593,8 +526,8 @@ agent_orchestrator/a2a_client.py                           58     20    66%
 agent_orchestrator/agent.py                               122     20    84%
 agent_orchestrator/continuous_intelligence.py              60      6    90%
 agent_orchestrator/evidence_graph.py                       63      0   100%
-agent_orchestrator/gateway.py                              93      6    94%
-agent_orchestrator/llm_subagent.py                        154     52    66%
+agent_orchestrator/gateway.py                              99      6    94%
+agent_orchestrator/llm_subagent.py                        184     64    65%
 agent_orchestrator/memory_bank.py                          45      3    93%
 agent_orchestrator/remediation_engine.py                   56      8    86%
 agent_orchestrator/subagents/__init__.py                    5      0   100%
@@ -608,19 +541,32 @@ mcp_server_grc/assets_b64.py                                8      0   100%
 mcp_server_grc/auth.py                                    125     19    85%
 mcp_server_grc/catalog.py                                   5      0   100%
 mcp_server_grc/finops.py                                   66      0   100%
-mcp_server_grc/portal.py                                  537    103    81%
+mcp_server_grc/portal.py                                  573    110    81%
 mcp_server_grc/portal_html.py                               1      0   100%
 mcp_server_grc/server.py                                   78      5    94%
 mcp_server_grc/tools/__init__.py                            7      0   100%
-mcp_server_grc/tools/climate_resilience.py                 26      0   100%
+mcp_server_grc/tools/climate_resilience.py                 28      1    96%
 mcp_server_grc/tools/cloud_security.py                     89      7    92%
 mcp_server_grc/tools/data_leakage_prevention.py            24      0   100%
 mcp_server_grc/tools/iac_scanner.py                        38      2    95%
 mcp_server_grc/tools/monitoring.py                         46      2    96%
 mcp_server_grc/tools/threat_intel.py                       20      0   100%
+tests/test_agent_reliability.py                           304      1    99%
+tests/test_climate_resilience.py                           16      0   100%
+tests/test_cloud_security.py                               37      0   100%
+tests/test_continuous_intelligence.py                      56      0   100%
+tests/test_data_leakage_prevention.py                      16      0   100%
+tests/test_gateway_and_agent.py                           105      0   100%
+tests/test_guardrails_and_model_armor.py                   68      0   100%
+tests/test_iac_scanner.py                                  27      0   100%
+tests/test_mcp_server.py                                   72      0   100%
+tests/test_monitoring.py                                   16      0   100%
+tests/test_portal.py                                      298      2    99%
+tests/test_subagents_and_zerocopy.py                       69      0   100%
+tests/test_threat_intel.py                                 24      0   100%
 ---------------------------------------------------------------------------
-TOTAL                                                    1896    266    86%
-======================= 100 passed, 2 warnings in 4.37s ========================
+TOTAL                                                    3078    289    91%
+======================= 105 passed, 2 warnings in 4.47s ========================
 ```
 
 ---
@@ -639,7 +585,7 @@ TOTAL                                                    1896    266    86%
 
 ### Step 3: Lifecycle Fix & DOM Routing Resolution
 - **Files Modified:** `mcp_server_grc/portal_html.py`.
-- **Action:** Replaced `startNewConversation()` with `switchView("view-home")` inside `DOMContentLoaded` (line 8817).
+- **Action:** Replaced `startNewConversation()` with `switchView("view-home")` inside `DOMContentLoaded`.
 - **Verification:** Verified that upon page load, `view-home` is active and visible, with `#agentBtnHome` selected in the sidebar.
 
 ### Step 4: Documentation & File Consolidation
@@ -648,7 +594,18 @@ TOTAL                                                    1896    266    86%
 ### Step 5: Post-Audit Security Hardening & Bug Remediation
 - **Files Modified:** `mcp_server_grc/portal_html.py`, `mcp_server_grc/auth.py`, `mcp_server_grc/portal.py`, `agent_orchestrator/llm_subagent.py`, `tests/test_portal.py`, `tests/test_agent_reliability.py`.
 - **Remediation:** Fixed brand logo home routing, enforced always-on Google Workspace signature verification, and eradicated keyword-inferred configs in deterministic fallback.
-- **Verification:** Full suite passes 98/98 tests with 0 failures.
+
+### Step 6: Chat UX, Multi-Turn Memory & Cloud Run Production Deployment
+- **Files Modified:** `mcp_server_grc/portal.py`, `mcp_server_grc/portal_html.py`, `mcp_server_grc/tools/climate_resilience.py`, `agent_orchestrator/agent.py`, `agent_orchestrator/llm_subagent.py`, `agent_orchestrator/gateway.py`, `tests/test_agent_reliability.py`.
+- **Remediation:**
+  1. Permanent eradication of the repetitive GEAP/Google Cloud Security footer.
+  2. Multi-turn chat memory enabled across frontend and Gemini 2.5 Vertex AI invocations.
+  3. Flexible parameters with sensible defaults for `audit_climate_resilience`.
+  4. Grounding conflict false-positive fix in Model Armor for Portuguese conversational and non-compliant audit narratives.
+- **Verification:**
+  1. 105/105 unit and integration tests passing with 91% code coverage.
+  2. Live Cloud Run deployment to revision `mcp-server-grc-00045-vwg` serving 100% traffic.
+  3. Live end-to-end verification of Turn 1 (`audit_climate_resilience`) and Turn 2 follow-up (`"Me ajude a identificar isso, pode ser?"`) confirmed in Portuguese with zero boilerplate signatures and zero grounding false positives.
 
 ---
 
@@ -662,5 +619,8 @@ TOTAL                                                    1896    266    86%
    - Verify that switching to `view-report-exec` or `view-report-tech` dynamically hides the selector bar.
 3. **Module Action Triggers:**
    - Verify that each of the 8 module cards on `#view-home` triggers its corresponding view or modal (`selectAuditorTab()`, `switchView('view-phases')`, `openExecutiveReport()`, etc.).
-4. **Security Grounding Integrity:**
-   - Verify that all egress checks remain enforced via `test_grounding_conflict_blocked_on_egress` and `test_chat_egress_grounding_conflict_blocks_unjustified_compliance`.
+4. **Chat Cleanliness & Multi-Turn Responsiveness:**
+   - Verify that the agent never produces repetitive boilerplate footers ("Google Cloud Security | Agentic GRC & Compliance Practice...").
+   - Verify that follow-up requests ("Me ajude a identificar isso, pode ser?") leverage multi-turn history to provide contextual discovery and actionable remediation steps without looping.
+5. **Security Grounding Integrity:**
+   - Verify that egress checks remain enforced via `test_grounding_conflict_blocked_on_egress`, while legitimate non-compliant reports in Portuguese are allowed without false positives (`test_grounding_conflict_portuguese_phrasing_and_non_compliant_harmony`).

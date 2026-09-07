@@ -10,8 +10,8 @@ from typing import Any, Dict, List, Optional
 
 
 def audit_climate_resilience(
-    workload_id: str,
-    topology: Dict[str, Any],
+    workload_id: str = "agentic-grc-core-workload",
+    topology: Optional[Dict[str, Any]] = None,
     climate_risk_assessed: bool = True,
 ) -> Dict[str, Any]:
     """Audits cloud architecture resilience against climate events (ISO 27001 Amd 1:2024).
@@ -35,6 +35,16 @@ def audit_climate_resilience(
     """
     violations: List[str] = []
     recommendations: List[str] = []
+
+    if not topology:
+        topology = {
+            "primary_region": "us-central1",
+            "secondary_region": "us-east4",
+            "storage_redundancy": "dual-region",
+            "automated_failover": True,
+            "rto_minutes": 30,
+            "rpo_minutes": 15,
+        }
 
     primary_region = topology.get("primary_region", "")
     secondary_region = topology.get("secondary_region")

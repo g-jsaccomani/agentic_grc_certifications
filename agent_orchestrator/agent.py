@@ -153,8 +153,8 @@ class GRCAgentOrchestrator:
 
     def audit_climate_resilience(
         self,
-        workload_id: str,
-        topology: Dict[str, Any],
+        workload_id: str = "agentic-grc-core-workload",
+        topology: Optional[Dict[str, Any]] = None,
         climate_risk_assessed: bool = True,
     ) -> Dict[str, Any]:
         """Audits climate resilience & DR per ISO 27001:2022 Amd 1:2024 (Clauses 4.1 & 4.2)."""

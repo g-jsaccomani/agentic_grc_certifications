@@ -208,14 +208,7 @@ class ModelArmorGateway:
         """Verifies if the LLM narrative asserts compliance while tool evidence reports non-compliance."""
         if not tool_evidence:
             return False
-        narrative_lower = narrative.lower()
-        claims_compliant = any(
-            term in narrative_lower for term in [
-                "is compliant", "are compliant", "100% compliant", "fully compliant",
-                "conforme", "conformidade", "aprovado", "approved", "meets requirements",
-                "em conformidade", "está conforme", "totalmente conforme"
-            ]
-        )
+
         has_non_compliant_evidence = any(
             isinstance(e, dict) and (
                 (isinstance(e.get("result"), dict) and e["result"].get("status") in ("NON_COMPLIANT", "ERROR"))
@@ -223,7 +216,48 @@ class ModelArmorGateway:
             )
             for e in tool_evidence
         )
-        return claims_compliant and has_non_compliant_evidence
+        if not has_non_compliant_evidence:
+            return False
+
+        narrative_lower = narrative.lower()
+
+        # Check if narrative explicitly declares non-compliance or identified violations (in harmony with evidence)
+        asserts_non_compliance = any(
+            phrase in narrative_lower for phrase in [
+                "não conforme", "não-conforme", "não está conforme", "não estão conformes",
+                "não é conforme", "não são conformes", "não conformidade", "não-conformidade",
+                "inconforme", "non-compliant", "not compliant", "is not compliant",
+                "are not compliant", "status: non_compliant", "status: não conforme",
+                "status: non-compliant", "defeitos de resiliência", "violações encontradas",
+                "violations found", "falhas identificadas", "não atende",
+            ]
+        )
+        if asserts_non_compliance:
+            return False
+
+        # Check for explicit affirmative claims of compliance
+        affirmative_patterns = [
+            r"\b(?:is|are)\s+compliant\b",
+            r"\b(?:100%|fully)\s+compliant\b",
+            r"\bstatus:\s*compliant\b",
+            r"\bverdict:\s*compliant\b",
+            r"\bmeets\s+(?:all\s+)?requirements\b",
+            r"\b(?:is|are|fully)\s+approved\b",
+            r"\b(?:totalmente|100%)\s+conforme\b",
+            r"(?<!não\s)(?<!nao\s)\b(?:está|é|são|estão)\s+conforme(?:s)?\b",
+            r"\bstatus:\s*conforme\b",
+            r"\bveredicto:\s*conforme\b",
+            r"\bambiente\s+conforme\b",
+            r"\binfraestrutura\s+conforme\b",
+            r"\bem\s+(?:total|plena)\s+conformidade\b",
+            r"\bem\s+conformidade\s+(?:total|plena)\b",
+            r"(?<!não\s)(?<!nao\s)\batende\s+a(?:os)?\s+requisitos\b",
+        ]
+        claims_compliant = any(
+            re.search(pattern, narrative_lower)
+            for pattern in affirmative_patterns
+        )
+        return claims_compliant
 
     def inspect_egress(
         self,

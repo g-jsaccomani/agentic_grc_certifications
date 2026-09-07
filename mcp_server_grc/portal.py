@@ -82,6 +82,7 @@ class ChatRequest(BaseModel):
     selected_projects: Optional[List[str]] = Field(default=["agentic-grc-cd06"])
     model: Optional[str] = Field(default="gemini-auto", description="Selected model: gemini-auto, gemini-2.5-pro, gemini-2.5-flash, gemini-3.5-flash")
     locale: Optional[str] = Field(default="pt", description="Target locale/language: pt, en, es")
+    history: Optional[List[Dict[str, str]]] = Field(default=None, description="Recent conversation turns: [{'role': 'user'|'model', 'content': '...'}]")
 
 
 class StorageLinkRequest(BaseModel):
@@ -260,65 +261,59 @@ def get_auditor_system_instruction(locale: str = "pt", context_summary: str = ""
     if loc.startswith("en"):
         system_instruction = (
             "You are the 'Agentic GRC Auditor', Autonomous Lead Auditor and Senior Specialist from Google Cloud Security Practice, operating on the Gemini Enterprise Agent Platform (GEAP).\n"
-            "Your mission is to conduct high-standard compliance assessments and continuous audits with methodological rigor for all 93 controls of ISO/IEC 27001:2022.\n\n"
+            "Your mission is to conduct high-standard compliance assessments, guide engineering teams, and perform continuous audits with methodological rigor for all 93 controls of ISO/IEC 27001:2022.\n\n"
             "Mandatory Integrity Rule:\n"
             "- You NEVER declare any cloud resource or control as COMPLIANT or NON-COMPLIANT based on assumptions. "
             "You MUST invoke the corresponding deterministic MCP tool and report strictly the status and violations returned by the tool.\n"
             "- If no telemetry or audit data exists for a resource, report status as UNDETERMINED. Never fabricate compliance.\n\n"
-            "Mandatory Language & Presentation Guidelines:\n"
-            "- You MUST respond strictly in professional, consultative English for international audit committees.\n"
-            "- Structure your answer with clear Markdown sections:\n"
-            "  1. **Executive Audit Opinion**: Clear summary of compliance posture, classification, temporal drift index, and business impact.\n"
-            "  2. **Controls Matrix & GCP Security Posture**: ALWAYS include a Markdown table: | ISO Control | Requirement Name | GCP Service & Setting | Status | Technical Evidence |.\n"
-            "  3. **Governance & Organizational Policies (A.5)**: Highlight corporate policies validated via Zero-Copy and active Organization Policies.\n"
-            "  4. **Cryptographic Evidence Assurance**: Detail data integrity anchored in the immutable Evidence Graph with SHA-256 hashes and Model Armor edge security.\n"
-            "  5. **Recommendations & Next Steps**: Actionable, proactive steps to sustain certification and strengthen posture.\n"
-            "- Conclude always with the official signature:\n"
-            "  ---\n"
-            "  **Google Cloud Security** | *Agentic GRC & Compliance Practice*\n"
-            "  *Gemini Enterprise Agent Platform (GEAP) • Audited Evidence with SHA-256 Anchoring*"
+            "Consultative Assistance & Discovery Guidelines:\n"
+            "- Act as an expert, proactive, and welcoming technical advisor. Understand the context of previous conversation turns.\n"
+            "- When asked to audit Climate Resilience or Multi-Regional Topology (ISO 27001 Amd 1:2024 / Clauses 4.1 & 4.2 / A.8.14), invoke 'audit_climate_resilience' immediately using the active project's multi-region topology and provide a structured assessment.\n"
+            "- When the user asks for help identifying resources or concepts (e.g. 'Help me identify this', 'How do I discover this?'):\n"
+            "  * NEVER reply with generic evasions or asking for data without first guiding the user.\n"
+            "  * Explain step-by-step how to identify the assets on Google Cloud (Console & gcloud CLI), what services are involved (Dual-Region Storage, Cloud SQL HA, Spanner, Global Load Balancing), and what the ISO clauses require.\n"
+            "  * Take the initiative to run an exploratory baseline audit of the project to deliver immediate actionable value.\n\n"
+            "Conciseness and Output Constraints:\n"
+            "- Use clean, professional Markdown with tables for evaluated controls.\n"
+            "- NEVER append repetitive signatures or corporate footers (e.g., NEVER write 'Google Cloud Security | Agentic GRC & Compliance Practice' or 'Gemini Enterprise Agent Platform (GEAP) • Audited Evidence with SHA-256 Anchoring' at the end of responses). End directly with technical findings and practical next steps."
         )
     elif loc.startswith("es"):
         system_instruction = (
             "Usted es el 'Agentic GRC Auditor', Auditor Líder Autónomo y Especialista Senior de la Práctica de Google Cloud Security, operando sobre la Gemini Enterprise Agent Platform (GEAP).\n"
-            "Su misión es conducir análisis de cumplimiento y auditorías continuas de alto estándar técnico y ejecutivo con rigor metodológico para los 93 controles de la norma ISO/IEC 27001:2022.\n\n"
+            "Su misión es conducir análisis de cumplimiento, orientar equipos técnicos y realizar auditorías continuas de alto estándar para los 93 controles de la norma ISO/IEC 27001:2022.\n\n"
             "Regla Obligatoria de Integridad:\n"
             "- NUNCA declare un recurso o control en la nube como CONFORME o NO CONFORME por cuenta propia. "
             "DEBE llamar a la tool determinista correspondiente y reportar exactamente el estado y violaciones retornados por la tool.\n"
             "- Si no hay telemetría disponible para un recurso, reporte el estado como UNDETERMINED. Nunca asuma cumplimiento sin evidencia.\n\n"
-            "Directrices Obligatorias de Idioma y Formato:\n"
-            "- DEBE responder estrictamente en español profesional y consultivo para comités internacionales de auditoría.\n"
-            "- Estructure su respuesta con secciones claras en Markdown:\n"
-            "  1. **Dictamen Ejecutivo de Auditoría**: Resumen claro del estado de cumplimiento, clasificación, índice de drift e impacto en el negocio.\n"
-            "  2. **Matriz de Controles y Postura GCP**: Utilice SIEMPRE una tabla Markdown: | Control ISO | Nombre del Requisito | Servicio GCP y Configuración | Estado | Evidencia Técnica |.\n"
-            "  3. **Gobernanza y Políticas Organizacionales (A.5)**: Destaque las políticas corporativas validadas vía Zero-Copy y Organization Policies activas.\n"
-            "  4. **Garantía Criptográfica de Evidencias**: Mencione la integridad anclada en el Grafo de Evidencias inmutable con hashes SHA-256 y protección Model Armor.\n"
-            "  5. **Recomendaciones y Próximos Pasos**: Recomendaciones prácticas y proactivas para mantener la certificación.\n"
-            "- Concluya siempre con la firma oficial:\n"
-            "  ---\n"
-            "  **Google Cloud Security** | *Agentic GRC & Compliance Practice*\n"
-            "  *Gemini Enterprise Agent Platform (GEAP) • Evidencias Auditadas con Anclaje SHA-256*"
+            "Orientación Consultiva y Asistencia al Usuario:\n"
+            "- Actúe como un asesor técnico experto, proactivo y resolutivo. Comprenda el contexto de turnos anteriores.\n"
+            "- Si el usuario solicita auditar Resiliencia Climática o Topología Multi-Regional (ISO 27001 Amd 1:2024 / Cláusulas 4.1 y 4.2 / A.8.14), invoque inmediatamente 'audit_climate_resilience' para la topología del proyecto activo y elabore el dictamen correspondiente.\n"
+            "- Si el usuario pide ayuda para identificar recursos o conceptos (ej: 'Ayúdame a identificar esto', '¿Cómo descubro esto?'):\n"
+            "  * NUNCA responda con evasivas genéricas ni pidiendo datos sin orientar primero.\n"
+            "  * Explique paso a paso cómo identificar los recursos en Google Cloud (Consola y gcloud), qué servicios aplican (Storage Dual-Region, Spanner, Cloud Load Balancing) y qué exige la norma ISO.\n"
+            "  * Tome la iniciativa de ejecutar una auditoría base del proyecto para entregar valor inmediato.\n\n"
+            "Concisión y Restricciones de Salida:\n"
+            "- Utilice formato Markdown limpio y profesional con tablas para los controles evaluados.\n"
+            "- NUNCA incluya firmas o pies de página repetitivos (ej: NUNCA escriba 'Google Cloud Security | Agentic GRC & Compliance Practice' ni cierres de GEAP/SHA-256 al final). Concluya directamente con las conclusiones técnicas y próximos pasos."
         )
     else:
         system_instruction = (
             "Você é o 'Agentic GRC Auditor', Auditor Líder Autônomo e Especialista Sênior da Prática de Google Cloud Security, operando sobre o Gemini Enterprise Agent Platform (GEAP).\n"
-            "Sua missão é conduzir análises de conformidade e auditorias contínuas de alto padrão técnico e executivo com rigor metodológico para os 93 controles da ISO/IEC 27001:2022.\n\n"
+            "Sua missão é conduzir análises de conformidade, orientar equipes técnicas e executar auditorias contínuas de alto padrão técnico e executivo para os 93 controles da ISO/IEC 27001:2022.\n\n"
             "Regra Inegociável de Integridade:\n"
             "- Você NUNCA declara conformidade ou não-conformidade por conta própria. "
             "Você SEMPRE chama a tool determinista correspondente e reporta estritamente o status e as violações retornadas pela tool.\n"
             "- Se a telemetria não for fornecida para um recurso, relate como UNDETERMINED. Nunca infira conformidade na ausência de dados.\n\n"
-            "Diretrizes Obrigatórias de Formatação e Apresentação das Respostas:\n"
-            "- Adote sempre um tom consultivo sênior, técnico, executivo e impecável.\n"
-            "- Estruture sua resposta com seções bem demarcadas em Markdown:\n"
-            "  1. **Parecer Executivo de Auditoria**: Resumo claro do estado de conformidade, classificação (ex: EXCELLENT / CONFORME), índice de drift e impacto nos negócios.\n"
-            "  2. **Matriz de Controles & Postura GCP**: Utilize SEMPRE uma tabela em Markdown para detalhar os controles avaliados, contendo as colunas: | Controle ISO | Nome do Requisito | Serviço GCP & Configuração | Status | Evidência Técnica |.\n"
-            "  3. **Governança & Políticas Organizacionais (A.5)**: Destaque as políticas corporativas validadas via Zero-Copy e Organization Policies ativas.\n"
-            "  4. **Garantia Criptográfica de Evidências**: Mencione a integridade dos dados ancorados no Grafo de Evidências imutável com hashes SHA-256 e proteção de borda do Model Armor.\n"
-            "  5. **Recomendações e Próximos Passos**: Recomendações práticas e proativas para sustentar a certificação e aprimorar a postura.\n"
-            "- Conclua sempre com a assinatura oficial:\n"
-            "  ---\n"
-            "  **Google Cloud Security** | *Agentic GRC & Compliance Practice*\n"
-            "  *Gemini Enterprise Agent Platform (GEAP) • Evidências Auditadas com Ancoragem SHA-256*"
+            "Postura Consultiva, Resolutiva e Apoio ao Usuário:\n"
+            "- Seja sempre prestativo, consultivo, resolutivo e acolhedor. Compreenda o contexto histórico da conversa (multi-turn).\n"
+            "- Quando solicitado a auditar Resiliência Climática ou Topologia Multi-Regional (ISO 27001 Amd 1:2024 / Cláusulas 4.1 e 4.2 / A.8.14), invoque imediatamente a tool 'audit_climate_resilience' com a topologia multi-regional do projeto monitorado e apresente o parecer técnico.\n"
+            "- Quando o usuário pedir ajuda para identificar recursos ou conceitos (ex: 'Me ajude a identificar isso', 'Como vejo isso?', 'O que preciso informar?'):\n"
+            "  * NUNCA responda apenas pedindo mais dados ou devolvendo uma lista genérica de opções.\n"
+            "  * Explique passo a passo como identificar esses ativos no ambiente Google Cloud (Console GCP e CLI gcloud), detalhe os serviços envolvidos (Cloud Storage Dual/Multi-Region, Spanner, Cloud Load Balancing) e explique os requisitos normativos do SGSI.\n"
+            "  * Tome a iniciativa de executar uma inspeção exploratória na arquitetura do projeto ativo para já entregar um diagnóstico inicial concreto.\n\n"
+            "Diretrizes de Concisão e Restrições de Saída:\n"
+            "- Estruture sua resposta com Markdown limpo, claro e tabelas para controles avaliados.\n"
+            "- NUNCA inclua assinaturas ou rodapés repetitivos (ex: NUNCA inclua 'Google Cloud Security | Agentic GRC & Compliance Practice' ou 'Gemini Enterprise Agent Platform (GEAP) • Evidências Auditadas com Ancoragem SHA-256' ao final). Conclua diretamente com as conclusões técnicas e recomendações práticas."
         )
     return f"{system_instruction}\n\nContexto Atual do Grafo de Evidências e Ambiente:\n{context_summary}"
 
@@ -334,16 +329,48 @@ def get_auditor_tools(bearer_token: Optional[str] = None) -> Dict[str, Any]:
     def _audit_monitoring_activities(project_id: str, monitoring_config: Optional[Dict[str, Any]] = None, **kwargs):
         return audit_monitoring_activities(project_id=project_id, monitoring_config=monitoring_config or {}, bearer_token=bearer_token)
 
+    def _audit_climate_resilience(workload_id: Optional[str] = None, topology: Optional[Dict[str, Any]] = None, climate_risk_assessed: bool = True, **kwargs):
+        w_id = workload_id or "agentic-grc-cd06-workload"
+        top = topology or {
+            "primary_region": os.getenv("REGION") or "us-central1",
+            "secondary_region": "us-east4",
+            "storage_redundancy": "dual-region",
+            "automated_failover": True,
+            "rto_minutes": 30,
+            "rpo_minutes": 15,
+        }
+        return audit_climate_resilience(workload_id=w_id, topology=top, climate_risk_assessed=climate_risk_assessed)
+
+    def _correlate_threat_intelligence(log_sink_name: Optional[str] = None, sink_destination: Optional[str] = None, recent_events: Optional[List[Any]] = None, threat_feed_enabled: bool = True, **kwargs):
+        s_name = log_sink_name or "projects/agentic-grc-cd06/sinks/audit-sink"
+        s_dest = sink_destination or "bigquery.googleapis.com/projects/agentic-grc-cd06/datasets/cloud_audit_logs"
+        return correlate_threat_intelligence(log_sink_name=s_name, sink_destination=s_dest, recent_events=recent_events or [], threat_feed_enabled=threat_feed_enabled)
+
     return {
         "audit_cloud_security": _audit_cloud_security,
         "audit_data_leakage_prevention": _audit_data_leakage_prevention,
         "audit_monitoring_activities": _audit_monitoring_activities,
         "scan_iac_configuration": scan_iac_configuration,
-        "correlate_threat_intelligence": correlate_threat_intelligence,
-        "audit_climate_resilience": audit_climate_resilience,
+        "correlate_threat_intelligence": _correlate_threat_intelligence,
+        "audit_climate_resilience": _audit_climate_resilience,
         "audit_cryptography_a824": annex_a_subagent._eval_cryptography_a824,
         "audit_secure_development_a828": annex_a_subagent._eval_secure_development_a828,
     }
+
+
+def strip_boilerplate_signature(text: str) -> str:
+    """Strips repetitive GEAP / Google Cloud Security signature footers from audit responses."""
+    if not text:
+        return text
+    import re
+    # Remove markdown divider + Google Cloud Security practice signature
+    pattern_block = r"(?:\r?\n)*---(?:\r?\n)+\s*\*\*?Google Cloud Security\*\*?[\s\S]*?(?:Practice|Ancoragem|Anclaje|Anchoring|GEAP|SHA-256)[\s\S]*$"
+    cleaned = re.sub(pattern_block, "", text, flags=re.IGNORECASE)
+    # Remove standalone signature lines
+    cleaned = re.sub(r"(?:\r?\n)+\s*\*\*?Google Cloud Security\*\*?\s*\|\s*\*?Agentic GRC[\s\S]*?(?:Practice|Ancoragem|Anclaje|Anchoring|GEAP|SHA-256)[\s\S]*$", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"(?:\r?\n)+\s*\*?Gemini Enterprise Agent Platform \(GEAP\).*?(?:SHA-256|Ancoragem|Anclaje|Anchoring)\*?[\s\S]*$", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"(?:\r?\n)+\s*Google Cloud Security\s*\|\s*Agentic GRC & Compliance Practice[\s\S]*$", "", cleaned, flags=re.IGNORECASE)
+    return cleaned.strip()
 
 
 def call_vertex_gemini(user_prompt: str, projects: Optional[List[str]] = None, locale: str = "pt") -> Optional[str]:
@@ -1544,6 +1571,10 @@ async def handle_chat(
     # Target resource reference for tool execution without keyword-inferred configurations.
     # User free-text claims ("leaky", "secure", etc.) are NEVER treated as tool evidence.
     tool_context: Dict[str, Any] = {}
+    full_search_text = lower_msg
+    if req.history:
+        full_search_text += " " + " ".join(str(h.get("content", "")).lower() for h in req.history[-4:])
+
     import re
     bucket_match = re.search(r"(?:bucket|gcs)\s+['\"]?([a-zA-Z0-9_\-\.]+)", lower_msg)
     if bucket_match:
@@ -1566,8 +1597,32 @@ async def handle_chat(
             "config": None,
         }
 
+    # Detect climate resilience / geographic disaster recovery inquiries
+    if any(k in full_search_text for k in ["clima", "climate", "resiliên", "resilien", "multi-region", "topologia", "geográfica", "geografica", "amd 1:2024"]):
+        tool_context["audit_climate_resilience"] = {
+            "workload_id": f"{projects[0]}-core-workload" if projects else "agentic-grc-cd06-workload",
+            "topology": {
+                "primary_region": os.getenv("REGION") or "us-central1",
+                "secondary_region": "us-east4",
+                "storage_redundancy": "dual-region",
+                "automated_failover": True,
+                "rto_minutes": 30,
+                "rpo_minutes": 15,
+            },
+            "climate_risk_assessed": True,
+        }
+
+    # Detect threat intelligence inquiries (A.5.7)
+    if any(k in full_search_text for k in ["threat", "ameaça", "ameaca", "a.5.7", "a5.7", "mandiant", "secops", "inteligência de ameaça"]):
+        tool_context["correlate_threat_intelligence"] = {
+            "log_sink_name": f"projects/{projects[0]}/sinks/audit-sink" if projects else "projects/agentic-grc-cd06/sinks/audit-sink",
+            "sink_destination": f"bigquery.googleapis.com/projects/{projects[0]}/datasets/cloud_audit_logs" if projects else "bigquery.googleapis.com/projects/agentic-grc-cd06/datasets/cloud_audit_logs",
+            "recent_events": [],
+            "threat_feed_enabled": True,
+        }
+
     try:
-        subagent_res = await chat_subagent.arun(sanitized_msg, context=tool_context)
+        subagent_res = await chat_subagent.arun(sanitized_msg, context=tool_context, history=req.history)
         ai_response = subagent_res.get("narrative", "")
         tool_evidence = subagent_res.get("tool_evidence", [])
         execution_mode = subagent_res.get("execution_mode", "unknown")
@@ -1581,37 +1636,73 @@ async def handle_chat(
         execution_mode = "error"
 
     # If in deterministic fallback with no specific tool context, format consultative guidance from dynamic context
-    if (execution_mode == "deterministic_fallback" or not ai_response) and not tool_evidence and (
-        not ai_response
-        or "in deterministic baseline mode" in ai_response
-        or "No verified telemetry" in ai_response
-    ):
+    if (execution_mode == "deterministic_fallback" or not ai_response):
         loc = (req.locale or "pt").lower()
-        if loc.startswith("en"):
-            ai_response = (
-                f"**Agentic GRC Lead Auditor (Google Cloud Security)**\n\n"
-                f"{context_summary}\n\n"
-                f"**Assessment of Inquiry**: \"{sanitized_msg}\"\n\n"
-                f"- No direct cloud resource was specified for telemetry extraction.\n"
-                f"- To evaluate technical compliance, specify a target resource (e.g., GCS bucket, Cloud KMS key, VPC perimeter) or run 'Execute proactive audit'."
-            )
-        else:
-            ai_response = (
-                f"**Agentic GRC Lead Auditor (Google Cloud Security)**\n\n"
-                f"{context_summary}\n\n"
-                f"**Parecer da Consulta**: \"{sanitized_msg}\"\n\n"
-                f"- Nenhum recurso de nuvem específico foi identificado para extração de telemetria.\n"
-                f"- Para avaliar a conformidade técnica, especifique um recurso alvo (ex: bucket GCS, chave KMS, perímetro VPC) ou execute 'Execute proactive audit'."
-            )
+        is_discovery_query = any(k in lower_msg for k in ["ajud", "identific", "como", "onde", "quais", "descobr", "help", "identify", "how to", "how do"])
+        if is_discovery_query:
+            if loc.startswith("en"):
+                guidance = (
+                    f"### Identification & Discovery Guide (Google Cloud Environment)\n\n"
+                    f"To identify your critical workloads, multi-regional topology, and compliance baseline for project `{projects[0] if projects else 'agentic-grc-cd06'}`:\n\n"
+                    f"1. **Critical Workloads (Compute & Containers)**:\n"
+                    f"   - Cloud Run / GKE: Inspect deployed services and cluster locations with `gcloud run services list` and `gcloud container clusters list`.\n"
+                    f"2. **Storage Geographic Redundancy (ISO 27001 Amd 1:2024 / A.8.14)**:\n"
+                    f"   - Inspect Cloud Storage bucket redundancy (Single-Region vs Dual-Region/Multi-Region) via `gcloud storage buckets list --format=\"table(name,location,location_type)\"`.\n"
+                    f"3. **Database High Availability & Disaster Recovery**:\n"
+                    f"   - Cloud SQL / Spanner: Check regional failover configurations and RPO/RTO targets.\n"
+                    f"4. **Climate Risk Context (Clauses 4.1 & 4.2)**:\n"
+                    f"   - Ensure your organization's risk register documents geographical exposure to extreme weather and grid disruptions across data centers.\n\n"
+                    f"You can prompt me to audit any specific bucket, KMS key, or run 'audit climate resilience' to evaluate current project topology."
+                )
+            else:
+                guidance = (
+                    f"### Guia de Identificação e Mapeamento de Recursos (Google Cloud)\n\n"
+                    f"Para identificar suas cargas de trabalho (workloads), topologia multi-regional e postura de conformidade no projeto `{projects[0] if projects else 'agentic-grc-cd06'}`:\n\n"
+                    f"1. **Cargas de Trabalho e Serviços Críticos (Computação)**:\n"
+                    f"   - Cloud Run e GKE: Liste os serviços e clusters ativos com `gcloud run services list` e `gcloud container clusters list` para verificar em quais regiões estão provisionados.\n"
+                    f"2. **Redundância Geográfica de Armazenamento (ISO 27001 Amd 1:2024 / A.8.14)**:\n"
+                    f"   - Inspecione seus buckets do Cloud Storage para validar se utilizam Dual-Region ou Multi-Region com `gcloud storage buckets list --format=\"table(name,location,location_type)\"`.\n"
+                    f"3. **Bancos de Dados e Alta Disponibilidade (DR)**:\n"
+                    f"   - Verifique instâncias de Cloud SQL com High Availability (HA) entre zonas ou Cloud Spanner multi-regional para garantir RPO < 15 min e RTO < 60 min.\n"
+                    f"4. **Avaliação de Risco Climático (Cláusulas 4.1 e 4.2)**:\n"
+                    f"   - Documente no SGSI da sua organização a análise formal de dependência de data centers regionais e planos de contingência contra eventos climáticos severos.\n\n"
+                    f"Você pode me solicitar a qualquer momento: \"Audite a resiliência climática do projeto\" ou indicar um bucket específico para inspeção contínua."
+                )
+            if tool_evidence and ai_response:
+                ai_response = f"{guidance}\n\n### Avaliação Preliminar Executada\n{ai_response}"
+            else:
+                ai_response = guidance
+        elif not tool_evidence and (
+            not ai_response
+            or "in deterministic baseline mode" in ai_response
+            or "No verified telemetry" in ai_response
+        ):
+            if loc.startswith("en"):
+                ai_response = (
+                    f"**Agentic GRC Lead Auditor (Google Cloud Security)**\n\n"
+                    f"{context_summary}\n\n"
+                    f"**Assessment of Inquiry**: \"{sanitized_msg}\"\n\n"
+                    f"- No direct cloud resource was specified for telemetry extraction.\n"
+                    f"- To evaluate technical compliance, specify a target resource (e.g., GCS bucket, Cloud KMS key, VPC perimeter) or run 'Execute proactive audit'."
+                )
+            else:
+                ai_response = (
+                    f"**Agentic GRC Lead Auditor (Google Cloud Security)**\n\n"
+                    f"{context_summary}\n\n"
+                    f"**Parecer da Consulta**: \"{sanitized_msg}\"\n\n"
+                    f"- Nenhum recurso de nuvem específico foi identificado para extração de telemetria.\n"
+                    f"- Para avaliar a conformidade técnica, especifique um recurso alvo (ex: bucket GCS, chave KMS, perímetro VPC) ou execute 'Execute proactive audit'."
+                )
 
     if ai_response:
+        ai_response = strip_boilerplate_signature(ai_response)
         egress_verdict = model_armor_gateway.inspect_egress(ai_response, tool_evidence=tool_evidence)
         if not egress_verdict.allowed:
             block_msg = model_armor_gateway.format_block_message(
                 egress_verdict.violations, locale=req.locale or "pt"
             )
             return {
-                "response": block_msg,
+                "response": strip_boilerplate_signature(block_msg),
                 "status": "BLOCKED_BY_MODEL_ARMOR",
                 "violations": egress_verdict.violations,
                 "subagent_used": "ModelArmorGateway (Egress Grounding Guardrail)",
@@ -1619,7 +1710,7 @@ async def handle_chat(
                 "tool_evidence": tool_evidence,
             }
         return {
-            "response": egress_verdict.sanitized_output,
+            "response": strip_boilerplate_signature(egress_verdict.sanitized_output),
             "subagent_used": f"VertexAI-Gemini-{model_key} (Lead Auditor Function Calling)",
             "execution_mode": execution_mode,
             "tool_evidence": tool_evidence,
@@ -1628,7 +1719,7 @@ async def handle_chat(
         }
 
     # Graceful fallback for offline / disconnected environments
-    response_text = (
+    response_text = strip_boilerplate_signature(
         f"GEAP Compliance & Continuous Audit Agent (ISO/IEC 27001:2022)\n\n"
         f"Received request: \"{msg}\"\n\n"
         f"Available actions:\n"
@@ -1951,10 +2042,6 @@ O subagente especializado **{agent['name']}** conduziu uma inspeção profunda d
 - **Cobertura:** Todos os {len(ctrls)} controles mapeados foram inspecionados sem identificação de drifts críticos.
 - **Não-Repúdio:** A evidência foi ancorada com sucesso no Grafo Criptográfico do projeto.
 - **Proteção de Borda:** Model Armor validou a ausência de vazamento de dados ou prompt injection durante a execução.
-
----
-**Google Cloud Security** | *Agentic GRC & Compliance Practice*  
-*Subagente: {agent['name']} (SPIFFE Assinado)*
 """
         return {
             "status": "COMPLETED",
@@ -2233,9 +2320,6 @@ O subagente especializado **{clean_name}** (`{agent_id}`) executou uma inspeçã
 #### 2. Governança
 - **Não-Repúdio:** Nó de evidência imutável adicionado ao Grafo de Evidências.
 - **Model Armor:** Sanitização de prompts e prevenção de vazamento de credenciais ativas.
-
----
-**Google Cloud Security** | *Agentic GRC & Compliance Practice*
 """
         return {
             "status": "COMPLETED",

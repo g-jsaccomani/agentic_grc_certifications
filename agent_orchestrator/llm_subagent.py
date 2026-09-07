@@ -130,7 +130,7 @@ class LLMSubAgent:
                     "recent_events": {"type": "array", "description": "Recent security events"},
                     "threat_feed_enabled": {"type": "boolean", "description": "Active threat feed flag"},
                 },
-                "required": ["log_sink_name", "sink_destination"],
+                "required": [],
             },
             "audit_climate_resilience": {
                 "type": "object",
@@ -139,7 +139,7 @@ class LLMSubAgent:
                     "topology": {"type": "object", "description": "Multi-region architecture topology"},
                     "climate_risk_assessed": {"type": "boolean", "description": "Climate risk assessment flag"},
                 },
-                "required": ["workload_id", "topology"],
+                "required": [],
             },
         }
 
@@ -184,18 +184,41 @@ class LLMSubAgent:
         calls = LLMSubAgent._extract_function_calls(resp)
         return calls[0] if calls else None
 
+    @staticmethod
+    def _build_contents(user_task: str, history: Optional[List[Dict[str, str]]] = None) -> List[types.Content]:
+        """Constructs alternating multi-turn Content list for Gemini models."""
+        contents: List[types.Content] = []
+        if history:
+            for turn in history:
+                role = "user" if turn.get("role") == "user" else "model"
+                text = str(turn.get("content") or "").strip()
+                if not text:
+                    continue
+                if contents and contents[-1].role == role:
+                    contents[-1].parts[0].text += "\n\n" + text
+                else:
+                    contents.append(types.Content(role=role, parts=[types.Part(text=text)]))
+            if contents and contents[-1].role == "user":
+                contents[-1].parts[0].text += "\n\n" + user_task
+            else:
+                contents.append(types.Content(role="user", parts=[types.Part(text=user_task)]))
+        else:
+            contents = [types.Content(role="user", parts=[types.Part(text=user_task)])]
+        return contents
+
     def run(
         self,
         user_task: str,
         max_turns: int = 4,
         context: Optional[Dict[str, Any]] = None,
+        history: Optional[List[Dict[str, str]]] = None,
     ) -> Dict[str, Any]:
         """Runs the subagent execution loop with function calling and deterministic fallback."""
         if self.client is None:
             logger.info("GenAI client unavailable; running deterministic fallback for '%s'", self.name)
             return self._fallback_execute(user_task, context)
 
-        contents = [types.Content(role="user", parts=[types.Part(text=user_task)])]
+        contents = self._build_contents(user_task, history)
         tool_evidence: List[Dict[str, Any]] = []
 
         try:
@@ -259,12 +282,13 @@ class LLMSubAgent:
         user_task: str,
         max_turns: int = 4,
         context: Optional[Dict[str, Any]] = None,
+        history: Optional[List[Dict[str, str]]] = None,
     ) -> Dict[str, Any]:
         """Asynchronous execution loop using client.aio or non-blocking threadpool."""
         if self.client is None or not hasattr(self.client, "aio"):
-            return await asyncio.to_thread(self.run, user_task, max_turns, context)
+            return await asyncio.to_thread(self.run, user_task, max_turns, context, history)
 
-        contents = [types.Content(role="user", parts=[types.Part(text=user_task)])]
+        contents = self._build_contents(user_task, history)
         tool_evidence: List[Dict[str, Any]] = []
 
         try:
@@ -322,7 +346,7 @@ class LLMSubAgent:
         except Exception as exc:
             logger.warning("Async LLM call failed for '%s' (%s); trying sync runner.", self.name, exc)
             try:
-                return await asyncio.to_thread(self.run, user_task, max_turns, context)
+                return await asyncio.to_thread(self.run, user_task, max_turns, context, history)
             except Exception as sync_exc:
                 logger.warning("Sync LLM call failed for '%s' (%s); falling back to deterministic execution.", self.name, sync_exc)
                 return await asyncio.to_thread(self._fallback_execute, user_task, context)
@@ -354,22 +378,37 @@ class LLMSubAgent:
                 isinstance(e.get("result"), dict) and e["result"].get("status") == "UNDETERMINED"
                 for e in tool_evidence
             )
+            detail_lines = []
+            for ev in tool_evidence:
+                t = ev.get("tool", "")
+                r = ev.get("result", {})
+                if isinstance(r, dict):
+                    st = r.get("status", "UNKNOWN")
+                    std = r.get("standard") or r.get("control") or t
+                    detail_lines.append(f"- **{std}**: `{st}`")
+                    for v in r.get("violations", []):
+                        detail_lines.append(f"  * Violação: {v}")
+                    for rec in r.get("recommendations", []):
+                        detail_lines.append(f"  * Recomendação: {rec}")
+
+            details_text = ("\n\n" + "\n".join(detail_lines)) if detail_lines else ""
+
             if has_violations:
                 verdict = "NON_COMPLIANT"
                 narrative = (
                     f"Auditor '{self.name}': Non-compliance detected across assessed controls. "
-                    "Remediations required per ISO/IEC 27001:2022 specifications."
+                    f"Remediations required per ISO/IEC 27001:2022 specifications.{details_text}"
                 )
             elif has_undetermined:
                 verdict = "UNDETERMINED"
                 narrative = (
                     f"Auditor '{self.name}': Telemetry insufficient to establish definitive compliance. "
-                    "Status remains UNDETERMINED."
+                    f"Status remains UNDETERMINED.{details_text}"
                 )
             else:
                 verdict = "COMPLIANT"
                 narrative = (
-                    f"Auditor '{self.name}': Technical evidence validates full adherence to assessed ISO 27001 requirements."
+                    f"Auditor '{self.name}': Technical evidence validates full adherence to assessed ISO 27001 requirements.{details_text}"
                 )
         else:
             verdict = "UNDETERMINED"

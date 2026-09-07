@@ -10019,6 +10019,7 @@ function openNewsModal(newsKey) {
                     subtitle: `${Array.from(selectedProjectIds)[0] || 'agentic-grc-cd06'} • ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`,
                     timestamp: Date.now(),
                     messagesHtml: "",
+                    messages: [],
                     status: "running"
                 };
                 chatSessions.unshift(currentSession);
@@ -10026,6 +10027,11 @@ function openNewsModal(newsKey) {
                 renderChatSessionsHistory();
             } else {
                 currentSession = chatSessions.find(s => s.id === sessionId);
+            }
+
+            if (currentSession) {
+                if (!currentSession.messages) currentSession.messages = [];
+                currentSession.messages.push({ role: "user", content: text });
             }
 
             const userRow = document.createElement("div");
@@ -10069,6 +10075,9 @@ function openNewsModal(newsKey) {
                 if (window.currentUserIdToken) {
                     chatHeaders["X-Goog-Id-Token"] = window.currentUserIdToken;
                 }
+                const previousTurns = currentSession && currentSession.messages
+                    ? currentSession.messages.slice(0, -1).slice(-6)
+                    : [];
                 const res = await fetch("/api/chat", {
                     method: "POST",
                     headers: chatHeaders,
@@ -10079,7 +10088,8 @@ function openNewsModal(newsKey) {
                         model: currentSelectedModel,
                         locale: window.currentLanguage || 'pt',
                         user_token: window.currentUserToken || undefined,
-                        id_token: window.currentUserIdToken || undefined
+                        id_token: window.currentUserIdToken || undefined,
+                        history: previousTurns
                     })
                 });
                 const data = await res.json();
@@ -10090,6 +10100,8 @@ function openNewsModal(newsKey) {
                 }
                 if (currentSession) {
                     currentSession.status = "completed";
+                    if (!currentSession.messages) currentSession.messages = [];
+                    currentSession.messages.push({ role: "model", content: data.response || "" });
                     currentSession.messagesHtml = chatArea.innerHTML;
                     saveChatSessions();
                     renderChatSessionsHistory();
@@ -10430,6 +10442,12 @@ function openNewsModal(newsKey) {
         }
 
         function renderExecutiveMarkdown(md) {
+            if (!md) return "";
+            // Strip repetitive signature footers from response
+            md = md.replace(/(?:\r?\n)*---(?:\r?\n)+\s*\*\*?Google Cloud Security\*\*?[\s\S]*?(?:Practice|Ancoragem|Anclaje|Anchoring|GEAP|SHA-256)[\s\S]*$/gi, '');
+            md = md.replace(/(?:\r?\n)+\s*\*\*?Google Cloud Security\*\*?\s*\|\s*\*?Agentic GRC[\s\S]*$/gi, '');
+            md = md.replace(/(?:\r?\n)+\s*\*?Gemini Enterprise Agent Platform \(GEAP\)[\s\S]*$/gi, '');
+            md = md.replace(/(?:\r?\n)+\s*Google Cloud Security\s*\|\s*Agentic GRC & Compliance Practice[\s\S]*$/gi, '');
             if (typeof marked !== 'undefined') {
                 try {
                     return marked.parse(md);
