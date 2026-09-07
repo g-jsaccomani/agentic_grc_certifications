@@ -844,3 +844,31 @@ gcloud projects add-iam-policy-binding fnlab-ai-data-8fa913 \
   done
   ```
 - Deploy regional Cloud Load Balancers with multi-region backend services (`us-central1` and `us-east1`) for automated disaster recovery failover.
+
+---
+
+### 7.6 Live Non-Compliance Verification & Production Deployment
+
+All 5 virtual machines across the organization (`jsaccomani.altostrat.com`) were labeled in Google Cloud with audit metadata and their corresponding controls set to `NON_COMPLIANT` in the core engine:
+
+1. **GCP Instance Labels Applied**:
+   - `vm-legacy-crm`: `compliance_iso27001=non_compliant`
+   - `vm-payment-api`: `compliance_iso27001=non_compliant, audit_gap=bola_and_open_ssh`
+   - `vm-ai-inference`: `compliance_iso27001=non_compliant, audit_gap=primitive_editor_role`
+   - `vm-mgmt-bastion`: `compliance_iso27001=non_compliant, audit_gap=default_compute_sa`
+   - `vm-aispr-runner`: `compliance_iso27001=non_compliant, audit_gap=broad_oauth_scope`
+
+2. **GCP Instance Metadata Applied**:
+   - `audit-compliance-status: NON_COMPLIANT`
+   - `audit-findings: A.5.15, A.5.17, A.8.14, A.8.20, A.8.24, A.8.28`
+
+3. **Core Engine & Report Metrics (`mcp-server-grc`)**:
+   - **Overall Compliance Score**: `78.5%`
+   - **Rating**: `QUALIFIED (ACTION REQUIRED - 9 NON-COMPLIANCES DETECTED)`
+   - **Drift Trajectory**: `DRIFT_DETECTED`
+   - **Export Formats**: JSON (`vm_fleet_audit`), HTML (high-visibility red badges & VM table), Markdown (detailed gap analysis).
+
+4. **Production Cloud Run Service**:
+   - **Active Revision**: `mcp-server-grc-00046-lvz` (100% traffic)
+   - **Service URL**: `https://mcp-server-grc-938078169010.us-central1.run.app`
+
