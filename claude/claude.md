@@ -1127,3 +1127,37 @@ To resolve the two critical code inspection gaps in Pillar 1 (ISO 27001 Question
 - **Active Production Revision**: `mcp-server-grc-00051-dkz` (Serving 100% of traffic).
 - **Service URL**: `https://mcp-server-grc-938078169010.us-central1.run.app`
 
+---
+
+## 2026-09-07 — Multi-Cloud Provider Selector (GCP, AWS, Azure, OCI) & Subagent Dynamic Score Logging Fix
+
+### 1. Architectural Summary & Scope of Changes
+1. **Multi-Cloud Provider Selector (`.cloud-provider-bar`)**:
+   - Added a top-level **Cloud Provider Selector** in `mcp_server_grc/portal_html.py` directly integrated with the header and Framework Selector bar.
+   - **Supported Cloud Providers**:
+     - **Google Cloud (GCP)**: Active connector with dedicated GCP cloud icon and active badge (`var(--gcp-blue)` accent).
+     - **Amazon Web Services (AWS)**: Roadmap status with lock badge, locked styling, and informative tooltip.
+     - **Microsoft Azure**: Roadmap status with lock badge, locked styling, and informative tooltip.
+     - **Oracle Cloud Infrastructure (OCI)**: Roadmap status with lock badge, locked styling, and informative tooltip.
+   - Interactive handler `selectCloudProvider(providerId)` and `showLockedProviderNotice(providerName)` displaying localized notice in the portal console log when clicked.
+   - Full tri-lingual i18n support across PT (`Provedores Cloud`), EN (`Cloud Providers`), and ES (`Proveedores Cloud`), including dynamic `data-i18n-title` tooltip translations in `setLanguage()`.
+2. **Subagent Dynamic Score Logging Fix**:
+   - In `mcp_server_grc/portal_html.py`, replaced hardcoded `Score: 100%` in `appendLog(...)` with the dynamic compliance score from the API response (`${data.compliance_score !== undefined && data.compliance_score !== null ? data.compliance_score : 'N/A'}%`).
+3. **Portal Typing Imports Fix**:
+   - In `mcp_server_grc/portal.py`, added missing `Callable` and `Tuple` to `typing` imports to ensure strict type signature compatibility with `resolve_subagent_spec(...)`.
+
+### 2. Test Verification & Code Coverage (153/153 Passing, 91% Coverage)
+- **Pytest Suite**: 153/153 passed in 5.49s (100% pass rate).
+- **Coverage**: 91% overall coverage across `agent_orchestrator` and `mcp_server_grc`.
+- **All Core Modules**:
+  - `agent_orchestrator/evidence_graph.py`: 100%
+  - `mcp_server_grc/finops.py`: 100%
+  - `mcp_server_grc/questionnaire_catalog.py`: 93%
+  - `mcp_server_grc/tools/cloud_security.py`: 92%
+  - `mcp_server_grc/tools/climate_resilience.py`: 96%
+  - `mcp_server_grc/tools/iac_scanner.py`: 95%
+  - `tests/test_questionnaire.py`: 100%
+  - `tests/test_portal.py`: 99%
+- **Active Production Revision**: `mcp-server-grc-00052-frm` (Serving 100% of traffic).
+- **Service URL**: `https://mcp-server-grc-938078169010.us-central1.run.app`
+

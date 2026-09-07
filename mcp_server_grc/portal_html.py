@@ -939,6 +939,140 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             line-height: 1.2;
         }
 
+        /* Cloud Provider Connector Selector in Sidebar Bottom */
+        .provider-selector-strip-wrapper {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 7px 8px;
+            margin-bottom: 8px;
+            box-sizing: border-box;
+        }
+
+        .provider-strip-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .provider-strip-title {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+
+        .provider-cards-strip {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+
+        .provider-card {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 6px;
+            border-radius: 6px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-surface);
+            transition: var(--transition-smooth);
+            min-height: 38px;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+        .provider-card.active {
+            border-color: var(--gcp-blue);
+            background: rgba(138, 180, 248, 0.08);
+            box-shadow: 0 0 0 1px var(--gcp-blue), 0 2px 6px rgba(138, 180, 248, 0.12);
+            cursor: default;
+        }
+
+        .provider-card.locked {
+            border-color: var(--border-subtle);
+            background: rgba(40, 42, 44, 0.45);
+            cursor: pointer;
+            opacity: 0.72;
+            user-select: none;
+        }
+
+        .provider-card.locked:hover {
+            opacity: 0.95;
+            background: rgba(50, 52, 55, 0.6);
+            border-color: var(--border-focus);
+        }
+
+        .provider-card-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .provider-card-icon.shield-active {
+            background: rgba(138, 180, 248, 0.15);
+            color: var(--gcp-blue);
+        }
+
+        .provider-card-icon.shield-locked {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-tertiary);
+        }
+
+        .provider-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .provider-card-name {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        .provider-badge-active {
+            font-size: 8px;
+            font-weight: 600;
+            color: var(--gcp-blue);
+            background: rgba(138, 180, 248, 0.15);
+            padding: 1px 4px;
+            border-radius: 3px;
+            display: inline-block;
+            width: fit-content;
+            line-height: 1.1;
+        }
+
+        .provider-badge-locked {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 7.5px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1px 4px;
+            border-radius: 3px;
+            width: fit-content;
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+
         /* Viewport */
         .views-viewport {
             flex: 1;
@@ -4650,6 +4784,90 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         </div>
 
         <div class="sidebar-bottom">
+            <!-- Conectores Multi-Cloud (Cloud Provider Selector) -->
+            <div class="provider-selector-strip-wrapper" id="cloudProviderSelector">
+                <div class="provider-strip-header">
+                    <div class="provider-strip-title">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue);">
+                            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                        </svg>
+                        <span data-i18n="cloud_provider_title">Provedores Cloud</span>
+                    </div>
+                </div>
+                <div class="provider-cards-strip">
+                    <!-- 1. Google Cloud (Active) -->
+                    <div class="provider-card active" id="provCardGcp" onclick="selectCloudProvider('gcp')" title="Google Cloud - Conector ativo" data-i18n-title="provider_tooltip_gcp">
+                        <div class="provider-card-icon shield-active">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                <path d="M9 12l2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <div class="provider-card-info">
+                            <div class="provider-card-name">Google Cloud</div>
+                            <span class="provider-badge-active" data-i18n="framework_badge_active">Ativo</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. AWS (Locked) -->
+                    <div class="provider-card locked" id="provCardAws" onclick="showLockedProviderNotice('AWS')" title="AWS - No roadmap de desenvolvimento" data-i18n-title="provider_tooltip_aws">
+                        <div class="provider-card-icon shield-locked">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                        </div>
+                        <div class="provider-card-info">
+                            <div class="provider-card-name">AWS</div>
+                            <span class="provider-badge-locked">
+                                <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 3. Azure (Locked) -->
+                    <div class="provider-card locked" id="provCardAzure" onclick="showLockedProviderNotice('Azure')" title="Azure - No roadmap de desenvolvimento" data-i18n-title="provider_tooltip_azure">
+                        <div class="provider-card-icon shield-locked">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                        </div>
+                        <div class="provider-card-info">
+                            <div class="provider-card-name">Azure</div>
+                            <span class="provider-badge-locked">
+                                <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Oracle Cloud Infrastructure (Locked) -->
+                    <div class="provider-card locked" id="provCardOci" onclick="showLockedProviderNotice('Oracle Cloud Infrastructure')" title="Oracle Cloud Infrastructure - No roadmap de desenvolvimento" data-i18n-title="provider_tooltip_oci">
+                        <div class="provider-card-icon shield-locked">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                        </div>
+                        <div class="provider-card-info">
+                            <div class="provider-card-name">Oracle Cloud</div>
+                            <span class="provider-badge-locked">
+                                <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Escopo de Projetos Selecionados (GCP Organization Dropdown) -->
             <div class="scope-box" id="scopeContainer">
                 <div class="scope-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
@@ -7709,6 +7927,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 framework_tooltip_pcidss: "PCI DSS v4.0 - No roadmap de desenvolvimento",
                 framework_tooltip_cmmi: "CMMI DEV/SVC - No roadmap de desenvolvimento",
                 framework_tooltip_more: "Novas estruturas regulatórias e normativas planejadas",
+                cloud_provider_title: "Provedores Cloud",
+                provider_tooltip_gcp: "Google Cloud - Conector ativo",
+                provider_tooltip_aws: "AWS - No roadmap de desenvolvimento",
+                provider_tooltip_azure: "Azure - No roadmap de desenvolvimento",
+                provider_tooltip_oci: "Oracle Cloud Infrastructure - No roadmap de desenvolvimento",
+                provider_locked_notice: "{name} - No roadmap de desenvolvimento multi-cloud.",
                 home_search_title: "O que você gostaria de verificar hoje?",
                 home_search_subtitle: "Faça perguntas em linguagem natural sobre segurança, acesso e conformidade da sua nuvem.",
                 home_search_label: "O que você gostaria de verificar hoje?",
@@ -8001,6 +8225,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 framework_tooltip_pcidss: "PCI DSS v4.0 - On the development roadmap",
                 framework_tooltip_cmmi: "CMMI DEV/SVC - On the development roadmap",
                 framework_tooltip_more: "Additional regulatory and compliance frameworks planned",
+                cloud_provider_title: "Cloud Providers",
+                provider_tooltip_gcp: "Google Cloud - Active connector",
+                provider_tooltip_aws: "AWS - On the development roadmap",
+                provider_tooltip_azure: "Azure - On the development roadmap",
+                provider_tooltip_oci: "Oracle Cloud Infrastructure - On the development roadmap",
+                provider_locked_notice: "{name} - On the multi-cloud development roadmap.",
                 home_search_title: "What would you like to check today?",
                 home_search_subtitle: "Ask questions in plain language about your cloud security, access, and compliance.",
                 home_search_label: "What would you like to check today?",
@@ -8293,6 +8523,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 framework_tooltip_pcidss: "PCI DSS v4.0 - En el roadmap de desarrollo",
                 framework_tooltip_cmmi: "CMMI DEV/SVC - En el roadmap de desarrollo",
                 framework_tooltip_more: "Nuevas estructuras regulatorias y normativas planificadas",
+                cloud_provider_title: "Proveedores Cloud",
+                provider_tooltip_gcp: "Google Cloud - Conector activo",
+                provider_tooltip_aws: "AWS - En el roadmap de desarrollo",
+                provider_tooltip_azure: "Azure - En el roadmap de desarrollo",
+                provider_tooltip_oci: "Oracle Cloud Infrastructure - En el roadmap de desarrollo",
+                provider_locked_notice: "{name} - En el roadmap de desarrollo multi-cloud.",
                 home_search_title: "¿Qué te gustaría verificar hoy?",
                 home_search_subtitle: "Haz preguntas en lenguaje sencillo sobre la seguridad, el acceso y el cumplimiento de tu nube.",
                 home_search_label: "¿Qué te gustaría verificar hoy?",
@@ -8417,6 +8653,14 @@ window.currentLanguage = 'pt';
                 const key = el.getAttribute('data-i18n-prompt');
                 if (dict[key]) {
                     el.setAttribute('data-prompt', dict[key]);
+                }
+            });
+
+            // Update title tooltips
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                const key = el.getAttribute('data-i18n-title');
+                if (dict[key]) {
+                    el.title = dict[key];
                 }
             });
 
@@ -9182,7 +9426,7 @@ window.currentLanguage = 'pt';
                     if (countElem) countElem.innerText = data.evidence_nodes;
                 }
 
-                appendLog(`[Subagente ${displayName}] Concluído com Sucesso! Score: 100%`, "success");
+                appendLog(`[Subagente ${displayName}] Concluído com Sucesso! Score: ${data.compliance_score !== undefined && data.compliance_score !== null ? data.compliance_score : 'N/A'}%`, "success");
             } catch (err) {
                 const errorHtml = `<span style="color: var(--gcp-red)">Erro ao executar o subagente ${escapeHtml(displayName)}: ${err}</span>`;
                 const replyElem = document.getElementById(replyId);
@@ -9704,6 +9948,24 @@ Formulário preenchido com o subagente recomendado!`);
                 if (card) card.classList.add('active');
             }
             closeFrameworkSelectorModal();
+        }
+
+        let currentCloudProvider = 'gcp';
+
+        function selectCloudProvider(providerId) {
+            if (providerId === 'gcp') {
+                currentCloudProvider = 'gcp';
+                const card = document.getElementById('provCardGcp');
+                if (card) card.classList.add('active');
+            }
+        }
+
+        function showLockedProviderNotice(providerName) {
+            const lang = window.currentLanguage || 'pt';
+            const dict = (typeof I18N !== 'undefined' && I18N[lang]) ? I18N[lang] : {};
+            const tmpl = dict.provider_locked_notice || "{name} - No roadmap de desenvolvimento multi-cloud.";
+            const msg = tmpl.replace('{name}', providerName);
+            appendLog(`[Multi-Cloud] ${msg}`, "info");
         }
 
         // Sub-tabs switcher for Unified Reports Hub (#view-reports)

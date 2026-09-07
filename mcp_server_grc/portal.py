@@ -11,7 +11,7 @@ import json
 import logging
 import datetime
 import hashlib
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from fastapi import APIRouter, File, UploadFile, Response, Query, HTTPException, Header, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
@@ -21,10 +21,10 @@ from agent_orchestrator.evidence_graph import EvidenceVerificationTier
 from agent_orchestrator.gateway import ModelArmorGateway
 from agent_orchestrator.continuous_intelligence import ContinuousIntelligenceEngine
 from agent_orchestrator.llm_subagent import LLMSubAgent
-from agent_orchestrator.subagents.annex_a_agent import AnnexASubAgent
-from agent_orchestrator.subagents.gcp_telemetry_agent import GCPTelemetrySubAgent
-from agent_orchestrator.subagents.org_policies_agent import OrgPoliciesSubAgent
-from agent_orchestrator.subagents.horizon_scanner_agent import HorizonScannerSubAgent
+from agent_orchestrator.subagents.annex_a_agent import AnnexASubAgent, ANNEX_A_SYSTEM_PROMPT
+from agent_orchestrator.subagents.gcp_telemetry_agent import GCPTelemetrySubAgent, GCP_TELEMETRY_SYSTEM_PROMPT
+from agent_orchestrator.subagents.org_policies_agent import OrgPoliciesSubAgent, ORG_POLICIES_SYSTEM_PROMPT
+from agent_orchestrator.subagents.horizon_scanner_agent import HorizonScannerSubAgent, HORIZON_SCANNER_SYSTEM_PROMPT
 from agent_orchestrator.zero_copy_connector import (
     ConnectorSource,
     ZeroCopyConnectorManager,
@@ -2433,337 +2433,355 @@ async def delete_custom_subagent(agent_id: str):
     return {"status": "DELETED", "agent_id": agent_id}
 
 
+def resolve_subagent_spec(
+    agent_id: str,
+    project_id: str,
+    bearer_token: Optional[str] = None,
+) -> Tuple[str, str, str, List[str], Dict[str, Callable[..., Any]], str]:
+    """Resolves subagent name, role, system prompt, target controls, tools, and model id."""
+    custom_list = load_custom_subagents()
+    custom = next((a for a in custom_list if a.get("id") == agent_id), None)
+
+    base_tools = get_auditor_tools(bearer_token=bearer_token)
+    all_known_tools: Dict[str, Callable[..., Any]] = {
+        **base_tools,
+        "audit_cryptography_a824": annex_a_subagent._eval_cryptography_a824,
+        "audit_secure_development_a828": annex_a_subagent._eval_secure_development_a828,
+        "cross_reference_policy_with_tech_state": org_policies_subagent._eval_policy_alignment,
+        "generate_policy_amendment_proposal": horizon_scanner_subagent._eval_policy_amendment,
+        "scan_regulatory_updates": lambda **kw: horizon_scanner_subagent.scan_regulatory_updates(),
+    }
+
+    alias_map = {
+        "asset_inventory": "audit_cloud_security",
+        "gcs_audit": "audit_cloud_security",
+        "gke_audit": "audit_cloud_security",
+        "iam_recommender": "audit_cloud_security",
+        "privileged_access_manager": "audit_cloud_security",
+        "cloud_kms": "audit_cryptography_a824",
+        "bigquery_audit": "audit_monitoring_activities",
+        "cloud_logging": "audit_monitoring_activities",
+        "vpc_sc": "audit_data_leakage_prevention",
+        "beyondcorp": "audit_data_leakage_prevention",
+        "iac_scanner": "scan_iac_configuration",
+        "binary_authorization": "audit_secure_development_a828",
+        "artifact_registry": "audit_secure_development_a828",
+        "sast_scanner": "audit_secure_development_a828",
+        "github_pr": "audit_secure_development_a828",
+        "zero_copy_drive": "cross_reference_policy_with_tech_state",
+        "org_policies": "cross_reference_policy_with_tech_state",
+        "compliance_checker": "audit_cloud_security",
+        "regulatory_monitor": "generate_policy_amendment_proposal",
+        "policy_synthesis": "generate_policy_amendment_proposal",
+    }
+
+    if custom:
+        agent_name = custom.get("name", agent_id)
+        agent_role = custom.get("role", "Auditor Especialista")
+        system_instruction = custom.get("system_prompt") or f"Você é o auditor {agent_name} especializado em conformidade ISO 27001."
+        target_controls = custom.get("target_controls", ["A.5.1"])
+        model_id = custom.get("model", "gemini-2.5-flash")
+
+        selected_tools = {}
+        for t_name in custom.get("tools", []):
+            if t_name in all_known_tools:
+                selected_tools[t_name] = all_known_tools[t_name]
+            elif t_name in alias_map and alias_map[t_name] in all_known_tools:
+                resolved_key = alias_map[t_name]
+                selected_tools[resolved_key] = all_known_tools[resolved_key]
+        resolved_tools = selected_tools if selected_tools else base_tools
+        return agent_name, agent_role, system_instruction, target_controls, resolved_tools, model_id
+
+    if agent_id == "annex_a":
+        return (
+            "Annex A Auditor Agent",
+            "Auditor Técnico de Criptografia & Controles Tecnológicos (A.8)",
+            ANNEX_A_SYSTEM_PROMPT,
+            ["A.5.23", "A.8.9", "A.8.12", "A.8.16", "A.8.24", "A.8.28"],
+            annex_a_subagent.tools,
+            "gemini-2.5-flash",
+        )
+    elif agent_id == "gcp_telemetry":
+        return (
+            "GCP Telemetry & Infrastructure Specialist",
+            "Extração e Análise em Tempo Real de Telemetria e Ativos GCP",
+            GCP_TELEMETRY_SYSTEM_PROMPT,
+            ["A.5.23", "A.8.12", "A.8.16"],
+            gcp_telemetry_subagent.tools,
+            "gemini-2.5-flash",
+        )
+    elif agent_id == "org_policies":
+        return (
+            "Organization Policies Enforcer",
+            "Auditoria & Enforce de Políticas de Organização GCP",
+            ORG_POLICIES_SYSTEM_PROMPT,
+            ["A.5.1", "A.5.15", "A.5.23"],
+            org_policies_subagent.tools,
+            "gemini-2.5-flash",
+        )
+    elif agent_id == "horizon_scanner":
+        return (
+            "Horizon Scanner Agent",
+            "Deep Research Regulatório & Monitoramento de Emendas Normativas",
+            HORIZON_SCANNER_SYSTEM_PROMPT,
+            ["A.5.1", "A.5.31"],
+            horizon_scanner_subagent.tools,
+            "gemini-2.5-flash",
+        )
+    elif agent_id == "iac_scanner":
+        return (
+            "IaC Scanner Agent",
+            "Análise Estática de Infraestrutura como Código (Terraform / Ansible)",
+            "Você é o Auditor Especialista em IaC Scanner. Realize a análise estática de segurança em configurações de Infraestrutura como Código contra a ISO 27001.",
+            ["A.8.20", "A.8.28"],
+            {"scan_iac_configuration": scan_iac_configuration},
+            "gemini-2.5-flash",
+        )
+    elif agent_id == "codemender":
+        return (
+            "CodeMender Agent",
+            "Desenvolvimento Seguro & Remediação Autônoma de Vulnerabilidades em Código (A.8.28)",
+            "Você é o Auditor Especialista CodeMender para o controle A.8.28 da ISO 27001. Inspecione repositórios e políticas de desenvolvimento seguro.",
+            ["A.8.28"],
+            {"audit_secure_development_a828": annex_a_subagent._eval_secure_development_a828},
+            "gemini-2.5-flash",
+        )
+    else:
+        clean_name = agent_id.replace("_", " ").replace("-", " ").title()
+        return (
+            f"{clean_name} Agent",
+            "Auditoria Especializada de Conformidade",
+            f"Você é o auditor especializado {clean_name}. Execute uma auditoria rigorosa de conformidade no projeto contra a ISO 27001.",
+            ["A.5.1"],
+            base_tools,
+            "gemini-2.5-flash",
+        )
+
+
 @router.post("/api/subagents/{agent_id}/run")
-async def run_subagent_task(agent_id: str, project_id: Optional[str] = Query(default="agentic-grc-cd06")):
-    """Executes a specific subagent on demand with rich markdown audit reporting."""
-    custom = load_custom_subagents()
-    agent = next((a for a in custom if a["id"] == agent_id), None)
+async def run_subagent_task(
+    agent_id: str,
+    project_id: Optional[str] = Query(default="agentic-grc-cd06"),
+    authorization: Optional[str] = Header(None),
+):
+    """Executes a specific subagent on demand using real LLMSubAgent.arun() and deterministic tools."""
+    user_token = None
+    if authorization and authorization.startswith("Bearer "):
+        user_token = authorization.split("Bearer ", 1)[1].strip()
+
+    target_project = project_id or "agentic-grc-cd06"
     timestamp_str = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    evidence_hash = hashlib.sha256(f"{agent_id}-{project_id}-{timestamp_str}".encode()).hexdigest()
+    evidence_hash = hashlib.sha256(f"{agent_id}-{target_project}-{timestamp_str}".encode()).hexdigest()
 
-    if agent:
-        ctrls = agent.get("target_controls", ["A.5.1"])
-        tools = agent.get("tools", ["asset_inventory"])
-        findings = [
-            f"Subagente '{agent['name']}' executou varredura especializada no projeto '{project_id}'.",
-            f"Controles avaliados: {', '.join(ctrls)}.",
-            f"Ferramentas acionadas: {', '.join(tools)}.",
-            "Conformidade técnica: 100% de aderência às diretrizes de auditoria Google Cloud Security.",
-        ]
+    (
+        agent_name,
+        agent_role,
+        system_instruction,
+        target_controls,
+        resolved_tools,
+        model_id,
+    ) = resolve_subagent_spec(agent_id, target_project, bearer_token=user_token)
 
-        ci_engine.evidence_graph.add_evidence(resource_id=f"projects/{project_id}/subagents/{agent_id}", resource_type="subagent_execution", control_id=ctrls[0] if ctrls else "A.5.1", raw_payload={"agent_id": agent_id, "hash": evidence_hash})
+    task_prompt = (
+        f"Audite a postura de segurança e conformidade do projeto GCP '{target_project}'. "
+        f"Função do auditor: {agent_role}. "
+        f"Controles avaliados: {', '.join(target_controls)}. "
+        f"Inspecione os recursos do projeto '{target_project}' acionando as ferramentas necessárias "
+        f"e emita um parecer técnico objetivo baseado exclusivamente nas evidências coletadas."
+    )
 
-        rows = ""
-        for c in ctrls:
-            rows += f"| **{c}** | Requisito do SGSI ({agent.get('role', 'Auditor')}) | Cloud Asset Inventory & Telemetria GCP | `100% CONFORME` | `SHA-256 Validado` |\n"
+    tool_context: Dict[str, Any] = {
+        "audit_cloud_security": {
+            "resource_type": "gcs_bucket",
+            "resource_name": f"projects/{target_project}/buckets/audit-{target_project}",
+            "config": None,
+            "bearer_token": user_token,
+        },
+        "audit_monitoring_activities": {
+            "project_id": target_project,
+            "monitoring_config": None,
+            "bearer_token": user_token,
+        },
+        "audit_data_leakage_prevention": {
+            "perimeter_name": f"accessPolicies/{target_project}/servicePerimeters/grc_perimeter",
+            "perimeter_config": None,
+            "bearer_token": user_token,
+        },
+        "audit_cryptography_a824": {
+            "key_id": f"projects/{target_project}/locations/global/keyRings/hsm-ring/cryptoKeys/key",
+            "config": None,
+        },
+        "audit_secure_development_a828": {
+            "repo_id": f"projects/{target_project}/repos/app",
+            "dev_policy": None,
+        },
+        "scan_iac_configuration": {
+            "iac_type": "terraform",
+            "content": "",
+        },
+        "cross_reference_policy_with_tech_state": {
+            "policy_keyword": "cloud security",
+            "tech_state": None,
+            "user_token": user_token,
+        },
+        "generate_policy_amendment_proposal": {
+            "regulatory_update": {
+                "standard": "ISO/IEC 27001",
+                "title": "Continuous Regulatory Monitor",
+                "impact_summary": f"Audit of project {target_project}",
+            },
+            "current_policy_text": "Default policy baseline",
+        },
+    }
 
-        markdown_report = f"""### Relatório Executivo de Auditoria • {agent['name']}
-**Função do Agente:** {agent.get('role', 'Auditor Especialista')}  
-**Projeto GCP Auditado:** `{project_id}`  
-**Classificação Normativa:** **100.0% CONFORME (EXCELLENT)**  
+    subagent = LLMSubAgent(
+        name=agent_name,
+        system_instruction=system_instruction,
+        tools=resolved_tools,
+        model_id=model_id,
+    )
+
+    try:
+        subagent_res = await subagent.arun(task_prompt, context=tool_context)
+    except Exception as exc:
+        logger.warning(f"Subagent '{agent_id}' arun failed ({exc}), falling back to deterministic execution.")
+        subagent_res = subagent._fallback_execute(task_prompt, context=tool_context)
+        subagent_res["fallback_reason"] = str(exc)
+
+    tool_evidence = subagent_res.get("tool_evidence", [])
+    execution_mode = subagent_res.get("execution_mode", "deterministic_fallback")
+    res_status = subagent_res.get("status", "UNDETERMINED")
+
+    findings = []
+    statuses = []
+
+    for ev in tool_evidence:
+        t_name = ev.get("tool", "ferramenta")
+        res = ev.get("result")
+        if isinstance(res, dict):
+            st = res.get("status", "").upper()
+            if st:
+                statuses.append(st)
+            ctrl = res.get("control") or res.get("standard") or (target_controls[0] if target_controls else "A.5.1")
+            for viol in res.get("violations", []):
+                findings.append(f"[{ctrl}] Violação: {viol}")
+            for rec in res.get("recommendations", []):
+                findings.append(f"[{ctrl}] Recomendação: {rec}")
+            if st == "COMPLIANT" and not res.get("violations"):
+                findings.append(f"[{ctrl}] Recurso validado em conformidade técnica.")
+            elif st == "UNDETERMINED":
+                findings.append(f"[{ctrl}] Telemetria insuficiente para determinação conclusiva (UNDETERMINED).")
+        elif isinstance(res, list):
+            for item in res:
+                if isinstance(item, dict) and "status" in item:
+                    statuses.append(item["status"].upper())
+
+    compliant_count = sum(1 for s in statuses if s == "COMPLIANT")
+    non_compliant_count = sum(1 for s in statuses if s in ("NON_COMPLIANT", "ERROR", "FAILED"))
+    evaluable = compliant_count + non_compliant_count
+
+    if evaluable > 0:
+        compliance_score = round((compliant_count / evaluable) * 100.0, 1)
+        final_verdict = "COMPLIANT" if non_compliant_count == 0 else "NON_COMPLIANT"
+    else:
+        compliance_score = 0.0
+        final_verdict = "UNDETERMINED"
+
+    if not findings:
+        if subagent_res.get("narrative"):
+            findings.append(subagent_res["narrative"])
+        else:
+            findings.append(f"Execução do subagente '{agent_name}' concluída com status {res_status}.")
+
+    if compliance_score >= 90.0:
+        score_label = f"{compliance_score}% CONFORME (EXCELLENT)"
+    elif compliance_score >= 70.0:
+        score_label = f"{compliance_score}% PARCIALMENTE CONFORME (QUALIFIED)"
+    elif compliance_score > 0.0:
+        score_label = f"{compliance_score}% NÃO CONFORME (ACTION REQUIRED)"
+    else:
+        score_label = "INDETERMINADO (UNDETERMINED - Sem telemetria suficiente)"
+
+    rows = ""
+    if tool_evidence:
+        for ev in tool_evidence:
+            t_name = ev.get("tool", "ferramenta")
+            res = ev.get("result", {})
+            args = ev.get("args", {})
+            if isinstance(res, dict):
+                st = res.get("status", "UNDETERMINED")
+                ctrl = res.get("control") or res.get("standard") or (target_controls[0] if target_controls else "A.5.1")
+                res_target = res.get("resource") or res.get("resource_name") or args.get("resource_name") or args.get("key_id") or target_project
+                viols = "; ".join(res.get("violations", [])) or "Sem violações detectadas"
+                rows += f"| **{ctrl}** | `{res_target}` | `{t_name}` | `{st}` | {viols} |\n"
+            elif isinstance(res, list):
+                for item in res:
+                    if isinstance(item, dict):
+                        st = item.get("status", "UNDETERMINED")
+                        title = item.get("title") or item.get("standard") or t_name
+                        rows += f"| **{target_controls[0] if target_controls else 'A.5.1'}** | `{target_project}` | `{t_name}` | `{st}` | {title} |\n"
+    else:
+        for c in target_controls:
+            rows += f"| **{c}** | `{target_project}` | `Subagent Task` | `{res_status}` | Nenhuma evidência de ferramenta coletada |\n"
+
+    narrative_text = subagent_res.get("narrative", f"Inspeção técnica concluída pelo subagente {agent_name}.")
+
+    markdown_report = f"""### Relatório Executivo de Auditoria • {agent_name}
+**Função do Agente:** {agent_role}  
+**Projeto GCP Auditado:** `{target_project}`  
+**Classificação Normativa:** **{score_label}**  
+**Modo de Execução:** `{execution_mode}`  
 **Hash de Evidência SHA-256:** `{evidence_hash[:32]}...`  
 
 #### 1. Parecer Técnico da Inspeção
-O subagente especializado **{agent['name']}** conduziu uma inspeção profunda de telemetria e postura de segurança no projeto `{project_id}`, acionando os conectores de auditoria `{', '.join(tools)}`.
+{narrative_text}
 
-| Controle ISO | Nome do Requisito | Telemetria / Configuração GCP | Status | Integridade |
+#### 2. Evidências Técnicas & Ferramentas Acionadas
+| Controle ISO | Recurso Auditado | Ferramenta MCP | Status | Parecer / Violações |
 | :--- | :--- | :--- | :---: | :--- |
 {rows}
 
-#### 2. Destaques de Governança & Próximas Ações
-- **Cobertura:** Todos os {len(ctrls)} controles mapeados foram inspecionados sem identificação de drifts críticos.
-- **Não-Repúdio:** A evidência foi ancorada com sucesso no Grafo Criptográfico do projeto.
-- **Proteção de Borda:** Model Armor validou a ausência de vazamento de dados ou prompt injection durante a execução.
+#### 3. Governança & Rastreabilidade
+- **Não-Repúdio:** Nó de evidência imutável ancorado no Grafo Criptográfico com SHA-256.
+- **Auditoria Agêntica:** Execução fundamentada em chamadas determinísticas de ferramentas MCP.
 """
-        return {
-            "status": "COMPLETED",
-            "subagent": agent,
-            "project_id": project_id,
-            "compliance_score": 100.0,
-            "findings": findings,
-            "evidence_hash": evidence_hash,
-            "evidence_nodes": len(ci_engine.evidence_graph.nodes),
-            "markdown_report": markdown_report,
-            "timestamp": timestamp_str,
-        }
 
-    # Built-in subagents
-    if agent_id == "annex_a":
-        res = annex_a_subagent.audit_cryptography_a824("key-ondemand", {"rotation_period_seconds": 5184000, "protection_level": "HSM"})
-        ci_engine.evidence_graph.add_evidence(resource_id=f"projects/{project_id}/subagents/annex_a", resource_type="subagent_execution", control_id="A.8.24", raw_payload={"agent_id": "annex_a", "hash": evidence_hash})
-        markdown_report = f"""### Relatório de Auditoria • Annex A Auditor Agent
-**Função do Agente:** Auditor Técnico de Criptografia & Controles Tecnológicos (A.8)  
-**Projeto GCP Auditado:** `{project_id}`  
-**Status do Requisito:** **100.0% CONFORME (EXCELLENT)**  
-**Hash de Evidência SHA-256:** `{evidence_hash[:32]}...`  
+    ci_engine.evidence_graph.add_evidence(
+        resource_id=f"projects/{target_project}/subagents/{agent_id}",
+        resource_type="subagent_execution",
+        control_id=target_controls[0] if target_controls else "A.5.1",
+        raw_payload={
+            "agent_id": agent_id,
+            "hash": evidence_hash,
+            "compliance_score": compliance_score,
+            "verdict": final_verdict,
+            "execution_mode": execution_mode,
+            "tool_evidence_count": len(tool_evidence),
+        },
+    )
 
-#### 1. Parecer Técnico da Inspeção
-O subagente **Annex A Auditor** executou a validação de parâmetros criptográficos e chaves de segurança via Cloud KMS HSM.
+    return {
+        "status": "COMPLETED",
+        "verdict": final_verdict,
+        "subagent_status": res_status,
+        "execution_mode": execution_mode,
+        "subagent": {
+            "id": agent_id,
+            "name": agent_name,
+            "role": agent_role,
+            "target_controls": target_controls,
+            "tools": list(resolved_tools.keys()),
+        },
+        "project_id": target_project,
+        "compliance_score": compliance_score,
+        "findings": findings,
+        "evidence_hash": evidence_hash,
+        "evidence_nodes": len(ci_engine.evidence_graph.nodes),
+        "markdown_report": markdown_report,
+        "timestamp": timestamp_str,
+        "tool_evidence": tool_evidence,
+    }
 
-| Controle ISO | Recurso Auditado | Proteção / Rotação | Status | Parecer Técnico |
-| :--- | :--- | :--- | :---: | :--- |
-| **A.8.24** | `key-ondemand` | **HSM (FIPS 140-2 Nível 3)** • Rotação <= 60 dias | `CONFORME` | Criptografia alinhada ao Anexo A da ISO 27001 |
-
-#### 2. Garantia Criptográfica
-- Chave Cloud KMS validada com sucesso sem desvios de rotação.
-- Nó de evidência imutável registrado no Grafo com assinatura SHA-256.
-
----
-**Google Cloud Security** | *Annex A Auditor Agent (GEAP)*
-"""
-        return {
-            "status": "COMPLETED",
-            "subagent": {"name": "Annex A Auditor Agent", "role": "Auditor Técnico de Criptografia (A.8)"},
-            "project_id": project_id,
-            "compliance_score": 100.0,
-            "findings": ["Cloud KMS HSM validado com sucesso.", "Rotação de chaves em estrita conformidade com A.8.24."],
-            "evidence_hash": evidence_hash,
-            "evidence_nodes": len(ci_engine.evidence_graph.nodes),
-            "markdown_report": markdown_report,
-            "timestamp": timestamp_str,
-            "result": res,
-        }
-
-    elif agent_id == "horizon_scanner":
-        updates = horizon_scanner_subagent.scan_regulatory_updates()
-        proposal = horizon_scanner_subagent.generate_policy_amendment_proposal(updates[0], "Current policy")
-        ci_engine.evidence_graph.add_evidence(resource_id=f"projects/{project_id}/subagents/horizon_scanner", resource_type="subagent_execution", control_id="A.5.1", raw_payload={"agent_id": "horizon_scanner", "hash": evidence_hash})
-        markdown_report = f"""### Relatório de Auditoria • Horizon Scanner Agent
-**Função do Agente:** Deep Research Regulatório & Monitoramento de Emendas Normativas  
-**Projeto GCP Auditado:** `{project_id}`  
-**Status da Varredura:** **COMPLETO / NENHUMA DISRUPÇÃO CRÍTICA**  
-**Hash de Evidência SHA-256:** `{evidence_hash[:32]}...`  
-
-#### 1. Varredura Regulatória Global
-O subagente **Horizon Scanner** inspecionou fontes oficiais de normas (ISO, NIST, ENISA, CIS) identificando atualizações normativas:
-
-| Padrão / Framework | Atualização Detectada | Impacto no SGSI | Ação Proposta |
-| :--- | :--- | :--- | :--- |
-| **{updates[0]['standard']}** | {updates[0]['title']} | {updates[0]['impact_summary']} | Aditamento gerado para aprovação HITL |
-
-#### 2. Minuta de Aditamento de Política Proposta
-> *{proposal['proposed_amendment_text']}*
-
----
-**Google Cloud Security** | *Horizon Scanner Agent (GEAP)*
-"""
-        return {
-            "status": "COMPLETED",
-            "subagent": {"name": "Horizon Scanner Agent", "role": "Deep Research Regulatório"},
-            "project_id": project_id,
-            "compliance_score": 100.0,
-            "findings": [f"Atualização detectada: {updates[0]['title']}", "Minuta de aditamento enviada para Human-in-the-Loop."],
-            "evidence_hash": evidence_hash,
-            "evidence_nodes": len(ci_engine.evidence_graph.nodes),
-            "markdown_report": markdown_report,
-            "timestamp": timestamp_str,
-            "result": updates,
-        }
-
-    elif agent_id == "iac_scanner":
-        from mcp_server_grc.tools.iac_scanner import scan_iac_configuration
-        res = scan_iac_configuration(
-            iac_type="terraform",
-            content="resource \"google_storage_bucket\" \"sec\" {\n  name = \"audit-bucket\"\n  uniform_bucket_level_access = true\n}",
-        )
-        ci_engine.evidence_graph.add_evidence(resource_id=f"projects/{project_id}/subagents/iac_scanner", resource_type="subagent_execution", control_id="A.8.28", raw_payload={"agent_id": "iac_scanner", "hash": evidence_hash})
-        markdown_report = f"""### Relatório de Auditoria • IaC Scanner Agent
-**Função do Agente:** Análise Estática de Infraestrutura como Código (Terraform / Ansible)  
-**Projeto GCP Auditado:** `{project_id}`  
-**Status da Varredura:** **100.0% CONFORME (0 VIOLAÇÕES ALTAS)**  
-**Hash de Evidência SHA-256:** `{evidence_hash[:32]}...`  
-
-#### 1. Resultado da Inspeção Estática de IaC
-O subagente **IaC Scanner** inspecionou templates de infraestrutura procurando violações de segurança e desvios de linha de base.
-
-| Módulo IaC | Regra Verificada | Severidade | Status | Evidência |
-| :--- | :--- | :---: | :---: | :--- |
-| `google_storage_bucket.sec` | Uniform Bucket-Level Access (UBLA) | CRÍTICA | `CONFORME` | Ativado conforme A.5.23 / A.8.12 |
-| `google_kms_crypto_key` | HSM Protection Level | ALTA | `CONFORME` | FIPS 140-2 Validado |
-
-#### 2. Parecer Técnico
-Nenhum desvio ou risco de escape de perímetro detectado nos manifestos IaC. Pipeline liberado com atestado SLSA Nível 3.
-
----
-**Google Cloud Security** | *IaC Scanner Agent (GEAP)*
-"""
-        return {
-            "status": "COMPLETED",
-            "subagent": {"name": "IaC Scanner Agent", "role": "Análise Estática de IaC"},
-            "project_id": project_id,
-            "compliance_score": 100.0,
-            "findings": ["0 violações críticas em templates Terraform.", "UBLA e KMS HSM validados em código."],
-            "evidence_hash": evidence_hash,
-            "evidence_nodes": len(ci_engine.evidence_graph.nodes),
-            "markdown_report": markdown_report,
-            "timestamp": timestamp_str,
-            "result": res,
-        }
-
-    elif agent_id == "org_policies":
-        res = org_policies_subagent.cross_reference_policy_with_tech_state("cloud security", {"status": "COMPLIANT", "control": "A.5.23"}, user_token="valid-token")
-        ci_engine.evidence_graph.add_evidence(resource_id=f"projects/{project_id}/subagents/org_policies", resource_type="subagent_execution", control_id="A.5.23", raw_payload={"agent_id": "org_policies", "hash": evidence_hash})
-        markdown_report = f"""### Relatório de Auditoria • Organization Policies Enforcer
-**Função do Agente:** Auditoria & Enforce de Políticas de Organização GCP  
-**Projeto GCP Auditado:** `{project_id}`  
-**Status de Governança:** **100.0% CONFORME (POLÍTICAS ATIVAS)**  
-**Hash de Evidência SHA-256:** `{evidence_hash[:32]}...`  
-
-#### 1. Inspeção de Restrições Organizacionais
-O subagente **Organization Policies Enforcer** validou a adesão obrigatória às constraints hierárquicas da organização GCP:
-
-| Constraint de Organização | Controle ISO | Modo de Aplicação | Status |
-| :--- | :---: | :---: | :---: |
-| `constraints/storage.uniformBucketLevelAccess` | A.5.23 | **ENFORCED** | `CONFORME` |
-| `constraints/gcp.restrictKeyRotationPeriod` | A.8.24 | **ENFORCED** (<= 90d) | `CONFORME` |
-| `constraints/compute.restrictSharedVpcSubnetworks` | A.8.20 | **ENFORCED** | `CONFORME` |
-
----
-**Google Cloud Security** | *Organization Policies Enforcer (GEAP)*
-"""
-        return {
-            "status": "COMPLETED",
-            "subagent": {"name": "Organization Policies Enforcer", "role": "Governança de Políticas de Organização"},
-            "project_id": project_id,
-            "compliance_score": 100.0,
-            "findings": ["Organization Policies restritivas ativas.", "Herança hierárquica validada sem exceções permissivas."],
-            "evidence_hash": evidence_hash,
-            "evidence_nodes": len(ci_engine.evidence_graph.nodes),
-            "markdown_report": markdown_report,
-            "timestamp": timestamp_str,
-            "result": res,
-        }
-
-    elif agent_id == "gcp_telemetry":
-        assets = [
-            {"type": "gcs_bucket", "name": f"audit-bucket-{project_id}", "config": {"uniform_bucket_level_access": True, "public_access_prevention": "enforced"}},
-            {"type": "kms_key", "name": f"projects/{project_id}/locations/us-central1/keyRings/hsm-ring/cryptoKeys/sec-key", "config": {"rotation_period": "5184000s", "protection_level": "HSM"}},
-            {"type": "vpc_sc_perimeter", "name": "accessPolicies/123/servicePerimeters/grc_perimeter", "config": {"status": {"restricted_services": ["storage.googleapis.com", "bigquery.googleapis.com"]}}},
-            {"type": "monitoring_pipeline", "name": f"projects/{project_id}/sinks/audit-sink", "config": {"destination": "bigquery.googleapis.com/projects/audit-logging/datasets/audit_logs", "filter": "logName:cloudaudit"}},
-        ]
-        res = gcp_telemetry_subagent.scan_project_infrastructure(project_id=project_id, assets=assets)
-        ci_engine.evidence_graph.add_evidence(
-            resource_id=f"projects/{project_id}/subagents/gcp_telemetry",
-            resource_type="subagent_execution",
-            control_id="A.8.16",
-            raw_payload={"agent_id": "gcp_telemetry", "hash": evidence_hash, "assets_scanned": len(assets)}
-        )
-        markdown_report = f"""### Relatório de Auditoria • GCP Telemetry & Infrastructure Specialist
-**Função do Agente:** Extração e Análise em Tempo Real de Telemetria e Ativos GCP  
-**Projeto GCP Auditado:** `{project_id}`  
-**Status da Varredura:** **100.0% CONFORME (TELEMETRIA ATIVA)**  
-**Hash de Evidência SHA-256:** `{evidence_hash[:32]}...`  
-
-#### 1. Parecer Técnico de Telemetria & Ativos
-O subagente **GCP Telemetry & Infrastructure Specialist** inspecionou recursos ativos via Cloud Asset Inventory, BigQuery audit sinks, perímetros VPC-SC e chaves Cloud KMS.
-
-| Recurso / Serviço | Tipo de Ativo | Verificação de Segurança | Status |
-| :--- | :--- | :--- | :---: |
-| `audit-bucket-{project_id}` | Cloud Storage | Uniform Bucket-Level Access (UBLA) & PAP | `CONFORME` |
-| `cryptoKeys/sec-key` | Cloud KMS HSM | FIPS 140-2 Nível 3 & Rotação 60d | `CONFORME` |
-| `accessPolicies/123/grc_perimeter` | VPC Service Controls | Restrição Storage & BigQuery ativa | `CONFORME` |
-| `sinks/audit-sink` | Cloud Logging / BigQuery | Retenção de 365 dias para auditoria | `CONFORME` |
-
-#### 2. Destaques Operacionais
-- **Ativos Inspecionados:** 4 recursos críticos validados em tempo real sem drifts.
-- **Sinks de Auditoria:** Rastreabilidade contínua garantida conforme A.8.16.
-- **Não-Repúdio:** Evidência ancorada no Grafo Criptográfico SHA-256.
-
----
-**Google Cloud Security** | *GCP Telemetry Sub-Agent (GEAP)*
-"""
-        return {
-            "status": "COMPLETED",
-            "subagent": {"name": "GCP Telemetry & Infrastructure Specialist", "role": "Telemetria & Infraestrutura GCP"},
-            "project_id": project_id,
-            "compliance_score": 100.0,
-            "findings": ["Cloud Asset Inventory sincronizado.", "BigQuery audit sink e VPC-SC em estrita conformidade."],
-            "evidence_hash": evidence_hash,
-            "evidence_nodes": len(ci_engine.evidence_graph.nodes),
-            "markdown_report": markdown_report,
-            "timestamp": timestamp_str,
-            "result": res,
-        }
-
-    elif agent_id == "codemender":
-        ci_engine.evidence_graph.add_evidence(
-            resource_id=f"projects/{project_id}/subagents/codemender",
-            resource_type="subagent_execution",
-            control_id="A.8.28",
-            raw_payload={"agent_id": "codemender", "hash": evidence_hash}
-        )
-        markdown_report = f"""### Relatório de Auditoria & Remediação • CodeMender Agent
-**Função do Agente:** Desenvolvimento Seguro & Remediação Autônoma de Vulnerabilidades em Código (A.8.28)  
-**Projeto GCP Auditado:** `{project_id}`  
-**Status da Varredura:** **100.0% CONFORME (REPOSITÓRIO VALIDADO / PR GERADO)**  
-**Hash de Evidência SHA-256:** `{evidence_hash[:32]}...`  
-
-#### 1. Inspeção de Código & Dependências (A.8.28)
-O subagente **CodeMender** executou análise estática (SAST) em repositórios de microsserviços e módulos Terraform do projeto `{project_id}`:
-
-| Repositório / Módulo | Vulnerabilidade Identificada | Simulação Sandbox | Ação Autônoma Executada |
-| :--- | :--- | :---: | :--- |
-| `service-payment-api` | Dependência vulnerável (CVE corrigida) | `TESTS PASS` | Patch aplicado & PR #104 aberto para HITL |
-| `terraform/iam-roles.tf` | Permissão permissiva | `PLAN PASS` | Substituição por Least Privilege Role |
-| `Dockerfile.production` | Ausência de imagem distroless | `CONTAINER OK` | Migração para imagem Chainguard/Distroless |
-
-#### 2. Validação em Sandbox Efêmero
-- **Ambiente Isolado:** Simulação executada em contêiner temporário com suíte de testes regressivos 100% verde.
-- **Human-in-the-Loop (HITL):** Pull Request gerado aguardando aprovação humana antes do merge em produção.
-
----
-**Google Cloud Security** | *CodeMender Agent (GEAP - A.8.28 Practice)*
-"""
-        return {
-            "status": "COMPLETED",
-            "subagent": {"name": "CodeMender (A.8.28 Secure Development)", "role": "Remediação Automatizada de Código"},
-            "project_id": project_id,
-            "compliance_score": 100.0,
-            "findings": ["Varredura SAST concluída sem débitos técnicos críticos.", "Pull Request de remediação gerado com validação em sandbox."],
-            "evidence_hash": evidence_hash,
-            "evidence_nodes": len(ci_engine.evidence_graph.nodes),
-            "markdown_report": markdown_report,
-            "timestamp": timestamp_str,
-            "result": {"status": "SUCCESS", "pull_request": "PR #104 (A.8.28 Security Patch)"},
-        }
-
-    else:
-        clean_name = agent_id.replace("_", " ").replace("-", " ").title()
-        ci_engine.evidence_graph.add_evidence(
-            resource_id=f"projects/{project_id}/subagents/{agent_id}",
-            resource_type="subagent_execution",
-            control_id="A.5.1",
-            raw_payload={"agent_id": agent_id, "hash": evidence_hash}
-        )
-        markdown_report = f"""### Relatório Executivo de Auditoria • {clean_name}
-**Função do Agente:** Auditoria Especializada de Conformidade  
-**Projeto GCP Auditado:** `{project_id}`  
-**Classificação Normativa:** **100.0% CONFORME (EXCELLENT)**  
-**Hash de Evidência SHA-256:** `{evidence_hash[:32]}...`  
-
-#### 1. Parecer Técnico da Inspeção
-O subagente especializado **{clean_name}** (`{agent_id}`) executou uma inspeção técnica de conformidade no projeto `{project_id}`.
-
-| Módulo Auditado | Requisito Verificado | Status | Garantia |
-| :--- | :--- | :---: | :--- |
-| `Configuração Geral` | Alinhamento com ISO/IEC 27001:2022 | `CONFORME` | Integridade verificada |
-| `Telemetria Cloud` | Ausência de desvios de segurança | `CONFORME` | Assinatura SHA-256 |
-
-#### 2. Governança
-- **Não-Repúdio:** Nó de evidência imutável adicionado ao Grafo de Evidências.
-- **Model Armor:** Sanitização de prompts e prevenção de vazamento de credenciais ativas.
-"""
-        return {
-            "status": "COMPLETED",
-            "subagent": {"name": clean_name, "role": "Auditor Especialista"},
-            "project_id": project_id,
-            "compliance_score": 100.0,
-            "findings": [f"Subagente '{clean_name}' executou varredura completa.", "Conformidade técnica validada."],
-            "evidence_hash": evidence_hash,
-            "evidence_nodes": len(ci_engine.evidence_graph.nodes),
-            "markdown_report": markdown_report,
-            "timestamp": timestamp_str,
-        }
 
 
 @router.post("/api/subagents/trigger")
