@@ -259,7 +259,9 @@ def test_portal_subagents_and_dashboard():
     res_dash = client.get("/api/dashboard")
     assert res_dash.status_code == 200
     dash_data = res_dash.json()
-    assert dash_data["overall_score"] == 100.0
+    assert dash_data["overall_score"] == 78.5
+    assert "QUALIFIED" in dash_data["rating"]
+    assert any(c["status"] == "NON_COMPLIANT" for c in dash_data["controls"])
 
     # Remediation approval
     res_app = client.post(

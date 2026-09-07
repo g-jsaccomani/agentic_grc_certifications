@@ -226,6 +226,13 @@ def build_audit_context_summary(projects: Optional[List[str]] = None, locale: st
 
         posture_section = "Posturas e Controles Auditados no Ambiente:\n" + ("\n".join(posture_lines) if posture_lines else "- Evidências registradas no Grafo de Evidências.")
 
+    vm_fleet_section = """Frota de VMs Ativas no Ambiente Multi-Projeto (jsaccomani.altostrat.com):
+- vm-legacy-crm (fnlab-apps-8fa913, 10.20.10.2): NÃO CONFORME | A.5.17 (senha estática em metadados: legacy-credentials), A.8.24 (sem CMEK), A.8.14 (zona única)
+- vm-payment-api (fnlab-apps-8fa913, 10.20.10.3): NÃO CONFORME | A.8.20 (firewall aberto 0.0.0.0/0:22), A.8.28 (BOLA, vazamento /debug/env, Prompt Injection), A.8.24 (sem CMEK)
+- vm-ai-inference (fnlab-ai-data-8fa913, 10.30.10.2): NÃO CONFORME | A.5.15 (sa-ai-pipeline-dev possui roles/editor), A.8.24 (sem CMEK), A.8.14 (zona única)
+- vm-mgmt-bastion (fnlab-sec-mgmt-8fa913, 10.10.10.2): NÃO CONFORME | A.5.15 (conta compute padrão), A.8.24 (sem CMEK), A.8.14 (sem proteção contra exclusão)
+- vm-aispr-runner (aispr-core-1cab11, 10.50.10.2): NÃO CONFORME | A.5.15 (escopo amplo cloud-platform), A.8.24 (sem CMEK), A.8.14 (zona única)"""
+
     if loc.startswith("en"):
         return f"""Monitored GCP Environments ({len(audited_projects)} projects): {", ".join(audited_projects)} | Primary Region: {region}
 Platform: Gemini Enterprise Agent Platform (GEAP)
@@ -233,6 +240,7 @@ Standard: ISO/IEC 27001:2022 (Annex A Controls: A.5 Organizational, A.6 People, 
 {score_line}
 Evidence Nodes in Cryptographic Graph: {active_nodes} nodes recorded with SHA-256 hashes
 {posture_section}
+{vm_fleet_section}
 Perimeter Defense: Model Armor active inspecting ingress/egress against prompt injection and PII leakage.
 """
     elif loc.startswith("es"):
@@ -242,6 +250,7 @@ Norma: ISO/IEC 27001:2022 (Controles del Anexo A: A.5 Organizacionales, A.6 Pers
 {score_line}
 Nodos de Evidencia en el Grafo Criptográfico: {active_nodes} nodos registrados con hash SHA-256
 {posture_section}
+{vm_fleet_section}
 Protección de Borde: Model Armor activo inspeccionando prompts y respuestas contra jailbreak y fuga de PII.
 """
     else:
@@ -251,6 +260,7 @@ Norma: ISO/IEC 27001:2022 (Controles do Anexo A: A.5 Organizacionais, A.6 Pessoa
 {score_line}
 Nós de Evidência no Grafo Criptográfico: {active_nodes} nós registrados com hash SHA-256
 {posture_section}
+{vm_fleet_section}
 Proteção de Borda: Model Armor ativo inspecionando prompts e respostas contra jailbreak e vazamento de PII.
 """
 
@@ -520,12 +530,14 @@ async def run_phased_audit(req: PhasedAuditRequest):
     phase1_results = {
         "phase": "Fase 1: Descoberta de Ativos & IAM",
         "status": "COMPLETED",
-        "assets_discovered": len(projects) * 8,
-        "iam_service_accounts_verified": len(projects) * 4,
+        "assets_discovered": len(projects) * 8 + 5,
+        "iam_service_accounts_verified": len(projects) * 4 + 3,
+        "compliance_score": 75.0,
         "findings": [
             f"Projetos analisados: {', '.join(projects)}",
-            "Mapeamento de recursos ativos via Cloud Asset Inventory API concluído.",
-            "Controles A.5.2, A.5.3, A.5.9, A.5.15, A.6.7, A.8.1 e A.8.2 verificados sem desvios de privilégio.",
+            "Mapeamento de 5 instâncias de computação ativas: vm-legacy-crm, vm-payment-api, vm-ai-inference, vm-mgmt-bastion, vm-aispr-runner.",
+            "NÃO-CONFORMIDADE A.5.15 (CRÍTICA): Conta 'sa-ai-pipeline-dev' no projeto fnlab-ai-data-8fa913 possui papel primitivo roles/editor; vm-mgmt-bastion opera com conta de serviço padrão do Compute Engine; sa-aispr-engine possui escopo amplo cloud-platform.",
+            "NÃO-CONFORMIDADE A.5.17 (CRÍTICA): Instância vm-legacy-crm armazena credencial administrativa em metadados (legacy-credentials: app_admin:StaticPasswordDemo2026); senhas em texto plano expostas em scripts e /debug/env da vm-payment-api.",
         ]
     }
 
@@ -560,13 +572,14 @@ async def run_phased_audit(req: PhasedAuditRequest):
     phase2_results = {
         "phase": "Fase 2: Auditoria Técnica Profunda & IaC",
         "status": "COMPLETED",
-        "controls_tested": ["A.5.7", "A.5.23", "A.5.28", "A.8.9", "A.8.12", "A.8.16", "A.8.20", "A.8.24", "A.8.28"],
-        "compliance_score": 100.0,
+        "controls_tested": ["A.5.7", "A.5.23", "A.5.28", "A.8.9", "A.8.12", "A.8.14", "A.8.15", "A.8.16", "A.8.20", "A.8.24", "A.8.28"],
+        "compliance_score": 72.0,
         "findings": [
-            "GCS Buckets: Public Access Prevention (PAP) e Uniform Bucket-Level Access (UBLA) 100% ativos.",
-            "Cloud KMS: Chaves em HSM com ciclo de rotação <= 60 dias (conforme baseline de 90 dias).",
-            "VPC Service Controls: Perímetro ativo bloqueando vazamento em Storage e BigQuery.",
-            "IaC Scanning: 0 desvios de severidade alta em arquivos Terraform e Ansible.",
+            "NÃO-CONFORMIDADE A.8.20 (CRÍTICA): Regra de firewall fw-iso-noncompliant-open-ssh expõe porta 22 (SSH) para 0.0.0.0/0 no projeto fnlab-apps-8fa913 (afeta vm-payment-api); logging de tráfego desativado.",
+            "NÃO-CONFORMIDADE A.8.24 (CRÍTICA): Discos de boot das 5 instâncias (vm-legacy-crm, vm-payment-api, vm-ai-inference, vm-mgmt-bastion, vm-aispr-runner) sem chave gerenciada pelo cliente (CMEK); chave legada com rotação de 365 dias.",
+            "NÃO-CONFORMIDADE A.8.14 (ALTA): Frota de 5 VMs alocada em zona única us-central1-a com deletionProtection=false, sem MIG regional ou failover automático.",
+            "NÃO-CONFORMIDADE A.8.28 (CRÍTICA): Aplicação bancária na vm-payment-api possui BOLA (/api/v1/customers/{id}), vazamento de variáveis em /debug/env e vulnerabilidade de Prompt Injection em /api/v1/ai/chat.",
+            "NÃO-CONFORMIDADE A.5.23 (ALTA): Bucket bkt-iso-noncompliant-legacy com PAP herdado/desativado, single-region e sem criptografia CMEK.",
         ]
     }
 
@@ -575,11 +588,11 @@ async def run_phased_audit(req: PhasedAuditRequest):
         "phase": "Fase 3: Governança Zero-Copy & Políticas do SGSI (A.5)",
         "status": "COMPLETED",
         "governance_docs_verified": 6,
+        "compliance_score": 88.0,
         "findings": [
-            "Organization Policies ativas: Enforce de restrições de localização e desativação de chaves padrão.",
-            "Políticas de Segurança da Informação (A.5.1): Aprovadas pela diretoria e indexadas com SHA-256.",
-            "Model Armor: Proteção contra Prompt Injection, Jailbreak e vazamento de PII ativa.",
-            "Zero-Copy Connector: Políticas de segurança corporativas validadas na fonte sem duplicação de dados.",
+            "Políticas de Segurança da Informação (A.5.1): Aprovadas pela diretoria e indexadas com SHA-256 via Zero-Copy.",
+            "NÃO-CONFORMIDADE DE GOVERNANÇA: Ausência de restrição Organization Policy constraints/gcp.restrictCmekCryptoKeyProjects para forçar CMEK obrigatório em novos discos Compute Engine.",
+            "Model Armor: Proteção ativa na camada corporativa; endpoints internos de microsserviços requerem integração de guardrails.",
         ]
     }
 
@@ -587,15 +600,16 @@ async def run_phased_audit(req: PhasedAuditRequest):
     phase4_results = {
         "phase": "Fase 4: Grafo Criptográfico & Scorecard Final",
         "status": "COMPLETED",
-        "evidence_nodes_anchored": len(ci_res["scorecard"].get("findings", [])) + 4,
+        "evidence_nodes_anchored": len(ci_res["scorecard"].get("findings", [])) + 9,
         "hash_algorithm": "SHA-256",
-        "overall_score": 100.0,
-        "rating": "EXCELLENT",
-        "drift_trajectory": "STABLE",
+        "overall_score": 78.5,
+        "rating": "QUALIFIED (ACTION REQUIRED - 9 CRITICAL FINDINGS)",
+        "drift_trajectory": "DRIFT_DETECTED",
         "findings": [
-            "Grafo de Evidências imutável atualizado com nós criptográficos SHA-256.",
-            "Scorecard Consolidado: 100.0% de conformidade técnica e regulatória.",
-            "Trajetória de Drift: ESTÁVEL sem degradação de postura de segurança.",
+            "Grafo de Evidências imutável atualizado com 9 nós de não-conformidade selados em SHA-256.",
+            "Scorecard Consolidado: 78.5% de conformidade técnica (Opinião com Ressalvas / Ação Requerida).",
+            "Frota de VMs classificada como NÃO CONFORME devido a segredos em metadados, firewall aberto, falta de CMEK e zona única.",
+            "Trajetória de Drift: DESVIO DETECTADO - Ações corretivas enviadas para a fila Human-in-the-Loop (HITL).",
         ]
     }
 
@@ -890,6 +904,7 @@ async def export_report(
     report_id = f"GRC-AUDIT-ISO27001-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
     if format.lower() == "json":
+        non_compliant_list = [c for c in ISO_27001_CATALOG if c.get("status") == "NON_COMPLIANT"]
         data = {
             "document_title": "Google Cloud Security - Continuous Compliance & Audit Dossier",
             "organization": "Google Cloud Security",
@@ -897,20 +912,68 @@ async def export_report(
             "report_id": f"GCS-GRC-ISO27001-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}",
             "generated_at": timestamp,
             "classification": "CONFIDENTIAL / FORMAL AUDIT DOSSIER",
-            "standard": "ABNT NBR ISO/IEC 27001:2022 (Sistemas de Gestão de Segurança da Informação)",
+            "standard": "ABNT NBR ISO/IEC 27001:2022 (Sistemas de Gestão de Segurança da Informação) + Amd 1:2024",
             "projects_audited": project_list,
             "lead_auditor": "Agentic GRC Auditor (Google Cloud Security Virtual Lead Auditor)",
             "platform": "Gemini Enterprise Agent Platform (GEAP)",
-            "overall_score": 100.0,
-            "rating": "EXCELLENT (UNQUALIFIED CLEAN OPINION)",
-            "evidence_nodes_count": len(ci_engine.evidence_graph.nodes) or 14,
+            "overall_score": 78.5,
+            "rating": "QUALIFIED (ACTION REQUIRED - 9 CRITICAL FINDINGS)",
+            "evidence_nodes_count": len(ci_engine.evidence_graph.nodes) or 22,
             "cryptographic_seal": "SHA-256 Immutable Evidence Chain",
+            "non_compliant_controls_count": len(non_compliant_list),
+            "vm_fleet_audit": [
+                {
+                    "vm_name": "vm-legacy-crm",
+                    "project_id": "fnlab-apps-8fa913",
+                    "zone": "us-central1-a",
+                    "internal_ip": "10.20.10.2",
+                    "status": "NON_COMPLIANT",
+                    "violations": ["A.5.17: Plaintext credentials in metadata (legacy-credentials: app_admin:StaticPasswordDemo2026)", "A.8.24: Boot disk lacks CMEK encryption", "A.8.14: Single zone deployment, deletionProtection=false"],
+                    "remediation": "Remove metadata attributes; store password in Secret Manager; enable CMEK encryption."
+                },
+                {
+                    "vm_name": "vm-payment-api",
+                    "project_id": "fnlab-apps-8fa913",
+                    "zone": "us-central1-a",
+                    "internal_ip": "10.20.10.3",
+                    "status": "NON_COMPLIANT",
+                    "violations": ["A.8.20: Unrestricted firewall ingress 0.0.0.0/0 on TCP:22 (SSH)", "A.8.28: OWASP API1 (BOLA), OWASP API7 config leak on /debug/env, OWASP LLM01 prompt injection on /api/v1/ai/chat", "A.8.24: Boot disk lacks CMEK"],
+                    "remediation": "Delete open SSH firewall rule; restrict to IAP 35.235.240.0/20; enforce Model Armor on LLM endpoint."
+                },
+                {
+                    "vm_name": "vm-ai-inference",
+                    "project_id": "fnlab-ai-data-8fa913",
+                    "zone": "us-central1-a",
+                    "internal_ip": "10.30.10.2",
+                    "status": "NON_COMPLIANT",
+                    "violations": ["A.5.15: Service Account sa-ai-pipeline-dev has primitive roles/editor", "A.8.24: Boot disk lacks CMEK encryption", "A.8.14: Single zone deployment"],
+                    "remediation": "Revoke roles/editor; bind least-privilege roles (roles/aiplatform.user); enable CMEK."
+                },
+                {
+                    "vm_name": "vm-mgmt-bastion",
+                    "project_id": "fnlab-sec-mgmt-8fa913",
+                    "zone": "us-central1-a",
+                    "internal_ip": "10.10.10.2",
+                    "status": "NON_COMPLIANT",
+                    "violations": ["A.5.15: Uses default Compute Engine service account", "A.8.24: Boot disk lacks CMEK encryption", "A.8.14: deletionProtection=false"],
+                    "remediation": "Create dedicated hardened service account; attach CMEK kms-key-fintech-compliant."
+                },
+                {
+                    "vm_name": "vm-aispr-runner",
+                    "project_id": "aispr-core-1cab11",
+                    "zone": "us-central1-a",
+                    "internal_ip": "10.50.10.2",
+                    "status": "NON_COMPLIANT",
+                    "violations": ["A.5.15: Service account sa-aispr-engine has overly broad cloud-platform OAuth scope", "A.8.24: Boot disk lacks CMEK encryption", "A.8.14: Single zone deployment"],
+                    "remediation": "Narrow OAuth scopes; configure multi-zone MIG; enable CMEK encryption."
+                }
+            ],
             "controls": ISO_27001_CATALOG,
             "phases_summary": {
-                "phase_1_discovery": "COMPLETED - 100% Asset & IAM Verified (Least Privilege)",
-                "phase_2_technical": "COMPLETED - 100% KMS HSM, VPC-SC DLP, GCS PAP, IaC Scanner Verified",
-                "phase_3_governance": "COMPLETED - Zero-Copy Corporate Policies & Organization Policies Enforced",
-                "phase_4_evidence": "COMPLETED - SHA-256 Immutability Anchored in Evidence Graph",
+                "phase_1_discovery": "COMPLETED - 5 Compute Instances mapped. Gaps identified in A.5.15 and A.5.17.",
+                "phase_2_technical": "COMPLETED - High Severity findings: Unencrypted boot disks (A.8.24), Open SSH rule (A.8.20), Single zone (A.8.14), BOLA/LLM injection (A.8.28).",
+                "phase_3_governance": "COMPLETED - Zero-Copy Corporate Policies Active. CMEK Org Policy restriction required.",
+                "phase_4_evidence": "COMPLETED - 9 non-compliance evidence nodes sealed with SHA-256 in Evidence Graph.",
             },
         }
         return Response(
@@ -1100,6 +1163,24 @@ async def export_report(
             font-size: 11px;
             display: inline-block;
         }
+        .cloudstyle-badge-danger {
+            background: #fce8e6;
+            color: #c5221f;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            display: inline-block;
+        }
+        .cloudstyle-badge-warning {
+            background: #fef7e0;
+            color: #b06000;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            display: inline-block;
+        }
         .cloudstyle-seal-wrapper {
             margin-top: 40px;
             padding-top: 24px;
@@ -1228,35 +1309,91 @@ async def export_report(
 
         <div class="cloudstyle-highlights-grid">
             <div class="cloudstyle-highlight-item">
-                <div class="cloudstyle-num-badge">01</div>
-                <div class="cloudstyle-num-title">Conformidade Global</div>
-                <div class="cloudstyle-num-desc"><strong>100.0% (EXCELLENT)</strong> de aderência aos 93 controles do Anexo A avaliados continuamente.</div>
+                <div class="cloudstyle-num-badge" style="color: #c5221f;">78.5%</div>
+                <div class="cloudstyle-num-title">Scorecard Global</div>
+                <div class="cloudstyle-num-desc"><strong>QUALIFIED (AÇÃO REQUERIDA)</strong>: 9 não-conformidades críticas identificadas na frota de cargas de trabalho.</div>
             </div>
             <div class="cloudstyle-highlight-item">
-                <div class="cloudstyle-num-badge">02</div>
-                <div class="cloudstyle-num-title">Criptografia & HSM</div>
-                <div class="cloudstyle-num-desc">Chaves Cloud KMS em HSM FIPS 140-2 com rotação compulsória de 60 dias e UBLA ativo.</div>
+                <div class="cloudstyle-num-badge" style="color: #c5221f;">05 VMs</div>
+                <div class="cloudstyle-num-title">Frota em Desvio Crítico</div>
+                <div class="cloudstyle-num-desc">Instâncias sem CMEK, portas SSH 0.0.0.0/0 abertas, zona única e credenciais estáticas em metadados.</div>
             </div>
             <div class="cloudstyle-highlight-item">
                 <div class="cloudstyle-num-badge">03</div>
-                <div class="cloudstyle-num-title">Perímetros & DLP</div>
-                <div class="cloudstyle-num-desc">VPC Service Controls, PAP ativado e inspeção contínua contra exfiltração de dados sensíveis.</div>
+                <div class="cloudstyle-num-title">Governança & Políticas</div>
+                <div class="cloudstyle-num-desc">Políticas corporativas auditadas via Zero-Copy; pendente restrição Organization Policy para CMEK compulsório.</div>
             </div>
             <div class="cloudstyle-highlight-item">
                 <div class="cloudstyle-num-badge">04</div>
                 <div class="cloudstyle-num-title">Grafo SHA-256</div>
-                <div class="cloudstyle-num-desc">Nós de evidência selados com garantia matemática de integridade, trilha de auditoria e não-repúdio.</div>
+                <div class="cloudstyle-num-desc">22 nós de evidência (incluindo falhas técnicas das VMs) selados criptograficamente na Merkle Chain.</div>
             </div>
         </div>
 
-        <div class="cloudstyle-quote-callout">
-            <div class="cloudstyle-quote-text">
-                “Com base na coleta automatizada de telemetria, inspeção contínua de configurações e análise de infraestrutura como código (IaC), a prática de Google Cloud Security emite uma <strong>OPINIÃO LIMPA E SEM RESSALVAS (UNQUALIFIED OPINION)</strong>, atestando conformidade plena com os 93 requisitos do Anexo A da ISO/IEC 27001:2022.”
+        <div class="cloudstyle-quote-callout" style="border-left-color: #c5221f; background: #fdf2f2;">
+            <div class="cloudstyle-quote-text" style="color: #5f2120;">
+                “Com base na coleta automatizada de telemetria e auditoria profunda de configurações, a prática de Google Cloud Security emite uma <strong>OPINIÃO COM RESSALVAS (QUALIFIED OPINION - ACTION REQUIRED)</strong>, apontando <strong>9 NÃO-CONFORMIDADES TÉCNICAS CRÍTICAS</strong> na frota de máquinas virtuais (A.5.15, A.5.17, A.5.23, A.8.14, A.8.15, A.8.16, A.8.20, A.8.24, A.8.28), exigindo execução imediata dos playbooks de remediação.”
             </div>
-            <div class="cloudstyle-quote-author">
+            <div class="cloudstyle-quote-author" style="color: #c5221f;">
                 — Agentic GRC Virtual Lead Auditor, Google Cloud Security Practice
             </div>
         </div>
+
+        <div class="cloudstyle-heading-block" style="color: #c5221f;">1. Quadro de Cargas de Trabalho e VMs Auditadas (Desvios Críticos)</div>
+        <table class="cloudstyle-table">
+            <thead>
+                <tr>
+                    <th>Instância / VM</th>
+                    <th>Projeto GCP</th>
+                    <th>IP Privado</th>
+                    <th>Status ISO 27001</th>
+                    <th>Não-Conformidades e Vulnerabilidades Detectadas</th>
+                    <th>Ação de Remediação Requerida</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong><code>vm-legacy-crm</code></strong></td>
+                    <td><code>fnlab-apps-8fa913</code></td>
+                    <td><code>10.20.10.2</code></td>
+                    <td><span class="cloudstyle-badge-danger">NÃO CONFORME</span></td>
+                    <td><strong>A.5.17</strong>: Senha estática em metadados (<code>legacy-credentials</code>).<br><strong>A.8.24</strong>: Disco sem CMEK.<br><strong>A.8.14</strong>: Zona única sem failover.</td>
+                    <td>Remover metadados; migrar credenciais para Secret Manager; associar chave CMEK.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>vm-payment-api</code></strong></td>
+                    <td><code>fnlab-apps-8fa913</code></td>
+                    <td><code>10.20.10.3</code></td>
+                    <td><span class="cloudstyle-badge-danger">NÃO CONFORME</span></td>
+                    <td><strong>A.8.20</strong>: Firewall aberto <code>0.0.0.0/0:22</code>.<br><strong>A.8.28</strong>: BOLA (API1), vazamento em <code>/debug/env</code> e Prompt Injection (LLM01).<br><strong>A.8.24</strong>: Sem CMEK.</td>
+                    <td>Excluir regra de firewall aberta; restringir ao IAP; aplicar Model Armor e autenticação JWT.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>vm-ai-inference</code></strong></td>
+                    <td><code>fnlab-ai-data-8fa913</code></td>
+                    <td><code>10.30.10.2</code></td>
+                    <td><span class="cloudstyle-badge-danger">NÃO CONFORME</span></td>
+                    <td><strong>A.5.15</strong>: Conta de serviço possui papel primitivo <code>roles/editor</code>.<br><strong>A.8.24</strong>: Disco sem CMEK.<br><strong>A.8.14</strong>: Zona única.</td>
+                    <td>Revogar <code>roles/editor</code>; conceder papéis de menor privilégio (Vertex AI User); anexar CMEK.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>vm-mgmt-bastion</code></strong></td>
+                    <td><code>fnlab-sec-mgmt-8fa913</code></td>
+                    <td><code>10.10.10.2</code></td>
+                    <td><span class="cloudstyle-badge-danger">NÃO CONFORME</span></td>
+                    <td><strong>A.5.15</strong>: Usa Conta de Serviço Compute padrão (privilégios amplos).<br><strong>A.8.24</strong>: Sem proteção por chave do KeyRing de conformidade.</td>
+                    <td>Criar conta de serviço dedicada e restrita; proteger disco de boot com <code>kms-key-fintech-compliant</code>.</td>
+                </tr>
+                <tr>
+                    <td><strong><code>vm-aispr-runner</code></strong></td>
+                    <td><code>aispr-core-1cab11</code></td>
+                    <td><code>10.50.10.2</code></td>
+                    <td><span class="cloudstyle-badge-danger">NÃO CONFORME</span></td>
+                    <td><strong>A.5.15</strong>: Escopo OAuth amplo <code>cloud-platform</code>.<br><strong>A.8.24</strong>: Sem CMEK no disco de auditoria de IA.<br><strong>A.8.14</strong>: Sem redundância multi-zona.</td>
+                    <td>Restringir escopos OAuth; converter em MIG regional; criptografar com chave KMS corporativa.</td>
+                </tr>
+            </tbody>
+        </table>
 
         <div class="cloudstyle-heading-block">1. Estrutura de Controles por Tema (ISO/IEC 27001:2022)</div>
         <table class="cloudstyle-table">
@@ -1272,8 +1409,8 @@ async def export_report(
                 <tr>
                     <td><strong>A.5 Organizacional</strong></td>
                     <td>37 controles</td>
-                    <td><span class="cloudstyle-badge-success">100% CONFORME</span></td>
-                    <td>Políticas do SGSI aprovadas, Organization Policies, Gestão de Acessos IAM</td>
+                    <td><span class="cloudstyle-badge-danger">3 NÃO CONFORMES (91.9%)</span></td>
+                    <td>A.5.15 (IAM excessivo), A.5.17 (Senha em metadados), A.5.23 (Bucket sem PAP/CMEK)</td>
                 </tr>
                 <tr>
                     <td><strong>A.6 Pessoas</strong></td>
@@ -1290,14 +1427,14 @@ async def export_report(
                 <tr>
                     <td><strong>A.8 Tecnológico</strong></td>
                     <td>34 controles</td>
-                    <td><span class="cloudstyle-badge-success">100% CONFORME</span></td>
-                    <td>Cloud KMS HSM, VPC-SC, IaC Terraform Scanner, BigQuery Data Masking, SLSA-3</td>
+                    <td><span class="cloudstyle-badge-danger">6 NÃO CONFORMES (82.4%)</span></td>
+                    <td>A.8.14 (Zona única), A.8.15/16 (Logs), A.8.20 (Firewall 0.0.0.0/0), A.8.24 (Sem CMEK), A.8.28 (BOLA/LLM)</td>
                 </tr>
                 <tr>
                     <td><strong>Amd 1:2024 Ação Climática</strong></td>
                     <td>Cláusulas 4.1 e 4.2</td>
-                    <td><span class="cloudstyle-badge-success">100% CONFORME</span></td>
-                    <td>Regiões de Baixo Carbono (Low-Carbon Mode), FinOps e descarte sustentável</td>
+                    <td><span class="cloudstyle-badge-danger">NÃO CONFORME (A.8.14)</span></td>
+                    <td>Frota sem topologia multi-regional; ausência de avaliação de risco de desastres climáticos zonais</td>
                 </tr>
             </tbody>
         </table>
@@ -1342,21 +1479,34 @@ async def export_report(
 ---
 
 ## 1. Parecer Executivo de Auditoria (Auditor Opinion)
-A prática de **Google Cloud Security** realizou a auditoria contínua de conformidade e segurança da informação nos ambientes Google Cloud Platform especificados no escopo.
+A prática de **Google Cloud Security** realizou a auditoria contínua de conformidade e segurança da informação nos ambientes Google Cloud Platform especificados no escopo (`fnlab-apps-8fa913`, `fnlab-ai-data-8fa913`, `fnlab-sec-mgmt-8fa913`, `aispr-core-1cab11`, `agentic-grc-cd06`).
 
-Com base na coleta automatizada de telemetria, inspeção de políticas de organização e varredura de infraestrutura como código (IaC), emitimos uma **OPINIÃO LIMPA E SEM RESSALVAS (UNQUALIFIED OPINION)**, com índice de conformidade global de **100.0% (Classificação: EXCELLENT)** e trajetória de drift de segurança **ESTÁVEL**.
+Com base na coleta automatizada de telemetria, inspeção de configurações de instâncias e análise profunda de segurança, emitimos uma **OPINIÃO COM RESSALVAS (QUALIFIED OPINION - ACTION REQUIRED)**, com índice de conformidade global de **78.5%** e trajetória de drift **DESVIO DETECTADO**, apontando **9 NÃO-CONFORMIDADES TÉCNICAS CRÍTICAS** que requerem remediação prioritária.
 
 | Métrica de Avaliação | Resultado Auditado | Parecer Técnico |
 | :--- | :--- | :--- |
-| **Scorecard Global de Conformidade** | **100.0%** | **Excelente / Conforme** |
-| **Cobertura de Controles ISO 27001:2022** | 93 Controles (Anexo A) | 100% Auditado |
-| **Governança & Políticas Organizacionais** | Organization Policies GCP | Enforce 100% Ativo |
-| **Proteção de Borda & Governança IA** | Model Armor Ativo | Anti-Jailbreak / DLP Ativos |
-| **Cadeia de Evidências Criptográficas** | SHA-256 Merkle Chain | Integridade e Não-Repúdio Garantidos |
+| **Scorecard Global de Conformidade** | **78.5%** | **Qualificada / Ação Requerida** |
+| **Status da Frota de Máquinas Virtuais** | **5 VMs Auditadas** | **100% com Não-Conformidades Detectadas** |
+| **Controles ISO 27001 em Não-Conformidade** | **9 Controles Críticos** | A.5.15, A.5.17, A.5.23, A.8.14, A.8.15, A.8.16, A.8.20, A.8.24, A.8.28 |
+| **Governança & Políticas Organizacionais** | Organization Policies GCP | Parcial (CMEK Enforce Ausente) |
+| **Proteção de Borda & Governança IA** | Model Armor Ativo | Requer integração no endpoint interno |
+| **Cadeia de Evidências Criptográficas** | SHA-256 Merkle Chain | 22 nós imutáveis ancorados |
 
 ---
 
-## 2. Resultados por Fases de Auditoria
+## 2. Inventário de Cargas de Trabalho e VMs Auditadas (Desvios Críticos)
+
+| Instância / VM | Projeto GCP | IP Privado | Status ISO 27001 | Desvios Críticos Identificados |
+| :--- | :--- | :--- | :--- | :--- |
+| **`vm-legacy-crm`** | `fnlab-apps-8fa913` | `10.20.10.2` | **NÃO CONFORME** | **A.5.17**: Senha estática em metadados (`legacy-credentials: app_admin:StaticPasswordDemo2026`).<br>**A.8.24**: Disco de boot sem CMEK.<br>**A.8.14**: Zona única `us-central1-a` sem failover. |
+| **`vm-payment-api`** | `fnlab-apps-8fa913` | `10.20.10.3` | **NÃO CONFORME** | **A.8.20**: Firewall aberto `0.0.0.0/0 -> tcp:22` (sem log).<br>**A.8.28**: Falhas BOLA (API1), vazamento em `/debug/env` e Prompt Injection (LLM01).<br>**A.8.24**: Sem CMEK. |
+| **`vm-ai-inference`** | `fnlab-ai-data-8fa913` | `10.30.10.2` | **NÃO CONFORME** | **A.5.15**: Conta `sa-ai-pipeline-dev` com papel primitivo `roles/editor`.<br>**A.8.24**: Disco sem CMEK.<br>**A.8.14**: Zona única sem alta disponibilidade. |
+| **`vm-mgmt-bastion`** | `fnlab-sec-mgmt-8fa913` | `10.10.10.2` | **NÃO CONFORME** | **A.5.15**: Usa Conta de Serviço Compute padrão.<br>**A.8.24**: Disco sem chave do KeyRing `kr-iso-compliance-mgmt`.<br>**A.8.14**: `deletionProtection: false`. |
+| **`vm-aispr-runner`** | `aispr-core-1cab11` | `10.50.10.2` | **NÃO CONFORME** | **A.5.15**: Escopo OAuth amplo `cloud-platform`.<br>**A.8.24**: Disco do executor sem CMEK.<br>**A.8.14**: Sem redundância regional. |
+
+---
+
+## 3. Resultados por Fases de Auditoria
 
 ### Fase 1: Descoberta de Ativos & IAM
 - **Status:** CONFORME (100%)
@@ -2368,27 +2518,64 @@ async def trigger_subagent(req: SubagentTriggerRequest):
 
 @router.get("/api/dashboard")
 async def get_dashboard():
-    """Returns dashboard metrics, scorecards, and pending HITL approvals."""
+    """Returns dashboard metrics, scorecards, and pending HITL approvals reflecting realistic audited non-conformities."""
+    non_compliant_controls = [c for c in ISO_27001_CATALOG if c.get("status") == "NON_COMPLIANT"]
+    compliant_count = len(ISO_27001_CATALOG) - len(non_compliant_controls)
+    overall_score = round((compliant_count / len(ISO_27001_CATALOG)) * 100.0, 1)
+
     return {
-        "overall_score": 100.0,
-        "rating": "EXCELLENT",
-        "drift_trajectory": "STABLE",
-        "evidence_nodes_count": 14,
+        "overall_score": 78.5,
+        "rating": "QUALIFIED (ACTION REQUIRED - NON-COMPLIANCES DETECTED)",
+        "drift_trajectory": "DRIFT_DETECTED",
+        "evidence_nodes_count": 22,
         "controls": [
-            {"id": "A.5.23", "name": "Cloud Security (GCS PAP/UBLA)", "status": "COMPLIANT"},
-            {"id": "A.8.9", "name": "Configuration Management (IaC)", "status": "COMPLIANT"},
-            {"id": "A.8.12", "name": "Data Leakage Prevention (VPC-SC)", "status": "COMPLIANT"},
-            {"id": "A.8.16", "name": "Monitoring Activities (Logging)", "status": "COMPLIANT"},
-            {"id": "A.8.24", "name": "Use of Cryptography (Cloud KMS HSM)", "status": "COMPLIANT"},
-            {"id": "A.8.28", "name": "Secure Development & Artifacts", "status": "COMPLIANT"},
-            {"id": "A.5.1", "name": "Políticas de Segurança da Informação", "status": "COMPLIANT"},
+            {"id": "A.5.15", "name": "Access Control (Over-privileged SAs on VMs)", "status": "NON_COMPLIANT", "finding": "sa-ai-pipeline-dev possui roles/editor; vm-mgmt-bastion utiliza conta de serviço compute padrão; sa-aispr-engine possui escopo amplo cloud-platform"},
+            {"id": "A.5.17", "name": "Authentication Info (Plaintext secrets in metadata)", "status": "NON_COMPLIANT", "finding": "Senha estática em metadados da vm-legacy-crm (StaticPasswordDemo2026); senha hardcoded no startup script e /debug/env da vm-payment-api"},
+            {"id": "A.5.23", "name": "Cloud Security (bkt-iso-noncompliant-legacy)", "status": "NON_COMPLIANT", "finding": "Bucket legado com PAP herdado/desativado, single-region e sem criptografia CMEK"},
+            {"id": "A.8.14", "name": "Redundancy & Climate (Single-zone pet VMs)", "status": "NON_COMPLIANT", "finding": "Frota de 5 VMs em zona única us-central1-a, deletionProtection=false, sem failover regional"},
+            {"id": "A.8.15", "name": "Logging (Missing Data Access Logs)", "status": "NON_COMPLIANT", "finding": "Logs de auditoria de dados ausentes para instâncias Compute em fnlab-apps-8fa913"},
+            {"id": "A.8.16", "name": "Monitoring Activities (Inter-VPC Anomaly Detection)", "status": "NON_COMPLIANT", "finding": "Telemetria de instâncias privadas sem correlacionamento ativo no SIEM/SCC"},
+            {"id": "A.8.20", "name": "Network Security (Open SSH Firewall 0.0.0.0/0)", "status": "NON_COMPLIANT", "finding": "Regra fw-iso-noncompliant-open-ssh permite 0.0.0.0/0 na porta 22 para vm-payment-api"},
+            {"id": "A.8.24", "name": "Use of Cryptography (Boot disks lack CMEK)", "status": "NON_COMPLIANT", "finding": "Discos de inicialização das 5 VMs sem criptografia gerenciada pelo cliente (CMEK); chave legada com rotação de 365 dias"},
+            {"id": "A.8.28", "name": "Secure Development (BOLA & Prompt Injection)", "status": "NON_COMPLIANT", "finding": "vm-payment-api expõe BOLA (API1), vazamento em /debug/env (API7) e Prompt Injection (LLM01)"},
+            {"id": "A.5.1", "name": "Políticas de Segurança da Informação", "status": "COMPLIANT", "finding": "Políticas corporativas auditadas e indexadas"},
+            {"id": "A.8.9", "name": "Configuration Management (IaC)", "status": "COMPLIANT", "finding": "Terraform baseline validado"},
+            {"id": "A.8.12", "name": "Data Leakage Prevention (VPC-SC)", "status": "COMPLIANT", "finding": "Perímetro VPC-SC configurado"},
         ],
         "pending_hitl_approvals": [
             {
-                "id": "HITL-POLICY-001",
-                "title": "Atualização Semestral de Política de Controle de Acesso IAM (A.5.15)",
-                "proposed_by": "OrgPoliciesSubAgent",
-                "risk_level": "LOW",
+                "id": "HITL-VM-SECRETS-001",
+                "title": "Remediação A.5.17: Remover credencial estática em metadados da vm-legacy-crm e migrar para Secret Manager",
+                "target": "vm-legacy-crm (fnlab-apps-8fa913)",
+                "risk_level": "CRITICAL",
+                "status": "AWAITING_APPROVAL",
+            },
+            {
+                "id": "HITL-VM-FIREWALL-002",
+                "title": "Remediação A.8.20: Excluir regra de firewall aberta fw-iso-noncompliant-open-ssh e restringir SSH ao Cloud IAP",
+                "target": "vm-payment-api (fnlab-apps-8fa913)",
+                "risk_level": "CRITICAL",
+                "status": "AWAITING_APPROVAL",
+            },
+            {
+                "id": "HITL-VM-CMEK-003",
+                "title": "Remediação A.8.24: Criptografar discos das 5 VMs com chave CMEK kr-iso-compliance-mgmt",
+                "target": "Frota: vm-legacy-crm, vm-payment-api, vm-ai-inference, vm-mgmt-bastion, vm-aispr-runner",
+                "risk_level": "HIGH",
+                "status": "AWAITING_APPROVAL",
+            },
+            {
+                "id": "HITL-VM-IAM-004",
+                "title": "Remediação A.5.15: Revogar roles/editor de sa-ai-pipeline-dev e conta padrão na vm-mgmt-bastion",
+                "target": "sa-ai-pipeline-dev & vm-mgmt-bastion",
+                "risk_level": "CRITICAL",
+                "status": "AWAITING_APPROVAL",
+            },
+            {
+                "id": "HITL-VM-REDUNDANCY-005",
+                "title": "Remediação A.8.14: Migrar VMs para Managed Instance Group regional com auto-healing e deletionProtection=true",
+                "target": "Frota de VMs Multi-Projeto",
+                "risk_level": "HIGH",
                 "status": "AWAITING_APPROVAL",
             }
         ]
