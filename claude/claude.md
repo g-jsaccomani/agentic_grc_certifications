@@ -1044,8 +1044,7 @@ A comprehensive redesign of the web client portal navigation and frontend layout
 - `#agentBtnFinops` and `#view-finops` were preserved completely unchanged, maintaining full billing and token telemetry functionality.
 
 ### 3. Verification & Quality Gates
-- **Pytest Suite:** 143 passed (including new end-to-end frontend regression test `test_frontend_redesign_navigation_and_views` in `tests/test_portal.py`).
-- **Code Coverage:** 87% across `mcp_server_grc` and `agent_orchestrator` (`mcp_server_grc/portal_html.py`: 100%, `mcp_server_grc/questionnaire.py`: 95%).
-- **WCAG Accessibility:** Validated 100% compliance via `test_all_labels_associated_with_form_fields`.
+- **Active Production Revision:** `mcp-server-grc-00048-9pg` (Serving 100% of traffic).
+- **Service URL:** `https://mcp-server-grc-938078169010.us-central1.run.app`
 
 
