@@ -8814,7 +8814,7 @@ Formulário preenchido com o subagente recomendado!`);
             loadPinnedItems();
             loadChatSessions();
             renderChatSessionsHistory();
-            startNewConversation();
+            switchView("view-home");
             startSuggestionRotation();
         });
 
