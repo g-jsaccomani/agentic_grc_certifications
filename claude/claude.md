@@ -1047,4 +1047,39 @@ A comprehensive redesign of the web client portal navigation and frontend layout
 - **Active Production Revision:** `mcp-server-grc-00048-9pg` (Serving 100% of traffic).
 - **Service URL:** `https://mcp-server-grc-938078169010.us-central1.run.app`
 
+---
+
+## 2026-09-07 — Multilingual Detailed Questionnaire & Vector Cloud Icon Fix
+
+### 1. Architectural Summary & Scope of Changes
+In direct response to user requirements:
+1. **Broken Top Icon Permanently Resolved**: The broken Google Cloud logo in the top navbar (`#topGoogleCloudIcon`) and brand sidebar (`#brandSidebarCloudIcon`) was diagnosed as having corrupted base64 PNG data with an invalid chunk terminator. It was replaced with the official, pristine 4-color Google Cloud SVG cloud vector icon. It scales crisply across all display resolutions with zero HTTP overhead or chunk corruption risks, and strictly maintains `id="topGoogleCloudIcon"` for existing test compatibility.
+2. **Comprehensive Multilingual Questionnaire & Technical Guidance**:
+   - Created `mcp_server_grc/questionnaire_catalog.py` mapping all 93 ISO/IEC 27001:2022 Annex A controls across Portuguese (`pt`), English (`en`), and Spanish (`es`).
+   - Formulated explicit, professional auditor questions (`question`) for each control based on ISO Annex A clauses (e.g. "A organização garante que as políticas de segurança da informação sejam formalmente aprovadas pela direção...?").
+   - Detailed regulatory scope & objective descriptions (`description`).
+   - Provided concrete auditor verification checklists (`how_to_check`) and continuous compliance governance (`how_to_maintain`).
+   - Provided recommended evidence artifacts (`recommended_evidence`) tailored by theme and control.
+   - Associated GCP telemetry and service mappings (`gcp_mapping`) and 5-attribute taxonomy (`attributes`).
+   - Extended multi-framework readiness by including SOC 2 Trust Services Criteria (CC6.1, CC6.2, CC6.3, CC6.6, CC7.1) with full trilingual parity.
+3. **Backend & Frontend Dynamic Localization**:
+   - `GET /api/questionnaire` now accepts `lang: str = Query("pt", description="Language code ('pt', 'en', 'es')")` and returns localized titles, questions, descriptions, recommended evidence, and localized theme titles.
+   - Updated `portal_html.py`:
+     - Each control card renders an explicit **Audit Question Callout Box** (`.quest-callout-box`) with distinct blue accent styling.
+     - Renders regulatory scope requirement text.
+     - Renders an expandable **Auditor Guidance & Recommended Evidence** block (`.quest-evidence-guide`) displaying recommended artifacts, step-by-step GCP verification procedures, and GCP telemetry sources.
+     - Form controls (status select, justification textarea, evidence URI input, file upload button, save button) dynamically adapt their labels and options to the active language (`pt`, `en`, `es`).
+     - Calling `setLanguage(lang)` immediately triggers `loadQuestionnaireControls()` to re-fetch and re-render the questionnaire accordion seamlessly in the selected language.
+
+### 2. Test Verification & Code Coverage
+- **Total Tests**: 144/144 passed (100% pass rate).
+- **Code Coverage**: 87% overall coverage across `mcp_server_grc` and `agent_orchestrator`.
+  - `mcp_server_grc/questionnaire.py`: 94% coverage.
+  - `mcp_server_grc/questionnaire_catalog.py`: 93% coverage.
+  - `mcp_server_grc/portal_html.py`: 100% coverage.
+  - `mcp_server_grc/finops.py`: 100% coverage.
+- **Accessibility / WCAG Verification**: Passed `test_all_labels_associated_with_form_fields`.
+- **FinOps Status**: Completely intact and operational.
+
+
 

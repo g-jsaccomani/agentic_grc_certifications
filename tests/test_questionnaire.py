@@ -478,6 +478,42 @@ def test_get_questionnaire_soc2():
     assert ctrl_cc61["answer"]["status"] == "COMPLIANT"
 
 
+def test_get_questionnaire_multilingual_pt_en_es():
+    """GET /api/questionnaire returns localized titles, questions, evidence, and themes."""
+    # 1. Portuguese (default)
+    res_pt = client.get("/api/questionnaire?framework=ISO27001:2022&lang=pt")
+    assert res_pt.status_code == 200
+    data_pt = res_pt.json()
+    assert data_pt["lang"] == "pt"
+    assert len(data_pt["themes"]) == 4
+    c_a51_pt = next(c for c in data_pt["controls"] if c["id"] == "A.5.1")
+    assert "Políticas para segurança da informação" in c_a51_pt["name"]
+    assert c_a51_pt["question"].startswith("A organização garante que")
+    assert "Política Geral de Segurança" in c_a51_pt["recommended_evidence"]
+    assert "translations" in c_a51_pt
+    assert "pt" in c_a51_pt["translations"] and "en" in c_a51_pt["translations"]
+
+    # 2. English
+    res_en = client.get("/api/questionnaire?framework=ISO27001:2022&lang=en")
+    assert res_en.status_code == 200
+    data_en = res_en.json()
+    assert data_en["lang"] == "en"
+    c_a51_en = next(c for c in data_en["controls"] if c["id"] == "A.5.1")
+    assert "Policies for information security" in c_a51_en["name"]
+    assert c_a51_en["question"].startswith("Does the organization ensure that")
+    assert "Information Security Policy" in c_a51_en["recommended_evidence"]
+
+    # 3. Spanish
+    res_es = client.get("/api/questionnaire?framework=ISO27001:2022&lang=es")
+    assert res_es.status_code == 200
+    data_es = res_es.json()
+    assert data_es["lang"] == "es"
+    c_a51_es = next(c for c in data_es["controls"] if c["id"] == "A.5.1")
+    assert "Políticas para la seguridad de la información" in c_a51_es["name"]
+    assert c_a51_es["question"].startswith("¿Garantiza la organización que")
+    assert "Política General de Seguridad" in c_a51_es["recommended_evidence"]
+
+
 def test_get_questionnaire_summary():
     """GET /api/questionnaire/summary computes accurate counts and completion percentage."""
     res = client.get("/api/questionnaire/summary?framework=ISO27001:2022")

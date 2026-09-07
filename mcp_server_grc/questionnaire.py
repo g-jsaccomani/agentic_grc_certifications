@@ -27,6 +27,11 @@ from pydantic import BaseModel, Field
 from mcp_server_grc.auth import WorkspaceUserContext, get_current_workspace_user
 from agent_orchestrator.evidence_graph import EvidenceVerificationTier
 from mcp_server_grc.catalog import ISO_27001_CATALOG
+from mcp_server_grc.questionnaire_catalog import (
+    get_localized_catalog,
+    get_localized_themes,
+    THEMES_I18N,
+)
 
 logger = logging.getLogger("questionnaire")
 router = APIRouter(prefix="/api", tags=["Questionnaire"])
@@ -522,16 +527,20 @@ async def submit_questionnaire_answer(
 
 @router.get(
     "/questionnaire",
-    summary="List controls and answers for a specific compliance framework",
+    summary="List controls and answers for a specific compliance framework and language",
 )
 async def get_questionnaire(
     framework: str = Query("ISO27001:2022", description="Target compliance framework"),
+    lang: str = Query("pt", description="Language code ('pt', 'en', 'es')"),
 ):
-    """Returns controls and answers for the requested compliance framework."""
-    if framework == "ISO27001:2022":
-        base_controls = ISO_27001_CATALOG
-    elif framework == "SOC2":
-        base_controls = SOC2_CATALOG
+    """Returns controls and answers for the requested compliance framework and language."""
+    norm_lang = (lang or "pt").lower().strip()
+    if norm_lang not in ("pt", "en", "es"):
+        norm_lang = "pt"
+
+    if framework in ("ISO27001:2022", "SOC2"):
+        base_controls = get_localized_catalog(framework, lang=norm_lang)
+        themes = get_localized_themes(framework, lang=norm_lang)
     else:
         matching = [ans for (fw, cid), ans in QUESTIONNAIRE_ANSWERS.items() if fw == framework]
         base_controls = [
@@ -539,11 +548,31 @@ async def get_questionnaire(
                 "id": a.control_id,
                 "name": f"Control {a.control_id}",
                 "theme": "Custom Controls",
+                "theme_key": "CUSTOM",
+                "theme_title": "Custom Controls",
+                "question": f"How does the organization comply with control {a.control_id}?",
                 "description": a.justification,
+                "recommended_evidence": "Audit documentation and technical verification artifacts.",
+                "how_to_check": "Verify custom evidence attached to the questionnaire response.",
+                "how_to_maintain": "Review periodically according to organization policy.",
+                "gcp_mapping": "Google Cloud Workloads",
+                "attributes": {},
                 "framework": framework,
+                "status": a.status,
+                "translations": {
+                    "pt": {"name": f"Controle {a.control_id}", "question": f"Como a organização cumpre o controle {a.control_id}?", "description": a.justification, "recommended_evidence": "Documentação e evidências técnicas."},
+                    "en": {"name": f"Control {a.control_id}", "question": f"How does the organization comply with control {a.control_id}?", "description": a.justification, "recommended_evidence": "Audit documentation and technical artifacts."},
+                    "es": {"name": f"Control {a.control_id}", "question": f"¿Cómo cumple la organización el control {a.control_id}?", "description": a.justification, "recommended_evidence": "Documentación y artefactos técnicos."},
+                }
             }
             for a in matching
         ]
+        themes = [{
+            "key": "CUSTOM",
+            "title": "Custom Controls",
+            "subtitle": "Organization-specific compliance framework controls",
+            "short": "Custom",
+        }]
 
     controls_output = []
     answered_count = 0
@@ -562,16 +591,29 @@ async def get_questionnaire(
             "id": cid,
             "name": c.get("name", ""),
             "theme": c.get("theme", ""),
+            "theme_key": c.get("theme_key", ""),
+            "theme_title": c.get("theme_title", ""),
+            "question": c.get("question", ""),
             "description": c.get("description", ""),
+            "recommended_evidence": c.get("recommended_evidence", ""),
+            "how_to_check": c.get("how_to_check", ""),
+            "how_to_maintain": c.get("how_to_maintain", ""),
+            "gcp_mapping": c.get("gcp_mapping", ""),
+            "attributes": c.get("attributes", {}),
+            "severity": c.get("severity", "MEDIUM"),
+            "soa_status": c.get("soa_status", "APLICÁVEL"),
             "framework": framework,
             "status": status,
             "answer": ans_dict,
+            "translations": c.get("translations", {}),
         })
 
     return {
         "framework": framework,
+        "lang": norm_lang,
         "total_controls": len(controls_output),
         "answered_controls": answered_count,
+        "themes": themes,
         "controls": controls_output,
     }
 
