@@ -1,4 +1,4 @@
-"""Horizon Scanning Regulatório (Deep Research) Sub-Agent.
+"""Horizon Scanning Regulatório (Deep Research) Sub-Agent with Gemini Reasoning.
 
 Monitors global regulatory bodies and standards portals (ISO, NIST, EU AI Act, Cloud Security Alliance)
 to identify emerging regulatory amendments (e.g. ISO 27001 Amd 1:2024 Climate, ISO/IEC 42001 AI Governance).
@@ -6,15 +6,48 @@ Cross-references new requirements with internal client policies and drafts updat
 for immediate human evaluation.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
+from agent_orchestrator.llm_subagent import LLMSubAgent
+
+
+HORIZON_SCANNER_SYSTEM_PROMPT = """
+Você é o Auditor Especialista em Horizon Scanning Regulatório e Deep Research (ISO/IEC 27001 & ISO 42001).
+Sua missão é monitorar normas emergentes, aditamentos (como Amd 1:2024 Clima) e propor revisões de políticas.
+Regra fundamental: Propostas de emenda normativa são DRAFTS e devem sempre exigir aprovação humana (HITL).
+"""
 
 
 class HorizonScannerSubAgent:
     """Specialized Sub-Agent for Regulatory Horizon Scanning and Policy Update Generation."""
 
-    def __init__(self, spiffe_id: str = "spiffe://grc.jetsky.gcp/ns/production/sa/subagent-horizon-scanner"):
+    def __init__(
+        self,
+        spiffe_id: str = "spiffe://grc.jetsky.gcp/ns/production/sa/subagent-horizon-scanner",
+        client: Optional[Any] = None,
+        model_id: Optional[str] = None,
+    ):
         self.spiffe_id = spiffe_id
         self.role = "Regulatory Horizon Scanning (Deep Research) Specialist"
+
+        self.tools: Dict[str, Callable[..., Dict[str, Any]]] = {
+            "generate_policy_amendment_proposal": self._eval_policy_amendment,
+        }
+
+        self.llm = LLMSubAgent(
+            name="horizon_scanner_agent",
+            system_instruction=HORIZON_SCANNER_SYSTEM_PROMPT,
+            tools=self.tools,
+            model_id=model_id,
+            client=client,
+        )
+
+    def run(self, user_task: str, max_turns: int = 4, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Runs the LLM function-calling loop for horizon scanning."""
+        return self.llm.run(user_task, max_turns=max_turns, context=context)
+
+    async def arun(self, user_task: str, max_turns: int = 4, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Async version of LLM function-calling loop."""
+        return await self.llm.arun(user_task, max_turns=max_turns, context=context)
 
     def scan_regulatory_updates(
         self,
@@ -47,6 +80,13 @@ class HorizonScannerSubAgent:
         internal_policy_text: str,
     ) -> Dict[str, Any]:
         """Cross-references a regulatory update against internal policy and drafts a revision for human review."""
+        return self._eval_policy_amendment(regulatory_update=regulatory_update, internal_policy_text=internal_policy_text)
+
+    def _eval_policy_amendment(
+        self,
+        regulatory_update: Dict[str, Any],
+        internal_policy_text: str = "",
+    ) -> Dict[str, Any]:
         update_title = regulatory_update.get("title", "Regulatory Amendment")
         affected_clauses = regulatory_update.get("affected_clauses", [])
 

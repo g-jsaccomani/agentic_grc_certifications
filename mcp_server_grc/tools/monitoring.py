@@ -25,67 +25,99 @@ def audit_monitoring_activities(
     Returns:
         Structured audit finding with monitoring activities compliance verdict and evidence.
     """
-    monitoring_config = monitoring_config or {}
-    violations: List[str] = []
-    evidence: Dict[str, Any] = {
-        "project_id": project_id,
-        "control": "ISO/IEC 27001:2022 A.8.16",
-    }
+    if not isinstance(monitoring_config, dict) or not monitoring_config:
+        return {
+            "status": "UNDETERMINED",
+            "control": "ISO/IEC 27001:2022 A.8.16",
+            "project_id": project_id,
+            "violations": ["Insufficient telemetry: monitoring configuration is empty or not provided. Cannot determine A.8.16 compliance."],
+            "evidence": {"project_id": project_id, "control": "ISO/IEC 27001:2022 A.8.16", "config_present": False},
+            "remediation": "Provide centralized log export sink, retention days, and security alert policy definitions.",
+        }
 
-    # Check 1: Centralized Destination (BigQuery or Google SecOps)
-    sinks = monitoring_config.get("sinks", [])
-    has_centralized_sink = False
-    valid_dest_prefixes = ("bigquery.googleapis.com", "chronicle.security", "secops.googleapis.com")
+    try:
+        violations: List[str] = []
+        evidence: Dict[str, Any] = {
+            "project_id": project_id,
+            "control": "ISO/IEC 27001:2022 A.8.16",
+        }
 
-    for sink in sinks:
-        dest = sink.get("destination", "")
-        if any(dest.startswith(prefix) for prefix in valid_dest_prefixes):
-            has_centralized_sink = True
-            break
+        # Check 1: Centralized Destination (BigQuery or Google SecOps)
+        if "sinks" not in monitoring_config:
+            violations.append(f"Project '{project_id}' lacks log sink definitions in telemetry.")
+            evidence["centralized_sink_active"] = False
+        else:
+            sinks = monitoring_config.get("sinks", [])
+            has_centralized_sink = False
+            valid_dest_prefixes = ("bigquery.googleapis.com", "chronicle.security", "secops.googleapis.com")
 
-    evidence["centralized_sink_active"] = has_centralized_sink
-    if not has_centralized_sink:
-        violations.append(
-            f"Project '{project_id}' lacks centralized log export to BigQuery or Google SecOps (Chronicle)."
-        )
+            for sink in sinks:
+                dest = sink.get("destination", "")
+                if any(dest.startswith(prefix) for prefix in valid_dest_prefixes):
+                    has_centralized_sink = True
+                    break
 
-    # Check 2: Data Access Logging
-    data_access_enabled = monitoring_config.get("data_access_logs_enabled", True)
-    evidence["data_access_logs_enabled"] = data_access_enabled
-    if not data_access_enabled:
-        violations.append(
-            f"Data Access Audit Logging is disabled or incomplete for critical services in project '{project_id}'."
-        )
+            evidence["centralized_sink_active"] = has_centralized_sink
+            if not has_centralized_sink:
+                violations.append(
+                    f"Project '{project_id}' lacks centralized log export to BigQuery or Google SecOps (Chronicle)."
+                )
 
-    # Check 3: Retention Period (>= 365 days required for ISO audit trail compliance)
-    retention_days = monitoring_config.get("retention_days", 365)
-    evidence["retention_days"] = retention_days
-    if retention_days < 365:
-        violations.append(
-            f"Log retention period ({retention_days} days) is less than required 365 days for regulatory audit trails."
-        )
+        # Check 2: Data Access Logging
+        if "data_access_logs_enabled" not in monitoring_config:
+            violations.append(f"Data Access Audit Logging status unspecified in telemetry for project '{project_id}'.")
+            evidence["data_access_logs_enabled"] = None
+        else:
+            data_access_enabled = monitoring_config.get("data_access_logs_enabled")
+            evidence["data_access_logs_enabled"] = data_access_enabled
+            if not data_access_enabled:
+                violations.append(
+                    f"Data Access Audit Logging is disabled or incomplete for critical services in project '{project_id}'."
+                )
 
-    # Check 4: Real-time Alerting Coverage
-    alert_policies = monitoring_config.get("alert_policies", [])
-    evidence["alert_policies_count"] = len(alert_policies)
-    required_alert_types = {"iam_change", "firewall_change", "kms_destruction"}
-    configured_alerts = set(alert_policies)
-    missing_alerts = required_alert_types.difference(configured_alerts)
-    if missing_alerts:
-        violations.append(
-            f"Missing automated alerts for critical events: {list(missing_alerts)}."
-        )
+        # Check 3: Retention Period (>= 365 days required for ISO audit trail compliance)
+        if "retention_days" not in monitoring_config:
+            violations.append(f"Audit trail retention period unspecified in telemetry for project '{project_id}'.")
+            evidence["retention_days"] = None
+        else:
+            retention_days = monitoring_config.get("retention_days", 0)
+            evidence["retention_days"] = retention_days
+            if retention_days < 365:
+                violations.append(
+                    f"Log retention period ({retention_days} days) is less than required 365 days for regulatory audit trails."
+                )
 
-    is_compliant = len(violations) == 0
-    return {
-        "status": "COMPLIANT" if is_compliant else "NON_COMPLIANT",
-        "control": "ISO/IEC 27001:2022 A.8.16",
-        "project_id": project_id,
-        "violations": violations,
-        "evidence": evidence,
-        "remediation": (
-            "Monitoring activities comply with ISO 27001:2022 Control A.8.16."
-            if is_compliant
-            else "Configure centralized BigQuery/SecOps sink, enable data access logs, set retention >= 365 days, and configure critical alerts."
-        ),
-    }
+        # Check 4: Real-time Alerting Coverage
+        alert_policies = monitoring_config.get("alert_policies", [])
+        evidence["alert_policies_count"] = len(alert_policies)
+        required_alert_types = {"iam_change", "firewall_change", "kms_destruction"}
+        configured_alerts = set(alert_policies)
+        missing_alerts = required_alert_types.difference(configured_alerts)
+        if missing_alerts:
+            violations.append(
+                f"Missing automated alerts for critical events: {list(missing_alerts)}."
+            )
+
+        is_compliant = len(violations) == 0
+        return {
+            "status": "COMPLIANT" if is_compliant else "NON_COMPLIANT",
+            "control": "ISO/IEC 27001:2022 A.8.16",
+            "project_id": project_id,
+            "violations": violations,
+            "evidence": evidence,
+            "remediation": (
+                "Monitoring activities comply with ISO 27001:2022 Control A.8.16."
+                if is_compliant
+                else "Configure centralized BigQuery/SecOps sink, enable data access logs, set retention >= 365 days, and configure critical alerts."
+            ),
+        }
+    except Exception as exc:
+        return {
+            "status": "ERROR",
+            "control": "ISO/IEC 27001:2022 A.8.16",
+            "project_id": project_id,
+            "violations": [f"Malformed monitoring telemetry processing error: {str(exc)}"],
+            "error": str(exc),
+            "evidence": {"exception": str(exc)},
+            "remediation": "Ensure monitoring configuration schema is valid.",
+        }

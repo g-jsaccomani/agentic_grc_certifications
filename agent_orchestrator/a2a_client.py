@@ -51,15 +51,21 @@ class A2AClient:
 
     def __init__(self, timeout: float = 10.0):
         self.timeout = timeout
+        self._sync_client: Optional[httpx.Client] = None
+
+    def _get_client(self) -> httpx.Client:
+        if self._sync_client is None or self._sync_client.is_closed:
+            self._sync_client = httpx.Client(timeout=self.timeout)
+        return self._sync_client
 
     def fetch_agent_card(self, agent_url: str) -> Dict[str, Any]:
         """Discovers capabilities, skills, and schemas by fetching /.well-known/agent.json."""
         discovery_url = f"{agent_url.rstrip('/')}/.well-known/agent.json"
         try:
-            with httpx.Client(timeout=self.timeout) as client:
-                response = client.get(discovery_url)
-                response.raise_for_status()
-                return response.json()
+            client = self._get_client()
+            response = client.get(discovery_url)
+            response.raise_for_status()
+            return response.json()
         except Exception as e:
             raise RuntimeError(f"Failed to fetch Agent Card from {discovery_url}: {e}") from e
 

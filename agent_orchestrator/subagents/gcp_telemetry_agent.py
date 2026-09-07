@@ -1,4 +1,4 @@
-"""GCP Telemetry & Infrastructure Specialist Sub-Agent.
+"""GCP Telemetry & Infrastructure Specialist Sub-Agent with Gemini Function Calling.
 
 Dedicated to continuous real-time extraction and analysis of GCP resources:
 - Cloud Asset Inventory posture
@@ -7,18 +7,54 @@ Dedicated to continuous real-time extraction and analysis of GCP resources:
 - Cloud KMS key states and IAM role bindings
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
+from agent_orchestrator.llm_subagent import LLMSubAgent
 from mcp_server_grc.tools.cloud_security import audit_cloud_security
 from mcp_server_grc.tools.data_leakage_prevention import audit_data_leakage_prevention
 from mcp_server_grc.tools.monitoring import audit_monitoring_activities
 
 
+GCP_TELEMETRY_SYSTEM_PROMPT = """
+Você é o Auditor Especialista em Telemetria de Nuvem e Infraestrutura GCP (ISO/IEC 27001:2022).
+Sua missão é extrair, normalizar e auditar a postura de segurança de recursos GCP reais.
+Regra inegociável: você NUNCA inventa ou assume conformidade sem evidência direta.
+Você SEMPRE chama as tools correspondentes e baseia sua análise estritamente no retorno delas.
+"""
+
+
 class GCPTelemetrySubAgent:
     """Specialized ADK Sub-Agent for Google Cloud live posture and telemetry analysis."""
 
-    def __init__(self, spiffe_id: str = "spiffe://grc.jetsky.gcp/ns/production/sa/subagent-gcp-telemetry"):
+    def __init__(
+        self,
+        spiffe_id: str = "spiffe://grc.jetsky.gcp/ns/production/sa/subagent-gcp-telemetry",
+        client: Optional[Any] = None,
+        model_id: Optional[str] = None,
+    ):
         self.spiffe_id = spiffe_id
         self.role = "GCP Telemetry & Infrastructure Specialist"
+
+        self.tools: Dict[str, Callable[..., Dict[str, Any]]] = {
+            "audit_cloud_security": audit_cloud_security,
+            "audit_data_leakage_prevention": audit_data_leakage_prevention,
+            "audit_monitoring_activities": audit_monitoring_activities,
+        }
+
+        self.llm = LLMSubAgent(
+            name="gcp_telemetry_agent",
+            system_instruction=GCP_TELEMETRY_SYSTEM_PROMPT,
+            tools=self.tools,
+            model_id=model_id,
+            client=client,
+        )
+
+    def run(self, user_task: str, max_turns: int = 4, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Runs the LLM function-calling loop for telemetry analysis."""
+        return self.llm.run(user_task, max_turns=max_turns, context=context)
+
+    async def arun(self, user_task: str, max_turns: int = 4, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Async version of LLM function-calling loop."""
+        return await self.llm.arun(user_task, max_turns=max_turns, context=context)
 
     def scan_project_infrastructure(
         self,

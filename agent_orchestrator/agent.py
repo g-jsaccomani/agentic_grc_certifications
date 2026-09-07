@@ -10,6 +10,7 @@ import re
 from typing import Any, Dict, List, Optional
 import google.auth
 from google import genai
+from google.genai import types
 import httpx
 
 from agent_orchestrator.gateway import ModelArmorGateway
@@ -38,6 +39,7 @@ class GRCAgentOrchestrator:
 
         # In-memory session tracking / Memory Bank simulation
         self.audit_sessions: Dict[str, List[Dict[str, Any]]] = {}
+        self._http_client = httpx.Client(timeout=10.0)
 
         # Initialize genai Client if API credentials exist
         try:
@@ -109,10 +111,9 @@ class GRCAgentOrchestrator:
 
         # Route via MCP Server if reachable, otherwise run local fallback verification
         try:
-            with httpx.Client(timeout=5.0) as http_client:
-                resp = http_client.post(f"{self.mcp_server_url}/mcp", json=payload, headers=headers)
-                if resp.status_code == 200:
-                    return resp.json().get("result", {})
+            resp = self._http_client.post(f"{self.mcp_server_url}/mcp", json=payload, headers=headers)
+            if resp.status_code == 200:
+                return resp.json().get("result", {})
         except Exception:
             pass
 
@@ -255,16 +256,35 @@ class GRCAgentOrchestrator:
             self.audit_sessions[session_id] = []
         self.audit_sessions[session_id].append({"role": "user", "content": sanitized_prompt})
 
-        # 3. Simulate or execute reasoning flow
-        raw_response = (
-            f"ISO/IEC 27001:2022 Continuous Audit Log:\n"
-            f"Orchestrator [{self.spiffe_id}] processed request with model [{MODEL_ID}].\n"
-            f"Request: {sanitized_prompt}\n"
-            f"All Annex A controls and Amd 1:2024 resilience gates active."
-        )
+        # 3. Reasoning Core: Gemini LLM inference with deterministic fallback
+        raw_response = ""
+        tool_evidence: List[Dict[str, Any]] = []
 
-        # 4. Egress Gate: Model Armor inspection
-        egress_verdict = self.gateway.inspect_egress(raw_response)
+        if self.client is not None:
+            try:
+                gemini_resp = self.client.models.generate_content(
+                    model=MODEL_ID,
+                    contents=sanitized_prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=self.get_agent_instructions(),
+                        temperature=0.0,
+                    ),
+                )
+                if gemini_resp and gemini_resp.text:
+                    raw_response = gemini_resp.text
+            except Exception:
+                raw_response = ""
+
+        if not raw_response:
+            raw_response = (
+                f"ISO/IEC 27001:2022 Continuous Audit Log:\n"
+                f"Orchestrator [{self.spiffe_id}] processed request with model [{MODEL_ID}].\n"
+                f"Request: {sanitized_prompt}\n"
+                f"All Annex A controls and Amd 1:2024 resilience gates active."
+            )
+
+        # 4. Egress Gate: Model Armor inspection with grounding validation
+        egress_verdict = self.gateway.inspect_egress(raw_response, tool_evidence=tool_evidence)
         if not egress_verdict.allowed:
             return {
                 "status": "EGRESS_BLOCKED_BY_MODEL_ARMOR",
@@ -300,3 +320,12 @@ class GRCAgentOrchestrator:
         Ensure every compliance finding is strictly mapped to the ISO 27001:2022 Annex A controls.
         Maintain a highly professional, consultative, precise, and actionable audit tone.
         """
+
+
+if __name__ == "__main__":
+    import uvicorn
+    from mcp_server_grc.server import app
+    port = int(os.getenv("PORT", 8080))
+    print(f"Starting GRC Agent Orchestrator & MCP Server on port {port}...")
+    uvicorn.run(app, host="0.0.0.0", port=port)
+

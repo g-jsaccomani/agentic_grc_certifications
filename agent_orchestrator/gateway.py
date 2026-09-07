@@ -8,7 +8,7 @@ Implements the 'Iron Triangle' security boundary:
 
 import re
 from dataclasses import dataclass
-from typing import List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 
 @dataclass
@@ -83,8 +83,22 @@ class ModelArmorGateway:
                 r"(tell\s+me|diga\s+(a\s+todos\s+|me\s+)?que|declare\s+que|state\s+that|afirme\s+que|confirme\s+que)\s+.*"
                 r"(iso\s*27001|iso\s*27002|soc\s*2|pci\s*dss|norma|compliance|conformidade|cumplimiento)\s+.*"
                 r"(requires|demands|mandates|exige|obriga|pede)\s+.*"
-                r"(disabling|removing|shutting\s+down|desativar|desabilitar|remover|apagar|desactivar)\s+.*"
-                r"(firewalls?|encryption|criptografia|mfa|backups?|security|access\s+control|controles?)",
+                r"(disabling|removing|shutting\s+down|desativar|desabilitar|remover|apagar|desactivar|eliminat?ing|turning\s+off)\s+.*"
+                r"(firewalls?|encryption|criptografia|mfa|backups?|security|access\s+control|waf|tls|controles?)",
+                re.IGNORECASE,
+            ),
+            # 8. Semantic Evasion: Bypass specific control or force compliance (e.g., ignore PAP because staging)
+            re.compile(
+                r"(ignore|desconsidere|ignora|ignorar|bypass|override)\s+.*"
+                r"(pap|ubla|cmek|mfa|firewall|criptografia|encryption|control|controle)\s+.*"
+                r"(marca|marque|mark|declare|force|considere)\s+.*"
+                r"(conforme|compliant|aprovado|approved)",
+                re.IGNORECASE,
+            ),
+            re.compile(
+                r"(force|for[cç]ar?|mark|marcar?|declare|declarar?)\s+.*"
+                r"(as\s+|como\s+)?(compliant|conforme|aprovado|approved)\s+.*"
+                r"(because|porque|pois|já\s+que|devido|staging|dev|teste|sandbox)",
                 re.IGNORECASE,
             ),
         ]
@@ -190,11 +204,50 @@ class ModelArmorGateway:
             verdict="SANITIZED" if pii_found else "ALLOW",
         )
 
-    def inspect_egress(self, output: str, target_destination: Optional[str] = None) -> EgressVerdict:
-        """Inspects agent output and destination to prevent data exfiltration, credential leaks, and hallucinations."""
+    def _grounding_conflict(self, narrative: str, tool_evidence: Optional[List[Dict[str, Any]]]) -> bool:
+        """Verifies if the LLM narrative asserts compliance while tool evidence reports non-compliance."""
+        if not tool_evidence:
+            return False
+        narrative_lower = narrative.lower()
+        claims_compliant = any(
+            term in narrative_lower for term in [
+                "is compliant", "are compliant", "100% compliant", "fully compliant",
+                "conforme", "conformidade", "aprovado", "approved", "meets requirements",
+                "em conformidade", "está conforme", "totalmente conforme"
+            ]
+        )
+        has_non_compliant_evidence = any(
+            isinstance(e, dict) and (
+                (isinstance(e.get("result"), dict) and e["result"].get("status") in ("NON_COMPLIANT", "ERROR"))
+                or e.get("status") in ("NON_COMPLIANT", "ERROR")
+            )
+            for e in tool_evidence
+        )
+        return claims_compliant and has_non_compliant_evidence
+
+    def inspect_egress(
+        self,
+        output: str,
+        target_destination: Optional[str] = None,
+        tool_evidence: Optional[List[Dict[str, Any]]] = None,
+    ) -> EgressVerdict:
+        """Inspects agent output, destination, and tool evidence grounding to prevent exfiltration, leaks, and hallucinations."""
         violations: List[str] = []
 
-        # 1. Check Destination Domain Perimeter
+        # 1. Check Grounding Conflict against Technical Tool Evidence
+        if tool_evidence and self._grounding_conflict(output, tool_evidence):
+            violations.append(
+                "Grounding conflict intercepted: agent narrative asserts compliance while technical tool evidence reports non-compliance or error."
+            )
+            return EgressVerdict(
+                allowed=False,
+                sanitized_output="",
+                violations=violations,
+                secrets_redacted=False,
+                verdict="BLOCK",
+            )
+
+        # 2. Check Destination Domain Perimeter
         if target_destination:
             domain_allowed = any(
                 target_destination.endswith(allowed) or target_destination == allowed
@@ -210,7 +263,7 @@ class ModelArmorGateway:
                     verdict="BLOCK",
                 )
 
-        # 2. Check Anti-Hallucination False Compliance Patterns
+        # 3. Check Anti-Hallucination False Compliance Patterns
         for pattern in self._anti_hallucination_egress_patterns:
             if pattern.search(output):
                 violations.append("Anti-hallucination guardrail triggered: output contained invalid compliance statements.")
@@ -222,7 +275,7 @@ class ModelArmorGateway:
                     verdict="BLOCK",
                 )
 
-        # 3. Detect and Redact Secrets
+        # 4. Detect and Redact Secrets
         sanitized = output
         secrets_found = False
 
