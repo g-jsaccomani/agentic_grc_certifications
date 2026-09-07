@@ -83,6 +83,59 @@ def test_certification_framework_selector_ui():
     assert 'viewId === "view-report-exec" || viewId === "view-report-tech"' in html
 
 
+def test_portal_home_overview_view_ui():
+    """Verify Home / Initial View (Tela Inicial dos Módulos) structure, cards, navigation, and i18n."""
+    res = client.get("/")
+    assert res.status_code == 200
+    html = res.text
+
+    # Verify Home view container and active state
+    assert 'id="view-home"' in html
+    assert 'class="view-pane active" id="view-home"' in html
+    assert 'class="home-container"' in html
+    assert 'class="home-hero-card"' in html
+
+    # Verify Sidebar Home navigation button
+    assert 'id="agentBtnHome"' in html
+    assert 'class="agent-item active" id="agentBtnHome"' in html
+    assert 'onclick="switchView(\'view-home\')"' in html
+    assert 'data-i18n="nav_home"' in html
+
+    # Verify KPI summary cards
+    assert 'class="home-kpi-grid"' in html
+    assert '100.0%' in html
+    assert '93 / 93' in html
+    assert '14 Nós' in html
+    assert '~90%' in html
+
+    # Verify all 8 platform module cards are present with action buttons
+    module_keys = [
+        'data-i18n="home_mod_chat_name"',
+        'data-i18n="home_mod_phases_name"',
+        'data-i18n="home_mod_conn_name"',
+        'data-i18n="home_mod_matrix_name"',
+        'data-i18n="home_mod_scorecard_name"',
+        'data-i18n="home_mod_exec_name"',
+        'data-i18n="home_mod_tech_name"',
+        'data-i18n="home_mod_finops_name"',
+    ]
+    for k in module_keys:
+        assert k in html
+
+    # Verify Quick Action bar
+    assert 'class="home-quick-actions-bar"' in html
+    assert 'data-i18n="home_quick_actions_title"' in html
+
+    # Verify switchView includes view-home
+    assert '"view-home": "agentBtnHome"' in html
+    assert '"view-home": "top_title_home"' in html
+
+    # Verify i18n dictionaries for home
+    for lang_key in ['top_title_home:', 'nav_home:', 'home_hero_title:', 'home_mod_chat_name:']:
+        assert lang_key in html
+
+
+
 
 def test_portal_chat_endpoints():
     # 1. Audit prompt

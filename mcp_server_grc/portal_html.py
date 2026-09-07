@@ -969,6 +969,380 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             100% { transform: rotate(360deg); }
         }
     
+        
+        /* ------------------------------------------------------------------ */
+        /* View 0: Visão Geral dos Módulos (Tela Inicial / Home)               */
+        /* ------------------------------------------------------------------ */
+        #view-home {
+            overflow-y: auto;
+            max-height: 100%;
+            padding: 24px 32px 64px 32px;
+        }
+
+        .home-container {
+            max-width: 1360px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        /* Hero Banner */
+        .home-hero-card {
+            background: linear-gradient(135deg, rgba(66, 133, 244, 0.09) 0%, rgba(26, 115, 232, 0.04) 40%, rgba(32, 33, 36, 0.65) 100%);
+            border: 1px solid rgba(138, 180, 248, 0.28);
+            border-radius: 16px;
+            padding: 28px 32px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .home-hero-card::after {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -8%;
+            width: 340px;
+            height: 340px;
+            background: radial-gradient(circle, rgba(66, 133, 244, 0.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .home-hero-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .home-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(66, 133, 244, 0.15);
+            border: 1px solid rgba(138, 180, 248, 0.35);
+            color: var(--gcp-blue);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .home-hero-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 8px 0;
+            letter-spacing: -0.3px;
+        }
+
+        .home-hero-subtitle {
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+            margin: 0;
+            max-width: 860px;
+        }
+
+        .home-hero-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            flex-wrap: wrap;
+        }
+
+        .home-hero-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .home-hero-meta-item strong {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* KPI Quick Cards */
+        .home-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 16px;
+        }
+
+        .home-kpi-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: var(--transition-smooth);
+        }
+
+        .home-kpi-card:hover {
+            border-color: rgba(138, 180, 248, 0.3);
+            background: var(--bg-surface-hover);
+        }
+
+        .home-kpi-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .home-kpi-val {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.1;
+        }
+
+        .home-kpi-lbl {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 3px;
+        }
+
+        /* Section Groups */
+        .home-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .home-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .home-section-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .home-section-icon {
+            color: var(--gcp-blue);
+            display: flex;
+            align-items: center;
+        }
+
+        .home-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .home-section-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-tertiary);
+            border: 1px solid var(--border-subtle);
+        }
+
+        /* Modules Cards Grid */
+        .home-modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 20px;
+        }
+
+        .home-module-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 22px 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 220px;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .home-module-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(138, 180, 248, 0.4);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            background: var(--bg-surface-hover);
+        }
+
+        .home-module-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .home-module-card-icon-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .home-module-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .home-module-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.25;
+        }
+
+        .home-module-tag {
+            font-size: 10.5px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .home-module-desc {
+            font-size: 12.5px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+            margin: 0 0 16px 0;
+            flex-grow: 1;
+        }
+
+        .home-module-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .home-module-feature-chip {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .home-module-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .home-btn-module-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gcp-blue);
+            background: rgba(138, 180, 248, 0.08);
+            border: 1px solid rgba(138, 180, 248, 0.25);
+            padding: 6px 14px;
+            border-radius: 6px;
+            transition: var(--transition-smooth);
+            cursor: pointer;
+        }
+
+        .home-module-card:hover .home-btn-module-action {
+            background: var(--gcp-blue);
+            color: #1a1a1a;
+            border-color: var(--gcp-blue);
+            font-weight: 600;
+        }
+
+        /* Quick Actions Bar */
+        .home-quick-actions-bar {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .home-quick-actions-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .home-quick-actions-btns {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-home-quick {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-home-quick:hover {
+            border-color: var(--gcp-blue);
+            background: rgba(138, 180, 248, 0.1);
+            color: var(--gcp-blue);
+        }
+
+        .btn-home-quick.primary {
+            background: var(--gcp-blue);
+            color: #1a1a1a;
+            border-color: var(--gcp-blue);
+            font-weight: 600;
+        }
+
+        .btn-home-quick.primary:hover {
+            background: #aecbfa;
+            border-color: #aecbfa;
+        }
+
         /* ------------------------------------------------------------------ */
         /* View 1: Chatbot Auditor */
         
@@ -2903,6 +3277,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         @media print {
             body { background: #ffffff !important; color: #000000 !important; overflow: visible !important; }
             .sidebar, .top-navbar, .chat-input-wrapper, .modal-overlay, .matrix-toolbar, .btn-confirm, .btn-action-primary, .framework-selector-bar { display: none !important; }
+            #view-home { display: none !important; }
             .main-container { height: auto !important; }
             .views-viewport { overflow: visible !important; }
             .view-pane { display: none !important; }
@@ -3559,6 +3934,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </div>
                 <div class="section-content" id="catNavContent">
                     <div class="agent-list">
+                        <button class="agent-item active" id="agentBtnHome" onclick="switchView('view-home')">
+                            <div class="agent-left-wrap">
+                                <div class="agent-avatar" style="color: var(--gcp-blue);">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                        <polyline points="9 22 9 12 15 12 15 22"/>
+                                    </svg>
+                                </div>
+                                <span class="agent-name" data-i18n="nav_home">Visão Geral dos Módulos</span>
+                            </div>
+                            <span class="item-pin-btn" id="pinBtn_agentBtnHome" onclick="togglePinNav(event, 'agentBtnHome', 'Visão Geral dos Módulos')" title="Fixar no topo">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
+                            </span>
+                        </button>
                         <button class="agent-item" id="agentBtnGrcAuditor" onclick="selectAuditorTab()">
                             <div class="agent-left-wrap">
                                 <div class="agent-avatar" style="color: #4285f4;">
@@ -3817,7 +4206,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <span>Gemini Enterprise Agent Platform</span>
                 </span>
                 <span style="color: var(--text-tertiary)">/</span>
-                <span class="top-active-agent" id="topActiveTitle" data-i18n="top_active_agent">Chatbot Auditor</span>
+                <span class="top-active-agent" id="topActiveTitle" data-i18n="top_title_home">Visão Geral dos Módulos</span>
                 <span style="color: var(--text-tertiary)">•</span>
                 <span style="color: var(--gcp-blue); font-size: 13px;" id="topProjectCountBadge" data-i18n="top_project_count">1 projeto ativo</span>
             </div>
@@ -4027,8 +4416,502 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         <!-- Dynamic Views Viewport -->
         <div class="views-viewport">
 
+                        <!-- View 0: Visão Geral dos Módulos (Home / Tela Inicial) -->
+            <section class="view-pane active" id="view-home">
+                <div class="home-container">
+                    
+                    <!-- Hero Banner -->
+                    <div class="home-hero-card">
+                        <div class="home-hero-top">
+                            <div class="home-hero-badge">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2L20 5.8V11.5C20 16.5 16.6 20.8 12 22C7.4 20.8 4 16.5 4 11.5V5.8L12 2Z"/>
+                                </svg>
+                                <span data-i18n="home_hero_badge">Google Cloud Security • Agentic GRC Hub</span>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-home-quick primary" onclick="selectAuditorTab()">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                    <span data-i18n="home_btn_open_chat">Chatbot Auditor</span>
+                                </button>
+                                <button class="btn-home-quick" onclick="switchView('view-phases')">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                                    </svg>
+                                    <span data-i18n="home_btn_scan_phases">Scan por Fases</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <h1 class="home-hero-title" data-i18n="home_hero_title">Hub de Módulos & Governança de Certificações</h1>
+                        <p class="home-hero-subtitle" data-i18n="home_hero_subtitle">
+                            Plataforma autônoma para auditoria contínua, governança de segurança multi-cloud e prontidão para certificações internacionais (ISO/IEC 27001:2022, SOC 2, PCI DSS e CMMI) impulsionada por IA generativa no Google Cloud Vertex AI com Model Armor e Grounding determinístico.
+                        </p>
+
+                        <div class="home-hero-meta-row">
+                            <div class="home-hero-meta-item">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--gcp-blue)" stroke-width="2">
+                                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                                </svg>
+                                <span data-i18n="home_meta_org">Organização GCP:</span> <strong>Altostrat Global Org (108928374619)</strong>
+                            </div>
+                            <div class="home-hero-meta-item">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--gcp-green)" stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    <polyline points="9 12 11 14 15 10"/>
+                                </svg>
+                                <span data-i18n="home_meta_fw">Framework Ativo:</span> <strong>ISO/IEC 27001:2022 (93 Controles)</strong>
+                            </div>
+                            <div class="home-hero-meta-item">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--gcp-yellow)" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="8" x2="12" y2="12"/>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                </svg>
+                                <span data-i18n="home_meta_model">Motor de IA:</span> <strong>Gemini 2.5 Flash / Pro (Vertex AI)</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Posture KPIs Summary -->
+                    <div class="home-kpi-grid">
+                        <div class="home-kpi-card" onclick="switchView('view-scorecard')" style="cursor: pointer;">
+                            <div class="home-kpi-icon" style="background: rgba(52, 168, 83, 0.12); color: var(--gcp-green);">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                    <polyline points="22 4 12 14.01 9 11.01"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="home-kpi-val" style="color: var(--gcp-green);">100.0%</div>
+                                <div class="home-kpi-lbl" data-i18n="home_kpi_posture">Postura Global ISO 27001</div>
+                            </div>
+                        </div>
+
+                        <div class="home-kpi-card" onclick="switchView('view-matrix')" style="cursor: pointer;">
+                            <div class="home-kpi-icon" style="background: rgba(66, 133, 244, 0.12); color: var(--gcp-blue);">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="home-kpi-val">93 / 93</div>
+                                <div class="home-kpi-lbl" data-i18n="home_kpi_controls">Controles do Anexo A Mapeados</div>
+                            </div>
+                        </div>
+
+                        <div class="home-kpi-card" onclick="switchView('view-scorecard')" style="cursor: pointer;">
+                            <div class="home-kpi-icon" style="background: rgba(251, 188, 4, 0.12); color: var(--gcp-yellow);">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="home-kpi-val">14 Nós</div>
+                                <div class="home-kpi-lbl" data-i18n="home_kpi_evidence">Grafo SHA-256 Imutável</div>
+                            </div>
+                        </div>
+
+                        <div class="home-kpi-card" onclick="switchView('view-finops')" style="cursor: pointer;">
+                            <div class="home-kpi-icon" style="background: rgba(168, 85, 247, 0.12); color: #c084fc;">
+                                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"/>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="home-kpi-val" style="color: #c084fc;">~90%</div>
+                                <div class="home-kpi-lbl" data-i18n="home_kpi_caching">Economia Context Caching</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category 1: Auditoria & Inteligência Agêntica -->
+                    <div class="home-section">
+                        <div class="home-section-header">
+                            <div class="home-section-title-wrap">
+                                <div class="home-section-icon">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 2L20 5.8V11.5C20 16.5 16.6 20.8 12 22C7.4 20.8 4 16.5 4 11.5V5.8L12 2Z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="home-section-title" data-i18n="home_cat_ai_title">Auditoria & Inteligência Agêntica</h2>
+                                </div>
+                            </div>
+                            <span class="home-section-badge" data-i18n="home_cat_ai_badge">3 Módulos Ativos</span>
+                        </div>
+
+                        <div class="home-modules-grid">
+                            <!-- Card 1: Chatbot Auditor Líder -->
+                            <div class="home-module-card" onclick="selectAuditorTab()">
+                                <div>
+                                    <div class="home-module-card-header">
+                                        <div class="home-module-card-icon-title">
+                                            <div class="home-module-avatar" style="background: rgba(66, 133, 244, 0.15); color: var(--gcp-blue);">
+                                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div class="home-module-name" data-i18n="home_mod_chat_name">Agentic GRC Auditor</div>
+                                                <span class="home-module-tag" style="background: rgba(66, 133, 244, 0.12); color: var(--gcp-blue);">Chatbot Auditor</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="home-module-desc" data-i18n="home_mod_chat_desc">
+                                        Auditoria conversacional com Gemini 2.5 Flash/Pro. Execute inspeções dinâmicas de IAM, KMS e GCS via ferramentas MCP com grounding determinístico e barreira Model Armor.
+                                    </p>
+                                    <div class="home-module-features">
+                                        <span class="home-module-feature-chip">Vertex AI Gemini 2.5</span>
+                                        <span class="home-module-feature-chip">Function Calling MCP</span>
+                                        <span class="home-module-feature-chip">Anti-Alucinação</span>
+                                    </div>
+                                </div>
+                                <div class="home-module-footer">
+                                    <span style="font-size: 11px; color: var(--text-tertiary);" data-i18n="home_mod_chat_sub">Interação em Linguagem Natural</span>
+                                    <span class="home-btn-module-action">
+                                        <span data-i18n="home_btn_open_chat">Abrir Chatbot</span>
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Scan por Fases -->
+                            <div class="home-module-card" onclick="switchView('view-phases')">
+                                <div>
+                                    <div class="home-module-card-header">
+                                        <div class="home-module-card-icon-title">
+                                            <div class="home-module-avatar" style="background: rgba(251, 188, 4, 0.15); color: var(--gcp-yellow);">
+                                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div class="home-module-name" data-i18n="home_mod_phases_name">Scan por Fases</div>
+                                                <span class="home-module-tag" style="background: rgba(251, 188, 4, 0.12); color: var(--gcp-yellow);">4 Fases Normativas</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="home-module-desc" data-i18n="home_mod_phases_desc">
+                                        Pipeline estruturado em 4 etapas: Descoberta & IAM (Fase 1), Auditoria Técnica & IaC (Fase 2), Criptografia & Dados (Fase 3) e Governança & Threat Intel (Fase 4).
+                                    </p>
+                                    <div class="home-module-features">
+                                        <span class="home-module-feature-chip">Pipeline Automatizado</span>
+                                        <span class="home-module-feature-chip">Tratamento de Desvios</span>
+                                        <span class="home-module-feature-chip">Progressão Visual</span>
+                                    </div>
+                                </div>
+                                <div class="home-module-footer">
+                                    <span style="font-size: 11px; color: var(--text-tertiary);" data-i18n="home_mod_phases_sub">Execução Sequencial</span>
+                                    <span class="home-btn-module-action">
+                                        <span data-i18n="home_btn_scan_phases">Iniciar Scan</span>
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Card 3: Subagentes & Zero-Copy -->
+                            <div class="home-module-card" onclick="switchView('view-connectors')">
+                                <div>
+                                    <div class="home-module-card-header">
+                                        <div class="home-module-card-icon-title">
+                                            <div class="home-module-avatar" style="background: rgba(52, 168, 83, 0.15); color: var(--gcp-green);">
+                                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <circle cx="18" cy="5" r="3"/>
+                                                    <circle cx="6" cy="12" r="3"/>
+                                                    <circle cx="18" cy="19" r="3"/>
+                                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div class="home-module-name" data-i18n="home_mod_conn_name">Subagentes & Zero-Copy</div>
+                                                <span class="home-module-tag" style="background: rgba(52, 168, 83, 0.12); color: var(--gcp-green);">Multiagente A2A</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="home-module-desc" data-i18n="home_mod_conn_desc">
+                                        Orquestração de subagentes especialistas (Annex A, GCP Telemetry, Org Policies, Horizon Scanner) e conectores Zero-Copy para Drive, GitHub e Jira sem replicação de dados.
+                                    </p>
+                                    <div class="home-module-features">
+                                        <span class="home-module-feature-chip">4 Subagentes Nativos</span>
+                                        <span class="home-module-feature-chip">Zero-Copy Integrations</span>
+                                        <span class="home-module-feature-chip">Custom Subagents</span>
+                                    </div>
+                                </div>
+                                <div class="home-module-footer">
+                                    <span style="font-size: 11px; color: var(--text-tertiary);" data-i18n="home_mod_conn_sub">Arquitetura Distribuída</span>
+                                    <span class="home-btn-module-action">
+                                        <span data-i18n="home_btn_open_conn">Gerenciar Subagentes</span>
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category 2: Conformidade Normativa & Evidências -->
+                    <div class="home-section">
+                        <div class="home-section-header">
+                            <div class="home-section-title-wrap">
+                                <div class="home-section-icon">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                        <polyline points="14 2 14 8 20 8"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="home-section-title" data-i18n="home_cat_normative_title">Conformidade Normativa & Evidências</h2>
+                                </div>
+                            </div>
+                            <span class="home-section-badge" data-i18n="home_cat_normative_badge">2 Módulos Ativos</span>
+                        </div>
+
+                        <div class="home-modules-grid">
+                            <!-- Card 4: Matriz ISO 27001 & SoA -->
+                            <div class="home-module-card" onclick="switchView('view-matrix')">
+                                <div>
+                                    <div class="home-module-card-header">
+                                        <div class="home-module-card-icon-title">
+                                            <div class="home-module-avatar" style="background: rgba(66, 133, 244, 0.15); color: var(--gcp-blue);">
+                                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                                    <polyline points="14 2 14 8 20 8"/>
+                                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div class="home-module-name" data-i18n="home_mod_matrix_name">Matriz ISO 27001 & SoA</div>
+                                                <span class="home-module-tag" style="background: rgba(66, 133, 244, 0.12); color: var(--gcp-blue);">93 Controles</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="home-module-desc" data-i18n="home_mod_matrix_desc">
+                                        Declaração de Aplicabilidade (SoA) interativa para a ISO/IEC 27001:2022. Navegue pelos 4 temas normativos: Organizacionais (37), Pessoas (8), Físicos (14) e Tecnológicos (34).
+                                    </p>
+                                    <div class="home-module-features">
+                                        <span class="home-module-feature-chip">Filtragem por Tema</span>
+                                        <span class="home-module-feature-chip">Justificativas SoA</span>
+                                        <span class="home-module-feature-chip">Mapeamento GCP</span>
+                                    </div>
+                                </div>
+                                <div class="home-module-footer">
+                                    <span style="font-size: 11px; color: var(--text-tertiary);" data-i18n="home_mod_matrix_sub">Governança do Anexo A</span>
+                                    <span class="home-btn-module-action">
+                                        <span data-i18n="home_btn_open_matrix">Explorar Matriz</span>
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Card 5: Scorecard & Evidências -->
+                            <div class="home-module-card" onclick="switchView('view-scorecard')">
+                                <div>
+                                    <div class="home-module-card-header">
+                                        <div class="home-module-card-icon-title">
+                                            <div class="home-module-avatar" style="background: rgba(52, 168, 83, 0.15); color: var(--gcp-green);">
+                                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div class="home-module-name" data-i18n="home_mod_scorecard_name">Scorecard & Evidências</div>
+                                                <span class="home-module-tag" style="background: rgba(52, 168, 83, 0.12); color: var(--gcp-green);">Grafo SHA-256</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="home-module-desc" data-i18n="home_mod_scorecard_desc">
+                                        Painel consolidado com o Grafo Criptográfico de Evidências, histórico de auditoria contínua, telemetria em tempo real e esteira de remediação CAPA com aprovação humana (HITL).
+                                    </p>
+                                    <div class="home-module-features">
+                                        <span class="home-module-feature-chip">Hashes SHA-256</span>
+                                        <span class="home-module-feature-chip">Auditoria Contínua</span>
+                                        <span class="home-module-feature-chip">HITL Remediação</span>
+                                    </div>
+                                </div>
+                                <div class="home-module-footer">
+                                    <span style="font-size: 11px; color: var(--text-tertiary);" data-i18n="home_mod_scorecard_sub">Integridade Inalterável</span>
+                                    <span class="home-btn-module-action">
+                                        <span data-i18n="home_btn_open_scorecard">Ver Scorecard</span>
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category 3: Relatórios Oficiais & FinOps -->
+                    <div class="home-section">
+                        <div class="home-section-header">
+                            <div class="home-section-title-wrap">
+                                <div class="home-section-icon">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                        <polyline points="14 2 14 8 20 8"/>
+                                        <line x1="12" y1="18" x2="12" y2="12"/>
+                                        <line x1="9" y1="15" x2="15" y2="15"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="home-section-title" data-i18n="home_cat_reports_title">Relatórios Oficiais & Governança Financeira</h2>
+                                </div>
+                            </div>
+                            <span class="home-section-badge" data-i18n="home_cat_reports_badge">3 Módulos Ativos</span>
+                        </div>
+
+                        <div class="home-modules-grid">
+                            <!-- Card 6: Dossiê Executivo -->
+                            <div class="home-module-card" onclick="openExecutiveReport()">
+                                <div>
+                                    <div class="home-module-card-header">
+                                        <div class="home-module-card-icon-title">
+                                            <div class="home-module-avatar" style="background: rgba(66, 133, 244, 0.15); color: var(--gcp-blue);">
+                                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                                    <polyline points="14 2 14 8 20 8"/>
+                                                    <line x1="12" y1="18" x2="12" y2="12"/>
+                                                    <line x1="9" y1="15" x2="15" y2="15"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div class="home-module-name" data-i18n="home_mod_exec_name">Dossiê Executivo</div>
+                                                <span class="home-module-tag" style="background: rgba(66, 133, 244, 0.12); color: var(--gcp-blue);">C-Level & Board</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="home-module-desc" data-i18n="home_mod_exec_desc">
+                                        Relatório executivo formal de conformidade com declaração da liderança, postura estratégica dos 4 temas e sumário de prontidão para certificação externa.
+                                    </p>
+                                    <div class="home-module-features">
+                                        <span class="home-module-feature-chip">Sumário C-Level</span>
+                                        <span class="home-module-feature-chip">Pronto para Impressão PDF</span>
+                                        <span class="home-module-feature-chip">Visão de Alto Nível</span>
+                                    </div>
+                                </div>
+                                <div class="home-module-footer">
+                                    <span style="font-size: 11px; color: var(--text-tertiary);" data-i18n="home_mod_exec_sub">Diretoria & Compliance</span>
+                                    <span class="home-btn-module-action">
+                                        <span data-i18n="home_btn_open_exec">Abrir Dossiê</span>
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Card 7: Relatório Técnico -->
+                            <div class="home-module-card" onclick="openTechnicalReport()">
+                                <div>
+                                    <div class="home-module-card-header">
+                                        <div class="home-module-card-icon-title">
+                                            <div class="home-module-avatar" style="background: rgba(234, 67, 53, 0.15); color: #ea4335;">
+                                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div class="home-module-name" data-i18n="home_mod_tech_name">Relatório Técnico</div>
+                                                <span class="home-module-tag" style="background: rgba(234, 67, 53, 0.12); color: #ea4335;">Auditoria Externa</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="home-module-desc" data-i18n="home_mod_tech_desc">
+                                        Caderno técnico de auditoria para certificadoras (BSI, Bureau Veritas, DNV) contendo saídas reais gcloud, comandos de teste e atestação SPIFFE/mTLS com verificação criptográfica.
+                                    </p>
+                                    <div class="home-module-features">
+                                        <span class="home-module-feature-chip">Outputs Literais gcloud</span>
+                                        <span class="home-module-feature-chip">Identidade SPIFFE/mTLS</span>
+                                        <span class="home-module-feature-chip">Trilha de Evidências</span>
+                                    </div>
+                                </div>
+                                <div class="home-module-footer">
+                                    <span style="font-size: 11px; color: var(--text-tertiary);" data-i18n="home_mod_tech_sub">Certificadoras Externas</span>
+                                    <span class="home-btn-module-action">
+                                        <span data-i18n="home_btn_open_tech">Abrir Relatório</span>
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Card 8: FinOps & Custos de IA -->
+                            <div class="home-module-card" onclick="switchView('view-finops')">
+                                <div>
+                                    <div class="home-module-card-header">
+                                        <div class="home-module-card-icon-title">
+                                            <div class="home-module-avatar" style="background: rgba(52, 168, 83, 0.15); color: var(--gcp-green);">
+                                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <line x1="12" y1="1" x2="12" y2="23"/>
+                                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div class="home-module-name" data-i18n="home_mod_finops_name">FinOps & Custos de IA</div>
+                                                <span class="home-module-tag" style="background: rgba(52, 168, 83, 0.12); color: var(--gcp-green);">Vertex AI Telemetry</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="home-module-desc" data-i18n="home_mod_finops_desc">
+                                        Monitoramento financeiro detalhado de chamadas Gemini 2.5, economia alcançada com Context Caching de 1M tokens e projeção de custos operacionais de auditoria contínua.
+                                    </p>
+                                    <div class="home-module-features">
+                                        <span class="home-module-feature-chip">Consumo de Tokens</span>
+                                        <span class="home-module-feature-chip">Context Caching 1M</span>
+                                        <span class="home-module-feature-chip">ROI de Automação</span>
+                                    </div>
+                                </div>
+                                <div class="home-module-footer">
+                                    <span style="font-size: 11px; color: var(--text-tertiary);" data-i18n="home_mod_finops_sub">Governança Orçamentária</span>
+                                    <span class="home-btn-module-action">
+                                        <span data-i18n="home_btn_open_finops">Painel FinOps</span>
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Bar -->
+                    <div class="home-quick-actions-bar">
+                        <div class="home-quick-actions-left">
+                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(66, 133, 244, 0.12); color: var(--gcp-blue); display: flex; align-items: center; justify-content: center;">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 14 14"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);" data-i18n="home_quick_actions_title">Ações Rápidas de Auditoria</div>
+                                <div style="font-size: 11px; color: var(--text-tertiary);" data-i18n="home_quick_actions_desc">Dispare ciclos completos ou inicie consultas com 1 clique</div>
+                            </div>
+                        </div>
+                        <div class="home-quick-actions-btns">
+                            <button class="btn-home-quick" onclick="promptPreFill('Executar ciclo de auditoria proativa completo')">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                <span data-i18n="home_action_run_audit">Auditoria Proativa</span>
+                            </button>
+                            <button class="btn-home-quick" onclick="startNewConversation()">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                <span data-i18n="home_action_new_chat">Nova Conversa</span>
+                            </button>
+                            <button class="btn-home-quick" onclick="openExecutiveReport()">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+                                <span data-i18n="home_action_dossier">Dossiê Executivo</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
             <!-- View 1: Chatbot Auditor -->
-            <section class="view-pane active" id="view-chat">
+            <section class="view-pane" id="view-chat">
                 <div class="chat-view-container">
                     
                     <!-- Banner de Alerta Agêntico Proativo (Vertex AI Gemini) -->
@@ -6063,6 +6946,61 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 framework_tooltip_pcidss: "PCI DSS v4.0 - No roadmap de desenvolvimento",
                 framework_tooltip_cmmi: "CMMI DEV/SVC - No roadmap de desenvolvimento",
                 framework_tooltip_more: "Novas estruturas regulatórias e normativas planejadas",
+                top_title_home: "Visão Geral dos Módulos",
+                nav_home: "Visão Geral dos Módulos",
+                home_hero_badge: "Google Cloud Security • Agentic GRC Hub",
+                home_hero_title: "Hub de Módulos & Governança de Certificações",
+                home_hero_subtitle: "Plataforma autônoma para auditoria contínua, governança de segurança multi-cloud e prontidão para certificações internacionais (ISO/IEC 27001:2022, SOC 2, PCI DSS e CMMI) impulsionada por IA generativa no Google Cloud Vertex AI com Model Armor e Grounding determinístico.",
+                home_meta_org: "Organização GCP:",
+                home_meta_fw: "Framework Ativo:",
+                home_meta_model: "Motor de IA:",
+                home_kpi_posture: "Postura Global ISO 27001",
+                home_kpi_controls: "Controles do Anexo A Mapeados",
+                home_kpi_evidence: "Grafo SHA-256 Imutável",
+                home_kpi_caching: "Economia Context Caching",
+                home_cat_ai_title: "Auditoria & Inteligência Agêntica",
+                home_cat_ai_badge: "3 Módulos Ativos",
+                home_mod_chat_name: "Agentic GRC Auditor",
+                home_mod_chat_desc: "Auditoria conversacional com Gemini 2.5 Flash/Pro. Execute inspeções dinâmicas de IAM, KMS e GCS via ferramentas MCP com grounding determinístico e barreira Model Armor.",
+                home_mod_chat_sub: "Interação em Linguagem Natural",
+                home_btn_open_chat: "Abrir Chatbot",
+                home_mod_phases_name: "Scan por Fases",
+                home_mod_phases_desc: "Pipeline estruturado em 4 etapas: Descoberta & IAM (Fase 1), Auditoria Técnica & IaC (Fase 2), Criptografia & Dados (Fase 3) e Governança & Threat Intel (Fase 4).",
+                home_mod_phases_sub: "Execução Sequencial",
+                home_btn_scan_phases: "Iniciar Scan",
+                home_mod_conn_name: "Subagentes & Zero-Copy",
+                home_mod_conn_desc: "Orquestração de subagentes especialistas (Annex A, GCP Telemetry, Org Policies, Horizon Scanner) e conectores Zero-Copy para Drive, GitHub e Jira sem replicação de dados.",
+                home_mod_conn_sub: "Arquitetura Distribuída",
+                home_btn_open_conn: "Gerenciar Subagentes",
+                home_cat_normative_title: "Conformidade Normativa & Evidências",
+                home_cat_normative_badge: "2 Módulos Ativos",
+                home_mod_matrix_name: "Matriz ISO 27001 & SoA",
+                home_mod_matrix_desc: "Declaração de Aplicabilidade (SoA) interativa para a ISO/IEC 27001:2022. Navegue pelos 4 temas normativos: Organizacionais (37), Pessoas (8), Físicos (14) e Tecnológicos (34).",
+                home_mod_matrix_sub: "Governança do Anexo A",
+                home_btn_open_matrix: "Explorar Matriz",
+                home_mod_scorecard_name: "Scorecard & Evidências",
+                home_mod_scorecard_desc: "Painel consolidado com o Grafo Criptográfico de Evidências, histórico de auditoria contínua, telemetria em tempo real e esteira de remediação CAPA com aprovação humana (HITL).",
+                home_mod_scorecard_sub: "Integridade Inalterável",
+                home_btn_open_scorecard: "Ver Scorecard",
+                home_cat_reports_title: "Relatórios Oficiais & Governança Financeira",
+                home_cat_reports_badge: "3 Módulos Ativos",
+                home_mod_exec_name: "Dossiê Executivo",
+                home_mod_exec_desc: "Relatório executivo formal de conformidade com declaração da liderança, postura estratégica dos 4 temas e sumário de prontidão para certificação externa.",
+                home_mod_exec_sub: "Diretoria & Compliance",
+                home_btn_open_exec: "Abrir Dossiê",
+                home_mod_tech_name: "Relatório Técnico",
+                home_mod_tech_desc: "Caderno técnico de auditoria para certificadoras (BSI, Bureau Veritas, DNV) contendo saídas reais gcloud, comandos de teste e atestação SPIFFE/mTLS com verificação criptográfica.",
+                home_mod_tech_sub: "Certificadoras Externas",
+                home_btn_open_tech: "Abrir Relatório",
+                home_mod_finops_name: "FinOps & Custos de IA",
+                home_mod_finops_desc: "Monitoramento financeiro detalhado de chamadas Gemini 2.5, economia alcançada com Context Caching de 1M tokens e projeção de custos operacionais de auditoria contínua.",
+                home_mod_finops_sub: "Governança Orçamentária",
+                home_btn_open_finops: "Painel FinOps",
+                home_quick_actions_title: "Ações Rápidas de Auditoria",
+                home_quick_actions_desc: "Dispare ciclos completos ou inicie consultas com 1 clique",
+                home_action_run_audit: "Auditoria Proativa",
+                home_action_new_chat: "Nova Conversa",
+                home_action_dossier: "Dossiê Executivo",
             },
             en: {
                 status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
@@ -6274,6 +7212,61 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 framework_tooltip_pcidss: "PCI DSS v4.0 - On the development roadmap",
                 framework_tooltip_cmmi: "CMMI DEV/SVC - On the development roadmap",
                 framework_tooltip_more: "Additional regulatory and compliance frameworks planned",
+                top_title_home: "Modules Overview",
+                nav_home: "Modules Overview",
+                home_hero_badge: "Google Cloud Security • Agentic GRC Hub",
+                home_hero_title: "Modules Hub & Certification Governance",
+                home_hero_subtitle: "Autonomous platform for continuous audit, multi-cloud security governance, and international certification readiness (ISO/IEC 27001:2022, SOC 2, PCI DSS, CMMI) powered by generative AI on Google Cloud Vertex AI with Model Armor and deterministic Grounding.",
+                home_meta_org: "GCP Organization:",
+                home_meta_fw: "Active Framework:",
+                home_meta_model: "AI Engine:",
+                home_kpi_posture: "Global ISO 27001 Posture",
+                home_kpi_controls: "Annex A Controls Mapped",
+                home_kpi_evidence: "Immutable SHA-256 Graph",
+                home_kpi_caching: "Context Caching Savings",
+                home_cat_ai_title: "Audit & Agentic Intelligence",
+                home_cat_ai_badge: "3 Active Modules",
+                home_mod_chat_name: "Agentic GRC Auditor",
+                home_mod_chat_desc: "Conversational audit powered by Gemini 2.5 Flash/Pro. Execute dynamic IAM, KMS, and GCS telemetry checks via MCP tools with deterministic grounding and Model Armor defenses.",
+                home_mod_chat_sub: "Natural Language Interaction",
+                home_btn_open_chat: "Open Chatbot",
+                home_mod_phases_name: "Phased Scan",
+                home_mod_phases_desc: "Structured 4-step pipeline: Discovery & IAM (Phase 1), Technical Audit & IaC (Phase 2), Cryptography & Data (Phase 3), and Governance & Threat Intel (Phase 4).",
+                home_mod_phases_sub: "Sequential Execution",
+                home_btn_scan_phases: "Start Scan",
+                home_mod_conn_name: "Subagents & Zero-Copy",
+                home_mod_conn_desc: "Specialized subagent orchestration (Annex A, GCP Telemetry, Org Policies, Horizon Scanner) and Zero-Copy connectors for Google Drive, GitHub, and Jira without data replication.",
+                home_mod_conn_sub: "Distributed Architecture",
+                home_btn_open_conn: "Manage Subagents",
+                home_cat_normative_title: "Normative Compliance & Evidence",
+                home_cat_normative_badge: "2 Active Modules",
+                home_mod_matrix_name: "ISO 27001 Matrix & SoA",
+                home_mod_matrix_desc: "Interactive Statement of Applicability (SoA) for ISO/IEC 27001:2022. Explore the 4 standard themes: Organizational (37), People (8), Physical (14), and Technological (34).",
+                home_mod_matrix_sub: "Annex A Governance",
+                home_btn_open_matrix: "Explore Matrix",
+                home_mod_scorecard_name: "Scorecard & Evidence",
+                home_mod_scorecard_desc: "Consolidated dashboard featuring cryptographic evidence graph, continuous telemetry history, and CAPA remediation pipeline with Human-in-the-Loop (HITL) approval.",
+                home_mod_scorecard_sub: "Tamper-Proof Integrity",
+                home_btn_open_scorecard: "View Scorecard",
+                home_cat_reports_title: "Official Reports & Financial Governance",
+                home_cat_reports_badge: "3 Active Modules",
+                home_mod_exec_name: "Executive Dossier",
+                home_mod_exec_desc: "Formal compliance executive report with leadership statement, 4-theme posture summary, and external certification readiness assessment.",
+                home_mod_exec_sub: "Board & Compliance",
+                home_btn_open_exec: "Open Dossier",
+                home_mod_tech_name: "Technical Report",
+                home_mod_tech_desc: "Detailed audit dossier for certification bodies (BSI, Bureau Veritas, DNV) featuring literal gcloud outputs, test commands, and SPIFFE/mTLS cryptographic attestation.",
+                home_mod_tech_sub: "External Auditors",
+                home_btn_open_tech: "Open Report",
+                home_mod_finops_name: "FinOps & AI Costs",
+                home_mod_finops_desc: "Granular financial monitoring of Gemini 2.5 API usage, ROI realized through 1M token Context Caching, and operational cost projections for continuous audit.",
+                home_mod_finops_sub: "Budget Governance",
+                home_btn_open_finops: "FinOps Dashboard",
+                home_quick_actions_title: "Quick Audit Actions",
+                home_quick_actions_desc: "Trigger full cycles or launch queries in 1 click",
+                home_action_run_audit: "Proactive Audit",
+                home_action_new_chat: "New Conversation",
+                home_action_dossier: "Executive Dossier",
             },
             es: {
                 status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
@@ -6485,6 +7478,61 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 framework_tooltip_pcidss: "PCI DSS v4.0 - En el roadmap de desarrollo",
                 framework_tooltip_cmmi: "CMMI DEV/SVC - En el roadmap de desarrollo",
                 framework_tooltip_more: "Nuevas estructuras regulatorias y normativas planificadas",
+                top_title_home: "Visión General de Módulos",
+                nav_home: "Visión General de Módulos",
+                home_hero_badge: "Google Cloud Security • Agentic GRC Hub",
+                home_hero_title: "Hub de Módulos y Gobernanza de Certificaciones",
+                home_hero_subtitle: "Plataforma autónoma para auditoría continua, gobernanza de seguridad multi-cloud y preparación para certificaciones internacionales (ISO/IEC 27001:2022, SOC 2, PCI DSS, CMMI) impulsada por IA generativa en Google Cloud Vertex AI con Model Armor y Grounding determinista.",
+                home_meta_org: "Organización GCP:",
+                home_meta_fw: "Marco Activo:",
+                home_meta_model: "Motor de IA:",
+                home_kpi_posture: "Postura Global ISO 27001",
+                home_kpi_controls: "Controles del Anexo A Mapeados",
+                home_kpi_evidence: "Grafo SHA-256 Inmutable",
+                home_kpi_caching: "Ahorro Context Caching",
+                home_cat_ai_title: "Auditoría e Inteligencia Agéntica",
+                home_cat_ai_badge: "3 Módulos Activos",
+                home_mod_chat_name: "Agentic GRC Auditor",
+                home_mod_chat_desc: "Auditoría conversacional con Gemini 2.5 Flash/Pro. Ejecute inspecciones dinámicas de IAM, KMS y GCS mediante herramientas MCP con grounding determinista y barrera Model Armor.",
+                home_mod_chat_sub: "Interacción en Lenguaje Natural",
+                home_btn_open_chat: "Abrir Chatbot",
+                home_mod_phases_name: "Escaneo por Fases",
+                home_mod_phases_desc: "Pipeline estructurado en 4 etapas: Descubrimiento e IAM (Fase 1), Auditoría Técnica e IaC (Fase 2), Criptografía y Datos (Fase 3) y Gobernanza y Threat Intel (Fase 4).",
+                home_mod_phases_sub: "Ejecución Secuencial",
+                home_btn_scan_phases: "Iniciar Escaneo",
+                home_mod_conn_name: "Subagentes y Zero-Copy",
+                home_mod_conn_desc: "Orquestación de subagentes especialistas (Annex A, GCP Telemetry, Org Policies, Horizon Scanner) y conectores Zero-Copy para Drive, GitHub y Jira sin replicación de datos.",
+                home_mod_conn_sub: "Arquitectura Distribuida",
+                home_btn_open_conn: "Gestionar Subagentes",
+                home_cat_normative_title: "Conformidad Normativa y Evidencias",
+                home_cat_normative_badge: "2 Módulos Activos",
+                home_mod_matrix_name: "Matriz ISO 27001 y SoA",
+                home_mod_matrix_desc: "Declaración de Aplicabilidad (SoA) interactiva para ISO/IEC 27001:2022. Explore los 4 temas normativos: Organizacionales (37), Personas (8), Físicos (14) y Tecnológicos (34).",
+                home_mod_matrix_sub: "Gobernanza del Anexo A",
+                home_btn_open_matrix: "Explorar Matriz",
+                home_mod_scorecard_name: "Scorecard y Evidencias",
+                home_mod_scorecard_desc: "Panel consolidado con el Grafo Criptográfico de Evidencias, historial de auditoría continua, telemetría en tiempo real y flujo de remediación CAPA con aprobación humana (HITL).",
+                home_mod_scorecard_sub: "Integridad Inalterable",
+                home_btn_open_scorecard: "Ver Scorecard",
+                home_cat_reports_title: "Informes Oficiales y Gobernanza Financiera",
+                home_cat_reports_badge: "3 Módulos Activos",
+                home_mod_exec_name: "Dossier Ejecutivo",
+                home_mod_exec_desc: "Informe ejecutivo formal de cumplimiento con declaración de la dirección, postura estratégica de los 4 temas y resumen de preparación para certificación externa.",
+                home_mod_exec_sub: "Dirección y Cumplimiento",
+                home_btn_open_exec: "Abrir Dossier",
+                home_mod_tech_name: "Informe Técnico",
+                home_mod_tech_desc: "Cuaderno técnico de auditoría para organismos certificadores (BSI, Bureau Veritas, DNV) con salidas reales gcloud, comandos de prueba y atestación SPIFFE/mTLS criptográfica.",
+                home_mod_tech_sub: "Auditores Externos",
+                home_btn_open_tech: "Abrir Informe",
+                home_mod_finops_name: "FinOps y Costes de IA",
+                home_mod_finops_desc: "Monitoreo financiero detallado de llamadas Gemini 2.5, ahorro logrado con Context Caching de 1M tokens y proyección de costes operativos de auditoría continua.",
+                home_mod_finops_sub: "Gobernanza Presupuestaria",
+                home_btn_open_finops: "Panel FinOps",
+                home_quick_actions_title: "Acciones Rápidas de Auditoría",
+                home_quick_actions_desc: "Dispare ciclos completos o inicie consultas con 1 clic",
+                home_action_run_audit: "Auditoría Proactiva",
+                home_action_new_chat: "Nueva Conversación",
+                home_action_dossier: "Dossier Ejecutivo",
             }
         };
 window.currentLanguage = 'pt';
@@ -6551,6 +7599,7 @@ window.currentLanguage = 'pt';
             const activePane = document.querySelector(".view-pane.active");
             if (activePane && typeof switchView === 'function') {
                 const keyMap = {
+                    "view-home": "top_title_home",
                     "view-chat": "top_title_chat",
                     "view-phases": "top_title_phases",
                     "view-matrix": "top_title_matrix",
@@ -6898,6 +7947,7 @@ window.currentLanguage = 'pt';
 
         function getNavClickHandler(btnId) {
             switch (btnId) {
+                case 'agentBtnHome': return "switchView('view-home')";
                 case 'agentBtnGrcAuditor': return 'selectAuditorTab()';
                 case 'agentBtnPhases': return "switchView('view-phases')";
                 case 'agentBtnMatrix': return "switchView('view-matrix')";
@@ -6912,6 +7962,8 @@ window.currentLanguage = 'pt';
 
         function getNavIconSvg(btnId) {
             switch (btnId) {
+                case 'agentBtnHome':
+                    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" style="color: var(--gcp-blue);"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
                 case 'agentBtnGrcAuditor':
                     return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" style="color: #4285f4;"><path d="M12 2L20 5.8V11.5C20 16.5 16.6 20.8 12 22C7.4 20.8 4 16.5 4 11.5V5.8L12 2Z"/></svg>`;
                 case 'agentBtnPhases':
@@ -7792,6 +8844,7 @@ Formulário preenchido com o subagente recomendado!`);
             if (target) target.classList.add("active");
 
             const agentMap = {
+                "view-home": "agentBtnHome",
                 "view-chat": "agentBtnGrcAuditor",
                 "view-phases": "agentBtnPhases",
                 "view-matrix": "agentBtnMatrix",
@@ -7809,6 +8862,7 @@ Formulário preenchido com o subagente recomendado!`);
             }
 
             const keyMap = {
+                "view-home": "top_title_home",
                 "view-chat": "top_title_chat",
                 "view-phases": "top_title_phases",
                 "view-matrix": "top_title_matrix",

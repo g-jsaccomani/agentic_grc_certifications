@@ -4,7 +4,7 @@
 **Repository:** `agentic_grc_certifications`  
 **Execution Date:** 2026-09-06  
 **Implementation Source:** `handoff-agentic-grc-multiagente.md`  
-**Status:** COMPLETE & VERIFIED (94/94 Pytest Suite Passing, 86% Code Coverage, Google Workspace Auth & Framework Selector Verified)
+**Status:** COMPLETE & VERIFIED (95/95 Pytest Suite Passing, 86% Code Coverage, Google Workspace Auth, Framework Selector & Modules Home View Verified)
 
 ---
 
@@ -221,11 +221,28 @@ The following 3-turn interactive conversation illustrates the real-world operati
   - Seamlessly hidden in printable PDF reports (`@media print`) and when switching to Dossiê Executivo or Relatório Técnico views via `switchView(viewId)`.
   - Full i18n support across PT, EN, and ES (`framework_selector_title`, `framework_badge_active`, `framework_badge_coming_soon`, `framework_more`, tooltips) dynamically synced in `setLanguage(lang)`.
 
+### 3.8 Modules Overview / Home Screen (Tela Inicial dos Módulos)
+- **Component:** `#view-home` (`.view-pane.active`) placed inside `.views-viewport` as the initial landing screen, accompanied by `#agentBtnHome` as the primary navigation item in `.sidebar`.
+- **Hero & Posture Overview:**
+  - Executive banner highlighting Google Cloud Security & Agentic GRC Hub, active organization (`Altostrat Global Org`), ISO/IEC 27001 active framework, and Vertex AI Gemini engine.
+  - KPI Summary Grid: Global ISO 27001 Posture (100%), 93 Annex A Controls, 14 Immutable SHA-256 Graph Nodes, ~90% Context Caching Cost Savings.
+- **Interactive Module Showcase (8 Core Modules):**
+  1. `Agentic GRC Auditor`: Conversational audit powered by Gemini 2.5 with MCP function calling and Model Armor.
+  2. `Scan por Fases`: Structured 4-phase compliance audit pipeline with deviation treatment.
+  3. `Subagentes & Zero-Copy`: Distributed multi-agent orchestration and Zero-Copy integrations.
+  4. `Matriz ISO 27001 & SoA`: 93 Annex A controls across the 4 thematic domains with applicability statements.
+  5. `Scorecard & Evidências`: Cryptographic SHA-256 evidence graph and HITL remediation.
+  6. `Dossiê Executivo`: C-Level executive compliance posture summary.
+  7. `Relatório Técnico`: Comprehensive external audit report with raw gcloud telemetry and SPIFFE attestation.
+  8. `FinOps & Custos de IA`: Real-time Vertex AI token observability, 1M context caching, and ROI metrics.
+- **Quick Action Bar:** Direct triggers for Proactive Audit, New Conversation, and Executive Dossier generation.
+- **Full i18n & Print Isolation:** Complete localization across `pt`, `en`, and `es`; cleanly excluded in print layouts (`@media print`).
+
 ---
 
 ## 4. Quality Assurance & Test Validation
 
-All 94 tests in the test suite pass with zero failures:
+All 95 tests in the test suite pass with zero failures:
 
 ```bash
 .venv/bin/python -m pytest tests/ -v
@@ -240,7 +257,7 @@ rootdir: /Users/jsaccomani/Documents/Jetsky/My Projects/agentic_grc_certificatio
 configfile: pytest.ini
 plugins: cov-7.1.0, asyncio-1.4.0, anyio-4.15.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
-collecting ... collected 94 items
+collecting ... collected 95 items
 
 tests/test_agent_reliability.py::test_vuln01_cloud_security_empty_config_undetermined PASSED [  1%]
 tests/test_agent_reliability.py::test_vuln01_mcp_endpoint_config_none_with_bearer_returns_undetermined PASSED [  2%]
