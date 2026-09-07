@@ -19,6 +19,7 @@ This handoff document details the full migration of the `agentic_grc_certificati
 2. **Deterministic Source of Truth:** MCP tools (`mcp_server_grc/tools/*.py`) remain the authoritative anchor. The LLM cannot invent or declare compliance verdicts by itself; it only interprets, orchestrates function calling, and reports the literal findings returned by the tools.
 3. **Egress Grounding Interception:** Even if prompt injection or generative drift attempts to coerce the LLM into stating a resource is compliant, `ModelArmorGateway.inspect_egress` cross-references the narrative against `tool_evidence`. Any contradiction is summarily blocked.
 4. **Initial Route Stability:** The portal defaults strictly to the **Modules Overview / Home Screen** upon initial load, allowing the user to navigate to any module via interactive cards or sidebar shortcuts.
+5. **100% Cloud-Native Operation (Zero Local Action):** All application workflows, live demonstrations, production audits, and user interactions are executed exclusively via Google Cloud Run (`https://mcp-server-grc-938078169010.us-central1.run.app/portal`). There is zero requirement or dependency on local background runtimes (`uvicorn`, local proxies, or local storage); the platform is entirely containerized and cloud-hosted on GCP.
 
 ---
 
@@ -238,6 +239,22 @@ The Home Screen (`<section class="view-pane active" id="view-home">`) is a premi
   - Converted the checkbox grid header from `<label>` to `<div class="form-label">` with `.form-label` CSS styles preserved, and added explicit `id` and `for` attributes to all 6 subagent permission checkboxes (`toolCheck_*`).
   - Added `aria-label` attributes to standalone inputs (`orgSearchInput`, `matrixSearchInput`, `finopsAgentSearch`).
 - **Automated Verification:** Added `test_all_labels_associated_with_form_fields()` in `tests/test_portal.py` using standard library `HTMLParser` to dynamically scan the generated portal DOM and ensure that 100% of `<label>` tags either nest an input or have a `for` attribute pointing to a verified element `id` in the document.
+
+### 3.11 Live Cloud Run Deployment & Cloud-Native Execution Enforcement
+- **Strict Constraint:** Zero local action — all testing, auditing, demonstration, and operational usage is strictly conducted via Google Cloud Run.
+- **Service Configuration:**
+  - **GCP Project:** `agentic-grc-cd06`
+  - **Service Name:** `mcp-server-grc`
+  - **Region:** `us-central1`
+  - **Deploy Command:** `gcloud run deploy mcp-server-grc --source=. --region=us-central1 --platform=managed --allow-unauthenticated --set-env-vars="PROJECT_ID=agentic-grc-cd06,REGION=us-central1"`
+  - **Live Service URL:** `https://mcp-server-grc-938078169010.us-central1.run.app/portal`
+  - **Artifact Registry Image:** `us-central1-docker.pkg.dev/agentic-grc-cd06/cloud-run-source-deploy/mcp-server-grc`
+- **Verification on Live Production Container:**
+  1. Default initial route: opens directly to `#view-home` (Modules Overview / Hub Central).
+  2. Top navbar displays Certification Framework Selector (`.framework-selector-bar`).
+  3. Sidebar displays and highlights `Visão Geral dos Módulos` (`#agentBtnHome`).
+  4. 100% WCAG / Lighthouse `<label>` accessibility compliance (all 13 form controls linked).
+  5. Always-on Google Workspace identity verification (`id_token.verify_oauth2_token`).
 
 ---
 
