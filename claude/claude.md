@@ -990,3 +990,62 @@ TOTAL                                                    2244    301    87%
 ======================= 142 passed, 2 warnings in 4.49s ========================
 ```
 
+---
+
+## 2026-09-07 — Frontend Navigation Redesign, Unified Reports Hub & Interactive Questionnaire Integration
+
+### 1. Architectural Summary & Scope of Changes
+A comprehensive redesign of the web client portal navigation and frontend layout was executed in response to user feedback, strictly preserving all backend contracts (`mcp_server_grc/portal.py`, `mcp_server_grc/questionnaire.py`, `mcp_server_grc/finops.py`) and maintaining 100% test pass rate with 87% test coverage.
+
+### 2. Implementation Deliverables
+
+#### Task 1: Restored Google Cloud Icon in Breadcrumb
+- In `mcp_server_grc/portal_html.py`, replaced the generic 4-point sparkle SVG in `.nav-breadcrumb` (`<header class="top-navbar">`) with `<img id="topGoogleCloudIcon">` using the verified 21,013-byte PNG base64 data URI from `.brand-left`.
+- Styled with `width="18" height="18"`, `object-fit: contain`, and zero-margin alignment.
+
+#### Task 2: Merged "Agentic GRC Auditor" into Home Overview
+- Removed the separate sidebar button `#agentBtnGrcAuditor`.
+- Merged its purpose into `Visão Geral dos Módulos` (`#agentBtnHome`), where the central chat-first search box and cockpit serve as the unified natural-language entry point.
+- Deleted the obsolete `selectAuditorTab()` handler and re-routed quick-action cards to focus the home input.
+- Updated `agentMap` and navigation pin handlers so `view-home` and `view-chat` resolve cleanly to `agentBtnHome`.
+
+#### Task 3: Consolidated Reports into Unified Hub (`#view-reports`)
+- Consolidated the three previously disparate sidebar buttons (`#agentBtnScorecard`, `#agentBtnReport`, `#agentBtnTechReport`) into a single sidebar button: `#agentBtnReports` (**Relatórios & Dossiê** / **Reports & Dossier**).
+- Built a unified container view `<section class="view-pane" id="view-reports">` featuring a persistent pill tab switcher:
+  - **Tab 1: Scorecard & Evidências** (`#tabBtnScorecard` ➔ `#tabPanelScorecard` wrapping `#view-scorecard`)
+  - **Tab 2: Dossiê Executivo** (`#tabBtnExec` ➔ `#tabPanelExec` wrapping `#view-report-exec`)
+  - **Tab 3: Relatório Técnico (Auditoria Externa)** (`#tabBtnTech` ➔ `#tabPanelTech` wrapping `#view-report-tech`)
+- Added `switchReportsTab(tabName)` and updated `switchView` with interceptor hooks so that legacy deep links (e.g. `openExecutiveReport()`, `openTechnicalReport()`, `switchView('view-scorecard')`) automatically switch to `#view-reports` with the intended sub-tab pre-selected.
+
+#### Task 4: Framework Selector Inline Badge Pattern & Roadmap Modal
+- The horizontal card bar `#frameworkSelectorBar` now only displays on initial entry on the Home screen (`#view-home`).
+- Navigating to any other view hides `#frameworkSelectorBar`, freeing up screen real estate.
+- Added a compact, persistent framework chip in the top navbar breadcrumb:
+  ```html
+  <button type="button" class="top-framework-chip" id="topFrameworkBadge" onclick="openFrameworkSelectorModal()">
+      <svg ... shield /> <span id="topFrameworkBadgeText">Módulo: ISO/IEC 27001:2022</span>
+  </button>
+  ```
+- Implemented a modal dialog `#frameworkSelectorModal` allowing users to view the multi-standard roadmap (ISO 27001 active, SOC 2, PCI DSS, CMMI coming soon) and switch frameworks on demand.
+- Linked to a single source of truth `currentFrameworkId = 'iso27001'`.
+
+#### Task 5: Interactive Compliance Questionnaire View (`#view-questionnaire`)
+- Added `#agentBtnQuestionnaire` (**Questionário de Conformidade**) in the sidebar main menu.
+- Implemented `#view-questionnaire` containing:
+  - **Summary KPI Bar:** Displays total controls (93), answered count, completion percentage progress bar, and compliance breakdown (Conformes, Não Conformes, N/A) dynamically fetched from `GET /api/questionnaire/summary`.
+  - **Theme Filters & Search:** Filter buttons for All, A.5 Organizational (37), A.6 People (8), A.7 Physical (14), A.8 Technological (34), plus an "Apenas Pendentes" toggle and live text filter.
+  - **Collapsible Theme Accordions:** Clean Google Cloud Console accordion cards with rotating chevrons for each ISO theme.
+  - **Control Rows:** Each control card presents the control ID badge, title, description, compliance status dropdown (`NOT_ANSWERED`, `COMPLIANT`, `NON_COMPLIANT`, `PARTIAL`, `NOT_APPLICABLE`), justification textarea, evidence URI field, and safe file upload button.
+  - **Safe Evidence Upload & Text Extraction:** Wired to `POST /api/questionnaire/{control_id}/evidence-file` with automatic file badge rendering, download links, and text preview.
+  - **Answer Submission:** Wired to `POST /api/questionnaire/{control_id}/answer` with real-time feedback.
+- Added full trilingual localization across Portuguese (`pt`), English (`en`), and Spanish (`es`).
+
+#### Task 6: FinOps Intact & Functioning
+- `#agentBtnFinops` and `#view-finops` were preserved completely unchanged, maintaining full billing and token telemetry functionality.
+
+### 3. Verification & Quality Gates
+- **Pytest Suite:** 143 passed (including new end-to-end frontend regression test `test_frontend_redesign_navigation_and_views` in `tests/test_portal.py`).
+- **Code Coverage:** 87% across `mcp_server_grc` and `agent_orchestrator` (`mcp_server_grc/portal_html.py`: 100%, `mcp_server_grc/questionnaire.py`: 95%).
+- **WCAG Accessibility:** Validated 100% compliance via `test_all_labels_associated_with_form_fields`.
+
+

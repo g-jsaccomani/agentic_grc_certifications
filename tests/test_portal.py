@@ -487,3 +487,65 @@ def test_all_labels_associated_with_form_fields():
 
     assert violations == [], f"Accessibility label violations detected: {violations}"
 
+
+def test_frontend_redesign_navigation_and_views():
+    """Validates the 6 UX navigation and frontend redesign requirements."""
+    res = client.get("/portal")
+    assert res.status_code == 200
+    html = res.text
+
+    # 1. Google Cloud Icon in Breadcrumb
+    assert 'id="topGoogleCloudIcon"' in html
+    assert 'src="data:image/png;base64,' in html
+
+    # 2. Agentic GRC Auditor button removed from sidebar; merged into Home
+    assert 'id="agentBtnGrcAuditor"' not in html
+    assert 'id="agentBtnHome"' in html
+    assert 'selectAuditorTab()' not in html
+
+    # 3. Reports Consolidated into single sidebar item and unified view
+    assert 'id="agentBtnReports"' in html
+    assert 'data-i18n="nav_reports"' in html
+    assert 'onclick="switchView(\'view-reports\')"' in html
+    assert 'id="agentBtnScorecard"' not in html
+    assert 'id="agentBtnReport"' not in html
+    assert 'id="agentBtnTechReport"' not in html
+    assert 'id="view-reports"' in html
+    assert 'id="tabBtnScorecard"' in html
+    assert 'id="tabBtnExec"' in html
+    assert 'id="tabBtnTech"' in html
+    assert 'id="tabPanelScorecard"' in html
+    assert 'id="tabPanelExec"' in html
+    assert 'id="tabPanelTech"' in html
+
+    # 4. Framework Selector Inline Badge Pattern & Modal
+    assert 'id="topFrameworkBadge"' in html
+    assert 'id="topFrameworkBadgeText"' in html
+    assert 'Módulo: ISO/IEC 27001:2022' in html
+    assert 'id="frameworkSelectorModal"' in html
+    assert 'openFrameworkSelectorModal' in html
+    assert 'currentFrameworkId' in html
+
+    # 5. Questionnaire View in Sidebar
+    assert 'id="agentBtnQuestionnaire"' in html
+    assert 'data-i18n="nav_questionnaire"' in html
+    assert 'onclick="switchView(\'view-questionnaire\')"' in html
+    assert 'id="view-questionnaire"' in html
+    assert 'id="questSummaryCard"' in html
+    assert 'id="questCompletionPct"' in html
+    assert 'id="questControlsAccordion"' in html
+    assert 'id="questSearchInput"' in html
+    assert 'btnFilterA5' in html
+    assert 'btnFilterA6' in html
+    assert 'btnFilterA7' in html
+    assert 'btnFilterA8' in html
+    assert 'loadQuestionnaireSummary' in html
+    assert 'loadQuestionnaireControls' in html
+    assert 'uploadEvidenceFile' in html
+    assert 'submitControlAnswer' in html
+
+    # 6. FinOps completely preserved
+    assert 'id="agentBtnFinops"' in html
+    assert 'id="view-finops"' in html
+
+

@@ -4053,6 +4053,251 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             font-size: 10px;
             user-select: none;
         }
+
+        /* Framework Active Badge in Breadcrumb */
+        .top-framework-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 9px;
+            border-radius: 12px;
+            background: rgba(66, 133, 244, 0.12);
+            border: 1px solid rgba(66, 133, 244, 0.3);
+            color: #8ab4f8;
+            font-size: 11.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        .top-framework-chip:hover {
+            background: rgba(66, 133, 244, 0.22);
+            border-color: #8ab4f8;
+            color: #ffffff;
+        }
+
+        /* Reports Hub Sub-tabs */
+        .reports-tab-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: var(--bg-surface-elevated, #202124);
+            border: 1px solid var(--border-subtle, #3c4043);
+            color: var(--text-secondary, #9aa0a6);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .reports-tab-btn:hover {
+            color: var(--text-primary, #e8eaed);
+            border-color: #8ab4f8;
+            background: rgba(66, 133, 244, 0.08);
+        }
+        .reports-tab-btn.active {
+            background: rgba(66, 133, 244, 0.18);
+            border-color: #8ab4f8;
+            color: #8ab4f8;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(66, 133, 244, 0.25);
+        }
+
+        /* Questionnaire Styles */
+        .quest-theme-btn {
+            padding: 6px 12px;
+            border-radius: 16px;
+            background: var(--bg-surface-elevated, #202124);
+            border: 1px solid var(--border-subtle, #3c4043);
+            color: var(--text-secondary, #9aa0a6);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .quest-theme-btn:hover {
+            color: var(--text-primary, #e8eaed);
+            border-color: #8ab4f8;
+        }
+        .quest-theme-btn.active {
+            background: rgba(66, 133, 244, 0.18);
+            border-color: #8ab4f8;
+            color: #8ab4f8;
+            font-weight: 600;
+        }
+        .quest-theme-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: var(--transition-smooth);
+        }
+        .quest-theme-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 1px solid transparent;
+        }
+        .quest-theme-header:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .quest-theme-header.open {
+            border-bottom-color: var(--border-subtle);
+        }
+        .quest-theme-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .quest-chevron {
+            transition: transform 0.25s ease;
+        }
+        .quest-chevron.rotated {
+            transform: rotate(180deg);
+        }
+        .quest-control-card {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-surface);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .quest-control-card:last-child {
+            border-bottom: none;
+        }
+        .quest-control-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .quest-control-code {
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(66, 133, 244, 0.12);
+            color: #8ab4f8;
+        }
+        .quest-control-name {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+            margin-left: 6px;
+        }
+        .quest-status-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+        .quest-status-badge.COMPLIANT { background: rgba(52, 168, 83, 0.15); color: var(--gcp-green); }
+        .quest-status-badge.NON_COMPLIANT { background: rgba(234, 67, 53, 0.15); color: #ea4335; }
+        .quest-status-badge.PARTIAL { background: rgba(251, 188, 5, 0.15); color: #fbbc05; }
+        .quest-status-badge.NOT_APPLICABLE { background: rgba(255, 255, 255, 0.08); color: var(--text-secondary); }
+        .quest-status-badge.NOT_ANSWERED { background: rgba(255, 255, 255, 0.05); color: var(--text-tertiary); }
+        .quest-control-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.45;
+        }
+        .quest-control-form {
+            display: grid;
+            grid-template-columns: 180px 1fr 1fr auto;
+            gap: 10px;
+            align-items: start;
+            margin-top: 4px;
+        }
+        @media (max-width: 900px) {
+            .quest-control-form {
+                grid-template-columns: 1fr;
+            }
+        }
+        .quest-form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .quest-form-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+        }
+        .quest-select, .quest-input, .quest-textarea {
+            background: var(--bg-canvas, #121316);
+            border: 1px solid var(--border-subtle, #3c4043);
+            border-radius: 6px;
+            padding: 7px 10px;
+            color: var(--text-primary);
+            font-size: 12px;
+            font-family: inherit;
+        }
+        .quest-textarea {
+            resize: vertical;
+            min-height: 34px;
+            max-height: 120px;
+        }
+        .btn-quest-save {
+            padding: 7px 14px;
+            border-radius: 6px;
+            background: var(--gcp-blue, #4285f4);
+            color: #ffffff;
+            border: none;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            height: 34px;
+            align-self: flex-end;
+        }
+        .btn-quest-save:hover {
+            opacity: 0.9;
+        }
+        .btn-quest-upload {
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px dashed var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 11px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-quest-upload:hover {
+            border-color: var(--gcp-blue);
+            color: var(--text-primary);
+            background: rgba(66, 133, 244, 0.08);
+        }
+        .quest-file-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(52, 168, 83, 0.12);
+            color: var(--gcp-green);
+            font-size: 11px;
+            margin-top: 4px;
+            text-decoration: none;
+        }
+    
 </style>
 </head>
 <body>
@@ -4134,19 +4379,6 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
                             </span>
                         </button>
-                        <button class="agent-item" id="agentBtnGrcAuditor" onclick="selectAuditorTab()">
-                            <div class="agent-left-wrap">
-                                <div class="agent-avatar" style="color: #4285f4;">
-                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
-                                        <path d="M12 2L20 5.8V11.5C20 16.5 16.6 20.8 12 22C7.4 20.8 4 16.5 4 11.5V5.8L12 2Z"/>
-                                    </svg>
-                                </div>
-                                <span class="agent-name" data-i18n="nav_lead_auditor">Agentic GRC Auditor</span>
-                            </div>
-                            <span class="item-pin-btn" id="pinBtn_agentBtnGrcAuditor" onclick="togglePinNav(event, 'agentBtnGrcAuditor', 'Agentic GRC Auditor')" title="Fixar no topo">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
-                            </span>
-                        </button>
 
                         <button class="agent-item" id="agentBtnPhases" onclick="switchView('view-phases')">
                             <div class="agent-left-wrap">
@@ -4179,6 +4411,21 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             </span>
                         </button>
 
+                        <button class="agent-item" id="agentBtnQuestionnaire" onclick="switchView('view-questionnaire')">
+                            <div class="agent-left-wrap">
+                                <div class="agent-avatar" style="color: #34a853;">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <path d="M9 11l3 3L22 4"/>
+                                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                                    </svg>
+                                </div>
+                                <span class="agent-name" data-i18n="nav_questionnaire">Questionário de Conformidade</span>
+                            </div>
+                            <span class="item-pin-btn" id="pinBtn_agentBtnQuestionnaire" onclick="togglePinNav(event, 'agentBtnQuestionnaire', 'Questionário de Conformidade')" title="Fixar no topo">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
+                            </span>
+                        </button>
+
                         <button class="agent-item" id="agentBtnConnectors" onclick="switchView('view-connectors')">
                             <div class="agent-left-wrap">
                                 <div class="agent-avatar">
@@ -4197,47 +4444,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             </span>
                         </button>
 
-                        <button class="agent-item" id="agentBtnScorecard" onclick="switchView('view-scorecard')">
-                            <div class="agent-left-wrap">
-                                <div class="agent-avatar">
-                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
-                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                                    </svg>
-                                </div>
-                                <span class="agent-name" data-i18n="nav_scorecard">Scorecard & Evidências</span>
-                            </div>
-                            <span class="item-pin-btn" id="pinBtn_agentBtnScorecard" onclick="togglePinNav(event, 'agentBtnScorecard', 'Scorecard & Evidências')" title="Fixar no topo">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
-                            </span>
-                        </button>
-
-                        <button class="agent-item" id="agentBtnReport" onclick="openExecutiveReport()">
+                        <button class="agent-item" id="agentBtnReports" onclick="switchView('view-reports')">
                             <div class="agent-left-wrap">
                                 <div class="agent-avatar" style="color: var(--gcp-blue);">
                                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
                                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                         <polyline points="14 2 14 8 20 8"/>
-                                        <line x1="12" y1="18" x2="12" y2="12"/>
-                                        <line x1="9" y1="15" x2="15" y2="15"/>
+                                        <line x1="16" y1="13" x2="8" y2="13"/>
+                                        <line x1="16" y1="17" x2="8" y2="17"/>
+                                        <polyline points="10 9 9 9 8 9"/>
                                     </svg>
                                 </div>
-                                <span class="agent-name" data-i18n="nav_exec_report">Dossiê Executivo</span>
+                                <span class="agent-name" data-i18n="nav_reports">Relatórios & Dossiê</span>
                             </div>
-                            <span class="item-pin-btn" id="pinBtn_agentBtnReport" onclick="togglePinNav(event, 'agentBtnReport', 'Dossiê Executivo')" title="Fixar no topo">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
-                            </span>
-                        </button>
-
-                        <button class="agent-item" id="agentBtnTechReport" onclick="openTechnicalReport()">
-                            <div class="agent-left-wrap">
-                                <div class="agent-avatar" style="color: #ea4335;">
-                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8">
-                                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                    </svg>
-                                </div>
-                                <span class="agent-name" data-i18n="nav_tech_report">Relatório Técnico (Auditoria Externa)</span>
-                            </div>
-                            <span class="item-pin-btn" id="pinBtn_agentBtnTechReport" onclick="togglePinNav(event, 'agentBtnTechReport', 'Relatório Técnico (Auditoria Externa)')" title="Fixar no topo">
+                            <span class="item-pin-btn" id="pinBtn_agentBtnReports" onclick="togglePinNav(event, 'agentBtnReports', 'Relatórios & Dossiê')" title="Fixar no topo">
                                 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76L17 13.5V4h1V2H6v2h1v9.5L5 15.24V17z"/></svg>
                             </span>
                         </button>
@@ -4386,11 +4606,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         <header class="top-navbar">
             <div class="nav-breadcrumb">
                 <span class="top-org-badge">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
-                        <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="#8ab4f8"/>
-                    </svg>
+                    <img id="topGoogleCloudIcon" src="data:image/png;base64,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" alt="Google Cloud" width="18" height="18" style="object-fit: contain; vertical-align: middle; display: inline-block; flex-shrink: 0;">
                     <span>Gemini Enterprise Agent Platform</span>
                 </span>
+                <!-- Framework Active Badge -->
+                <button type="button" class="top-framework-chip" id="topFrameworkBadge" onclick="openFrameworkSelectorModal()" title="Módulo Ativo: ISO/IEC 27001:2022 (Clique para ver opções)">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                    <span id="topFrameworkBadgeText">Módulo: ISO/IEC 27001:2022</span>
+                </button>
                 <span style="color: var(--text-tertiary)">/</span>
                 <span class="top-active-agent" id="topActiveTitle" data-i18n="top_title_home">Visão Geral dos Módulos</span>
                 <span style="color: var(--text-tertiary)">•</span>
@@ -4695,7 +4918,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <span data-i18n="home_hero_badge">Google Cloud Security • Agentic GRC Hub</span>
                             </div>
                             <div style="display: flex; gap: 8px;">
-                                <button class="btn-home-quick primary" onclick="selectAuditorTab()">
+                                <button class="btn-home-quick primary" onclick="document.getElementById('homeSearchInput')?.focus()">
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                                     </svg>
@@ -4816,7 +5039,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                         <div class="home-modules-grid">
                             <!-- Card 1: Chatbot Auditor Líder -->
-                            <div class="home-module-card" onclick="selectAuditorTab()">
+                            <div class="home-module-card" onclick="document.getElementById('homeSearchInput')?.focus()">
                                 <div>
                                     <div class="home-module-card-header">
                                         <div class="home-module-card-icon-title">
@@ -5894,8 +6117,107 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </div>
             </section>
 
-            <!-- View 5: Scorecard -->
-            <section class="view-pane" id="view-scorecard">
+            
+
+                                    <!-- View: Questionário de Conformidade ISO/IEC 27001:2022 -->
+            <section class="view-pane" id="view-questionnaire" style="background: var(--bg-canvas); overflow-y: auto; padding: 20px 16px;">
+                <div class="questionnaire-container" style="max-width: 1200px; margin: 0 auto;">
+                    <div class="section-header-banner" style="margin-bottom: 16px;">
+                        <div class="view-title-group">
+                            <h2 data-i18n="quest_title">Questionário de Conformidade — ISO/IEC 27001:2022</h2>
+                            <p data-i18n="quest_subtitle">Preenchimento de controles, justificativas técnicas e upload seguro de evidências auditáveis.</p>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="btn-action-primary" onclick="loadQuestionnaireData()" title="Atualizar dados do questionário">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 4 23 10 17 10"/>
+                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                                </svg>
+                                <span>Atualizar</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- KPI Progress Card -->
+                    <div class="quest-summary-card" id="questSummaryCard" style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 18px 20px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="font-size: 24px; font-weight: 700; color: var(--gcp-blue);" id="questCompletionPct">0.0%</div>
+                                <div>
+                                    <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);" id="questCompletionLabel">0 de 93 respondidos</div>
+                                    <div style="font-size: 11px; color: var(--text-secondary);">Framework: ISO/IEC 27001:2022 (93 Controles Anexo A)</div>
+                                </div>
+                            </div>
+                            <div class="quest-stats-pills" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <span class="quest-pill compliant" style="padding: 4px 10px; border-radius: 12px; background: rgba(52, 168, 83, 0.12); color: var(--gcp-green); font-size: 12px; font-weight: 600;">
+                                    ✓ <span id="questCompliantCount">0</span> Conformes
+                                </span>
+                                <span class="quest-pill non-compliant" style="padding: 4px 10px; border-radius: 12px; background: rgba(234, 67, 53, 0.12); color: #ea4335; font-size: 12px; font-weight: 600;">
+                                    ✗ <span id="questNonCompliantCount">0</span> Não Conformes
+                                </span>
+                                <span class="quest-pill not-applicable" style="padding: 4px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.08); color: var(--text-secondary); font-size: 12px; font-weight: 600;">
+                                    — <span id="questNotApplicableCount">0</span> N/A
+                                </span>
+                            </div>
+                        </div>
+                        <div class="quest-progress-track" style="height: 8px; width: 100%; background: var(--bg-surface-elevated, #202124); border-radius: 4px; overflow: hidden;">
+                            <div class="quest-progress-fill" id="questProgressFill" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--gcp-blue), var(--gcp-green)); transition: width 0.4s ease;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Toolbar -->
+                    <div class="quest-filter-toolbar" style="display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 16px;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            <button type="button" class="quest-theme-btn active" id="btnFilterAll" onclick="filterQuestionnaireTheme('ALL')">Todos (93)</button>
+                            <button type="button" class="quest-theme-btn" id="btnFilterA5" onclick="filterQuestionnaireTheme('A.5')">A.5 Organizacional (37)</button>
+                            <button type="button" class="quest-theme-btn" id="btnFilterA6" onclick="filterQuestionnaireTheme('A.6')">A.6 Pessoas (8)</button>
+                            <button type="button" class="quest-theme-btn" id="btnFilterA7" onclick="filterQuestionnaireTheme('A.7')">A.7 Físico (14)</button>
+                            <button type="button" class="quest-theme-btn" id="btnFilterA8" onclick="filterQuestionnaireTheme('A.8')">A.8 Tecnológico (34)</button>
+                            <button type="button" class="quest-theme-btn" id="btnFilterPending" onclick="toggleFilterPendingOnly()">Apenas Pendentes</button>
+                        </div>
+                        <div style="position: relative; min-width: 240px;">
+                            <label for="questSearchInput" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">Buscar controles</label>
+                            <input type="text" id="questSearchInput" placeholder="Filtrar por código ou nome..." oninput="filterQuestionnaireByText(this.value)" style="width: 100%; padding: 7px 12px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-primary); font-size: 12.5px;">
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Controls Accordion Container -->
+                    <div id="questControlsAccordion" style="display: flex; flex-direction: column; gap: 14px;">
+                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);" id="questLoadingPlaceholder">
+                            Carregando catálogo de controles ISO/IEC 27001:2022...
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- View: Relatórios & Dossiê (Unified Scorecard, Dossiê Executivo, Relatório Técnico) -->
+            <section class="view-pane" id="view-reports" style="background: var(--bg-canvas); overflow-y: auto; padding: 20px 16px;">
+                <div class="reports-hub-container" style="max-width: 1200px; margin: 0 auto;">
+                    <div class="section-header-banner" style="margin-bottom: 16px;">
+                        <div class="view-title-group">
+                            <h2 data-i18n="reports_hub_title">Relatórios & Dossiê de Auditoria</h2>
+                            <p data-i18n="reports_hub_subtitle">Visão unificada de conformidade: Scorecard contínuo, Dossiê Executivo para liderança e Relatório Técnico detalhado para auditoria externa.</p>
+                        </div>
+                    </div>
+
+                    <!-- 3 Tabs Navigation Bar -->
+                    <div class="reports-nav-tabs" style="display: flex; gap: 8px; border-bottom: 2px solid var(--border-subtle); padding-bottom: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <button type="button" class="reports-tab-btn active" id="tabBtnScorecard" onclick="switchReportsTab('scorecard')">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            <span data-i18n="tab_scorecard">Scorecard & Evidências</span>
+                        </button>
+                        <button type="button" class="reports-tab-btn" id="tabBtnExec" onclick="switchReportsTab('exec')">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                            <span data-i18n="tab_exec_report">Dossiê Executivo</span>
+                        </button>
+                        <button type="button" class="reports-tab-btn" id="tabBtnTech" onclick="switchReportsTab('tech')">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span data-i18n="tab_tech_report">Relatório Técnico (Auditoria Externa)</span>
+                        </button>
+                    </div>
+
+                    <!-- Panel 1: Scorecard -->
+                    <div class="reports-tab-panel active" id="tabPanelScorecard"><div id="view-scorecard" style="display:contents;">
                 <div class="section-header-banner">
                     <div class="view-title-group">
                         <h2 data-i18n="scorecard_title">Scorecard Contínuo & Grafo de Evidências</h2>
@@ -5932,162 +6254,10 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </button>
                     </div>
                 </div>
-            </section>
+            </div></div>
 
-                        <!-- View 7: FinOps & Gestão de Custos de IA -->
-            <section class="view-pane" id="view-finops">
-                <div class="section-header-banner">
-                    <div class="view-title-group">
-                        <h2 data-i18n="finops_title">FinOps & Gestão de Custos de IA</h2>
-                        <p data-i18n="finops_subtitle">Telemetria em tempo real de consumo de tokens (Prompt, Context Caching, Completion) e custos ($ USD / R$ BRL) por agente, subagente e fases de auditoria.</p>
-                    </div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button class="btn-action-primary" onclick="loadFinOpsMetrics()" title="Recarregar métricas em tempo real">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="23 4 23 10 17 10"/>
-                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-                            </svg>
-                            <span data-i18n="finops_btn_refresh">Atualizar Métricas</span>
-                        </button>
-                        <button class="btn-action-primary" onclick="simulateFinOpsRun()" style="background: rgba(129, 201, 149, 0.12); border-color: rgba(129, 201, 149, 0.35); color: var(--gcp-green);">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                                <polygon points="5 3 19 12 5 21 5 3"/>
-                            </svg>
-                            <span data-i18n="finops_btn_simulate">Simular Auditoria Contínua</span>
-                        </button>
-                        <button class="btn-action-primary" onclick="exportFinOpsJson()">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="7 10 12 15 17 10"/>
-                                <line x1="12" y1="15" x2="12" y2="3"/>
-                            </svg>
-                            <span data-i18n="finops_btn_export">Exportar FinOps</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- KPI Cards Row -->
-                <div class="scorecard-stats-row">
-                    <div class="stat-card">
-                        <div class="stat-label" data-i18n="finops_kpi_total_cost">Custo Total de IA Acumulado</div>
-                        <div class="stat-val" style="color: var(--gcp-green);" id="finopsTotalCostUsd">$ 1.86 USD</div>
-                        <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 2px;" id="finopsTotalCostBrl">R$ 10,62 BRL (Cotação R$ 5,70)</div>
-                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Orçamento: $50.00 / mês • <span id="finopsQuotaUsed" style="color: var(--gcp-green); font-weight: 600;">3.7% consumido</span></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label" data-i18n="finops_kpi_tokens">Tokens Totais Processados</div>
-                        <div class="stat-val" style="color: var(--gcp-blue);" id="finopsTotalTokens">2.253.000</div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;" id="finopsTokensBreakdown">Prompt: 1.503k | Saída: 470k</div>
-                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Execuções de Agentes: <strong id="finopsInvocations" style="color: var(--text-primary);">379 chamadas</strong></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label" data-i18n="finops_kpi_caching">Economia Gemini Context Caching</div>
-                        <div class="stat-val" style="color: #81c995;" id="finopsSavingsUsd">$ 7.42 USD</div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;" id="finopsSavingsBrl">R$ 42,29 BRL economizados</div>
-                        <div style="font-size: 11px; color: var(--gcp-green); margin-top: 4px;">Taxa de Cache Hit: <strong id="finopsCacheHitRatio">72.8%</strong> (Zero-Copy Evidence)</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label" data-i18n="finops_kpi_cost_per_ctrl">Custo Médio por Controle ISO 27001</div>
-                        <div class="stat-val" style="color: #fdd663;" id="finopsCostPerControl">$ 0.020 USD</div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">R$ 0,11 BRL por controle auditado</div>
-                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Auditoria humana tradicional: ~R$ 350 / controle</div>
-                    </div>
-                </div>
-
-                <!-- Detalhamento de Custos por Fase (Fases 1 a 4) -->
-                <div class="card-panel" style="margin-top: 16px;">
-                    <div class="card-title" data-i18n="finops_phase_title">Consumo de IA por Fase da Auditoria (Pipeline de Certificação)</div>
-                    <div class="card-desc" data-i18n="finops_phase_desc">Divisão de tokens e custos em cada estágio do ciclo de conformidade autônoma.</div>
-                    
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 14px;">
-                        <div class="stat-card" style="background: var(--bg-canvas);">
-                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-blue); text-transform: uppercase;"><span data-i18n="finops_p1_title">Fase 1: Triagem Zero-Copy</span></div>
-                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase1Cost">$ 0.42 USD</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase1Tokens">420.000 tokens • R$ 2,39</div>
-                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;" data-i18n="finops_p1_desc">Ingestão documental semântica</div>
-                        </div>
-                        <div class="stat-card" style="background: var(--bg-canvas);">
-                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-yellow); text-transform: uppercase;"><span data-i18n="finops_p2_title">Fase 2: Telemetria Técnica GCP</span></div>
-                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase2Cost">$ 0.88 USD</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase2Tokens">680.000 tokens • R$ 5,02</div>
-                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;" data-i18n="finops_p2_desc">IAM, KMS, SCC e Workload Identity</div>
-                        </div>
-                        <div class="stat-card" style="background: var(--bg-canvas);">
-                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-red); text-transform: uppercase;"><span data-i18n="finops_p3_title">Fase 3: Teste de Eficácia & Drift</span></div>
-                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase3Cost">$ 0.54 USD</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase3Tokens">390.000 tokens • R$ 3,08</div>
-                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;" data-i18n="finops_p3_desc">Simulação de drift e verificação</div>
-                        </div>
-                        <div class="stat-card" style="background: var(--bg-canvas);">
-                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-green); text-transform: uppercase;"><span data-i18n="finops_p4_title">Fase 4: Parecer & Selagem</span></div>
-                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase4Cost">$ 1.64 USD</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase4Tokens">352.650 tokens • R$ 9,35</div>
-                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;" data-i18n="finops_p4_desc">Gemini 2.5 Pro Lead Auditor</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tabela Detalhada por Agente e Subagente -->
-                <div class="card-panel" style="margin-top: 16px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                        <div>
-                            <div class="card-title" data-i18n="finops_agent_table_title">Detalhamento por Agente e Subagente (Métricas e Custos)</div>
-                            <div class="card-desc" data-i18n="finops_agent_table_desc">Contabilização exata de prompt tokens, context cache hits, completion tokens e custo final em USD/BRL.</div>
-                        </div>
-                        <div style="display: flex; gap: 8px;">
-                            <input type="text" id="finopsAgentSearch" placeholder="Filtrar agentes..." aria-label="Filtrar agentes FinOps" data-i18n-placeholder="finops_filter_placeholder" oninput="filterFinopsTable(this.value)" style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 6px 12px; font-size: 12px; color: var(--text-primary); outline: none;">
-                        </div>
-                    </div>
-
-                    <div style="overflow-x: auto; margin-top: 14px;">
-                        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px;">
-                                    <th style="padding: 10px 12px;" data-i18n="finops_th_agent">Agente / Subagente</th>
-                                    <th style="padding: 10px 12px;" data-i18n="finops_th_model">Modelo LLM</th>
-                                    <th style="padding: 10px 12px;" data-i18n="finops_th_invocations">Chamadas</th>
-                                    <th style="padding: 10px 12px;">Prompt Tokens</th>
-                                    <th style="padding: 10px 12px;">Cached Tokens</th>
-                                    <th style="padding: 10px 12px;">Output Tokens</th>
-                                    <th style="padding: 10px 12px;">Total Tokens</th>
-                                    <th style="padding: 10px 12px;">Custo (USD)</th>
-                                    <th style="padding: 10px 12px;">Custo (BRL)</th>
-                                    <th style="padding: 10px 12px;">Economia Cache</th>
-                                </tr>
-                            </thead>
-                            <tbody id="finopsAgentsTableBody">
-                                <!-- Populated dynamically by renderFinOpsDashboard -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Tabela de Referência de Tarifas Vertex AI / Gemini Enterprise -->
-                <div class="card-panel" style="margin-top: 16px;">
-                    <div class="card-title">Tabela de Tarifação Oficial de Referência (Google Cloud Vertex AI)</div>
-                    <div class="card-desc">Preços por milhão de tokens utilizados na apuração de custos em conformidade com as tabelas oficiais do Google Cloud.</div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-top: 12px;">
-                        <div style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px;">
-                            <div style="font-weight: 600; color: var(--gcp-blue);">Gemini 2.5 Pro</div>
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Prompt: $1.25 / 1M • Output: $5.00 / 1M</div>
-                            <div style="font-size: 11px; color: var(--gcp-green); margin-top: 2px;">Context Caching: $0.3125 / 1M (75% desconto)</div>
-                        </div>
-                        <div style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px;">
-                            <div style="font-weight: 600; color: var(--gcp-yellow);">Gemini 2.5 Flash</div>
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Prompt: $0.075 / 1M • Output: $0.30 / 1M</div>
-                            <div style="font-size: 11px; color: var(--gcp-green); margin-top: 2px;">Context Caching: $0.01875 / 1M (75% desconto)</div>
-                        </div>
-                        <div style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px;">
-                            <div style="font-weight: 600; color: #a8c7fa;">Text Embedding 005</div>
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Prompt: $0.025 / 1M • Output: $0.00</div>
-                            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Vetorização semântica e busca RAG</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- View 6: Relatório Executivo (Google Cloudstyle) -->
-            <section class="view-pane" id="view-report-exec" style="background: var(--bg-canvas); overflow-y: auto; padding: 20px 16px;">
+                    <!-- Panel 2: Executive Report -->
+                    <div class="reports-tab-panel" id="tabPanelExec" style="display: none;"><div id="view-report-exec" style="display:contents;">
                 
                 <!-- Floating Action Bar above Document Paper -->
                 <div class="doc-viewer-actions-bar">
@@ -6335,13 +6505,10 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     </div>
 
                 </div>
-            </section>
+            </div></div>
 
-            <!-- =========================================================================
-                 RELATÓRIO TÉCNICO DE AUDITORIA EXTERNA (ISO/IEC 27001:2022 STAGE 2 / CERTIFICAÇÃO)
-                 Projetado especificamente para entrega a organismos certificadores externos
-                 ========================================================================= -->
-            <section class="view-pane" id="view-report-tech" style="background: var(--bg-canvas); overflow-y: auto; padding: 20px 16px;">
+                    <!-- Panel 3: Technical Report -->
+                    <div class="reports-tab-panel" id="tabPanelTech" style="display: none;"><div id="view-report-tech" style="display:contents;">
                 
                 <!-- Floating Action Bar above Document Paper -->
                 <div class="doc-viewer-actions-bar">
@@ -6847,7 +7014,165 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     </div>
 
                 </div>
+            </div></div>
+                </div>
             </section>
+
+<!-- View 7: FinOps & Gestão de Custos de IA -->
+            <section class="view-pane" id="view-finops">
+                <div class="section-header-banner">
+                    <div class="view-title-group">
+                        <h2 data-i18n="finops_title">FinOps & Gestão de Custos de IA</h2>
+                        <p data-i18n="finops_subtitle">Telemetria em tempo real de consumo de tokens (Prompt, Context Caching, Completion) e custos ($ USD / R$ BRL) por agente, subagente e fases de auditoria.</p>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn-action-primary" onclick="loadFinOpsMetrics()" title="Recarregar métricas em tempo real">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 4 23 10 17 10"/>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                            </svg>
+                            <span data-i18n="finops_btn_refresh">Atualizar Métricas</span>
+                        </button>
+                        <button class="btn-action-primary" onclick="simulateFinOpsRun()" style="background: rgba(129, 201, 149, 0.12); border-color: rgba(129, 201, 149, 0.35); color: var(--gcp-green);">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                            <span data-i18n="finops_btn_simulate">Simular Auditoria Contínua</span>
+                        </button>
+                        <button class="btn-action-primary" onclick="exportFinOpsJson()">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            <span data-i18n="finops_btn_export">Exportar FinOps</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Cards Row -->
+                <div class="scorecard-stats-row">
+                    <div class="stat-card">
+                        <div class="stat-label" data-i18n="finops_kpi_total_cost">Custo Total de IA Acumulado</div>
+                        <div class="stat-val" style="color: var(--gcp-green);" id="finopsTotalCostUsd">$ 1.86 USD</div>
+                        <div style="font-size: 12.5px; color: var(--text-secondary); margin-top: 2px;" id="finopsTotalCostBrl">R$ 10,62 BRL (Cotação R$ 5,70)</div>
+                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Orçamento: $50.00 / mês • <span id="finopsQuotaUsed" style="color: var(--gcp-green); font-weight: 600;">3.7% consumido</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label" data-i18n="finops_kpi_tokens">Tokens Totais Processados</div>
+                        <div class="stat-val" style="color: var(--gcp-blue);" id="finopsTotalTokens">2.253.000</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;" id="finopsTokensBreakdown">Prompt: 1.503k | Saída: 470k</div>
+                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Execuções de Agentes: <strong id="finopsInvocations" style="color: var(--text-primary);">379 chamadas</strong></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label" data-i18n="finops_kpi_caching">Economia Gemini Context Caching</div>
+                        <div class="stat-val" style="color: #81c995;" id="finopsSavingsUsd">$ 7.42 USD</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;" id="finopsSavingsBrl">R$ 42,29 BRL economizados</div>
+                        <div style="font-size: 11px; color: var(--gcp-green); margin-top: 4px;">Taxa de Cache Hit: <strong id="finopsCacheHitRatio">72.8%</strong> (Zero-Copy Evidence)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label" data-i18n="finops_kpi_cost_per_ctrl">Custo Médio por Controle ISO 27001</div>
+                        <div class="stat-val" style="color: #fdd663;" id="finopsCostPerControl">$ 0.020 USD</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">R$ 0,11 BRL por controle auditado</div>
+                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Auditoria humana tradicional: ~R$ 350 / controle</div>
+                    </div>
+                </div>
+
+                <!-- Detalhamento de Custos por Fase (Fases 1 a 4) -->
+                <div class="card-panel" style="margin-top: 16px;">
+                    <div class="card-title" data-i18n="finops_phase_title">Consumo de IA por Fase da Auditoria (Pipeline de Certificação)</div>
+                    <div class="card-desc" data-i18n="finops_phase_desc">Divisão de tokens e custos em cada estágio do ciclo de conformidade autônoma.</div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 14px;">
+                        <div class="stat-card" style="background: var(--bg-canvas);">
+                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-blue); text-transform: uppercase;"><span data-i18n="finops_p1_title">Fase 1: Triagem Zero-Copy</span></div>
+                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase1Cost">$ 0.42 USD</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase1Tokens">420.000 tokens • R$ 2,39</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;" data-i18n="finops_p1_desc">Ingestão documental semântica</div>
+                        </div>
+                        <div class="stat-card" style="background: var(--bg-canvas);">
+                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-yellow); text-transform: uppercase;"><span data-i18n="finops_p2_title">Fase 2: Telemetria Técnica GCP</span></div>
+                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase2Cost">$ 0.88 USD</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase2Tokens">680.000 tokens • R$ 5,02</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;" data-i18n="finops_p2_desc">IAM, KMS, SCC e Workload Identity</div>
+                        </div>
+                        <div class="stat-card" style="background: var(--bg-canvas);">
+                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-red); text-transform: uppercase;"><span data-i18n="finops_p3_title">Fase 3: Teste de Eficácia & Drift</span></div>
+                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase3Cost">$ 0.54 USD</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase3Tokens">390.000 tokens • R$ 3,08</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;" data-i18n="finops_p3_desc">Simulação de drift e verificação</div>
+                        </div>
+                        <div class="stat-card" style="background: var(--bg-canvas);">
+                            <div style="font-size: 11px; font-weight: 600; color: var(--gcp-green); text-transform: uppercase;"><span data-i18n="finops_p4_title">Fase 4: Parecer & Selagem</span></div>
+                            <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase4Cost">$ 1.64 USD</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase4Tokens">352.650 tokens • R$ 9,35</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;" data-i18n="finops_p4_desc">Gemini 2.5 Pro Lead Auditor</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela Detalhada por Agente e Subagente -->
+                <div class="card-panel" style="margin-top: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <div class="card-title" data-i18n="finops_agent_table_title">Detalhamento por Agente e Subagente (Métricas e Custos)</div>
+                            <div class="card-desc" data-i18n="finops_agent_table_desc">Contabilização exata de prompt tokens, context cache hits, completion tokens e custo final em USD/BRL.</div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="finopsAgentSearch" placeholder="Filtrar agentes..." aria-label="Filtrar agentes FinOps" data-i18n-placeholder="finops_filter_placeholder" oninput="filterFinopsTable(this.value)" style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 6px 12px; font-size: 12px; color: var(--text-primary); outline: none;">
+                        </div>
+                    </div>
+
+                    <div style="overflow-x: auto; margin-top: 14px;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    <th style="padding: 10px 12px;" data-i18n="finops_th_agent">Agente / Subagente</th>
+                                    <th style="padding: 10px 12px;" data-i18n="finops_th_model">Modelo LLM</th>
+                                    <th style="padding: 10px 12px;" data-i18n="finops_th_invocations">Chamadas</th>
+                                    <th style="padding: 10px 12px;">Prompt Tokens</th>
+                                    <th style="padding: 10px 12px;">Cached Tokens</th>
+                                    <th style="padding: 10px 12px;">Output Tokens</th>
+                                    <th style="padding: 10px 12px;">Total Tokens</th>
+                                    <th style="padding: 10px 12px;">Custo (USD)</th>
+                                    <th style="padding: 10px 12px;">Custo (BRL)</th>
+                                    <th style="padding: 10px 12px;">Economia Cache</th>
+                                </tr>
+                            </thead>
+                            <tbody id="finopsAgentsTableBody">
+                                <!-- Populated dynamically by renderFinOpsDashboard -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tabela de Referência de Tarifas Vertex AI / Gemini Enterprise -->
+                <div class="card-panel" style="margin-top: 16px;">
+                    <div class="card-title">Tabela de Tarifação Oficial de Referência (Google Cloud Vertex AI)</div>
+                    <div class="card-desc">Preços por milhão de tokens utilizados na apuração de custos em conformidade com as tabelas oficiais do Google Cloud.</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-top: 12px;">
+                        <div style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px;">
+                            <div style="font-weight: 600; color: var(--gcp-blue);">Gemini 2.5 Pro</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Prompt: $1.25 / 1M • Output: $5.00 / 1M</div>
+                            <div style="font-size: 11px; color: var(--gcp-green); margin-top: 2px;">Context Caching: $0.3125 / 1M (75% desconto)</div>
+                        </div>
+                        <div style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px;">
+                            <div style="font-weight: 600; color: var(--gcp-yellow);">Gemini 2.5 Flash</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Prompt: $0.075 / 1M • Output: $0.30 / 1M</div>
+                            <div style="font-size: 11px; color: var(--gcp-green); margin-top: 2px;">Context Caching: $0.01875 / 1M (75% desconto)</div>
+                        </div>
+                        <div style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px;">
+                            <div style="font-weight: 600; color: #a8c7fa;">Text Embedding 005</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Prompt: $0.025 / 1M • Output: $0.00</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Vetorização semântica e busca RAG</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            
+
+            
 
 
 
@@ -7004,6 +7329,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         // =========================================================================
         const I18N = {
             pt: {
+                top_title_reports: "Relatórios & Dossiê",
+                top_title_questionnaire: "Questionário de Conformidade",
+                nav_reports: "Relatórios & Dossiê",
+                nav_questionnaire: "Questionário de Conformidade",
+                tab_scorecard: "Scorecard & Evidências",
+                tab_exec_report: "Dossiê Executivo",
+                tab_tech_report: "Relatório Técnico (Auditoria Externa)",
+                reports_hub_title: "Relatórios & Dossiê de Auditoria",
+                reports_hub_subtitle: "Visão consolidada de conformidade: Scorecard contínuo, Dossiê Executivo para liderança e Relatório Técnico detalhado.",
+                quest_title: "Questionário de Conformidade — ISO/IEC 27001:2022",
+                quest_subtitle: "Preenchimento de controles, justificativas técnicas e upload seguro de evidências auditáveis.",
+                framework_modal_title: "Estrutura de Certificação & Conformidade",
+                framework_modal_desc: "Selecione o framework normativo para auditar ou confira os módulos em desenvolvimento no roadmap de expansão multi-normas:",
+
                 status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
                 top_active_agent: "Chatbot Auditor",
                 top_title_chat: "Chatbot Auditor",
@@ -7282,6 +7621,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_action_dossier: "Dossiê Executivo",
             },
             en: {
+                top_title_reports: "Reports & Dossier",
+                top_title_questionnaire: "Compliance Questionnaire",
+                nav_reports: "Reports & Dossier",
+                nav_questionnaire: "Compliance Questionnaire",
+                tab_scorecard: "Scorecard & Evidence",
+                tab_exec_report: "Executive Dossier",
+                tab_tech_report: "Technical Report (External Audit)",
+                reports_hub_title: "Audit Reports & Dossier Hub",
+                reports_hub_subtitle: "Unified compliance view: Continuous Scorecard, Executive Leadership Dossier, and Detailed Technical Report.",
+                quest_title: "Compliance Questionnaire — ISO/IEC 27001:2022",
+                quest_subtitle: "Control evaluations, technical rationales, and secure evidence file uploads.",
+                framework_modal_title: "Certification Framework & Compliance Hub",
+                framework_modal_desc: "Select the normative compliance framework to audit or explore in-development frameworks in the multi-standard roadmap:",
+
                 status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
                 top_active_agent: "Audit Chatbot",
                 top_title_chat: "Audit Chatbot",
@@ -7560,6 +7913,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_action_dossier: "Executive Dossier",
             },
             es: {
+                top_title_reports: "Informes y Dossier",
+                top_title_questionnaire: "Cuestionario de Conformidad",
+                nav_reports: "Informes y Dossier",
+                nav_questionnaire: "Cuestionario de Conformidad",
+                tab_scorecard: "Scorecard y Evidencias",
+                tab_exec_report: "Dossier Ejecutivo",
+                tab_tech_report: "Informe Técnico (Auditoría Externa)",
+                reports_hub_title: "Informes y Dossier de Auditoría",
+                reports_hub_subtitle: "Visión unificada de cumplimiento: Scorecard continuo, Dossier Ejecutivo para liderazgo e Informe Técnico.",
+                quest_title: "Cuestionario de Conformidad — ISO/IEC 27001:2022",
+                quest_subtitle: "Evaluación de controles, justificaciones técnicas y carga segura de evidencias auditables.",
+                framework_modal_title: "Estructura de Certificación y Cumplimiento",
+                framework_modal_desc: "Seleccione el marco normativo para auditar o consulte los módulos en desarrollo en la hoja de ruta multi-normas:",
+
                 status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
                 top_active_agent: "Chatbot Auditor",
                 top_title_chat: "Chatbot Auditor",
@@ -8259,11 +8626,12 @@ window.currentLanguage = 'pt';
         function getNavClickHandler(btnId) {
             switch (btnId) {
                 case 'agentBtnHome': return "switchView('view-home')";
-                case 'agentBtnGrcAuditor': return 'selectAuditorTab()';
                 case 'agentBtnPhases': return "switchView('view-phases')";
                 case 'agentBtnMatrix': return "switchView('view-matrix')";
+                case 'agentBtnQuestionnaire': return "switchView('view-questionnaire')";
                 case 'agentBtnConnectors': return "switchView('view-connectors')";
-                case 'agentBtnScorecard': return "switchView('view-scorecard')";
+                case 'agentBtnReports': return "switchView('view-reports')";
+                case 'agentBtnScorecard': return "switchView('view-reports'); switchReportsTab('scorecard');";
                 case 'agentBtnReport': return 'openExecutiveReport()';
                 case 'agentBtnTechReport': return 'openTechnicalReport()';
                 case 'agentBtnFinops': return "switchView('view-finops')";
@@ -8275,8 +8643,10 @@ window.currentLanguage = 'pt';
             switch (btnId) {
                 case 'agentBtnHome':
                     return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" style="color: var(--gcp-blue);"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
-                case 'agentBtnGrcAuditor':
-                    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" style="color: #4285f4;"><path d="M12 2L20 5.8V11.5C20 16.5 16.6 20.8 12 22C7.4 20.8 4 16.5 4 11.5V5.8L12 2Z"/></svg>`;
+                case 'agentBtnQuestionnaire':
+                    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" style="color: #34a853;"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`;
+                case 'agentBtnReports':
+                    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" style="color: var(--gcp-blue);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`;
                 case 'agentBtnPhases':
                     return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`;
                 case 'agentBtnMatrix':
@@ -8297,7 +8667,7 @@ window.currentLanguage = 'pt';
         }
 
         function updateNavPinIcons() {
-            const navBtnIds = ['agentBtnGrcAuditor', 'agentBtnPhases', 'agentBtnMatrix', 'agentBtnConnectors', 'agentBtnScorecard', 'agentBtnReport', 'agentBtnTechReport', 'agentBtnFinops'];
+            const navBtnIds = ['agentBtnHome', 'agentBtnPhases', 'agentBtnMatrix', 'agentBtnQuestionnaire', 'agentBtnConnectors', 'agentBtnReports', 'agentBtnFinops'];
             navBtnIds.forEach(id => {
                 const pinBtn = document.getElementById(`pinBtn_${id}`);
                 if (pinBtn) {
@@ -9134,61 +9504,147 @@ Formulário preenchido com o subagente recomendado!`);
             sidebar.classList.toggle("collapsed");
         }
 
+        // Single Source of Truth for Active Framework
+        let currentFrameworkId = "iso27001";
+        const FRAMEWORKS_MAP = {
+            "iso27001": { id: "iso27001", name: "ISO/IEC 27001:2022", badgeText: "Módulo: ISO/IEC 27001:2022" },
+            "soc2": { id: "soc2", name: "SOC 2 Type II", badgeText: "Módulo: SOC 2" },
+            "pcidss": { id: "pcidss", name: "PCI DSS v4.0", badgeText: "Módulo: PCI DSS" },
+            "cmmi": { id: "cmmi", name: "CMMI Security", badgeText: "Módulo: CMMI" }
+        };
+
+        function updateActiveFrameworkBadge() {
+            const fw = FRAMEWORKS_MAP[currentFrameworkId] || FRAMEWORKS_MAP["iso27001"];
+            const el = document.getElementById("topFrameworkBadgeText");
+            if (el) el.innerText = fw.badgeText;
+        }
+
+        function openFrameworkSelectorModal() {
+            const modal = document.getElementById("frameworkSelectorModal");
+            if (modal) modal.style.display = "flex";
+        }
+
+        function closeFrameworkSelectorModal() {
+            const modal = document.getElementById("frameworkSelectorModal");
+            if (modal) modal.style.display = "none";
+        }
+
         function selectFramework(frameworkId) {
+            currentFrameworkId = frameworkId;
+            updateActiveFrameworkBadge();
             if (frameworkId === 'iso27001') {
                 const card = document.getElementById('fwCardIso27001');
                 if (card) card.classList.add('active');
             }
+            closeFrameworkSelectorModal();
+        }
+
+        // Sub-tabs switcher for Unified Reports Hub (#view-reports)
+        function switchReportsTab(tabName) {
+            const tabs = ['scorecard', 'exec', 'tech'];
+            tabs.forEach(t => {
+                const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+                const panel = document.getElementById('tabPanel' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (btn) {
+                    if (t === tabName) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                }
+                if (panel) {
+                    if (t === tabName) {
+                        panel.classList.add('active');
+                        panel.style.display = 'block';
+                    } else {
+                        panel.classList.remove('active');
+                        panel.style.display = 'none';
+                    }
+                }
+            });
+
+            if (tabName === 'exec') {
+                const el = document.getElementById("docProjectsAudited");
+                if (el) el.innerText = Array.from(selectedProjectIds).join(", ") || "agentic-grc-cd06";
+            } else if (tabName === 'tech') {
+                const projEl = document.getElementById("techProjectsAudited");
+                if (projEl) projEl.innerText = Array.from(selectedProjectIds).join(", ") || "agentic-grc-cd06";
+                const dateEl = document.getElementById("techGeneratedAt");
+                if (dateEl) dateEl.innerText = new Date().toUTCString();
+                const sealEl = document.getElementById("techSealDate");
+                if (sealEl) sealEl.innerText = new Date().toUTCString();
+            }
         }
 
         function switchView(viewId) {
+            // Intercept deep links to report sub-views
+            if (viewId === "view-scorecard") {
+                switchReportsTab("scorecard");
+                viewId = "view-reports";
+            } else if (viewId === "view-report-exec") {
+                switchReportsTab("exec");
+                viewId = "view-reports";
+            } else if (viewId === "view-report-tech") {
+                switchReportsTab("tech");
+                viewId = "view-reports";
+            }
+
             document.querySelectorAll(".view-pane").forEach(p => p.classList.remove("active"));
+
+            // Framework selector bar only renders on initial home view; collapsed to badge on others
             const fwBar = document.getElementById("frameworkSelectorBar");
             if (fwBar) {
-                if (viewId === "view-report-exec" || viewId === "view-report-tech") {
+                if (viewId !== "view-home" || viewId === "view-report-exec" || viewId === "view-report-tech") {
                     fwBar.style.display = "none";
                 } else {
                     fwBar.style.display = "";
                 }
             }
+
             const target = document.getElementById(viewId);
             if (target) target.classList.add("active");
 
+            // If entering questionnaire, load data
+            if (viewId === "view-questionnaire") {
+                loadQuestionnaireData();
+            }
+
             const agentMap = {
                 "view-home": "agentBtnHome",
-                "view-chat": "agentBtnGrcAuditor",
+                "view-chat": "agentBtnHome",
                 "view-phases": "agentBtnPhases",
                 "view-matrix": "agentBtnMatrix",
+                "view-questionnaire": "agentBtnQuestionnaire",
                 "view-connectors": "agentBtnConnectors",
-                "view-scorecard": "agentBtnScorecard",
-                "view-report-exec": "agentBtnReport",
-                "view-report-tech": "agentBtnTechReport",
+                "view-reports": "agentBtnReports",
+                "view-scorecard": "agentBtnReports",
+                "view-report-exec": "agentBtnReports",
+                "view-report-tech": "agentBtnReports",
                 "view-finops": "agentBtnFinops"
             };
 
             document.querySelectorAll(".agent-item").forEach(b => b.classList.remove("active"));
             if (agentMap[viewId]) {
-                const btn = document.getElementById(agentMap[viewId]) || document.getElementById("agentBtnGrcAuditor");
+                const btn = document.getElementById(agentMap[viewId]) || document.getElementById("agentBtnHome");
                 if (btn) btn.classList.add("active");
             }
 
             const keyMap = {
                 "view-home": "top_title_home",
-                "view-chat": "top_title_chat",
+                "view-chat": "top_title_home",
                 "view-phases": "top_title_phases",
                 "view-matrix": "top_title_matrix",
+                "view-questionnaire": "top_title_questionnaire",
                 "view-connectors": "top_title_connectors",
+                "view-reports": "top_title_reports",
                 "view-scorecard": "top_title_scorecard",
                 "view-report-exec": "top_title_exec",
                 "view-report-tech": "top_title_tech",
                 "view-finops": "top_title_finops"
             };
-            const activeKey = keyMap[viewId] || "top_title_chat";
+            const activeKey = keyMap[viewId] || "top_title_home";
             const titleEl = document.getElementById("topActiveTitle");
             if (titleEl) {
                 titleEl.setAttribute("data-i18n", activeKey);
                 const dict = (I18N[window.currentLanguage || "pt"] || I18N.pt);
-                titleEl.innerText = dict[activeKey] || "Chatbot Auditor";
+                titleEl.innerText = dict[activeKey] || "Visão Geral dos Módulos";
             }
         }
 
@@ -9372,51 +9828,7 @@ Formulário preenchido com o subagente recomendado!`);
             }, 12000);
         }
 
-        // Distinct behavior:
-        // 1. selectAuditorTab(): Agentic GRC Auditor
-        // Mostra: AS PÍLULAS APENAS + PEQUENO DASH DE SAÚDE (Velocímetro & Status ISO x GCP).
-        // NÃO mostra o RSS Feed.
-        function selectAuditorTab() {
-            switchView("view-chat");
-            const chatArea = document.getElementById("chatArea");
-            const hero = document.getElementById("geminiHero");
-            const msgRows = chatArea ? chatArea.querySelectorAll(".msg-row") : [];
-
-            const titleEl = document.querySelector(".hero-work-title");
-            const subtitleEl = document.querySelector(".hero-work-subtitle");
-            const chipsEl = document.getElementById("heroQuickChips");
-            const healthDashEl = document.getElementById("auditorHealthDash");
-            const newsEl = document.getElementById("heroNewsSection");
-
-            if (titleEl) titleEl.innerText = "Agentic GRC Auditor";
-            if (subtitleEl) subtitleEl.innerText = "Auditor Líder Autônomo • Telemetria Google Cloud x ISO/IEC 27001:2022";
-
-            // Rules requested by user:
-            // "Ja no agentic, que quero as pilulas apenas, e um pequeno dash da saude... "
-            if (chipsEl) {
-                chipsEl.style.display = "flex";
-                shuffleDynamicSuggestions();
-            }
-            if (healthDashEl) healthDashEl.style.display = "grid";
-            if (newsEl) newsEl.style.display = "none"; // SEM RSS
-
-            if (msgRows.length > 0) {
-                if (hero) hero.style.display = "none";
-                updateBottomInputVisibility();
-                const bottomInput = document.getElementById("chatInput");
-                if (bottomInput) bottomInput.focus();
-            } else {
-                if (hero) hero.style.display = "flex";
-                updateBottomInputVisibility();
-                const heroInput = document.getElementById("chatInputHero");
-                if (heroInput) heroInput.focus();
-            }
-
-            document.querySelectorAll(".agent-item").forEach(el => el.classList.remove("active"));
-            const grcBtn = document.getElementById("agentBtnGrcAuditor");
-            if (grcBtn) grcBtn.classList.add("active");
-            document.getElementById("topActiveTitle").innerText = "Agentic GRC Auditor";
-        }
+// selectAuditorTab merged into home view
 
         // 2. startNewConversation(): Nova Conversa
         // Mostra: APENAS O RSS FEED.
@@ -9729,7 +10141,8 @@ function openNewsModal(newsKey) {
 
 
         function openExecutiveReport() {
-            switchView("view-report-exec");
+            switchView("view-reports");
+            switchReportsTab("exec");
             const el = document.getElementById("docProjectsAudited");
             if (el) el.innerText = Array.from(selectedProjectIds).join(", ") || "agentic-grc-cd06";
         }
@@ -9740,7 +10153,8 @@ function openNewsModal(newsKey) {
         }
 
         function openTechnicalReport() {
-            switchView("view-report-tech");
+            switchView("view-reports");
+            switchReportsTab("tech");
             const projEl = document.getElementById("techProjectsAudited");
             if (projEl) projEl.innerText = Array.from(selectedProjectIds).join(", ") || "agentic-grc-cd06";
             const dateEl = document.getElementById("techGeneratedAt");
@@ -10630,7 +11044,353 @@ function openNewsModal(newsKey) {
             downloadAnchor.remove();
         }
 
-    </script>
+    
+        // =========================================================================
+        // Questionnaire & Evidence Management Engine Client Logic
+        // =========================================================================
+        let rawQuestionnaireControls = [];
+        let currentQuestThemeFilter = 'ALL';
+        let currentQuestPendingOnly = false;
+        let questSearchQuery = '';
+
+        function getAuthHeaders() {
+            const headers = {};
+            const token = window.currentGoogleAccessToken || "ya29.valid-auditor-access-token";
+            headers["Authorization"] = "Bearer " + token;
+            if (window.currentGoogleIdToken) {
+                headers["X-Goog-Id-Token"] = window.currentGoogleIdToken;
+            }
+            return headers;
+        }
+
+        async function loadQuestionnaireData() {
+            await Promise.all([loadQuestionnaireSummary(), loadQuestionnaireControls()]);
+        }
+
+        async function loadQuestionnaireSummary() {
+            try {
+                const res = await fetch("/api/questionnaire/summary?framework=ISO27001:2022", {
+                    headers: getAuthHeaders()
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const pctEl = document.getElementById("questCompletionPct");
+                    if (pctEl) pctEl.innerText = `${data.completion_percentage.toFixed(1)}%`;
+
+                    const labelEl = document.getElementById("questCompletionLabel");
+                    if (labelEl) labelEl.innerText = `${data.answered} de ${data.total_controls} respondidos`;
+
+                    const fillEl = document.getElementById("questProgressFill");
+                    if (fillEl) fillEl.style.width = `${data.completion_percentage}%`;
+
+                    const compEl = document.getElementById("questCompliantCount");
+                    if (compEl) compEl.innerText = data.compliant;
+
+                    const nonCompEl = document.getElementById("questNonCompliantCount");
+                    if (nonCompEl) nonCompEl.innerText = data.non_compliant;
+
+                    const naEl = document.getElementById("questNotApplicableCount");
+                    if (naEl) naEl.innerText = data.not_applicable;
+                }
+            } catch (err) {
+                console.error("Error loading questionnaire summary:", err);
+            }
+        }
+
+        async function loadQuestionnaireControls() {
+            const container = document.getElementById("questControlsAccordion");
+            try {
+                const res = await fetch("/api/questionnaire?framework=ISO27001:2022", {
+                    headers: getAuthHeaders()
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    rawQuestionnaireControls = data.controls || [];
+                    renderQuestionnaireAccordion();
+                } else {
+                    if (container) container.innerHTML = '<div style="color:#ea4335; padding:20px;">Falha ao carregar controles.</div>';
+                }
+            } catch (err) {
+                console.error("Error loading questionnaire controls:", err);
+                if (container) container.innerHTML = '<div style="color:#ea4335; padding:20px;">Erro de rede ao carregar controles.</div>';
+            }
+        }
+
+        function filterQuestionnaireTheme(theme) {
+            currentQuestThemeFilter = theme;
+            ['btnFilterAll', 'btnFilterA5', 'btnFilterA6', 'btnFilterA7', 'btnFilterA8'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.classList.remove('active');
+            });
+            if (theme === 'ALL') document.getElementById('btnFilterAll')?.classList.add('active');
+            else if (theme === 'A.5') document.getElementById('btnFilterA5')?.classList.add('active');
+            else if (theme === 'A.6') document.getElementById('btnFilterA6')?.classList.add('active');
+            else if (theme === 'A.7') document.getElementById('btnFilterA7')?.classList.add('active');
+            else if (theme === 'A.8') document.getElementById('btnFilterA8')?.classList.add('active');
+            renderQuestionnaireAccordion();
+        }
+
+        function toggleFilterPendingOnly() {
+            currentQuestPendingOnly = !currentQuestPendingOnly;
+            const btn = document.getElementById('btnFilterPending');
+            if (btn) {
+                if (currentQuestPendingOnly) btn.classList.add('active');
+                else btn.classList.remove('active');
+            }
+            renderQuestionnaireAccordion();
+        }
+
+        function filterQuestionnaireByText(val) {
+            questSearchQuery = (val || '').toLowerCase().trim();
+            renderQuestionnaireAccordion();
+        }
+
+        function renderQuestionnaireAccordion() {
+            const container = document.getElementById("questControlsAccordion");
+            if (!container) return;
+
+            const themesDef = [
+                { key: "A.5", title: "A.5 — Controles Organizacionais", subtitle: "Políticas, papéis, segregação de funções, gestão de ativos e controles de fornecedores" },
+                { key: "A.6", title: "A.6 — Controles de Pessoas", subtitle: "Seleção, termos de contratação, conscientização e desligamento de colaboradores" },
+                { key: "A.7", title: "A.7 — Controles Físicos", subtitle: "Perímetros de segurança, proteção contra desastres físicos e descarte de mídias" },
+                { key: "A.8", title: "A.8 — Controles Tecnológicos", subtitle: "Controle de acesso IAM, criptografia Cloud KMS, proteção VPC, logs e desenvolvimento seguro" }
+            ];
+
+            // Filter controls
+            const filtered = rawQuestionnaireControls.filter(ctrl => {
+                const themeMatch = (currentQuestThemeFilter === 'ALL' || (ctrl.id && ctrl.id.startsWith(currentQuestThemeFilter + '.')));
+                const textMatch = !questSearchQuery || (
+                    (ctrl.id && ctrl.id.toLowerCase().includes(questSearchQuery)) ||
+                    (ctrl.name && ctrl.name.toLowerCase().includes(questSearchQuery)) ||
+                    (ctrl.description && ctrl.description.toLowerCase().includes(questSearchQuery))
+                );
+                const isAnswered = ctrl.answer && ctrl.answer.status && ctrl.answer.status !== 'NOT_ANSWERED';
+                const pendingMatch = !currentQuestPendingOnly || !isAnswered;
+                return themeMatch && textMatch && pendingMatch;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-secondary);">Nenhum controle encontrado com os filtros selecionados.</div>';
+                return;
+            }
+
+            let htmlBuf = "";
+            themesDef.forEach(thm => {
+                const themeControls = filtered.filter(c => c.id && c.id.startsWith(thm.key + '.'));
+                if (themeControls.length === 0) return;
+
+                htmlBuf += `
+                <div class="quest-theme-card" id="themeCard_${thm.key.replace('.', '')}">
+                    <div class="quest-theme-header open" onclick="toggleQuestAccordion('${thm.key.replace('.', '')}')">
+                        <div class="quest-theme-title">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" class="quest-chevron rotated" id="chevron_${thm.key.replace('.', '')}">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                            <span>${thm.title}</span>
+                            <span class="section-badge">${themeControls.length} controles</span>
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-tertiary);">${thm.subtitle}</div>
+                    </div>
+                    <div class="quest-theme-content" id="content_${thm.key.replace('.', '')}" style="display: flex; flex-direction: column;">
+                `;
+
+                themeControls.forEach(ctrl => {
+                    const ans = ctrl.answer || {};
+                    const currentStatus = ans.status || ctrl.status || 'NOT_ANSWERED';
+                    const justVal = ans.justification || '';
+                    const uriVal = ans.evidence_uri || '';
+                    const fileId = ans.file_id || '';
+                    const fileName = ans.original_filename || '';
+
+                    htmlBuf += `
+                    <div class="quest-control-card" id="card_${ctrl.id}">
+                        <div class="quest-control-top">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="quest-control-code">${ctrl.id}</span>
+                                <span class="quest-control-name">${escapeHtml(ctrl.name)}</span>
+                            </div>
+                            <span class="quest-status-badge ${currentStatus}" id="badge_${ctrl.id}">${currentStatus}</span>
+                        </div>
+                        <p class="quest-control-desc">${escapeHtml(ctrl.description)}</p>
+
+                        <div class="quest-control-form">
+                            <div class="quest-form-field">
+                                <label for="status_${ctrl.id}" class="quest-form-label">Status de Conformidade</label>
+                                <select id="status_${ctrl.id}" class="quest-select" onchange="updateControlBadgePreview('${ctrl.id}', this.value)">
+                                    <option value="NOT_ANSWERED" ${currentStatus === 'NOT_ANSWERED' ? 'selected' : ''}>Não Respondido</option>
+                                    <option value="COMPLIANT" ${currentStatus === 'COMPLIANT' ? 'selected' : ''}>✓ Conforme</option>
+                                    <option value="NON_COMPLIANT" ${currentStatus === 'NON_COMPLIANT' ? 'selected' : ''}>✗ Não Conforme</option>
+                                    <option value="PARTIAL" ${currentStatus === 'PARTIAL' ? 'selected' : ''}>⚠ Parcial</option>
+                                    <option value="NOT_APPLICABLE" ${currentStatus === 'NOT_APPLICABLE' ? 'selected' : ''}>— Não Aplicável</option>
+                                </select>
+                            </div>
+                            <div class="quest-form-field">
+                                <label for="just_${ctrl.id}" class="quest-form-label">Justificativa / Parecer Técnico</label>
+                                <textarea id="just_${ctrl.id}" class="quest-textarea" placeholder="Justificativa do auditor...">${escapeHtml(justVal)}</textarea>
+                            </div>
+                            <div class="quest-form-field">
+                                <label for="uri_${ctrl.id}" class="quest-form-label">URI / Link de Evidência</label>
+                                <input type="text" id="uri_${ctrl.id}" class="quest-input" placeholder="gs://bucket/doc.pdf ou URL..." value="${escapeHtml(uriVal)}">
+                                <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                                    <input type="file" id="fileInput_${ctrl.id}" style="display: none;" onchange="uploadEvidenceFile('${ctrl.id}', this)">
+                                    <button type="button" class="btn-quest-upload" onclick="document.getElementById('fileInput_${ctrl.id}').click()">
+                                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                        <span>Anexar Arquivo</span>
+                                    </button>
+                                    <span id="fileBadge_${ctrl.id}">
+                                        ${fileId ? `<a href="/api/questionnaire/${ctrl.id}/evidence-file/${fileId}" target="_blank" class="quest-file-chip" title="Download">📎 ${escapeHtml(fileName || 'evidencia')}</a>` : ''}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="quest-form-field" style="justify-content: flex-end;">
+                                <button type="button" class="btn-quest-save" id="btnSave_${ctrl.id}" onclick="submitControlAnswer('${ctrl.id}')">
+                                    Salvar
+                                </button>
+                                <span id="saveStatus_${ctrl.id}" style="font-size: 11px; margin-top: 2px; text-align: right; min-height: 14px;"></span>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                });
+
+                htmlBuf += `</div></div>`;
+            });
+
+            container.innerHTML = htmlBuf;
+        }
+
+        function toggleQuestAccordion(themeKey) {
+            const content = document.getElementById('content_' + themeKey);
+            const chevron = document.getElementById('chevron_' + themeKey);
+            if (!content) return;
+            const isHidden = (content.style.display === 'none');
+            content.style.display = isHidden ? 'flex' : 'none';
+            if (chevron) {
+                if (isHidden) chevron.classList.add('rotated');
+                else chevron.classList.remove('rotated');
+            }
+        }
+
+        function updateControlBadgePreview(controlId, newStatus) {
+            const badge = document.getElementById('badge_' + controlId);
+            if (badge) {
+                badge.className = 'quest-status-badge ' + newStatus;
+                badge.innerText = newStatus;
+            }
+        }
+
+        async function uploadEvidenceFile(controlId, inputEl) {
+            const file = inputEl.files && inputEl.files[0];
+            if (!file) return;
+
+            const badgeSpan = document.getElementById('fileBadge_' + controlId);
+            if (badgeSpan) badgeSpan.innerHTML = '<span style="font-size:11px; color:var(--gcp-blue);">Enviando...</span>';
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const res = await fetch(`/api/questionnaire/${controlId}/evidence-file`, {
+                    method: "POST",
+                    headers: getAuthHeaders(),
+                    body: formData
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    inputEl.setAttribute('data-uploaded-file-id', data.file_id);
+                    inputEl.setAttribute('data-uploaded-filename', data.filename);
+                    if (badgeSpan) {
+                        if (data.stored_as === 'text_extracted') {
+                            badgeSpan.innerHTML = `<span class="quest-file-chip" style="color:var(--gcp-blue);" title="Texto extraído com sucesso">✓ ${escapeHtml(data.filename)} (texto)</span>`;
+                            const justArea = document.getElementById('just_' + controlId);
+                            if (justArea && data.extracted_text && !justArea.value) {
+                                justArea.value = data.extracted_text.slice(0, 500) + '...';
+                            }
+                        } else {
+                            badgeSpan.innerHTML = `<a href="/api/questionnaire/${controlId}/evidence-file/${data.file_id}" target="_blank" class="quest-file-chip" title="Download">📎 ${escapeHtml(data.filename)}</a>`;
+                        }
+                    }
+                } else {
+                    const errData = await res.json().catch(() => ({}));
+                    if (badgeSpan) badgeSpan.innerHTML = `<span style="color:#ea4335; font-size:11px;">${errData.detail || 'Upload rejeitado'}</span>`;
+                }
+            } catch (err) {
+                console.error("Upload error:", err);
+                if (badgeSpan) badgeSpan.innerHTML = '<span style="color:#ea4335; font-size:11px;">Erro no envio</span>';
+            }
+        }
+
+        async function submitControlAnswer(controlId) {
+            const statusSelect = document.getElementById('status_' + controlId);
+            const justArea = document.getElementById('just_' + controlId);
+            const uriInput = document.getElementById('uri_' + controlId);
+            const fileInput = document.getElementById('fileInput_' + controlId);
+            const saveStatus = document.getElementById('saveStatus_' + controlId);
+            const btn = document.getElementById('btnSave_' + controlId);
+
+            const statusVal = statusSelect ? statusSelect.value : 'NOT_ANSWERED';
+            const justVal = justArea ? justArea.value.trim() : '';
+            const uriVal = uriInput ? uriInput.value.trim() : null;
+            const fileIdVal = fileInput ? (fileInput.getAttribute('data-uploaded-file-id') || null) : null;
+            const fileNameVal = fileInput ? (fileInput.getAttribute('data-uploaded-filename') || null) : null;
+
+            if (saveStatus) {
+                saveStatus.style.color = "var(--gcp-blue)";
+                saveStatus.innerText = "Salvando...";
+            }
+            if (btn) btn.disabled = true;
+
+            const payload = {
+                control_id: controlId,
+                framework: "ISO27001:2022",
+                status: statusVal,
+                justification: justVal || "Conforme auditado pela plataforma.",
+                evidence_uri: uriVal,
+                file_id: fileIdVal,
+                original_filename: fileNameVal
+            };
+
+            try {
+                const res = await fetch(`/api/questionnaire/${controlId}/answer`, {
+                    method: "POST",
+                    headers: {
+                        ...getAuthHeaders(),
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    const ans = await res.json();
+                    if (saveStatus) {
+                        saveStatus.style.color = "var(--gcp-green)";
+                        saveStatus.innerText = "✓ Salvo!";
+                        setTimeout(() => { if (saveStatus) saveStatus.innerText = ""; }, 2500);
+                    }
+                    const item = rawQuestionnaireControls.find(c => c.id === controlId);
+                    if (item) {
+                        item.answer = ans;
+                        item.status = ans.status;
+                    }
+                    loadQuestionnaireSummary();
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    if (saveStatus) {
+                        saveStatus.style.color = "#ea4335";
+                        saveStatus.innerText = err.detail || "Erro ao salvar";
+                    }
+                }
+            } catch (err) {
+                console.error("Answer submission error:", err);
+                if (saveStatus) {
+                    saveStatus.style.color = "#ea4335";
+                    saveStatus.innerText = "Erro de conexão";
+                }
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+    
+</script>
 
     
 
@@ -10727,6 +11487,122 @@ function openNewsModal(newsKey) {
         </div>
     </div>
 
+    <!-- Certification Framework Roadmap Modal -->
+    <div class="modal-backdrop" id="frameworkSelectorModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="modal-dialog" style="background: var(--bg-surface-elevated, #202124); border: 1px solid var(--border-subtle, #3c4043); border-radius: 12px; width: 92%; max-width: 900px; padding: 24px; box-shadow: 0 12px 32px rgba(0,0,0,0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-subtle, #3c4043); padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue);">
+                        <rect x="3" y="3" width="7" height="7"/>
+                        <rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/>
+                        <rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text-primary);" data-i18n="framework_modal_title">Estrutura de Certificação & Conformidade</h3>
+                </div>
+                <button type="button" onclick="closeFrameworkSelectorModal()" style="background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px;" title="Fechar">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;" data-i18n="framework_modal_desc">
+                Selecione o framework normativo para auditar ou confira os módulos em desenvolvimento no roadmap de expansão multi-normas:
+            </p>
+            <div class="framework-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
+                <!-- 1. ISO/IEC 27001:2022 (Active) -->
+                <div class="framework-card active" onclick="selectFramework('iso27001')" title="ISO/IEC 27001:2022 - Ativo" style="cursor: pointer;">
+                    <div class="framework-card-icon shield-active">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <path d="M9 12l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <div class="framework-card-content">
+                        <div class="framework-card-name">ISO/IEC 27001:2022</div>
+                        <div class="framework-card-sub">
+                            <span class="framework-badge-active" data-i18n="framework_badge_active">Ativo</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 2. SOC 2 (Locked) -->
+                <div class="framework-card locked" title="SOC 2 Type II - No roadmap de desenvolvimento">
+                    <div class="framework-card-icon shield-locked">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <div class="framework-card-content">
+                        <div class="framework-card-name">SOC 2</div>
+                        <div class="framework-card-sub">
+                            <span class="framework-badge-locked">
+                                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 3. PCI DSS (Locked) -->
+                <div class="framework-card locked" title="PCI DSS v4.0 - No roadmap de desenvolvimento">
+                    <div class="framework-card-icon shield-locked">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <div class="framework-card-content">
+                        <div class="framework-card-name">PCI DSS v4.0</div>
+                        <div class="framework-card-sub">
+                            <span class="framework-badge-locked">
+                                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 4. CMMI (Locked) -->
+                <div class="framework-card locked" title="CMMI Security - No roadmap de desenvolvimento">
+                    <div class="framework-card-icon shield-locked">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <div class="framework-card-content">
+                        <div class="framework-card-name">CMMI Security</div>
+                        <div class="framework-card-sub">
+                            <span class="framework-badge-locked">
+                                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 5. Mais Normas Placeholder -->
+                <div class="framework-card placeholder">
+                    <div class="framework-card-icon">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="1"/>
+                            <circle cx="19" cy="12" r="1"/>
+                            <circle cx="5" cy="12" r="1"/>
+                        </svg>
+                    </div>
+                    <div class="framework-card-content">
+                        <div class="framework-card-name" data-i18n="framework_more">+ Mais Normas</div>
+                        <div class="framework-card-sub" style="color: var(--text-tertiary); font-size: 11px;">Roadmap 2026+</div>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+                <button type="button" class="btn-action-primary" onclick="closeFrameworkSelectorModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 """
