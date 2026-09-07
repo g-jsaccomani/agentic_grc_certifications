@@ -8,7 +8,7 @@ client = TestClient(app)
 
 VALID_HEADERS = {
     "X-Serverless-Authorization": "Bearer mock-service-agent-id-token",
-    "Authorization": "Bearer mock-end-user-oauth-token",
+    "Authorization": "Bearer ya29.a0ARrdaM-mock-end-user-oauth-token-ci",
 }
 
 

@@ -12,10 +12,11 @@ import logging
 import datetime
 import hashlib
 from typing import Any, Dict, List, Optional, Union
-from fastapi import APIRouter, File, UploadFile, Response, Query, HTTPException, Header
+from fastapi import APIRouter, File, UploadFile, Response, Query, HTTPException, Header, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 
+from mcp_server_grc.auth import WorkspaceUserContext, get_current_workspace_user
 from agent_orchestrator.gateway import ModelArmorGateway
 from agent_orchestrator.continuous_intelligence import ContinuousIntelligenceEngine
 from agent_orchestrator.llm_subagent import LLMSubAgent
@@ -77,6 +78,7 @@ class GuardrailsInspectRequest(BaseModel):
 class ChatRequest(BaseModel):
     message: str = Field(..., description="User prompt or audit command")
     user_token: Optional[str] = Field(default="portal-demo-user-token", description="User IDP Bearer Token")
+    id_token: Optional[str] = Field(default=None, description="Google Workspace ID Token (JWT)")
     selected_projects: Optional[List[str]] = Field(default=["agentic-grc-cd06"])
     model: Optional[str] = Field(default="gemini-auto", description="Selected model: gemini-auto, gemini-2.5-pro, gemini-2.5-flash, gemini-3.5-flash")
     locale: Optional[str] = Field(default="pt", description="Target locale/language: pt, en, es")
@@ -1376,18 +1378,25 @@ Com base na coleta automatizada de telemetria, inspeção de políticas de organ
 
 
 @router.post("/api/chat")
-async def handle_chat(req: ChatRequest, authorization: Optional[str] = Header(None)):
+async def handle_chat(
+    req: ChatRequest,
+    user_context: WorkspaceUserContext = Depends(get_current_workspace_user),
+    authorization: Optional[str] = Header(None),
+):
     """Processes user chat prompts and routes to Vertex AI Gemini or specialized subagents."""
     msg = req.message.strip()
 
-    # Extract authenticated user token if available
-    user_token = None
+    # Extract authenticated user token and Workspace identity from dependency context
+    user_token = user_context.access_token
+    user_email = user_context.email
+    user_hd = user_context.hd
     if authorization and str(authorization).strip().startswith("Bearer "):
-        user_token = str(authorization).strip().split(" ", 1)[1].strip()
+        token_cand = str(authorization).strip().split(" ", 1)[1].strip()
+        if not user_token or user_token.startswith("ya29.portal-demo"):
+            user_token = token_cand
     elif req.user_token and req.user_token != "portal-demo-user-token":
-        user_token = req.user_token
-    elif req.user_token:
-        user_token = req.user_token
+        if not user_token or user_token.startswith("ya29.portal-demo"):
+            user_token = req.user_token
 
     # 1. Model Armor Perimeter Ingress Guardrail
     ingress_verdict = model_armor_gateway.inspect_ingress(msg)
@@ -1603,6 +1612,8 @@ async def handle_chat(req: ChatRequest, authorization: Optional[str] = Header(No
             "response": egress_verdict.sanitized_output,
             "subagent_used": f"VertexAI-Gemini-{model_key} (Lead Auditor Function Calling)",
             "tool_evidence": tool_evidence,
+            "user_email": user_email,
+            "user_hd": user_hd,
         }
 
     # Graceful fallback for offline / disconnected environments
@@ -1619,6 +1630,8 @@ async def handle_chat(req: ChatRequest, authorization: Optional[str] = Header(No
         "response": response_text,
         "subagent_used": "OrchestratorCoordinator",
         "tool_evidence": tool_evidence,
+        "user_email": user_email,
+        "user_hd": user_hd,
     }
 
 

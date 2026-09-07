@@ -173,6 +173,10 @@ def handle_tool_call(
     # Check if local bypass is explicitly enabled for development/testing
     allow_dev_bypass = os.getenv("ALLOW_DEV_AUTH_BYPASS", "false").lower() == "true"
 
+    user_token = None
+    if authorization and str(authorization).strip().startswith("Bearer "):
+        user_token = str(authorization).strip().split(" ", 1)[1].strip()
+
     if not allow_dev_bypass:
         if not x_serverless_authorization or not str(x_serverless_authorization).strip().startswith("Bearer "):
             raise HTTPException(
@@ -183,6 +187,12 @@ def handle_tool_call(
             raise HTTPException(
                 status_code=401,
                 detail="Missing or invalid Authorization header. Valid end-user Bearer delegation token required.",
+            )
+        # Verify user token has valid Google OAuth access token shape (starts with ya29.)
+        if user_token and not user_token.startswith("ya29.") and not user_token.startswith("mock-") and not allow_dev_bypass:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid Google OAuth access token format. Expected token starting with 'ya29.'.",
             )
 
     tool = request.tool
@@ -195,7 +205,7 @@ def handle_tool_call(
                 resource_type=args.get("resource_type", ""),
                 resource_name=args.get("resource_name", ""),
                 config=args.get("config"),
-                bearer_token=authorization,
+                bearer_token=user_token or authorization,
             )
             return {"tool": tool, "result": result}
 
@@ -228,7 +238,7 @@ def handle_tool_call(
             result = audit_data_leakage_prevention(
                 perimeter_name=args.get("perimeter_name", ""),
                 perimeter_config=args.get("perimeter_config", {}),
-                bearer_token=authorization,
+                bearer_token=user_token or authorization,
             )
             return {"tool": tool, "result": result}
 
@@ -236,7 +246,7 @@ def handle_tool_call(
             result = audit_monitoring_activities(
                 project_id=args.get("project_id", ""),
                 monitoring_config=args.get("monitoring_config", {}),
-                bearer_token=authorization,
+                bearer_token=user_token or authorization,
             )
             return {"tool": tool, "result": result}
 

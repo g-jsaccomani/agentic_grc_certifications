@@ -12,6 +12,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Marked.js for Executive Markdown Rendering -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Google Identity Services (GIS) for Google Workspace Authentication -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <style>
         :root {
             --bg-canvas: #131314;
@@ -3204,6 +3207,89 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
 
     
+        /* Google Workspace Sign-In & User Profile Chip */
+        .workspace-auth-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-workspace-signin {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #ffffff;
+            color: #3c4043;
+            border: 1px solid #dadce0;
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(60, 64, 67, 0.15);
+            font-family: var(--font-family);
+        }
+        .btn-workspace-signin:hover {
+            background: #f8f9fa;
+            border-color: #c0c4c9;
+            box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3);
+        }
+        .workspace-user-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 3px 10px 3px 4px;
+            transition: all 0.2s ease;
+        }
+        .workspace-user-avatar {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a73e8, #4285f4);
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+        }
+        .workspace-user-details {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+            text-align: left;
+        }
+        .workspace-user-email {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .workspace-user-domain {
+            font-size: 9.5px;
+            color: var(--gcp-blue);
+        }
+        .btn-workspace-signout {
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            padding: 3px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 2px;
+            transition: color 0.15s ease;
+        }
+        .btn-workspace-signout:hover {
+            color: var(--gcp-red);
+            background: rgba(242, 139, 130, 0.1);
+        }
+
         /* Language Selector Pill */
         .lang-selector-group {
             display: inline-flex;
@@ -3577,6 +3663,31 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <div class="top-status-indicator">
                     <span class="status-dot"></span>
                     <span data-i18n="status_indicator">Vertex AI gemini-2.5-flash (Google Cloud Security Certified)</span>
+                </div>
+
+                <!-- Google Workspace Identity & Tenant Access -->
+                <div class="workspace-auth-container" id="workspaceAuthContainer">
+                    <button class="btn-workspace-signin" id="btnWorkspaceSignIn" onclick="triggerGoogleWorkspaceSignIn()" title="Sign in with Google Workspace (client.corp)">
+                        <svg viewBox="0 0 24 24" width="15" height="15">
+                            <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5z"/>
+                            <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/>
+                            <path fill="#FBBC05" d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.7s.2-2 .4-2.7L1.6 6.4C.6 8.4 0 10.6 0 13s.6 4.6 1.6 6.6l3.7-4.9z"/>
+                            <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5.3L1.6 16c1.9 3.8 5.8 7 10.4 7z"/>
+                        </svg>
+                        <span id="workspaceSignInLabel">Sign in with Google</span>
+                    </button>
+                    <div class="workspace-user-chip" id="workspaceUserChip" style="display: none;">
+                        <div class="workspace-user-avatar" id="workspaceUserAvatar">A</div>
+                        <div class="workspace-user-details">
+                            <span class="workspace-user-email" id="workspaceUserEmail">auditor@client.corp</span>
+                            <span class="workspace-user-domain" id="workspaceUserDomain">client.corp &bull; GCP Live Delegated</span>
+                        </div>
+                        <button class="btn-workspace-signout" onclick="signOutWorkspaceUser()" title="Sign out / Encerrar sessão">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Language Selector Pill -->
@@ -7180,7 +7291,168 @@ Formulário preenchido com o subagente recomendado!`);
             }
         }
 
+        // Google Workspace Authentication & Delegated Credentials Management
+        const GOOGLE_WORKSPACE_CONFIG = {
+            clientId: "agentic-grc-portal.apps.googleusercontent.com",
+            expectedDomain: "client.corp",
+            scopes: [
+                "openid",
+                "email",
+                "profile",
+                "https://www.googleapis.com/auth/cloud-platform.read-only",
+                "https://www.googleapis.com/auth/devstorage.read_only",
+                "https://www.googleapis.com/auth/cloudkms",
+                "https://www.googleapis.com/auth/compute.readonly",
+                "https://www.googleapis.com/auth/logging.read"
+            ].join(" ")
+        };
+
+        window.currentUserIdToken = sessionStorage.getItem("google_id_token") || null;
+        window.currentUserToken = sessionStorage.getItem("google_access_token") || null;
+        window.currentUserEmail = sessionStorage.getItem("google_user_email") || null;
+        window.currentUserHd = sessionStorage.getItem("google_user_hd") || null;
+
+        function initGoogleWorkspaceIdentity() {
+            // Restore existing session if cached
+            if (window.currentUserEmail && window.currentUserHd) {
+                renderWorkspaceUserUI(window.currentUserEmail, window.currentUserHd);
+            }
+
+            // Initialize GIS if script loaded
+            if (window.google && window.google.accounts && window.google.accounts.id) {
+                try {
+                    window.google.accounts.id.initialize({
+                        client_id: GOOGLE_WORKSPACE_CONFIG.clientId,
+                        hosted_domain: GOOGLE_WORKSPACE_CONFIG.expectedDomain,
+                        callback: handleGoogleWorkspaceCredentialResponse,
+                        auto_select: false,
+                        cancel_on_tap_outside: true
+                    });
+
+                    if (window.google.accounts.oauth2) {
+                        window.googleTokenClient = window.google.accounts.oauth2.initTokenClient({
+                            client_id: GOOGLE_WORKSPACE_CONFIG.clientId,
+                            scope: GOOGLE_WORKSPACE_CONFIG.scopes,
+                            hosted_domain: GOOGLE_WORKSPACE_CONFIG.expectedDomain,
+                            callback: handleGoogleOAuthTokenResponse
+                        });
+                    }
+                } catch (e) {
+                    console.warn("[GIS Init] Google Identity Services auto-init error:", e);
+                }
+            }
+        }
+
+        function triggerGoogleWorkspaceSignIn() {
+            if (window.google && window.google.accounts) {
+                if (window.googleTokenClient) {
+                    window.googleTokenClient.requestAccessToken({ prompt: "consent" });
+                } else if (window.google.accounts.id) {
+                    window.google.accounts.id.prompt();
+                }
+            } else {
+                // Offline / Mock fallback for local testing & development
+                const enteredEmail = prompt("Google Workspace Sign-In (Restrito a client.corp):\nInforme seu email corporativo:", "auditor@client.corp");
+                if (!enteredEmail) return;
+                const domain = enteredEmail.includes("@") ? enteredEmail.split("@")[1].trim() : "";
+                if (domain.toLowerCase() !== GOOGLE_WORKSPACE_CONFIG.expectedDomain.toLowerCase()) {
+                    alert(`Acesso negado: domínio de Workspace '${domain}' não autorizado. Este portal corporativo restringe o acesso exclusivamente a '@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}'.`);
+                    return;
+                }
+                // Generate mock tokens for local testing
+                const mockSub = "109823471029";
+                const b64 = (obj) => btoa(JSON.stringify(obj)).replace(/=+$/, "");
+                const mockHeader = { alg: "RS256", typ: "JWT" };
+                const mockPayload = {
+                    iss: "https://accounts.google.com",
+                    aud: GOOGLE_WORKSPACE_CONFIG.clientId,
+                    sub: mockSub,
+                    email: enteredEmail,
+                    hd: domain,
+                    exp: Math.floor(Date.now() / 1000) + 3600
+                };
+                const mockIdToken = `${b64(mockHeader)}.${b64(mockPayload)}.mock_signature`;
+                const mockAccessToken = "ya29.a0ARrdaM-mock-user-oauth-token-portal";
+
+                handleGoogleWorkspaceCredentialResponse({ credential: mockIdToken });
+                handleGoogleOAuthTokenResponse({ access_token: mockAccessToken });
+            }
+        }
+
+        function handleGoogleWorkspaceCredentialResponse(response) {
+            if (!response || !response.credential) return;
+            try {
+                const parts = response.credential.split(".");
+                if (parts.length < 2) return;
+                const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+                if (payload.hd && payload.hd.toLowerCase() !== GOOGLE_WORKSPACE_CONFIG.expectedDomain.toLowerCase()) {
+                    alert(`Acesso negado: domínio de Workspace '${payload.hd}' não autorizado. Esperado: '${GOOGLE_WORKSPACE_CONFIG.expectedDomain}'.`);
+                    return;
+                }
+                window.currentUserIdToken = response.credential;
+                window.currentUserEmail = payload.email || `auditor@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}`;
+                window.currentUserHd = payload.hd || GOOGLE_WORKSPACE_CONFIG.expectedDomain;
+
+                sessionStorage.setItem("google_id_token", window.currentUserIdToken);
+                sessionStorage.setItem("google_user_email", window.currentUserEmail);
+                sessionStorage.setItem("google_user_hd", window.currentUserHd);
+
+                renderWorkspaceUserUI(window.currentUserEmail, window.currentUserHd);
+                appendLog(`[Auth] Sessão autenticada via Google Workspace: ${window.currentUserEmail} (hd: ${window.currentUserHd})`, "success");
+            } catch (e) {
+                console.error("[Auth] Erro ao decodificar ID Token:", e);
+            }
+        }
+
+        function handleGoogleOAuthTokenResponse(tokenResponse) {
+            if (tokenResponse && tokenResponse.access_token) {
+                window.currentUserToken = tokenResponse.access_token;
+                sessionStorage.setItem("google_access_token", window.currentUserToken);
+                appendLog(`[Auth] Token de delegação GCP OAuth adquirido com escopos de leitura de recursos.`, "info");
+            }
+        }
+
+        function renderWorkspaceUserUI(email, hd) {
+            const btnSignIn = document.getElementById("btnWorkspaceSignIn");
+            const userChip = document.getElementById("workspaceUserChip");
+            const emailElem = document.getElementById("workspaceUserEmail");
+            const domainElem = document.getElementById("workspaceUserDomain");
+            const avatarElem = document.getElementById("workspaceUserAvatar");
+
+            if (btnSignIn && userChip) {
+                btnSignIn.style.display = "none";
+                userChip.style.display = "inline-flex";
+                if (emailElem) emailElem.innerText = email;
+                if (domainElem) domainElem.innerText = `${hd} • GCP Live Delegated`;
+                if (avatarElem) {
+                    const initials = email.split("@")[0].substring(0, 2).toUpperCase();
+                    avatarElem.innerText = initials;
+                }
+            }
+        }
+
+        function signOutWorkspaceUser() {
+            window.currentUserIdToken = null;
+            window.currentUserToken = null;
+            window.currentUserEmail = null;
+            window.currentUserHd = null;
+
+            sessionStorage.removeItem("google_id_token");
+            sessionStorage.removeItem("google_access_token");
+            sessionStorage.removeItem("google_user_email");
+            sessionStorage.removeItem("google_user_hd");
+
+            const btnSignIn = document.getElementById("btnWorkspaceSignIn");
+            const userChip = document.getElementById("workspaceUserChip");
+            if (btnSignIn && userChip) {
+                btnSignIn.style.display = "inline-flex";
+                userChip.style.display = "none";
+            }
+            appendLog(`[Auth] Sessão Google Workspace encerrada. Retornando ao modo demonstração/sandbox.`, "info");
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
+            initGoogleWorkspaceIdentity();
             const detectedLang = detectUserLanguage();
             setLanguage(detectedLang);
             loadProjects();
@@ -8074,6 +8346,9 @@ function openNewsModal(newsKey) {
                 if (window.currentUserToken) {
                     chatHeaders["Authorization"] = `Bearer ${window.currentUserToken}`;
                 }
+                if (window.currentUserIdToken) {
+                    chatHeaders["X-Goog-Id-Token"] = window.currentUserIdToken;
+                }
                 const res = await fetch("/api/chat", {
                     method: "POST",
                     headers: chatHeaders,
@@ -8083,7 +8358,8 @@ function openNewsModal(newsKey) {
                         selected_projects: Array.from(selectedProjectIds),
                         model: currentSelectedModel,
                         locale: window.currentLanguage || 'pt',
-                        user_token: window.currentUserToken || undefined
+                        user_token: window.currentUserToken || undefined,
+                        id_token: window.currentUserIdToken || undefined
                     })
                 });
                 const data = await res.json();

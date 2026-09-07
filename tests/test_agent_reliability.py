@@ -16,6 +16,13 @@ from types import SimpleNamespace
 from fastapi.testclient import TestClient
 
 from mcp_server_grc.server import app
+from mcp_server_grc.auth import (
+    create_mock_id_token,
+    execute_with_user_credentials,
+    get_user_gcp_credentials,
+    DEFAULT_WORKSPACE_DOMAIN,
+    DEFAULT_CLIENT_ID,
+)
 from mcp_server_grc.tools.cloud_security import audit_cloud_security
 from mcp_server_grc.tools.monitoring import audit_monitoring_activities
 from agent_orchestrator.gateway import ModelArmorGateway
@@ -27,7 +34,7 @@ client = TestClient(app)
 
 VALID_HEADERS = {
     "X-Serverless-Authorization": "Bearer mock-service-agent-token",
-    "Authorization": "Bearer mock-user-oauth-token",
+    "Authorization": "Bearer ya29.a0ARrdaM-mock-user-oauth-token-ci",
 }
 
 
@@ -159,7 +166,7 @@ def test_vuln04_header_format_validation():
     res1 = client.post(
         "/mcp",
         json=payload,
-        headers={"X-Serverless-Authorization": "Basic invalid-auth", "Authorization": "Bearer valid"},
+        headers={"X-Serverless-Authorization": "Basic invalid-auth", "Authorization": "Bearer ya29.valid"},
     )
     assert res1.status_code == 401
 
@@ -392,3 +399,130 @@ def test_chat_delegated_auth_token_propagation():
     assert res2.status_code == 200
     data2 = res2.json()
     assert "tool_evidence" in data2
+
+
+# ==============================================================================
+# 9. Google Workspace Authentication & Delegated GCP Impersonation
+# ==============================================================================
+
+def test_workspace_auth_wrong_hd_domain_rejected():
+    """Tokens from an unauthorized Google Workspace domain (e.g. unauthorized.com) are rejected with 403 Forbidden."""
+    unauthorized_id_token = create_mock_id_token(
+        email="attacker@unauthorized.com",
+        hd="unauthorized.com",
+        aud=DEFAULT_CLIENT_ID,
+    )
+    
+    # Send request with unauthorized Workspace ID token via header
+    res = client.post(
+        "/api/chat",
+        json={"message": "Audit GCS bucket secure-vault-123", "locale": "en"},
+        headers={
+            "X-Goog-Id-Token": unauthorized_id_token,
+            "Authorization": "Bearer ya29.a0ARrdaM-unauthorized-access-token",
+        },
+    )
+    assert res.status_code == 403
+    data = res.json()
+    assert "Access denied: Google Workspace domain 'unauthorized.com' is not authorized" in data.get("detail", "")
+
+
+def test_workspace_auth_valid_hd_accepted():
+    """Tokens from the expected Google Workspace domain (client.corp) are accepted server-side."""
+    valid_id_token = create_mock_id_token(
+        email="auditor@client.corp",
+        hd="client.corp",
+        aud=DEFAULT_CLIENT_ID,
+    )
+    
+    res = client.post(
+        "/api/chat",
+        json={
+            "message": "Audit GCS bucket secure-vault-123",
+            "locale": "en",
+            "id_token": valid_id_token,
+        },
+        headers={
+            "X-Goog-Id-Token": valid_id_token,
+            "Authorization": "Bearer ya29.a0ARrdaM-corporate-auditor-access-token",
+        },
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data.get("user_email") == "auditor@client.corp"
+    assert data.get("user_hd") == "client.corp"
+    assert "tool_evidence" in data
+
+
+def test_workspace_auth_expired_token_rejected():
+    """Expired Google Workspace ID tokens are rejected with 401 Unauthorized."""
+    expired_id_token = create_mock_id_token(
+        email="auditor@client.corp",
+        hd="client.corp",
+        expires_in=-120,  # 2 minutes in the past
+    )
+    
+    res = client.post(
+        "/api/chat",
+        json={"message": "Audit GCS bucket secure-vault-123", "locale": "en"},
+        headers={"X-Goog-Id-Token": expired_id_token},
+    )
+    assert res.status_code == 401
+    assert "expired" in res.json().get("detail", "").lower()
+
+
+def test_workspace_auth_wrong_audience_rejected():
+    """Google Workspace ID tokens minted for an unknown client ID are rejected with 401 Unauthorized."""
+    wrong_aud_token = create_mock_id_token(
+        email="auditor@client.corp",
+        hd="client.corp",
+        aud="malicious-client-id.apps.googleusercontent.com",
+    )
+    
+    res = client.post(
+        "/api/chat",
+        json={"message": "Audit GCS bucket secure-vault-123", "locale": "en"},
+        headers={"X-Goog-Id-Token": wrong_aud_token},
+    )
+    assert res.status_code == 401
+    assert "audience" in res.json().get("detail", "").lower()
+
+
+def test_gcp_impersonation_permission_error_reported():
+    """GCP API permission errors (HTTP 403 / PermissionDenied) report 'insufficient permissions' and never fabricate/cache data."""
+    def mock_failing_gcp_call(credentials, *args, **kwargs):
+        raise PermissionError("403 Forbidden: Caller lacks storage.buckets.get on resource projects/agentic-grc-cd06/buckets/confidential")
+
+    result = execute_with_user_credentials(
+        user_access_token="ya29.a0ARrdaM-restricted-scope-token",
+        call_func=mock_failing_gcp_call,
+        resource_name="projects/agentic-grc-cd06/buckets/confidential",
+    )
+    
+    assert result["status"] == "ERROR"
+    assert result["error"] == "insufficient permissions to inspect this resource"
+    assert any("insufficient permissions to inspect this resource" in str(v) for v in result.get("violations", []))
+    assert result["evidence"]["permission_denied"] is True
+
+
+def test_gcp_impersonation_missing_token_reported():
+    """Missing delegated user OAuth access token reports 'insufficient permissions' immediately."""
+    def mock_gcp_call(credentials, *args, **kwargs):
+        return {"status": "COMPLIANT"}
+
+    result = execute_with_user_credentials(
+        user_access_token=None,
+        call_func=mock_gcp_call,
+        resource_name="projects/agentic-grc-cd06/buckets/confidential",
+    )
+    assert result["status"] == "ERROR"
+    assert result["error"] == "insufficient permissions to inspect this resource"
+
+
+def test_portal_unauthenticated_load_unaffected():
+    """The /portal endpoint loads successfully without requiring any authentication headers."""
+    res = client.get("/portal")
+    assert res.status_code == 200
+    assert "Google Cloud Security - Agentic GRC Auditor" in res.text
+    assert "workspaceAuthContainer" in res.text
+    assert "https://accounts.google.com/gsi/client" in res.text
