@@ -1495,5 +1495,149 @@ The reporting generators in `mcp_server_grc/portal.py` were enriched across `/ap
     - `POST /api/chat` with `"quais controles faltam responder?"` invoked `get_questionnaire_summary` via Function Calling and accurately reported 0/93 controls answered with 0% completion.
     - Verified that string `"Sem resposta"` is completely absent from the Cloud Run portal HTML.
 
+### Milestone 38: Real GCP Lab Population for Agentic GRC Auditing (~30% Compliant / ~70% Non-Compliant) (2026-09-08)
 
+#### A. Executive Summary & Objective
+To provide the live `cloud_inspector.py` discovery engine and Agentic GRC multi-agent auditor with authentic GCP resources rather than empty projects or artificially perfect synthetic environments, real Google Cloud infrastructure was provisioned directly via the `gcloud` CLI across 4 pre-existing functional lab projects:
+1. `fnlab-apps-8fa913` (Applications VPC & Workloads)
+2. `fnlab-ai-data-8fa913` (AI/ML & Data Engineering)
+3. `fnlab-sec-mgmt-8fa913` (Security Management & IAM)
+4. `aispr-core-1cab11` (AISPR Core Workloads & Logging)
 
+**Strict Safety & Governance Boundary:**
+- **Zero modification to `agentic-grc-cd06`**: The production Cloud Run hosting project was strictly untouched.
+- **Resource Naming & Labeling**: Every resource created has the `poc-` prefix and is tagged with the label `poc-demo=true` (or description `poc-demo=true` where labels are unsupported, such as GCP Compute Firewall rules).
+- **Safety perimeters**: All non-compliant firewall rules opening `0.0.0.0/0` ingress target isolated dummy tags (`poc-unused-dummy-target-*`) with zero virtual machines attached. All non-compliant buckets are empty.
+- **Audit Target Ratio**: Roughly 30% Compliant / 70% Non-Compliant against ISO/IEC 27001:2022 Annex A controls (A.5.15, A.5.23, A.8.20, A.8.24).
+
+---
+
+#### B. Full Resource Inventory & Classification
+
+##### 1. Google Cloud Storage Buckets (ISO 27001:2022 Control A.5.23 — Cloud Security)
+Total: 10 Buckets (3 Compliant = 30%, 7 Non-Compliant = 70%)
+
+| # | Bucket Name | Project | Location | UBLA | PAP | Labels | Verdict | Violation Details |
+|---|---|---|---|---|---|---|---|---|
+| 1 | `gs://poc-bucket-payments-sec-8fa913` | `fnlab-sec-mgmt-8fa913` | us-central1 | Enabled | Enforced | `poc-demo=true` | **COMPLIANT** | None |
+| 2 | `gs://poc-bucket-analytics-ai-8fa913` | `fnlab-ai-data-8fa913` | us-central1 | Enabled | Enforced | `poc-demo=true` | **COMPLIANT** | None |
+| 3 | `gs://poc-bucket-logs-core-1cab11` | `aispr-core-1cab11` | us-central1 | Enabled | Enforced | `poc-demo=true` | **COMPLIANT** | None |
+| 4 | `gs://poc-bucket-app-apps-8fa913` | `fnlab-apps-8fa913` | us-central1 | Enabled | Inherited | `poc-demo=true` | **NON_COMPLIANT** | Public Access Prevention (PAP) is not enforced (current: 'inherited'). Risk of public exposure. |
+| 5 | `gs://poc-bucket-backup-apps-8fa913` | `fnlab-apps-8fa913` | us-central1 | Enabled | Inherited | `poc-demo=true` | **NON_COMPLIANT** | Public Access Prevention (PAP) is not enforced (current: 'inherited'). Risk of public exposure. |
+| 6 | `gs://poc-bucket-reports-ai-8fa913` | `fnlab-ai-data-8fa913` | us-central1 | Enabled | Inherited | `poc-demo=true` | **NON_COMPLIANT** | Public Access Prevention (PAP) is not enforced (current: 'inherited'). Risk of public exposure. |
+| 7 | `gs://poc-bucket-staging-ai-8fa913` | `fnlab-ai-data-8fa913` | us-central1 | Enabled | Inherited | `poc-demo=true` | **NON_COMPLIANT** | Public Access Prevention (PAP) is not enforced (current: 'inherited'). Risk of public exposure. |
+| 8 | `gs://poc-bucket-app-sec-8fa913` | `fnlab-sec-mgmt-8fa913` | us-central1 | Enabled | Inherited | `poc-demo=true` | **NON_COMPLIANT** | Public Access Prevention (PAP) is not enforced (current: 'inherited'). Risk of public exposure. |
+| 9 | `gs://poc-bucket-backup-core-1cab11` | `aispr-core-1cab11` | us-central1 | Enabled | Inherited | `poc-demo=true` | **NON_COMPLIANT** | Public Access Prevention (PAP) is not enforced (current: 'inherited'). Risk of public exposure. |
+| 10 | `gs://poc-bucket-staging-core-1cab11` | `aispr-core-1cab11` | us-central1 | Enabled | Inherited | `poc-demo=true` | **NON_COMPLIANT** | Public Access Prevention (PAP) is not enforced (current: 'inherited'). Risk of public exposure. |
+
+##### 2. Cloud KMS Keyrings & Crypto Keys (ISO 27001:2022 Control A.8.24 — Use of Cryptography)
+Total: 6 Keys across 2 Keyrings (2 Compliant = 33.3%, 4 Non-Compliant = 66.7%)
+- Keyring 1: `poc-keyring-sec` (`projects/fnlab-sec-mgmt-8fa913/locations/us-central1/keyRings/poc-keyring-sec`)
+- Keyring 2: `poc-keyring-apps` (`projects/fnlab-apps-8fa913/locations/us-central1/keyRings/poc-keyring-apps`)
+
+| # | Key Name | Keyring | Project | Protection | Rotation Period | Labels | Verdict | Violation Details |
+|---|---|---|---|---|---|---|---|---|
+| 1 | `poc-key-payments-hsm` | `poc-keyring-sec` | `fnlab-sec-mgmt-8fa913` | HSM | 90d (7776000s) | `poc-demo=true` | **COMPLIANT** | None |
+| 2 | `poc-key-database-hsm` | `poc-keyring-sec` | `fnlab-sec-mgmt-8fa913` | HSM | 90d (7776000s) | `poc-demo=true` | **COMPLIANT** | None |
+| 3 | `poc-key-audit-software` | `poc-keyring-sec` | `fnlab-sec-mgmt-8fa913` | SOFTWARE | None | `poc-demo=true` | **NON_COMPLIANT** | KMS key does not have an automatic rotationPeriod configured. |
+| 4 | `poc-key-app-data` | `poc-keyring-apps` | `fnlab-apps-8fa913` | SOFTWARE | None | `poc-demo=true` | **NON_COMPLIANT** | KMS key does not have an automatic rotationPeriod configured. |
+| 5 | `poc-key-backup-long` | `poc-keyring-apps` | `fnlab-apps-8fa913` | SOFTWARE | 200d (17280000s) | `poc-demo=true` | **NON_COMPLIANT** | KMS key rotation period (17280000s) exceeds the 90 days policy requirement (7776000s). |
+| 6 | `poc-key-tokens-stale` | `poc-keyring-apps` | `fnlab-apps-8fa913` | SOFTWARE | 365d (31536000s) | `poc-demo=true` | **NON_COMPLIANT** | KMS key rotation period (31536000s) exceeds the 90 days policy requirement (7776000s). |
+
+##### 3. Compute Engine Firewall Rules (ISO 27001:2022 Controls A.5.23 & A.8.20 — Network Security)
+Total: 6 Firewall Rules (2 Compliant = 33.3%, 4 Non-Compliant = 66.7%)
+
+| # | Rule Name | Project | VPC Network | Source Range | Allowed Ports | Logging | Target Tag | Verdict | Violation Details |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | `poc-fw-internal-mgmt` | `fnlab-sec-mgmt-8fa913` | `vpc-sec-mgmt` | `10.10.0.0/16` | tcp:8080 | Enabled | `poc-secure-mgmt` | **COMPLIANT** | None |
+| 2 | `poc-fw-ai-worker-sync` | `fnlab-ai-data-8fa913` | `vpc-ai-data` | `10.30.0.0/16` | tcp:9090 | Enabled | `poc-secure-worker` | **COMPLIANT** | None |
+| 3 | `poc-fw-open-ssh-demo` | `fnlab-apps-8fa913` | `vpc-apps` | `0.0.0.0/0` | tcp:22 | Disabled | `poc-unused-dummy-target-1` | **NON_COMPLIANT** | Allows unrestricted 0.0.0.0/0 ingress to sensitive port 22; rule logging disabled. |
+| 4 | `poc-fw-open-rdp-demo` | `aispr-core-1cab11` | `vpc-aispr-core` | `0.0.0.0/0` | tcp:3389 | Disabled | `poc-unused-dummy-target-2` | **NON_COMPLIANT** | Allows unrestricted 0.0.0.0/0 ingress to sensitive port 3389; rule logging disabled. |
+| 5 | `poc-fw-db-nologging` | `fnlab-apps-8fa913` | `vpc-apps` | `10.20.0.0/16` | tcp:5432 | Disabled | `poc-unused-dummy-target-3` | **NON_COMPLIANT** | Rule logging disabled. Violates A.5.23 & A.8.15 monitoring requirement. |
+| 6 | `poc-fw-analytics-wide` | `fnlab-ai-data-8fa913` | `vpc-ai-data` | `0.0.0.0/0` | tcp:8000 | Disabled | `poc-unused-dummy-target-4` | **NON_COMPLIANT** | Rule logging disabled. Violates A.5.23 & A.8.15 monitoring requirement. |
+
+##### 4. Project IAM Bindings (ISO 27001:2022 Control A.5.15 — Access Control & Least Privilege)
+Total: 6 IAM Bindings (2 Compliant = 33.3%, 4 Non-Compliant = 66.7%)
+
+| # | Member / Identity | Role Assigned | Project | Account Type | Verdict | Violation Details |
+|---|---|---|---|---|---|---|
+| 1 | `poc-sa-reader@fnlab-apps-8fa913.iam.gserviceaccount.com` | `roles/storage.objectViewer` | `fnlab-apps-8fa913` | Service Account | **COMPLIANT** | Least-privilege read-only role assigned to dedicated service account. |
+| 2 | `poc-sa-auditor@aispr-core-1cab11.iam.gserviceaccount.com` | `roles/viewer` | `aispr-core-1cab11` | Service Account | **COMPLIANT** | Least-privilege auditor role assigned to dedicated service account. |
+| 3 | `user:admin@jsaccomani.altostrat.com` | `roles/owner` | `fnlab-apps-8fa913` | End-User Human | **NON_COMPLIANT** | Primitive role 'roles/owner' granted directly to end-user. Violates least privilege principle. |
+| 4 | `user:admin@jsaccomani.altostrat.com` | `roles/owner` | `fnlab-ai-data-8fa913` | End-User Human | **NON_COMPLIANT** | Primitive role 'roles/owner' granted directly to end-user. Violates least privilege principle. |
+| 5 | `user:admin@jsaccomani.altostrat.com` | `roles/editor` | `fnlab-sec-mgmt-8fa913` | End-User Human | **NON_COMPLIANT** | Primitive role 'roles/editor' granted directly to end-user. Violates least privilege principle. |
+| 6 | `user:admin@jsaccomani.altostrat.com` | `roles/owner` | `aispr-core-1cab11` | End-User Human | **NON_COMPLIANT** | Primitive role 'roles/owner' granted directly to end-user. Violates least privilege principle. |
+
+---
+
+#### C. Statistical Compliance Balance
+- **Total Audited Entities**: 28 resources / configurations
+- **Compliant Count**: 9 (32.1%)
+- **Non-Compliant Count**: 19 (67.9%)
+- **Target Achieved**: Exactly meets the target distribution of ~30% compliant / ~70% non-compliant across all 4 key ISO/IEC 27001:2022 technical control domains.
+
+---
+
+#### D. Live Audit Verification Output
+Executed via `PYTHONPATH=. ./.venv/bin/python scripts/verify_poc_environment.py` with real ADC token against GCP APIs:
+```text
+=== 1. GCS BUCKETS AUDIT (ISO 27001 Control A.5.23) ===
+[COMPLIANT    ] poc-bucket-payments-sec-8fa913      | Proj: fnlab-sec-mgmt-8fa913 | Violations: []
+[COMPLIANT    ] poc-bucket-analytics-ai-8fa913      | Proj: fnlab-ai-data-8fa913  | Violations: []
+[COMPLIANT    ] poc-bucket-logs-core-1cab11         | Proj: aispr-core-1cab11     | Violations: []
+[NON_COMPLIANT] poc-bucket-app-apps-8fa913          | Proj: fnlab-apps-8fa913     | Violations: ["Public Access Prevention (PAP) is not enforced (current: 'inherited'). Risk of public exposure."]
+[NON_COMPLIANT] poc-bucket-backup-apps-8fa913       | Proj: fnlab-apps-8fa913     | Violations: ["Public Access Prevention (PAP) is not enforced (current: 'inherited'). Risk of public exposure."]
+[NON_COMPLIANT] poc-bucket-reports-ai-8fa913        | Proj: fnlab-ai-data-8fa913  | Violations: ["Public Access Prevention (PAP) is not enforced (current: 'inherited'). Risk of public exposure."]
+[NON_COMPLIANT] poc-bucket-staging-ai-8fa913        | Proj: fnlab-ai-data-8fa913  | Violations: ["Public Access Prevention (PAP) is not enforced (current: 'inherited'). Risk of public exposure."]
+[NON_COMPLIANT] poc-bucket-app-sec-8fa913           | Proj: fnlab-sec-mgmt-8fa913 | Violations: ["Public Access Prevention (PAP) is not enforced (current: 'inherited'). Risk of public exposure."]
+[NON_COMPLIANT] poc-bucket-backup-core-1cab11       | Proj: aispr-core-1cab11     | Violations: ["Public Access Prevention (PAP) is not enforced (current: 'inherited'). Risk of public exposure."]
+[NON_COMPLIANT] poc-bucket-staging-core-1cab11      | Proj: aispr-core-1cab11     | Violations: ["Public Access Prevention (PAP) is not enforced (current: 'inherited'). Risk of public exposure."]
+
+=== 2. KMS KEYS AUDIT (ISO 27001 Control A.8.24) ===
+[COMPLIANT    ] poc-key-payments-hsm      | Keyring: poc-keyring-sec    | Proj: fnlab-sec-mgmt-8fa913 | Violations: []
+[COMPLIANT    ] poc-key-database-hsm      | Keyring: poc-keyring-sec    | Proj: fnlab-sec-mgmt-8fa913 | Violations: []
+[NON_COMPLIANT] poc-key-audit-software    | Keyring: poc-keyring-sec    | Proj: fnlab-sec-mgmt-8fa913 | Violations: ['KMS key does not have an automatic rotationPeriod configured.']
+[NON_COMPLIANT] poc-key-app-data          | Keyring: poc-keyring-apps   | Proj: fnlab-apps-8fa913     | Violations: ['KMS key does not have an automatic rotationPeriod configured.']
+[NON_COMPLIANT] poc-key-backup-long       | Keyring: poc-keyring-apps   | Proj: fnlab-apps-8fa913     | Violations: ['KMS key rotation period (17280000s) exceeds the 90 days policy requirement (7776000s).']
+[NON_COMPLIANT] poc-key-tokens-stale      | Keyring: poc-keyring-apps   | Proj: fnlab-apps-8fa913     | Violations: ['KMS key rotation period (31536000s) exceeds the 90 days policy requirement (7776000s).']
+
+=== 3. FIREWALL RULES AUDIT (ISO 27001 Controls A.5.23 & A.8.20) ===
+[COMPLIANT    ] poc-fw-internal-mgmt      | Proj: fnlab-sec-mgmt-8fa913 | Violations: []
+[COMPLIANT    ] poc-fw-ai-worker-sync     | Proj: fnlab-ai-data-8fa913  | Violations: []
+[NON_COMPLIANT] poc-fw-open-ssh-demo      | Proj: fnlab-apps-8fa913     | Violations: ["Firewall rule 'poc-fw-open-ssh-demo' allows unrestricted 0.0.0.0/0 ingress to sensitive ports: {22} (tcp).", "Firewall rule 'poc-fw-open-ssh-demo' has rule logging disabled. Violates A.5.23 & A.8.15 monitoring requirement."]
+[NON_COMPLIANT] poc-fw-open-rdp-demo      | Proj: aispr-core-1cab11     | Violations: ["Firewall rule 'poc-fw-open-rdp-demo' allows unrestricted 0.0.0.0/0 ingress to sensitive ports: {3389} (tcp).", "Firewall rule 'poc-fw-open-rdp-demo' has rule logging disabled. Violates A.5.23 & A.8.15 monitoring requirement."]
+[NON_COMPLIANT] poc-fw-db-nologging       | Proj: fnlab-apps-8fa913     | Violations: ["Firewall rule 'poc-fw-db-nologging' has rule logging disabled. Violates A.5.23 & A.8.15 monitoring requirement."]
+[NON_COMPLIANT] poc-fw-analytics-wide     | Proj: fnlab-ai-data-8fa913  | Violations: ["Firewall rule 'poc-fw-analytics-wide' has rule logging disabled. Violates A.5.23 & A.8.15 monitoring requirement."]
+
+=== 4. IAM BINDINGS AUDIT (ISO 27001 Control A.5.15 Least Privilege) ===
+[COMPLIANT    ] poc-sa-reader:roles/storage.objectViewer   | Proj: fnlab-apps-8fa913     | Violations: []
+[COMPLIANT    ] poc-sa-auditor:roles/viewer                 | Proj: aispr-core-1cab11     | Violations: []
+[NON_COMPLIANT] user:admin:roles/owner                      | Proj: fnlab-apps-8fa913     | Violations: ["Primitive role 'roles/owner' granted directly to end-users: ['user:admin@jsaccomani.altostrat.com']. Violates least privilege principle."]
+[NON_COMPLIANT] user:admin:roles/owner                      | Proj: fnlab-ai-data-8fa913  | Violations: ["Primitive role 'roles/owner' granted directly to end-users: ['user:admin@jsaccomani.altostrat.com']. Violates least privilege principle."]
+[NON_COMPLIANT] user:admin:roles/editor                     | Proj: fnlab-sec-mgmt-8fa913 | Violations: ["Primitive role 'roles/editor' granted directly to end-users: ['user:admin@jsaccomani.altostrat.com']. Violates least privilege principle."]
+[NON_COMPLIANT] user:admin:roles/owner                      | Proj: aispr-core-1cab11     | Violations: ["Primitive role 'roles/owner' granted directly to end-users: ['user:admin@jsaccomani.altostrat.com']. Violates least privilege principle."]
+
+======================================================================
+TOTAL RESOURCES AUDITED: 28
+COMPLIANT:      9 ( 32.1%) [Target ~30%]
+NON-COMPLIANT: 19 ( 67.9%) [Target ~70%]
+======================================================================
+```
+
+---
+
+#### E. Single-Command Cleanup Script
+A safe teardown script has been provided at `scripts/cleanup_poc_resources.sh`.
+
+```bash
+# Perform dry-run to preview deletions without making changes:
+./scripts/cleanup_poc_resources.sh --dry-run
+
+# Execute full deletion and destruction of POC resources:
+./scripts/cleanup_poc_resources.sh
+```
+It handles:
+1. Deletion of all 10 `poc-bucket-*` GCS buckets.
+2. Deletion of all 6 `poc-fw-*` Compute firewall rules.
+3. Scheduling destruction of version 1 for all 6 KMS keys across `poc-keyring-sec` and `poc-keyring-apps`.
+4. Deletion of `poc-sa-reader` and `poc-sa-auditor` service accounts.
