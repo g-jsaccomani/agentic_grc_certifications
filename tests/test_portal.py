@@ -899,3 +899,57 @@ def test_enriched_report_templates_sections_and_taxonomy():
     assert "## 4. Taxonomia de Severidade de Achados" in md_content
     assert "**NÃO CONFORMIDADE MAIOR**" in md_content
 
+
+def test_chat_questionnaire_status_fallback_routing():
+    """Asserts that queries asking about unanswered controls or questionnaire progress
+    route cleanly to get_questionnaire_summary and never trigger inspect_cloud_iam."""
+    queries = [
+        "which controls are still unanswered?",
+        "quais controles faltam responder?",
+        "what is the questionnaire completion progress?",
+    ]
+    for q in queries:
+        resp = client.post("/api/chat", json={"message": q}, headers=AUTH_HEADER)
+        assert resp.status_code == 200
+        data = resp.json()
+        tools_used = [e.get("tool") for e in data.get("tool_evidence", [])]
+        assert "get_questionnaire_summary" in tools_used
+        assert "inspect_cloud_iam" not in tools_used
+        assert "inspect_project_iam_policy" not in tools_used
+        assert "93" in data["response"]
+
+
+def test_genai_client_failed_init_warning_suppressed():
+    """Verifies that failed genai.Client initialization does not log an unretrieved task exception."""
+    import asyncio
+    import gc
+    from agent_orchestrator.llm_subagent import suppress_genai_client_cleanup_warning
+    suppress_genai_client_cleanup_warning()
+
+    errors_logged = []
+
+    async def _exercise():
+        loop = asyncio.get_running_loop()
+
+        def _exc_handler(l, ctx):
+            errors_logged.append(ctx.get("message", "") or str(ctx.get("exception", "")))
+
+        loop.set_exception_handler(_exc_handler)
+
+        try:
+            from google import genai
+            try:
+                genai.Client(api_key=None)
+            except Exception:
+                pass
+        except ImportError:
+            pass
+
+        gc.collect()
+        await asyncio.sleep(0.05)
+
+    asyncio.run(_exercise())
+    for err in errors_logged:
+        assert "_async_httpx_client" not in err
+
+

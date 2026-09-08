@@ -7607,7 +7607,7 @@ def get_localized_catalog(framework: str = "ISO27001:2022", lang: str = "pt") ->
             "how_to_maintain": item.get("how_to_maintain", ""),
             "gcp_mapping": item.get("gcp_mapping", ""),
             "attributes": item.get("attributes", {}),
-            "status": item.get("status", "COMPLIANT"),
+            "status": item.get("status", "NOT_ANSWERED"),
             "severity": item.get("severity", "MEDIUM"),
             "soa_status": item.get("soa_status", "APLICÁVEL"),
             "translations": item.get("translations", {}),

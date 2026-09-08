@@ -3,6 +3,13 @@
 Consolidates the 93 Annex A controls across 4 main themes (Organizacional, Pessoas, Físico, Tecnológico),
 with 5-attribute taxonomy (Type, Properties, Cybersecurity Concepts, Operational Capabilities, Security Domains)
 and detailed operational guidance on How to Check and How to Maintain continuous compliance.
+
+NON-AUTHORITATIVE DEMO / SEED DATA NOTICE:
+The "status" fields present in ISO_27001_CATALOG items are strictly illustrative/demonstration
+seed data for default catalog matrix visualization. They are NON-AUTHORITATIVE and MUST NOT
+be treated as verified compliance telemetry or authoritative audit verdicts.
+Authoritative compliance verdicts are produced exclusively by real cloud inspection scans
+(e.g., cloud_inspector.py), proactive audit cycles in EvidenceGraph, or validated questionnaire answers.
 """
 
 GCP_ORGANIZATION_METADATA = {

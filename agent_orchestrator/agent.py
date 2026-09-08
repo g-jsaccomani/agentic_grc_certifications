@@ -15,6 +15,9 @@ import httpx
 
 from agent_orchestrator.gateway import ModelArmorGateway
 from agent_orchestrator.a2a_client import A2AClient, A2ATask
+from agent_orchestrator.llm_subagent import suppress_genai_client_cleanup_warning
+
+suppress_genai_client_cleanup_warning()
 
 # Gemini Platform Configurations
 MODEL_ID = os.getenv("GEMINI_MODEL_ID", "gemini-2.5-flash")

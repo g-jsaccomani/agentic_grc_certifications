@@ -389,6 +389,38 @@ def get_auditor_tools(bearer_token: Optional[str] = None) -> Dict[str, Any]:
     def _list_cloud_storage(project_id: Optional[str] = None, **kwargs):
         return list_cloud_storage_buckets(project_id=project_id, bearer_token=bearer_token)
 
+    def _get_questionnaire_summary(framework: str = "ISO27001:2022", **kwargs):
+        from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS, SOC2_CATALOG
+        from mcp_server_grc.catalog import ISO_27001_CATALOG
+        base_controls = ISO_27001_CATALOG if framework == "ISO27001:2022" else SOC2_CATALOG
+        total = len(base_controls)
+        answered = 0
+        compliant = 0
+        non_compliant = 0
+        not_applicable = 0
+        for c in base_controls:
+            cid = c.get("id")
+            ans = QUESTIONNAIRE_ANSWERS.get((framework, cid))
+            if ans:
+                answered += 1
+                st = ans.status.upper()
+                if st == "COMPLIANT":
+                    compliant += 1
+                elif st == "NON_COMPLIANT":
+                    non_compliant += 1
+                elif st in ("NOT_APPLICABLE", "N/A"):
+                    not_applicable += 1
+        pct = round((answered / total) * 100.0, 1) if total > 0 else 0.0
+        return {
+            "framework": framework,
+            "total_controls": total,
+            "answered": answered,
+            "compliant": compliant,
+            "non_compliant": non_compliant,
+            "not_applicable": not_applicable,
+            "completion_percentage": pct,
+        }
+
     return {
         "audit_cloud_security": _audit_cloud_security,
         "audit_data_leakage_prevention": _audit_data_leakage_prevention,
@@ -404,6 +436,7 @@ def get_auditor_tools(bearer_token: Optional[str] = None) -> Dict[str, Any]:
         "inspect_cloud_run": _inspect_cloud_run,
         "list_cloud_kms": _list_cloud_kms,
         "list_cloud_storage": _list_cloud_storage,
+        "get_questionnaire_summary": _get_questionnaire_summary,
     }
 
 
@@ -2238,61 +2271,73 @@ async def handle_chat(
     import re
     target_project = projects[0] if projects else "agentic-grc-cd06"
 
-    # 1. Real-Time Cloud KMS & Cryptography (A.8.24)
-    kms_match = re.search(r"(?:key|chave|kms)\s+['\"]?([a-zA-Z0-9_\-\./]+)", lower_msg)
-    detected_key = None
-    if kms_match:
-        detected_key = kms_match.group(1).strip("'\"")
-    elif "my-key" in lower_msg:
-        detected_key = "my-key"
-    elif any(k in lower_msg for k in ["kms", "cripto", "crypto", "a.8.24", "a824"]) and any(k in lower_msg for k in ["rotaç", "rotac", "chave", "key", "hsm", "proteção", "protecao"]):
-        detected_key = "my-key"
+    # Questionnaire intent detection (unanswered/pendente/faltam/completion/progresso)
+    questionnaire_keywords = ["unanswered", "pendente", "faltam", "completion", "progresso", "questionnaire", "questionário", "questionario"]
+    is_questionnaire_query = any(k in lower_msg for k in questionnaire_keywords)
 
-    if detected_key or (any(k in lower_msg for k in ["kms", "cripto", "crypto", "a.8.24", "a824"]) and not any(k in lower_msg for k in ["proactive audit", "varredura completa"])):
-        k_target = detected_key or "my-key"
-        live_kms_data = inspect_cloud_kms_key(k_target, project_id=target_project, bearer_token=user_token)
-        tool_context["inspect_cloud_kms"] = {
-            "key_name": k_target,
-            "project_id": target_project,
-            "live_inspection_result": live_kms_data,
+    if is_questionnaire_query:
+        target_fw = "ISO27001:2022"
+        if "soc2" in lower_msg or "soc 2" in lower_msg:
+            target_fw = "SOC2"
+        tool_context["get_questionnaire_summary"] = {
+            "framework": target_fw,
         }
-        tool_context["audit_cryptography_a824"] = {
-            "key_id": k_target,
-            "config": live_kms_data.get("key_details") if live_kms_data.get("status") == "FOUND" else None,
-        }
+    else:
+        # 1. Real-Time Cloud KMS & Cryptography (A.8.24)
+        kms_match = re.search(r"(?:key|chave|kms)\s+['\"]?([a-zA-Z0-9_\-\./]+)", lower_msg)
+        detected_key = None
+        if kms_match:
+            detected_key = kms_match.group(1).strip("'\"")
+        elif "my-key" in lower_msg:
+            detected_key = "my-key"
+        elif any(k in lower_msg for k in ["kms", "cripto", "crypto", "a.8.24", "a824"]) and any(k in lower_msg for k in ["rotaç", "rotac", "chave", "key", "hsm", "proteção", "protecao"]):
+            detected_key = "my-key"
 
-    # 2. Real-Time Cloud Storage (A.5.23)
-    bucket_match = re.search(r"(?:bucket|gcs)\s+['\"]?([a-zA-Z0-9_\-\.]+)", lower_msg)
-    if bucket_match or ("storage" in lower_msg and any(k in lower_msg for k in ["pap", "ubla", "bucket", "inspecion", "audit"])):
-        b_name = bucket_match.group(1).strip("'\"") if bucket_match else "run-sources-agentic-grc-cd06-us-central1"
-        live_storage_data = inspect_cloud_storage_bucket(b_name, project_id=target_project, bearer_token=user_token)
-        tool_context["inspect_cloud_storage"] = {
-            "bucket_name": b_name,
-            "project_id": target_project,
-            "live_inspection_result": live_storage_data,
-        }
-        tool_context["audit_cloud_security"] = {
-            "resource_type": "gcs_bucket",
-            "resource_name": b_name,
-            "config": live_storage_data.get("bucket_details") if live_storage_data.get("status") == "FOUND" else None,
-            "bearer_token": user_token,
-        }
+        if detected_key or (any(k in lower_msg for k in ["kms", "cripto", "crypto", "a.8.24", "a824"]) and not any(k in lower_msg for k in ["proactive audit", "varredura completa"])):
+            k_target = detected_key or "my-key"
+            live_kms_data = inspect_cloud_kms_key(k_target, project_id=target_project, bearer_token=user_token)
+            tool_context["inspect_cloud_kms"] = {
+                "key_name": k_target,
+                "project_id": target_project,
+                "live_inspection_result": live_kms_data,
+            }
+            tool_context["audit_cryptography_a824"] = {
+                "key_id": k_target,
+                "config": live_kms_data.get("key_details") if live_kms_data.get("status") == "FOUND" else None,
+            }
 
-    # 3. Real-Time IAM Policy (A.5.15)
-    if any(k in lower_msg for k in ["iam", "permiss", "papel", "roles", "membros", "least privilege", "menor privilégio"]):
-        live_iam_data = inspect_project_iam_policy(project_id=target_project, bearer_token=user_token)
-        tool_context["inspect_cloud_iam"] = {
-            "project_id": target_project,
-            "live_inspection_result": live_iam_data,
-        }
+        # 2. Real-Time Cloud Storage (A.5.23)
+        bucket_match = re.search(r"(?:bucket|gcs)\s+['\"]?([a-zA-Z0-9_\-\.]+)", lower_msg)
+        if bucket_match or ("storage" in lower_msg and any(k in lower_msg for k in ["pap", "ubla", "bucket", "inspecion", "audit"])):
+            b_name = bucket_match.group(1).strip("'\"") if bucket_match else "run-sources-agentic-grc-cd06-us-central1"
+            live_storage_data = inspect_cloud_storage_bucket(b_name, project_id=target_project, bearer_token=user_token)
+            tool_context["inspect_cloud_storage"] = {
+                "bucket_name": b_name,
+                "project_id": target_project,
+                "live_inspection_result": live_storage_data,
+            }
+            tool_context["audit_cloud_security"] = {
+                "resource_type": "gcs_bucket",
+                "resource_name": b_name,
+                "config": live_storage_data.get("bucket_details") if live_storage_data.get("status") == "FOUND" else None,
+                "bearer_token": user_token,
+            }
 
-    # 4. Real-Time Cloud Run & Workloads (A.8.20)
-    if any(k in lower_msg for k in ["cloud run", "serviços", "servicos", "workload", "containers"]):
-        live_run_data = inspect_cloud_run_services(project_id=target_project, bearer_token=user_token)
-        tool_context["inspect_cloud_run"] = {
-            "project_id": target_project,
-            "live_inspection_result": live_run_data,
-        }
+        # 3. Real-Time IAM Policy (A.5.15) - use word boundary for roles to prevent matching 'controles'
+        if any(k in lower_msg for k in ["iam", "permiss", "papel", "papeis", "papéis", "membros", "least privilege", "menor privilégio"]) or re.search(r"\broles?\b", lower_msg):
+            live_iam_data = inspect_project_iam_policy(project_id=target_project, bearer_token=user_token)
+            tool_context["inspect_cloud_iam"] = {
+                "project_id": target_project,
+                "live_inspection_result": live_iam_data,
+            }
+
+        # 4. Real-Time Cloud Run & Workloads (A.8.20)
+        if any(k in lower_msg for k in ["cloud run", "serviços", "servicos", "workload", "containers"]):
+            live_run_data = inspect_cloud_run_services(project_id=target_project, bearer_token=user_token)
+            tool_context["inspect_cloud_run"] = {
+                "project_id": target_project,
+                "live_inspection_result": live_run_data,
+            }
 
     # Detect climate resilience / geographic disaster recovery inquiries
     if any(k in full_search_text for k in ["clima", "climate", "resiliên", "resilien", "multi-region", "topologia", "geográfica", "geografica", "amd 1:2024"]):
@@ -2354,7 +2399,50 @@ async def handle_chat(
     # If in deterministic fallback or if tool called via context, format live telemetry directly
     if (execution_mode == "deterministic_fallback" or not ai_response):
         loc = (req.locale or "pt").lower()
-        if "inspect_cloud_kms" in tool_context:
+        if is_questionnaire_query or "get_questionnaire_summary" in tool_context:
+            from mcp_server_grc.questionnaire import get_questionnaire_summary as _fetch_questionnaire_summary
+            q_framework = tool_context.get("get_questionnaire_summary", {}).get("framework", "ISO27001:2022")
+            summary_obj = await _fetch_questionnaire_summary(framework=q_framework)
+            s_dict = summary_obj.model_dump() if hasattr(summary_obj, "model_dump") else summary_obj.dict()
+            total = s_dict["total_controls"]
+            ans = s_dict["answered"]
+            comp = s_dict["compliant"]
+            nc = s_dict["non_compliant"]
+            na = s_dict["not_applicable"]
+            pct = s_dict["completion_percentage"]
+            unans = total - ans
+
+            if loc.startswith("en"):
+                ai_response = (
+                    f"### 📋 Compliance Questionnaire Status ({q_framework})\n\n"
+                    f"**Target Framework:** `{q_framework}`  \n"
+                    f"- **Total Controls in Standard:** {total}  \n"
+                    f"- **Answered Controls:** {ans} / {total} ({pct}%)\n"
+                    f"- **Compliant Controls:** {comp}\n"
+                    f"- **Non-Compliant Controls:** {nc}\n"
+                    f"- **Not Applicable:** {na}\n"
+                    f"- **Pending / Unanswered Controls:** {unans} remaining\n\n"
+                    f"To review unanswered controls and submit compliance evidence, please visit the **Questionnaire** module."
+                )
+            else:
+                ai_response = (
+                    f"### 📋 Status de Conclusão do Questionário ({q_framework})\n\n"
+                    f"**Framework Normativo:** `{q_framework}`  \n"
+                    f"- **Total de Controles na Norma:** {total}  \n"
+                    f"- **Controles Respondidos:** {ans} / {total} ({pct}%)\n"
+                    f"- **Controles Conformes:** {comp}\n"
+                    f"- **Controles Não Conformes:** {nc}\n"
+                    f"- **Não Aplicáveis:** {na}\n"
+                    f"- **Controles Pendentes / Faltam Responder:** {unans} restantes\n\n"
+                    f"Para preencher os controles pendentes ou anexar evidências, acesse a aba **Questionário**."
+                )
+            if not any(e.get("tool") == "get_questionnaire_summary" for e in tool_evidence):
+                tool_evidence.append({
+                    "tool": "get_questionnaire_summary",
+                    "evidence": s_dict,
+                    "status": "COMPLIANT" if pct == 100.0 else "IN_PROGRESS",
+                })
+        elif "inspect_cloud_kms" in tool_context:
             kms_info = tool_context["inspect_cloud_kms"]["live_inspection_result"]
             k_target = tool_context["inspect_cloud_kms"]["key_name"]
             st = kms_info.get("status")

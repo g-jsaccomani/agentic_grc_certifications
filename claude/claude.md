@@ -4,7 +4,7 @@
 **Repository:** `agentic_grc_certifications`  
 **Execution Date:** 2026-09-08  
 **Implementation Source:** `handoff-agentic-grc-multiagente.md`  
-**Status:** COMPLETE & VERIFIED (179/179 Pytest Suite Passing, 92% Code Coverage, Real FinOps Token Telemetry, Algorithmic Token-Saving Tips Engine, Compact Single-Row Provider Strip, Collapsible GCP Scope Sub-Tree, Dual-Token Dev Ergonomics, Clean Gemini UI Refactor)
+**Status:** COMPLETE & VERIFIED (182/182 Pytest Suite Passing, 92% Code Coverage, Telemetry Grounding Integrity, Questionnaire Intent Routing, GenAI SDK Warning Suppression, Real FinOps Token Telemetry, Algorithmic Token-Saving Tips Engine, Compact Single-Row Provider Strip, Collapsible GCP Scope Sub-Tree, Dual-Token Dev Ergonomics, Clean Gemini UI Refactor)
 
 ---
 
@@ -1424,4 +1424,51 @@ The reporting generators in `mcp_server_grc/portal.py` were enriched across `/ap
   - Unauthenticated requests when `ALLOW_DEV_AUTH_BYPASS` is unset return HTTP 401 as expected.
   - Mock tokens and dev bypass return HTTP 200 with real-time Cloud KMS (ISO 27001 Control A.8.24) audit analysis.
   - 179/179 test suite passing (100%), 87% overall coverage.
+
+### Milestone 37: Audit Rigor, Telemetry Integrity & SDK Warning Suppression (2026-09-08)
+
+#### A. CRITICAL — Elimination of Static Catalog Demo Data as Verified Telemetry
+- **Root Cause**:
+  In `mcp_server_grc/questionnaire.py`, `sync_scan_telemetry_to_questionnaire("ISO27001:2022")` was executing at module import time as well as inside `get_questionnaire` and `get_questionnaire_summary`. It copied 88 hardcoded `status="COMPLIANT"` controls from `ISO_27001_CATALOG` in `mcp_server_grc/catalog.py` directly into `QUESTIONNAIRE_ANSWERS` under `EvidenceVerificationTier.TELEMETRY` (the highest trust tier) with synthetic scanner identity `gcp-telemetry-scanner@client.corp`. This presented static illustrative seed data as authentic machine telemetry.
+- **Architectural Fix**:
+  1. **Removed Import-Time and Automatic Execution**: Removed the top-level call `sync_scan_telemetry_to_questionnaire("ISO27001:2022")` from `mcp_server_grc/questionnaire.py`, and removed auto-sync calls from `get_questionnaire` and `get_questionnaire_summary`.
+  2. **Strict Telemetry Grounding**: Refactored `sync_scan_telemetry_to_questionnaire` to accept `scan_results: Optional[List[Dict[str, Any]]] = None` or only synchronize controls that have verified links in `ci_engine.evidence_graph.links`. If no real scan has run, it synchronizes 0 controls and returns 0.
+  3. **Catalog Demarcation**: Added an explicit architectural notice to `mcp_server_grc/catalog.py` documenting that `ISO_27001_CATALOG` is non-authoritative illustrative demo seed data and must never be treated as verified telemetry.
+  4. **Unsubmitted Controls Default**: In `mcp_server_grc/questionnaire_catalog.py` and `mcp_server_grc/questionnaire.py`, default status for unsubmitted controls is now `"NOT_ANSWERED"` instead of `"COMPLIANT"`.
+- **Verification**:
+  - `test_questionnaire_summary_clean_in_memory_state` in `tests/test_questionnaire.py` verifies that a clean server startup reports:
+    - `total_controls`: 93
+    - `answered`: 0
+    - `compliant`: 0
+    - `non_compliant`: 0
+    - `not_applicable`: 0
+    - `completion_percentage`: 0.0%
+
+#### B. Deterministic Chat Intent Routing for Questionnaire Status Queries
+- **Root Cause**:
+  In `mcp_server_grc/portal.py` (`POST /api/chat`), user queries asking about questionnaire progress or pending controls (e.g. "quais controles faltam responder?" or "which controls are still unanswered?") inadvertently triggered an unrelated live Cloud IAM inspection (`inspect_cloud_iam`). This occurred because the heuristic `if any(k in lower_msg for k in [..., "roles", ...])` matched `"roles"` as a substring inside the Portuguese word `"controles"`.
+- **Architectural Fix**:
+  1. **Keyword Word Boundary**: Replaced substring `"roles"` matching with a strict word-boundary regex `re.search(r"\broles?\b", lower_msg)`.
+  2. **Questionnaire Intent Detection**: Added prioritized keyword detection for questionnaire status inquiries: `["unanswered", "pendente", "faltam", "completion", "progresso", "questionnaire", "questionário", "questionario"]`.
+  3. **Tool Context & Tool Execution**: Bypasses cloud asset inspection when a questionnaire intent is detected, registers `get_questionnaire_summary` into `auditor_tools`, and configures `LLMSubAgent` to handle `get_questionnaire_summary`.
+  4. **Bilingual Fallback Reporting**: In deterministic fallback, renders a comprehensive bilingual status overview (`ISO27001:2022`: 93 total, answered, compliant, non-compliant, remaining unanswered) and attaches `get_questionnaire_summary` to `tool_evidence`, with zero IAM tool calls.
+- **Verification**:
+  - `test_chat_questionnaire_status_fallback_routing` in `tests/test_portal.py` validates queries in Portuguese and English (`"which controls are still unanswered?"`, `"quais controles faltam responder?"`, `"what is the questionnaire completion progress?"`), asserting:
+    - HTTP 200 with 93 controls summary.
+    - `tool_evidence` contains `get_questionnaire_summary`.
+    - `tool_evidence` strictly excludes `inspect_cloud_iam` and `inspect_project_iam_policy`.
+
+#### C. Google-GenAI SDK Cleanup Warning Suppression
+- **Root Cause**:
+  When `genai.Client(api_key=...)` fails initialization (e.g. in offline or deterministic fallback environments where no API key is provided), the Google GenAI SDK's `BaseApiClient.__init__` raises `ValueError: No API key was provided` before initializing `self._async_httpx_client`. Upon garbage collection, `BaseApiClient.__del__` schedules `self.aclose()` onto the running asyncio event loop. When the event loop subsequently executes `aclose()`, it attempts to read `self._async_httpx_client`, raising `AttributeError` which logs an unretrieved asyncio task exception warning.
+- **Architectural Fix**:
+  1. Implemented `suppress_genai_client_cleanup_warning()` in `agent_orchestrator/llm_subagent.py` and invoked it during module initialization and in `agent_orchestrator/agent.py`.
+  2. The utility wraps `BaseApiClient.aclose` and `BaseApiClient.__del__` to inspect `hasattr(self, "_async_httpx_client")` and ensure it is not None before scheduling or attempting asynchronous client shutdown.
+- **Verification**:
+  - `test_genai_client_failed_init_warning_suppressed` in `tests/test_portal.py` triggers failed client initialization, runs garbage collection, and ticks the asyncio event loop with a custom exception handler, confirming zero unretrieved `_async_httpx_client` task exceptions.
+
+#### D. Full Test Suite Results
+- **Pass Rate**: 182 / 182 tests passing (100% pass rate in 14.87s).
+- **Code Coverage**: $\ge 92\%$ across all modules.
+
 

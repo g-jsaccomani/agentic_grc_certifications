@@ -517,6 +517,27 @@ def test_get_questionnaire_multilingual_pt_en_es():
     assert "Política General de Seguridad" in c_a51_es["recommended_evidence"]
 
 
+def test_questionnaire_summary_clean_in_memory_state():
+    """A freshly started server with zero questionnaire submissions and zero real
+    scans must report answered=0, compliant=0 in GET /api/questionnaire/summary."""
+    from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
+    saved_answers = dict(QUESTIONNAIRE_ANSWERS)
+    try:
+        QUESTIONNAIRE_ANSWERS.clear()
+        res = client.get("/api/questionnaire/summary?framework=ISO27001:2022")
+        assert res.status_code == 200
+        data = res.json()
+        assert data["framework"] == "ISO27001:2022"
+        assert data["total_controls"] == 93
+        assert data["answered"] == 0
+        assert data["compliant"] == 0
+        assert data["non_compliant"] == 0
+        assert data["not_applicable"] == 0
+        assert data["completion_percentage"] == 0.0
+    finally:
+        QUESTIONNAIRE_ANSWERS.update(saved_answers)
+
+
 def test_get_questionnaire_summary():
     """GET /api/questionnaire/summary computes accurate counts and completion percentage."""
     res = client.get("/api/questionnaire/summary?framework=ISO27001:2022")

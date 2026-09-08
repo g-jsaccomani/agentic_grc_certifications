@@ -151,64 +151,81 @@ class QuestionnaireSummaryResponse(BaseModel):
 def sync_scan_telemetry_to_questionnaire(
     framework: str = "ISO27001:2022",
     overwrite_self_attested: bool = False,
+    scan_results: Optional[List[Dict[str, Any]]] = None,
 ) -> int:
-    """Synchronizes verified compliance telemetry from the audit scan catalog into questionnaire answers.
+    """Synchronizes verified compliance telemetry from real scan executions into questionnaire answers.
 
-    Ensures that all controls verified as COMPLIANT by the automated GCP scan have registered,
-    up-to-date answers with factual compliance evidence.
+    Must ONLY be invoked after a real scan has executed (e.g. cloud_inspector live inspection
+    or proactive audit cycle in EvidenceGraph). Never loads from static catalog seed data.
     """
-    if framework == "ISO27001:2022":
-        catalog = ISO_27001_CATALOG
-    elif framework == "SOC2":
-        catalog = SOC2_CATALOG
+    items_to_sync: List[Dict[str, Any]] = []
+
+    if scan_results:
+        items_to_sync = scan_results
     else:
+        # Check if real audit cycle findings exist in continuous intelligence evidence graph
+        try:
+            from mcp_server_grc.portal import ci_engine
+            for link in ci_engine.evidence_graph.links:
+                if link.framework == framework:
+                    items_to_sync.append({
+                        "control_id": link.control_id,
+                        "status": link.status,
+                        "justification": link.justification,
+                        "evidence_text": f"Telemetry verified via Continuous Intelligence cycle. Link ID: {link.link_id}",
+                        "evidence_uri": f"gcp://evidence-graph/link/{link.link_id}",
+                        "verification_tier": EvidenceVerificationTier.TELEMETRY.value,
+                    })
+        except Exception:
+            pass
+
+    if not items_to_sync:
         return 0
 
     now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
     synced_count = 0
 
-    for c in catalog:
-        cid = c.get("id")
-        status = c.get("status", "").upper()
-        if status != "COMPLIANT":
+    for item in items_to_sync:
+        cid = item.get("control_id") or item.get("id")
+        if not cid:
+            continue
+        norm_cid = re.sub(r"^ISO(?:/IEC)?\s*27001(?::2022)?\s*", "", str(cid)).strip()
+        status = item.get("status", "").upper()
+        if not status:
             continue
 
-        key = (framework, cid)
+        key = (framework, norm_cid)
         existing = QUESTIONNAIRE_ANSWERS.get(key)
         # Preserve human self-attested answers if already present unless explicitly requested
         if existing and not overwrite_self_attested and existing.user_email and existing.user_email != "gcp-telemetry-scanner@client.corp":
             continue
 
-        phase = c.get("phase") or "Auditoria Automatizada GCP"
-        ev_text = c.get("evidence") or f"Auditoria automatizada do controle {cid} concluída com sucesso no ambiente Google Cloud."
-        gcp_map = c.get("gcp_mapping") or "Telemetria Google Cloud"
-
-        justification = (
-            f"Evidência de conformidade verificada via Scan por Fases ({phase}): {ev_text} "
+        phase = item.get("phase") or "Auditoria Automatizada GCP"
+        ev_text = item.get("evidence_text") or item.get("evidence") or f"Auditoria automatizada do controle {norm_cid} concluída no ambiente Google Cloud."
+        gcp_map = item.get("gcp_mapping") or "Telemetria Google Cloud"
+        justification = item.get("justification") or (
+            f"Evidência de conformidade verificada via Scan real ({phase}): {ev_text} "
             f"[Mapeamento GCP: {gcp_map}]"
         )
-        safe_cid = cid.lower().replace(".", "_")
+        safe_cid = norm_cid.lower().replace(".", "_")
 
         QUESTIONNAIRE_ANSWERS[key] = QuestionnaireAnswer(
-            control_id=cid,
+            control_id=norm_cid,
             framework=framework,
-            status="COMPLIANT",
+            status=status,
             justification=justification,
             evidence_text=ev_text,
-            evidence_uri=f"gcp://telemetry/scan/{safe_cid}",
+            evidence_uri=item.get("evidence_uri") or f"gcp://telemetry/scan/{safe_cid}",
             updated_at=now_ts,
-            user_email="gcp-telemetry-scanner@client.corp",
-            verification_tier=EvidenceVerificationTier.TELEMETRY.value,
-            ai_consistency_verdict="COMPLIANT",
-            ai_consistency_reasoning="Evidência de telemetria GCP verificada via Scan por Fases validada com sucesso pelo auditor de conformidade.",
+            user_email=item.get("user_email") or "gcp-telemetry-scanner@client.corp",
+            verification_tier=item.get("verification_tier") or EvidenceVerificationTier.TELEMETRY.value,
+            ai_consistency_verdict=status if status in ("COMPLIANT", "NON_COMPLIANT") else "COMPLIANT_WITH_OBSERVATION",
+            ai_consistency_reasoning="Evidência de telemetria GCP verificada via Scan real validada com sucesso pelo auditor de conformidade.",
         )
         synced_count += 1
 
     return synced_count
 
-
-# Baseline synchronization for ISO 27001 compliance telemetry
-sync_scan_telemetry_to_questionnaire("ISO27001:2022")
 
 
 
@@ -773,10 +790,6 @@ async def get_questionnaire(
         norm_lang = "pt"
 
     if framework in ("ISO27001:2022", "SOC2"):
-        if framework == "ISO27001:2022":
-            has_iso = any(fw == "ISO27001:2022" for (fw, _cid) in QUESTIONNAIRE_ANSWERS.keys())
-            if not has_iso:
-                sync_scan_telemetry_to_questionnaire("ISO27001:2022")
         base_controls = get_localized_catalog(framework, lang=norm_lang)
         themes = get_localized_themes(framework, lang=norm_lang)
     else:
@@ -823,7 +836,7 @@ async def get_questionnaire(
             status = ans.status
         else:
             ans_dict = None
-            status = c.get("status", "NOT_ANSWERED")
+            status = "NOT_ANSWERED"
 
         controls_output.append({
             "id": cid,
@@ -866,9 +879,6 @@ async def get_questionnaire_summary(
 ):
     """Computes completion and compliance statistics for the requested framework."""
     if framework == "ISO27001:2022":
-        has_iso = any(fw == "ISO27001:2022" for (fw, _cid) in QUESTIONNAIRE_ANSWERS.keys())
-        if not has_iso:
-            sync_scan_telemetry_to_questionnaire("ISO27001:2022")
         base_controls = ISO_27001_CATALOG
     elif framework == "SOC2":
         base_controls = SOC2_CATALOG

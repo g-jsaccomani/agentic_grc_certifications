@@ -18,6 +18,51 @@ from google.genai import types
 logger = logging.getLogger("grc.llm_subagent")
 
 
+def suppress_genai_client_cleanup_warning() -> None:
+    """Suppresses benign google-genai SDK cleanup warning when Client() fails to initialize.
+
+    When Client() fails (e.g. absent credentials), Python garbage-collects the partially
+    initialized BaseApiClient instance. BaseApiClient.__del__ unconditionally schedules
+    aclose() in the running event loop. Because initialization aborted before _async_httpx_client
+    was attached, aclose() raises AttributeError: 'BaseApiClient' object has no attribute '_async_httpx_client',
+    logged by asyncio as 'Task exception was never retrieved'.
+    This patch ensures cleanup is only performed if _async_httpx_client was actually initialized.
+    """
+    try:
+        from google.genai.client import BaseApiClient
+
+        _orig_aclose = getattr(BaseApiClient, "aclose", None)
+        if _orig_aclose and getattr(BaseApiClient, "_grc_safe_cleanup_patched", False) is not True:
+            async def _safe_aclose(self) -> None:
+                if not hasattr(self, "_async_httpx_client") or self._async_httpx_client is None:
+                    return
+                try:
+                    await _orig_aclose(self)
+                except (AttributeError, Exception):
+                    pass
+
+            BaseApiClient.aclose = _safe_aclose
+
+        _orig_del = getattr(BaseApiClient, "__del__", None)
+        if _orig_del and getattr(BaseApiClient, "_grc_safe_del_patched", False) is not True:
+            def _safe_del(self) -> None:
+                if not hasattr(self, "_async_httpx_client") or self._async_httpx_client is None:
+                    return
+                try:
+                    _orig_del(self)
+                except Exception:
+                    pass
+
+            BaseApiClient.__del__ = _safe_del
+            BaseApiClient._grc_safe_cleanup_patched = True
+            BaseApiClient._grc_safe_del_patched = True
+    except Exception as exc:
+        logger.debug("Failed to patch google-genai BaseApiClient cleanup: %s", exc)
+
+
+suppress_genai_client_cleanup_warning()
+
+
 class LLMSubAgent:
     """Enterprise LLM Sub-Agent with Gemini Function Calling & Grounding."""
 
@@ -186,6 +231,13 @@ class LLMSubAgent:
                 "type": "object",
                 "properties": {
                     "project_id": {"type": "string", "description": "GCP Project ID"},
+                },
+                "required": [],
+            },
+            "get_questionnaire_summary": {
+                "type": "object",
+                "properties": {
+                    "framework": {"type": "string", "description": "Compliance framework identifier (default ISO27001:2022)"},
                 },
                 "required": [],
             },
@@ -490,17 +542,37 @@ class LLMSubAgent:
                 t = ev.get("tool", "")
                 r = ev.get("result", {})
                 if isinstance(r, dict):
-                    st = r.get("status", "UNKNOWN")
-                    std = r.get("standard") or r.get("control") or t
-                    detail_lines.append(f"- **{std}**: `{st}`")
-                    for v in r.get("violations", []):
-                        detail_lines.append(f"  * Violação: {v}")
-                    for rec in r.get("recommendations", []):
-                        detail_lines.append(f"  * Recomendação: {rec}")
+                    if t == "get_questionnaire_summary":
+                        st = "COMPLIANT" if r.get("completion_percentage", 0) == 100.0 else "IN_PROGRESS"
+                        fw = r.get("framework", "ISO27001:2022")
+                        detail_lines.append(
+                            f"- **Questionário ({fw})**: `{st}` — Respondidos: {r.get('answered', 0)}/{r.get('total_controls', 93)} "
+                            f"({r.get('completion_percentage', 0.0)}%), Conformes: {r.get('compliant', 0)}, "
+                            f"Não Conformes: {r.get('non_compliant', 0)}, Pendentes: {r.get('total_controls', 93) - r.get('answered', 0)}"
+                        )
+                    else:
+                        st = r.get("status", "UNKNOWN")
+                        std = r.get("standard") or r.get("control") or t
+                        detail_lines.append(f"- **{std}**: `{st}`")
+                        for v in r.get("violations", []):
+                            detail_lines.append(f"  * Violação: {v}")
+                        for rec in r.get("recommendations", []):
+                            detail_lines.append(f"  * Recomendação: {rec}")
 
             details_text = ("\n\n" + "\n".join(detail_lines)) if detail_lines else ""
 
-            if has_violations:
+            if any(e.get("tool") == "get_questionnaire_summary" for e in tool_evidence):
+                q_ev = next(e for e in tool_evidence if e.get("tool") == "get_questionnaire_summary")
+                q_res = q_ev.get("result", {})
+                pct = q_res.get("completion_percentage", 0.0)
+                verdict = "COMPLIANT" if pct == 100.0 else "IN_PROGRESS"
+                narrative = (
+                    f"Auditor '{self.name}': Questionnaire completion status evaluated for {q_res.get('framework', 'ISO27001:2022')}. "
+                    f"Answered: {q_res.get('answered', 0)}/{q_res.get('total_controls', 93)} ({pct}%). "
+                    f"Compliant: {q_res.get('compliant', 0)}, Non-Compliant: {q_res.get('non_compliant', 0)}, "
+                    f"Pending: {q_res.get('total_controls', 93) - q_res.get('answered', 0)}.{details_text}"
+                )
+            elif has_violations:
                 verdict = "NON_COMPLIANT"
                 narrative = (
                     f"Auditor '{self.name}': Non-compliance detected across assessed controls. "
