@@ -1760,3 +1760,18 @@ A targeted documentation accuracy pass was conducted to align operational runboo
 - Zero application code was touched.
 - All 184 tests pass without regressions.
 - All modified markdown files verified clean and emoji-free.
+
+---
+
+### Milestone 41: HOW_TO.md Simplification & Google Cloud (GCP) Specialization (2026-09-08)
+
+#### A. Executive Summary & Changes
+Per user request, [`documentation/poc/HOW_TO.md`](../documentation/poc/HOW_TO.md) was streamlined into a dedicated, high-impact Google Cloud Platform (GCP) demonstration and operations runbook:
+1. **Removed Non-Cloud / Local Clutter**:
+   - Stripped all local development instructions (`http://localhost:8080`, `make install`, local Python environments, local `pytest` executions, and local workstation script workflows).
+2. **Focused Exclusively on Live Cloud Run & GCP Services**:
+   - Standardized on the live Cloud Run production portal (`https://mcp-server-grc-938078169010.us-central1.run.app/portal`) and discovery endpoints.
+   - Grounded operations in Google Cloud services: Cloud Run instance warming (`min-instances=1`), Vertex AI (Gemini 2.5), Model Armor, and read-only Cloud Asset Inventory queries across connected lab projects (`fnlab-apps-8fa913`, `fnlab-ai-data-8fa913`, `fnlab-sec-mgmt-8fa913`, `aispr-core-1cab11`).
+3. **Simplified Structure**:
+   - Structured into 4 clean sections: Cloud Pre-Flight Verification, Live Cloud Demonstration Flow (7 concise steps with presenter talking tracks), Executive Questions & Answers (FAQ), and Google Cloud Operational Commands (`gcloud run`).
+   - 100% in English, completely free of emojis, and aligned with the read-only prescriptive remediation model.
