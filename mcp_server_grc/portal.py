@@ -16,7 +16,7 @@ from fastapi import APIRouter, File, UploadFile, Response, Query, HTTPException,
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 
-from mcp_server_grc.auth import WorkspaceUserContext, get_current_workspace_user
+from mcp_server_grc.auth import WorkspaceUserContext, get_current_workspace_user, require_authenticated_workspace_user
 from agent_orchestrator.evidence_graph import EvidenceVerificationTier
 from agent_orchestrator.gateway import ModelArmorGateway
 from agent_orchestrator.continuous_intelligence import ContinuousIntelligenceEngine
@@ -106,6 +106,7 @@ class StorageLinkRequest(BaseModel):
 class SubagentTriggerRequest(BaseModel):
     subagent: str = Field(..., description="annex_a, gcp_telemetry, org_policies, or horizon_scanner")
     target: Optional[str] = Field(default="default-target")
+    user_token: Optional[str] = Field(default=None, description="Delegated user OAuth token")
 
 
 class RemediationApprovalRequest(BaseModel):
@@ -508,12 +509,31 @@ async def get_finops_metrics():
     return finops_tracker.get_summary()
 
 
+@router.get("/api/finops/tips")
+async def get_finops_token_saving_tips():
+    """Computes and returns algorithmic token-saving tips based on empirical recorded usage."""
+    return {"tips": finops_tracker.get_token_saving_tips()}
+
+
 @router.post("/api/finops/simulate")
 async def simulate_finops_audit():
-    """Simulates an enterprise multi-project continuous audit run and updates FinOps telemetry."""
-    finops_tracker.record_usage("lead-auditor", prompt_tokens=25000, completion_tokens=8500, cached_tokens=40000, model_key="gemini-2.5-pro")
-    finops_tracker.record_usage("subagent-a8", prompt_tokens=18000, completion_tokens=6200, cached_tokens=30000, model_key="gemini-2.5-flash")
-    finops_tracker.record_usage("gcp-telemetry", prompt_tokens=22000, completion_tokens=7100, cached_tokens=35000, model_key="gemini-2.5-flash")
+    """Runs real subagent audit passes and records empirical usage telemetry."""
+    for ag_id, model_name in [("lead-auditor", "gemini-2.5-pro"), ("subagent-a8", "gemini-2.5-flash"), ("gcp-telemetry", "gemini-2.5-flash")]:
+        sub = LLMSubAgent(
+            name=ag_id,
+            system_instruction="Auditor de conformidade autônomo.",
+            tools={},
+            model_id=model_name,
+        )
+        res = sub.run("Verificar conformidade com baseline ISO 27001", max_turns=1)
+        u = res.get("usage") or {}
+        finops_tracker.record_usage(
+            agent_id=ag_id,
+            prompt_tokens=int(u.get("prompt_token_count", 0)),
+            completion_tokens=int(u.get("candidates_token_count", 0)),
+            cached_tokens=int(u.get("cached_content_token_count", 0)),
+            model_key=model_name,
+        )
     return finops_tracker.get_summary()
 
 
@@ -1111,6 +1131,93 @@ async def get_scorecard(framework: str = Query(default="ISO27001:2022")):
     return calculate_scorecard_data(framework=framework)
 
 
+# ---------------------------------------------------------------------------
+# Formal Audit Reporting: Methodology, Auditor Responsibility & Enriched Taxonomy
+# ---------------------------------------------------------------------------
+
+REPORT_METHODOLOGY_TEXT = (
+    "A auditoria foi conduzida através de metodologia híbrida contínua, combinando inspeção "
+    "técnica automatizada de configurações de infraestrutura e serviços em nuvem (telemetria ao vivo via "
+    "APIs GCP de Asset Inventory, Cloud KMS, Cloud Storage, IAM e Cloud Run) com evidências documentais "
+    "e declaratórias autoatestadas (Self-Attested) coletadas por questionários estruturados de conformidade "
+    "por controle da norma ABNT NBR ISO/IEC 27001:2022 (93 controles do Anexo A). Cada achado é registrado "
+    "com carimbo temporal e hash SHA-256 no Grafo Criptográfico de Evidências, garantindo rastreabilidade "
+    "e não-repúdio de ponta a ponta."
+)
+
+REPORT_TAXONOMY_DEFINITIONS = {
+    "NÃO CONFORMIDADE MAIOR": "Controle com desvio crítico e ausência total de evidência compensatória.",
+    "NÃO CONFORMIDADE MENOR": "Evidência parcial ou exclusivamente autoatestada para controle requerido, ou desvio técnico com mitigação parcial.",
+    "OPORTUNIDADE DE MELHORIA": "Controle conforme com recomendação técnica de otimização preventiva.",
+}
+
+
+def classify_audit_finding_severity(item: Any, compensating_evidence: bool = False) -> str:
+    """Maps control finding or evidence to the expanded 3-tier severity taxonomy at the report rendering layer:
+    - NÃO CONFORMIDADE MAIOR: A control with no compensating evidence at all (critical non-compliance).
+    - NÃO CONFORMIDADE MENOR: Partial or self-attested-only evidence for a required control.
+    - OPORTUNIDADE DE MELHORIA: Compliant control but with a noted improvement suggestion or observation.
+    - CONFORME: Fully verified compliant control with active telemetry.
+    """
+    if isinstance(item, str):
+        item = {"id": item, "status": "NON_COMPLIANT"}
+    elif not isinstance(item, dict):
+        item = {"status": "NON_COMPLIANT"}
+
+    raw_status = str(item.get("status", "")).upper()
+    tier = str(item.get("verification_tier", item.get("tier", ""))).upper()
+    remediation = item.get("remediation") or item.get("suggestion") or item.get("recommendation") or ""
+    has_compensating = compensating_evidence or item.get("has_compensating_evidence", False)
+
+    if raw_status in ("NON_COMPLIANT", "NÃO CONFORME", "FAIL"):
+        if has_compensating or tier == "SELF_ATTESTED" or item.get("has_partial_evidence"):
+            return "NÃO CONFORMIDADE MENOR"
+        return "NÃO CONFORMIDADE MAIOR"
+    elif raw_status in ("PARTIAL", "UNDETERMINED", "PENDING"):
+        return "NÃO CONFORMIDADE MENOR"
+    elif raw_status in ("COMPLIANT", "CONFORME", "PASS"):
+        rem_str = str(remediation).strip().lower()
+        if (rem_str and not rem_str.startswith("política") and not rem_str.startswith("conforme")) or tier == "SELF_ATTESTED" or item.get("improvement_opportunity"):
+            return "OPORTUNIDADE DE MELHORIA"
+        return "CONFORME"
+    return "OPORTUNIDADE DE MELHORIA"
+
+
+def get_auditor_responsibility_declaration(scorecard: Dict[str, Any]) -> Dict[str, Any]:
+    summary = scorecard.get("evidence_graph_summary", {})
+    verified_count = summary.get("verified_telemetry_count", 0)
+    self_attested_count = summary.get("self_attested_count", 0)
+    statement = (
+        "O sistema autônomo Agentic GRC Virtual Lead Auditor (alimentado por Gemini 2.5 na Google Enterprise "
+        "Agent Platform) assume a responsabilidade técnica pela execução das rotinas de inspeção automatizada "
+        "e consolidação dos achados deste relatório. Registra-se formalmente que, do total de evidências catalogadas, "
+        f"{verified_count} nós correspondem a achados verificados por máquina (VERIFIED - telemetria ao vivo de APIs GCP), "
+        f"enquanto {self_attested_count} nós representam evidências autoatestadas (SELF_ATTESTED - respostas declaratórias a "
+        "questionários de conformidade). As conclusões automatizadas refletem estritamente os dados telemétricos e "
+        "documentais disponíveis até a data e hora de encerramento do período auditado."
+    )
+    return {
+        "lead_auditor": "Agentic GRC Virtual Lead Auditor (Gemini 2.5 / SPIFFE Verified)",
+        "responsible_party": "Google Cloud Security Practice - Agentic GRC Platform",
+        "verified_machine_findings_count": verified_count,
+        "self_attested_findings_count": self_attested_count,
+        "statement": statement,
+    }
+
+
+def get_audited_period(now_dt: Optional[datetime.datetime] = None) -> Dict[str, str]:
+    now_utc = now_dt or datetime.datetime.now(datetime.timezone.utc)
+    start_dt = now_utc - datetime.timedelta(days=30)
+    start_str = start_dt.strftime("%Y-%m-%d 00:00:00 UTC")
+    end_str = now_utc.strftime("%Y-%m-%d %H:%M:%S UTC")
+    return {
+        "start": start_str,
+        "end": end_str,
+        "window_description": "Ciclo Contínuo de Avaliação de 30 Dias",
+        "formatted": f"{start_str} a {end_str} (Ciclo Contínuo de 30 Dias)",
+    }
+
+
 @router.get("/api/reports/executive", summary="Get Executive Compliance Dossier")
 async def get_executive_dossier(
     format: str = Query(default="json", description="json, html, or markdown"),
@@ -1119,18 +1226,25 @@ async def get_executive_dossier(
     """Returns Executive Compliance Dossier reflecting dynamic scorecard and explicit evidence tiers."""
     project_list = [p.strip() for p in projects.split(",") if p.strip()]
     scorecard = calculate_scorecard_data()
-    timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-    report_id = f"GCS-EXEC-ISO27001-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+    timestamp = now_utc.strftime("%Y-%m-%d %H:%M:%S UTC")
+    report_id = f"GCS-EXEC-ISO27001-{now_utc.strftime('%Y%m%d-%H%M%S')}"
+    audited_period = get_audited_period(now_utc)
+    auditor_resp = get_auditor_responsibility_declaration(scorecard)
 
     if format.lower() == "json":
         return {
             "document_title": "Google Cloud Security - Executive Compliance & Audit Dossier",
             "report_id": report_id,
             "generated_at": timestamp,
+            "audited_period": audited_period,
             "classification": "CONFIDENTIAL / EXECUTIVE DOSSIER",
             "standard": "ABNT NBR ISO/IEC 27001:2022 (Annex A) + Amd 1:2024",
             "projects_audited": project_list,
-            "lead_auditor": "Agentic GRC Virtual Lead Auditor (Gemini Enterprise Agent Platform)",
+            "lead_auditor": auditor_resp["lead_auditor"],
+            "methodology": REPORT_METHODOLOGY_TEXT,
+            "auditor_responsibility": auditor_resp,
+            "finding_severity_taxonomy": REPORT_TAXONOMY_DEFINITIONS,
             "overall_score": scorecard["overall_score"],
             "rating": scorecard["rating"],
             "scorecard": scorecard,
@@ -1161,17 +1275,34 @@ async def get_technical_report_api(
     """Returns granular Technical Audit Report with complete evidence chain and provenance."""
     project_list = [p.strip() for p in projects.split(",") if p.strip()]
     scorecard = calculate_scorecard_data()
-    timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-    report_id = f"GCS-TECH-ISO27001-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+    timestamp = now_utc.strftime("%Y-%m-%d %H:%M:%S UTC")
+    report_id = f"GCS-TECH-ISO27001-{now_utc.strftime('%Y%m%d-%H%M%S')}"
+    audited_period = get_audited_period(now_utc)
+    auditor_resp = get_auditor_responsibility_declaration(scorecard)
 
     if format.lower() == "json":
+        enriched_findings = []
+        for nc in scorecard.get("non_compliant_controls", []):
+            cid = nc if isinstance(nc, str) else nc.get("control_id", nc.get("id", ""))
+            enriched_findings.append({
+                "control_id": cid,
+                "status": "NON_COMPLIANT",
+                "taxonomy_severity": classify_audit_finding_severity(nc),
+            })
+
         return {
             "document_title": "Google Cloud Security - Technical Audit Report (External Auditor Edition)",
             "report_id": report_id,
             "generated_at": timestamp,
+            "audited_period": audited_period,
             "standard": "ABNT NBR ISO/IEC 27001:2022 + Amd 1:2024 (93 Controls)",
             "projects_audited": project_list,
-            "lead_auditor": "Agentic GRC Technical Lead Auditor (SPIFFE Verified / Gemini 2.5)",
+            "lead_auditor": auditor_resp["lead_auditor"],
+            "methodology": REPORT_METHODOLOGY_TEXT,
+            "auditor_responsibility": auditor_resp,
+            "finding_severity_taxonomy": REPORT_TAXONOMY_DEFINITIONS,
+            "non_compliant_findings": enriched_findings,
             "overall_score": scorecard["overall_score"],
             "rating": scorecard["rating"],
             "scorecard": scorecard,
@@ -1197,21 +1328,28 @@ async def export_report(
     """Exports comprehensive audit dossier in JSON, Markdown, or Executive Summary format."""
     project_list = [p.strip() for p in projects.split(",") if p.strip()]
     scorecard = calculate_scorecard_data()
-    timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-    report_id = f"GRC-AUDIT-ISO27001-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+    timestamp = now_utc.strftime("%Y-%m-%d %H:%M:%S UTC")
+    report_id = f"GRC-AUDIT-ISO27001-{now_utc.strftime('%Y%m%d-%H%M%S')}"
+    audited_period = get_audited_period(now_utc)
+    auditor_resp = get_auditor_responsibility_declaration(scorecard)
 
     if format.lower() == "json":
         data = {
             "document_title": "Google Cloud Security - Continuous Compliance & Audit Dossier",
             "organization": "Google Cloud Security",
             "practice": "Cybersecurity, Cloud Governance & Regulatory Compliance Practice",
-            "report_id": f"GCS-GRC-ISO27001-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}",
+            "report_id": f"GCS-GRC-ISO27001-{now_utc.strftime('%Y%m%d-%H%M%S')}",
             "generated_at": timestamp,
+            "audited_period": audited_period,
             "classification": "CONFIDENTIAL / FORMAL AUDIT DOSSIER",
             "standard": "ABNT NBR ISO/IEC 27001:2022 (Sistemas de Gestão de Segurança da Informação) + Amd 1:2024",
             "projects_audited": project_list,
-            "lead_auditor": "Agentic GRC Auditor (Google Cloud Security Virtual Lead Auditor)",
+            "lead_auditor": auditor_resp["lead_auditor"],
             "platform": "Gemini Enterprise Agent Platform (GEAP)",
+            "methodology": REPORT_METHODOLOGY_TEXT,
+            "auditor_responsibility": auditor_resp,
+            "finding_severity_taxonomy": REPORT_TAXONOMY_DEFINITIONS,
             "overall_score": scorecard["overall_score"],
             "rating": scorecard["rating"],
             "evidence_nodes_count": scorecard["evidence_graph_summary"]["total_evidence_nodes"] or 22,
@@ -1227,6 +1365,7 @@ async def export_report(
                     "zone": "us-central1-a",
                     "internal_ip": "10.20.10.2",
                     "status": "NON_COMPLIANT",
+                    "taxonomy_severity": "NÃO CONFORMIDADE MAIOR",
                     "violations": ["A.5.17: Plaintext credentials in metadata (legacy-credentials: app_admin:StaticPasswordDemo2026)", "A.8.24: Boot disk lacks CMEK encryption", "A.8.14: Single zone deployment, deletionProtection=false"],
                     "remediation": "Remove metadata attributes; store password in Secret Manager; enable CMEK encryption."
                 },
@@ -1236,6 +1375,7 @@ async def export_report(
                     "zone": "us-central1-a",
                     "internal_ip": "10.20.10.3",
                     "status": "NON_COMPLIANT",
+                    "taxonomy_severity": "NÃO CONFORMIDADE MAIOR",
                     "violations": ["A.8.20: Unrestricted firewall ingress 0.0.0.0/0 on TCP:22 (SSH)", "A.8.28: OWASP API1 (BOLA), OWASP API7 config leak on /debug/env, OWASP LLM01 prompt injection on /api/v1/ai/chat", "A.8.24: Boot disk lacks CMEK"],
                     "remediation": "Delete open SSH firewall rule; restrict to IAP 35.235.240.0/20; enforce Model Armor on LLM endpoint."
                 },
@@ -1245,6 +1385,7 @@ async def export_report(
                     "zone": "us-central1-a",
                     "internal_ip": "10.30.10.2",
                     "status": "NON_COMPLIANT",
+                    "taxonomy_severity": "NÃO CONFORMIDADE MAIOR",
                     "violations": ["A.5.15: Service Account sa-ai-pipeline-dev has primitive roles/editor", "A.8.24: Boot disk lacks CMEK encryption", "A.8.14: Single zone deployment"],
                     "remediation": "Revoke roles/editor; bind least-privilege roles (roles/aiplatform.user); enable CMEK."
                 },
@@ -1254,6 +1395,7 @@ async def export_report(
                     "zone": "us-central1-a",
                     "internal_ip": "10.10.10.2",
                     "status": "NON_COMPLIANT",
+                    "taxonomy_severity": "NÃO CONFORMIDADE MAIOR",
                     "violations": ["A.5.15: Uses default Compute Engine service account", "A.8.24: Boot disk lacks CMEK encryption", "A.8.14: deletionProtection=false"],
                     "remediation": "Create dedicated hardened service account; attach CMEK kms-key-fintech-compliant."
                 },
@@ -1263,6 +1405,7 @@ async def export_report(
                     "zone": "us-central1-a",
                     "internal_ip": "10.50.10.2",
                     "status": "NON_COMPLIANT",
+                    "taxonomy_severity": "NÃO CONFORMIDADE MAIOR",
                     "violations": ["A.5.15: Service account sa-aispr-engine has overly broad cloud-platform OAuth scope", "A.8.24: Boot disk lacks CMEK encryption", "A.8.14: Single zone deployment"],
                     "remediation": "Narrow OAuth scopes; configure multi-zone MIG; enable CMEK encryption."
                 }
@@ -1480,6 +1623,15 @@ async def export_report(
             font-size: 11px;
             display: inline-block;
         }
+        .cloudstyle-badge-opportunity {
+            background: #e8f0fe;
+            color: #1a73e8;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            display: inline-block;
+        }
         .cloudstyle-seal-wrapper {
             margin-top: 40px;
             padding-top: 24px;
@@ -1589,6 +1741,10 @@ async def export_report(
                 <td>{timestamp}</td>
             </tr>
             <tr>
+                <td>Período Auditado</td>
+                <td><strong>{audited_period['formatted']}</strong></td>
+            </tr>
+            <tr>
                 <td>Norma & Emendas Auditadas</td>
                 <td>ABNT NBR ISO/IEC 27001:2022 (Anexo A - 93 Controles) + Amd 1:2024 (Ação Climática)</td>
             </tr>
@@ -1605,6 +1761,16 @@ async def export_report(
                 <td><span style="font-family: 'Roboto Mono', monospace; color: #137333; font-weight: 600;">Grafo de Evidências SHA-256 Imutável • Model Armor Ativo</span></td>
             </tr>
         </table>
+
+        <div class="cloudstyle-heading-block">Metodologia de Auditoria</div>
+        <p style="font-size: 13px; color: #3c4043; line-height: 1.6; margin-bottom: 20px;">
+            {REPORT_METHODOLOGY_TEXT}
+        </p>
+
+        <div class="cloudstyle-heading-block">Declaração de Responsabilidade do Auditor</div>
+        <p style="font-size: 13px; color: #3c4043; line-height: 1.6; margin-bottom: 20px;">
+            {auditor_resp['statement']}
+        </p>
 
         <div class="cloudstyle-highlights-grid">
             <div class="cloudstyle-highlight-item">
@@ -1655,7 +1821,7 @@ async def export_report(
                     <td><strong><code>vm-legacy-crm</code></strong></td>
                     <td><code>fnlab-apps-8fa913</code></td>
                     <td><code>10.20.10.2</code></td>
-                    <td><span class="cloudstyle-badge-danger">NÃO CONFORME</span></td>
+                    <td><span class="cloudstyle-badge-danger">NÃO CONFORMIDADE MAIOR</span></td>
                     <td><strong>A.5.17</strong>: Senha estática em metadados (<code>legacy-credentials</code>).<br><strong>A.8.24</strong>: Disco sem CMEK.<br><strong>A.8.14</strong>: Zona única sem failover.</td>
                     <td>Remover metadados; migrar credenciais para Secret Manager; associar chave CMEK.</td>
                 </tr>
@@ -1663,7 +1829,7 @@ async def export_report(
                     <td><strong><code>vm-payment-api</code></strong></td>
                     <td><code>fnlab-apps-8fa913</code></td>
                     <td><code>10.20.10.3</code></td>
-                    <td><span class="cloudstyle-badge-danger">NÃO CONFORME</span></td>
+                    <td><span class="cloudstyle-badge-danger">NÃO CONFORMIDADE MAIOR</span></td>
                     <td><strong>A.8.20</strong>: Firewall aberto <code>0.0.0.0/0:22</code>.<br><strong>A.8.28</strong>: BOLA (API1), vazamento em <code>/debug/env</code> e Prompt Injection (LLM01).<br><strong>A.8.24</strong>: Sem CMEK.</td>
                     <td>Excluir regra de firewall aberta; restringir ao IAP; aplicar Model Armor e autenticação JWT.</td>
                 </tr>
@@ -1671,7 +1837,7 @@ async def export_report(
                     <td><strong><code>vm-ai-inference</code></strong></td>
                     <td><code>fnlab-ai-data-8fa913</code></td>
                     <td><code>10.30.10.2</code></td>
-                    <td><span class="cloudstyle-badge-danger">NÃO CONFORME</span></td>
+                    <td><span class="cloudstyle-badge-danger">NÃO CONFORMIDADE MAIOR</span></td>
                     <td><strong>A.5.15</strong>: Conta de serviço possui papel primitivo <code>roles/editor</code>.<br><strong>A.8.24</strong>: Disco sem CMEK.<br><strong>A.8.14</strong>: Zona única.</td>
                     <td>Revogar <code>roles/editor</code>; conceder papéis de menor privilégio (Vertex AI User); anexar CMEK.</td>
                 </tr>
@@ -1679,7 +1845,7 @@ async def export_report(
                     <td><strong><code>vm-mgmt-bastion</code></strong></td>
                     <td><code>fnlab-sec-mgmt-8fa913</code></td>
                     <td><code>10.10.10.2</code></td>
-                    <td><span class="cloudstyle-badge-danger">NÃO CONFORME</span></td>
+                    <td><span class="cloudstyle-badge-danger">NÃO CONFORMIDADE MAIOR</span></td>
                     <td><strong>A.5.15</strong>: Usa Conta de Serviço Compute padrão (privilégios amplos).<br><strong>A.8.24</strong>: Sem proteção por chave do KeyRing de conformidade.</td>
                     <td>Criar conta de serviço dedicada e restrita; proteger disco de boot com <code>kms-key-fintech-compliant</code>.</td>
                 </tr>
@@ -1687,14 +1853,14 @@ async def export_report(
                     <td><strong><code>vm-aispr-runner</code></strong></td>
                     <td><code>aispr-core-1cab11</code></td>
                     <td><code>10.50.10.2</code></td>
-                    <td><span class="cloudstyle-badge-danger">NÃO CONFORME</span></td>
+                    <td><span class="cloudstyle-badge-danger">NÃO CONFORMIDADE MAIOR</span></td>
                     <td><strong>A.5.15</strong>: Escopo OAuth amplo <code>cloud-platform</code>.<br><strong>A.8.24</strong>: Sem CMEK no disco de auditoria de IA.<br><strong>A.8.14</strong>: Sem redundância multi-zona.</td>
                     <td>Restringir escopos OAuth; converter em MIG regional; criptografar com chave KMS corporativa.</td>
                 </tr>
             </tbody>
         </table>
 
-        <div class="cloudstyle-heading-block">1. Estrutura de Controles por Tema (ISO/IEC 27001:2022)</div>
+        <div class="cloudstyle-heading-block">2. Estrutura de Controles por Tema (ISO/IEC 27001:2022)</div>
         <table class="cloudstyle-table">
             <thead>
                 <tr>
@@ -1708,7 +1874,7 @@ async def export_report(
                 <tr>
                     <td><strong>A.5 Organizacional</strong></td>
                     <td>37 controles</td>
-                    <td><span class="cloudstyle-badge-danger">3 NÃO CONFORMES (91.9%)</span></td>
+                    <td><span class="cloudstyle-badge-danger">3 NÃO CONFORMIDADES MAIORES (91.9%)</span></td>
                     <td>A.5.15 (IAM excessivo), A.5.17 (Senha em metadados), A.5.23 (Bucket sem PAP/CMEK)</td>
                 </tr>
                 <tr>
@@ -1726,14 +1892,42 @@ async def export_report(
                 <tr>
                     <td><strong>A.8 Tecnológico</strong></td>
                     <td>34 controles</td>
-                    <td><span class="cloudstyle-badge-danger">6 NÃO CONFORMES (82.4%)</span></td>
+                    <td><span class="cloudstyle-badge-danger">6 NÃO CONFORMIDADES MAIORES (82.4%)</span></td>
                     <td>A.8.14 (Zona única), A.8.15/16 (Logs), A.8.20 (Firewall 0.0.0.0/0), A.8.24 (Sem CMEK), A.8.28 (BOLA/LLM)</td>
                 </tr>
                 <tr>
                     <td><strong>Amd 1:2024 Ação Climática</strong></td>
                     <td>Cláusulas 4.1 e 4.2</td>
-                    <td><span class="cloudstyle-badge-danger">NÃO CONFORME (A.8.14)</span></td>
+                    <td><span class="cloudstyle-badge-warning">NÃO CONFORMIDADE MENOR (A.8.14)</span></td>
                     <td>Frota sem topologia multi-regional; ausência de avaliação de risco de desastres climáticos zonais</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="cloudstyle-heading-block">3. Taxonomia de Severidade de Achados</div>
+        <table class="cloudstyle-table">
+            <thead>
+                <tr>
+                    <th style="width: 28%;">Classificação</th>
+                    <th style="width: 48%;">Critério Metodológico</th>
+                    <th style="width: 24%;">Ação Requerida</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="cloudstyle-badge-danger">NÃO CONFORMIDADE MAIOR</span></td>
+                    <td>Controle com desvio crítico e ausência total de evidência compensatória.</td>
+                    <td>Remediação prioritária imediata.</td>
+                </tr>
+                <tr>
+                    <td><span class="cloudstyle-badge-warning">NÃO CONFORMIDADE MENOR</span></td>
+                    <td>Evidência parcial ou exclusivamente autoatestada para controle requerido.</td>
+                    <td>Complementação com telemetria automatizada.</td>
+                </tr>
+                <tr>
+                    <td><span class="cloudstyle-badge-opportunity">OPORTUNIDADE DE MELHORIA</span></td>
+                    <td>Controle formalmente conforme, com recomendação técnica de hardening preventivo.</td>
+                    <td>Aprimoramento contínuo em sprint de governança.</td>
                 </tr>
             </tbody>
         </table>
@@ -1766,10 +1960,11 @@ async def export_report(
 ## DOSSIÊ EXECUTIVO DE AUDITORIA & CONFORMIDADE CONTÍNUA
 **Organização:** Google Cloud Security  
 **Prática Especializada:** Cybersecurity, Cloud Governance & Regulatory Compliance Advisory  
-**Código do Documento:** `GCS-GRC-ISO27001-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}`  
+**Código do Documento:** `GCS-GRC-ISO27001-{now_utc.strftime('%Y%m%d-%H%M%S')}`  
 **Data de Emissão:** {timestamp}  
+**Período Auditado:** {audited_period['formatted']}  
 **Classificação da Informação:** CONFIDENCIAL / RELATÓRIO DE AUDITORIA FORMAL  
-**Auditor Líder Responsável:** Agentic GRC Auditor (Autonomous Cognitive Lead Auditor - SPIFFE Validated)  
+**Auditor Líder Responsável:** {auditor_resp['lead_auditor']}  
 **Plataforma de Execução:** Gemini Enterprise Agent Platform (GEAP)  
 **Projetos GCP no Escopo de Auditoria:** {', '.join(project_list)}  
 **Normas Auditadas:** ABNT NBR ISO/IEC 27001:2022 (Anexo A - 93 Controles)  
@@ -1793,19 +1988,37 @@ Com base na coleta automatizada de telemetria, inspeção de configurações de 
 
 ---
 
-## 2. Inventário de Cargas de Trabalho e VMs Auditadas (Desvios Críticos)
-
-| Instância / VM | Projeto GCP | IP Privado | Status ISO 27001 | Desvios Críticos Identificados |
-| :--- | :--- | :--- | :--- | :--- |
-| **`vm-legacy-crm`** | `fnlab-apps-8fa913` | `10.20.10.2` | **NÃO CONFORME** | **A.5.17**: Senha estática em metadados (`legacy-credentials: app_admin:StaticPasswordDemo2026`).<br>**A.8.24**: Disco de boot sem CMEK.<br>**A.8.14**: Zona única `us-central1-a` sem failover. |
-| **`vm-payment-api`** | `fnlab-apps-8fa913` | `10.20.10.3` | **NÃO CONFORME** | **A.8.20**: Firewall aberto `0.0.0.0/0 -> tcp:22` (sem log).<br>**A.8.28**: Falhas BOLA (API1), vazamento em `/debug/env` e Prompt Injection (LLM01).<br>**A.8.24**: Sem CMEK. |
-| **`vm-ai-inference`** | `fnlab-ai-data-8fa913` | `10.30.10.2` | **NÃO CONFORME** | **A.5.15**: Conta `sa-ai-pipeline-dev` com papel primitivo `roles/editor`.<br>**A.8.24**: Disco sem CMEK.<br>**A.8.14**: Zona única sem alta disponibilidade. |
-| **`vm-mgmt-bastion`** | `fnlab-sec-mgmt-8fa913` | `10.10.10.2` | **NÃO CONFORME** | **A.5.15**: Usa Conta de Serviço Compute padrão.<br>**A.8.24**: Disco sem chave do KeyRing `kr-iso-compliance-mgmt`.<br>**A.8.14**: `deletionProtection: false`. |
-| **`vm-aispr-runner`** | `aispr-core-1cab11` | `10.50.10.2` | **NÃO CONFORME** | **A.5.15**: Escopo OAuth amplo `cloud-platform`.<br>**A.8.24**: Disco do executor sem CMEK.<br>**A.8.14**: Sem redundância regional. |
+## 2. Metodologia de Auditoria
+{REPORT_METHODOLOGY_TEXT}
 
 ---
 
-## 3. Resultados por Fases de Auditoria
+## 3. Declaração de Responsabilidade do Auditor
+{auditor_resp['statement']}
+
+---
+
+## 4. Taxonomia de Severidade de Achados
+- **NÃO CONFORMIDADE MAIOR**: Controle com desvio crítico e ausência total de evidência compensatória.
+- **NÃO CONFORMIDADE MENOR**: Evidência parcial ou exclusivamente autoatestada para controle requerido.
+- **OPORTUNIDADE DE MELHORIA**: Controle formalmente conforme, com recomendação técnica preventiva.
+- **CONFORME**: Controle com verificação automatizada completa e sem apontamentos de desvio.
+
+---
+
+## 5. Inventário de Cargas de Trabalho e VMs Auditadas (Desvios Críticos)
+
+| Instância / VM | Projeto GCP | IP Privado | Status ISO 27001 | Desvios Críticos Identificados |
+| :--- | :--- | :--- | :--- | :--- |
+| **`vm-legacy-crm`** | `fnlab-apps-8fa913` | `10.20.10.2` | **NÃO CONFORMIDADE MAIOR** | **A.5.17**: Senha estática em metadados (`legacy-credentials: app_admin:StaticPasswordDemo2026`).<br>**A.8.24**: Disco de boot sem CMEK.<br>**A.8.14**: Zona única `us-central1-a` sem failover. |
+| **`vm-payment-api`** | `fnlab-apps-8fa913` | `10.20.10.3` | **NÃO CONFORMIDADE MAIOR** | **A.8.20**: Firewall aberto `0.0.0.0/0 -> tcp:22` (sem log).<br>**A.8.28**: Falhas BOLA (API1), vazamento em `/debug/env` e Prompt Injection (LLM01).<br>**A.8.24**: Sem CMEK. |
+| **`vm-ai-inference`** | `fnlab-ai-data-8fa913` | `10.30.10.2` | **NÃO CONFORMIDADE MAIOR** | **A.5.15**: Conta `sa-ai-pipeline-dev` com papel primitivo `roles/editor`.<br>**A.8.24**: Disco sem CMEK.<br>**A.8.14**: Zona única sem alta disponibilidade. |
+| **`vm-mgmt-bastion`** | `fnlab-sec-mgmt-8fa913` | `10.10.10.2` | **NÃO CONFORMIDADE MAIOR** | **A.5.15**: Usa Conta de Serviço Compute padrão.<br>**A.8.24**: Disco sem chave do KeyRing `kr-iso-compliance-mgmt`.<br>**A.8.14**: `deletionProtection: false`. |
+| **`vm-aispr-runner`** | `aispr-core-1cab11` | `10.50.10.2` | **NÃO CONFORMIDADE MAIOR** | **A.5.15**: Escopo OAuth amplo `cloud-platform`.<br>**A.8.24**: Disco do executor sem CMEK.<br>**A.8.14**: Sem redundância regional. |
+
+---
+
+## 6. Resultados por Fases de Auditoria
 
 ### Fase 1: Descoberta de Ativos & IAM
 - **Status:** CONFORME (100%)
@@ -1831,13 +2044,14 @@ Com base na coleta automatizada de telemetria, inspeção de configurações de 
 
 ---
 
-## 3. Matriz Completa de Controles Avaliados
+## 7. Matriz Completa de Controles Avaliados
 
 | Controle | Nome | Tema | Mapeamento GCP | Status | Severidade |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 """
         for c in ISO_27001_CATALOG:
-            md += f"| **{c['id']}** | {c['name']} | {c['theme']} | `{c['gcp_mapping']}` | **{c['status']}** | {c['severity']} |\n"
+            tax_sev = classify_audit_finding_severity(c)
+            md += f"| **{c['id']}** | {c['name']} | {c['theme']} | `{c['gcp_mapping']}` | **{tax_sev}** | {c['severity']} |\n"
 
         md += """
 ---
@@ -1856,7 +2070,7 @@ Com base na coleta automatizada de telemetria, inspeção de configurações de 
 @router.post("/api/chat")
 async def handle_chat(
     req: ChatRequest,
-    user_context: WorkspaceUserContext = Depends(get_current_workspace_user),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
     authorization: Optional[str] = Header(None),
 ):
     """Processes user chat prompts and routes to Vertex AI Gemini or specialized subagents."""
@@ -1879,8 +2093,8 @@ async def handle_chat(
     if not ingress_verdict.allowed:
         finops_tracker.record_usage(
             "model-armor-interception",
-            prompt_tokens=len(msg),
-            completion_tokens=150,
+            prompt_tokens=0,
+            completion_tokens=0,
             cached_tokens=0,
             model_key="model-armor",
         )
@@ -1904,18 +2118,12 @@ async def handle_chat(
             model_key = "gemini-2.5-flash"
         elif req.model == "gemini-2.5-pro":
             model_key = "gemini-2.5-pro"
-    finops_tracker.record_usage(
-        "lead-auditor",
-        prompt_tokens=len(msg) * 2 + 1400,
-        completion_tokens=850,
-        cached_tokens=3200,
-        model_key=model_key,
-    )
     lower_msg = sanitized_msg.lower()
     projects = req.selected_projects or ["agentic-grc-cd06"]
 
     # Deterministic Subagent Test Triggers
     if lower_msg == "audit kms cryptography a.8.24":
+        finops_tracker.record_usage("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
         finding = annex_a_subagent.audit_cryptography_a824(
             "key-client-primary",
             {"rotation_period_seconds": 5184000, "protection_level": "HSM", "require_hsm": True}
@@ -1931,6 +2139,7 @@ async def handle_chat(
         return {"response": response_text, "subagent_used": "AnnexASubAgent"}
 
     elif lower_msg == "horizon scanning regulatory update":
+        finops_tracker.record_usage("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
         updates = horizon_scanner_subagent.scan_regulatory_updates()
         proposal = horizon_scanner_subagent.generate_policy_amendment_proposal(updates[0], "Current policy")
         response_text = (
@@ -1950,6 +2159,7 @@ async def handle_chat(
         }
 
     elif lower_msg == "execute proactive audit":
+        finops_tracker.record_usage("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
         sample_assets = [
             {
                 "target_control": "ISO/IEC 27001:2022 A.5.23",
@@ -1991,6 +2201,7 @@ async def handle_chat(
             "subagent_used": "ContinuousIntelligenceEngine",
         }
     elif "capability" in lower_msg or "capacidade" in lower_msg or lower_msg == "what is your capability?":
+        finops_tracker.record_usage("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
         return {
             "response": (
                 "Agentic GRC Auditor - GEAP Compliance & Continuous Audit Agent (Google Cloud Security)\n\n"
@@ -2112,6 +2323,16 @@ async def handle_chat(
         ai_response = subagent_res.get("narrative", "")
         tool_evidence = subagent_res.get("tool_evidence", [])
         execution_mode = subagent_res.get("execution_mode", "unknown")
+        usage = subagent_res.get("usage") or {}
+        finops_tracker.record_usage(
+            agent_id="lead-auditor",
+            name="Lead Auditor Orquestrador",
+            category="Orquestração Executiva",
+            prompt_tokens=int(usage.get("prompt_token_count", 0)),
+            completion_tokens=int(usage.get("candidates_token_count", 0)),
+            cached_tokens=int(usage.get("cached_content_token_count", 0)),
+            model_key=model_key,
+        )
         logger.info(
             f"[Chat Audit] Subagent '{chat_subagent.name}' completed with execution_mode='{execution_mode}', status='{subagent_res.get('status')}', tool_evidence_count={len(tool_evidence)}"
         )
@@ -2120,6 +2341,15 @@ async def handle_chat(
         ai_response = ""
         tool_evidence = []
         execution_mode = "error"
+        finops_tracker.record_usage(
+            agent_id="lead-auditor",
+            name="Lead Auditor Orquestrador",
+            category="Orquestração Executiva",
+            prompt_tokens=0,
+            completion_tokens=0,
+            cached_tokens=0,
+            model_key=model_key,
+        )
 
     # If in deterministic fallback or if tool called via context, format live telemetry directly
     if (execution_mode == "deterministic_fallback" or not ai_response):
@@ -2370,7 +2600,7 @@ async def link_storage(req: StorageLinkRequest):
     docs = zero_copy_manager.query_source(
         source=source_enum,
         query="*",
-        delegated_user_token=req.user_token or "valid-token",
+        delegated_user_token=req.user_token if (req.user_token and req.user_token != "portal-demo-user-token") else None,
     )
     if not docs:
         docs = [
@@ -2783,6 +3013,17 @@ async def run_subagent_task(
         subagent_res = subagent._fallback_execute(task_prompt, context=tool_context)
         subagent_res["fallback_reason"] = str(exc)
 
+    usage = subagent_res.get("usage") or {}
+    finops_tracker.record_usage(
+        agent_id=agent_id,
+        name=agent_name,
+        category="Subagente sob Demanda",
+        prompt_tokens=int(usage.get("prompt_token_count", 0)),
+        completion_tokens=int(usage.get("candidates_token_count", 0)),
+        cached_tokens=int(usage.get("cached_content_token_count", 0)),
+        model_key=model_id or "gemini-2.5-flash",
+    )
+
     tool_evidence = subagent_res.get("tool_evidence", [])
     execution_mode = subagent_res.get("execution_mode", "deterministic_fallback")
     res_status = subagent_res.get("status", "UNDETERMINED")
@@ -2938,7 +3179,7 @@ async def trigger_subagent(req: SubagentTriggerRequest):
         res = org_policies_subagent.cross_reference_policy_with_tech_state(
             "cloud security",
             {"status": "COMPLIANT", "control": "A.5.23"},
-            user_token="valid-token",
+            user_token=req.user_token if (req.user_token and req.user_token != "portal-demo-user-token") else None,
         )
     elif req.subagent == "codemender":
         res = {"status": "SUCCESS", "analysis": "A.8.28 secure development verified", "pull_request": "PR #104"}

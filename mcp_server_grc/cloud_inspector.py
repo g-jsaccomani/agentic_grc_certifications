@@ -20,14 +20,22 @@ DEFAULT_PROJECT_ID = os.getenv("PROJECT_ID", "agentic-grc-cd06")
 DEFAULT_LOCATION = os.getenv("REGION", "us-central1")
 
 
+NO_DELEGATED_CREDENTIAL_MSG = (
+    "No delegated user credential available — cannot verify this resource under the requesting user's own permissions"
+)
+
+
 def get_authorized_session(
     bearer_token: Optional[str] = None,
     project_id: Optional[str] = None,
 ) -> Tuple[Optional[Any], str]:
     """Obtains an authorized HTTP session and active project ID for live GCP REST calls.
     
-    Prefers delegated user OAuth token if valid, falling back to Application Default Credentials.
-    In testing environments without GCP credentials, gracefully returns (None, project_id).
+    Prefers delegated user OAuth token if valid. In production, live inspection functions
+    REQUIRE a valid delegated user bearer_token to proceed, preventing privilege escalation
+    via the service account.
+    Application Default Credentials (ADC) is kept as a fallback ONLY for local/CI test runs
+    (gated by PYTEST_CURRENT_TEST / TESTING env checks) and is never reachable in a real request path.
     """
     target_project = project_id or os.getenv("PROJECT_ID") or DEFAULT_PROJECT_ID
 
@@ -46,7 +54,12 @@ def get_authorized_session(
                 logger.warning(f"Error creating AuthorizedSession from user token: {exc}")
 
     # 2. Application Default Credentials (ADC / Cloud Run Service Account)
+    # Strictly restricted to test execution environments. Real requests without a valid delegated token
+    # must be denied live inspection to enforce per-user impersonation and least privilege.
     is_test = bool("PYTEST_CURRENT_TEST" in os.environ or os.getenv("TESTING") == "true")
+    if not is_test:
+        return None, target_project
+
     try:
         import google.auth
         from google.auth.transport.requests import AuthorizedSession
@@ -56,8 +69,6 @@ def get_authorized_session(
         resolved_proj = target_project or default_proj or DEFAULT_PROJECT_ID
         return AuthorizedSession(credentials), resolved_proj
     except Exception as exc:
-        if not is_test:
-            logger.warning(f"Unable to load Google Application Default Credentials: {exc}")
         return None, target_project
 
 
@@ -77,14 +88,15 @@ def inspect_cloud_kms_key(
 
     if session is None:
         return {
-            "status": "OFFLINE",
-            "message": "GCP Cloud KMS API unreachable: No credentials available.",
+            "status": "UNDETERMINED",
+            "message": NO_DELEGATED_CREDENTIAL_MSG,
             "resource": clean_name,
             "project_id": proj,
             "key_details": {},
             "compliance": {
                 "status": "UNDETERMINED",
-                "violations": ["Could not connect to Cloud KMS API to inspect key."],
+                "violations": [NO_DELEGATED_CREDENTIAL_MSG],
+                "remediation": "Provide a valid delegated Google Workspace / OAuth2 user token to inspect KMS keys under your identity.",
             },
         }
 
@@ -241,7 +253,12 @@ def list_cloud_kms_keys(
     """Lists all KMS key rings and crypto keys in the project across locations."""
     session, proj = get_authorized_session(bearer_token=bearer_token, project_id=project_id)
     if session is None:
-        return {"status": "OFFLINE", "project_id": proj, "keys": []}
+        return {
+            "status": "UNDETERMINED",
+            "message": NO_DELEGATED_CREDENTIAL_MSG,
+            "project_id": proj,
+            "keys": [],
+        }
 
     target_locations = [location] if location else ["global", "us-central1", "us", "us-east1"]
     all_keys = []
@@ -286,11 +303,15 @@ def inspect_cloud_storage_bucket(
 
     if session is None:
         return {
-            "status": "OFFLINE",
+            "status": "UNDETERMINED",
             "resource": clean_bname,
             "project_id": proj,
-            "message": "GCP Storage API unreachable: No credentials available.",
-            "compliance": {"status": "UNDETERMINED", "violations": ["Cannot connect to Cloud Storage."]},
+            "message": NO_DELEGATED_CREDENTIAL_MSG,
+            "compliance": {
+                "status": "UNDETERMINED",
+                "violations": [NO_DELEGATED_CREDENTIAL_MSG],
+                "remediation": "Provide a valid delegated Google Workspace / OAuth2 user token to inspect Cloud Storage buckets under your identity.",
+            },
         }
 
     try:
@@ -375,7 +396,12 @@ def list_cloud_storage_buckets(
     """Lists all Cloud Storage buckets in the project with PAP and UBLA posture."""
     session, proj = get_authorized_session(bearer_token=bearer_token, project_id=project_id)
     if session is None:
-        return {"status": "OFFLINE", "project_id": proj, "buckets": []}
+        return {
+            "status": "UNDETERMINED",
+            "message": NO_DELEGATED_CREDENTIAL_MSG,
+            "project_id": proj,
+            "buckets": [],
+        }
 
     try:
         url = f"https://storage.googleapis.com/storage/v1/b?project={proj}"
@@ -411,7 +437,17 @@ def inspect_project_iam_policy(
     """Inspects project IAM policy for primitive roles and least privilege compliance (A.5.15)."""
     session, proj = get_authorized_session(bearer_token=bearer_token, project_id=project_id)
     if session is None:
-        return {"status": "OFFLINE", "project_id": proj, "bindings": []}
+        return {
+            "status": "UNDETERMINED",
+            "project_id": proj,
+            "message": NO_DELEGATED_CREDENTIAL_MSG,
+            "bindings": [],
+            "compliance": {
+                "status": "UNDETERMINED",
+                "violations": [NO_DELEGATED_CREDENTIAL_MSG],
+                "remediation": "Provide a valid delegated Google Workspace / OAuth2 user token to inspect IAM policies under your identity.",
+            },
+        }
 
     try:
         url = f"https://cloudresourcemanager.googleapis.com/v1/projects/{proj}:getIamPolicy"
@@ -471,7 +507,17 @@ def inspect_cloud_run_services(
     loc = location or DEFAULT_LOCATION
 
     if session is None:
-        return {"status": "OFFLINE", "project_id": proj, "services": []}
+        return {
+            "status": "UNDETERMINED",
+            "project_id": proj,
+            "message": NO_DELEGATED_CREDENTIAL_MSG,
+            "services": [],
+            "compliance": {
+                "status": "UNDETERMINED",
+                "violations": [NO_DELEGATED_CREDENTIAL_MSG],
+                "remediation": "Provide a valid delegated Google Workspace / OAuth2 user token to inspect Cloud Run services under your identity.",
+            },
+        }
 
     try:
         url = f"https://run.googleapis.com/v2/projects/{proj}/locations/{loc}/services"

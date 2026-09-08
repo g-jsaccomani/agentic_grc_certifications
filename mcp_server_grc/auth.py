@@ -14,7 +14,7 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
-from fastapi import Header, HTTPException, Request
+from fastapi import Depends, Header, HTTPException, Request
 from google.oauth2.credentials import Credentials
 from google.auth import jwt as google_jwt
 
@@ -265,6 +265,21 @@ async def get_current_workspace_user(
         status_code=401,
         detail="Authentication required: Missing Google Workspace ID token or valid Google OAuth access token.",
     )
+
+
+def require_authenticated_workspace_user(
+    user_context: WorkspaceUserContext = Depends(get_current_workspace_user),
+) -> WorkspaceUserContext:
+    """Enforces authenticated Google Workspace user.
+    
+    Rejects unauthenticated or demo user contexts with HTTP 401 when ALLOW_DEV_AUTH_BYPASS is not 'true'.
+    """
+    if user_context.is_demo and os.getenv("ALLOW_DEV_AUTH_BYPASS", "false").lower() != "true":
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required: Valid Google Workspace identity token or OAuth Bearer token required.",
+        )
+    return user_context
 
 
 def get_user_gcp_credentials(user_access_token: str) -> Credentials:

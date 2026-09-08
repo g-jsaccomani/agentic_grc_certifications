@@ -227,6 +227,37 @@ class LLMSubAgent:
         return calls
 
     @staticmethod
+    def _extract_usage(resp: Any) -> Dict[str, int]:
+        """Extracts token counts from Gemini response usage_metadata."""
+        usage = {
+            "prompt_token_count": 0,
+            "candidates_token_count": 0,
+            "cached_content_token_count": 0,
+            "total_token_count": 0,
+        }
+        if not resp:
+            return usage
+        meta = getattr(resp, "usage_metadata", None)
+        if not meta and isinstance(resp, dict):
+            meta = resp.get("usage_metadata")
+        if meta:
+            if isinstance(meta, dict):
+                p = meta.get("prompt_token_count") or 0
+                c = meta.get("candidates_token_count") or 0
+                ca = meta.get("cached_content_token_count") or 0
+                t = meta.get("total_token_count") or (p + c)
+            else:
+                p = getattr(meta, "prompt_token_count", 0) or 0
+                c = getattr(meta, "candidates_token_count", 0) or 0
+                ca = getattr(meta, "cached_content_token_count", 0) or 0
+                t = getattr(meta, "total_token_count", 0) or (p + c)
+            usage["prompt_token_count"] = int(p)
+            usage["candidates_token_count"] = int(c)
+            usage["cached_content_token_count"] = int(ca)
+            usage["total_token_count"] = int(t)
+        return usage
+
+    @staticmethod
     def _extract_function_call(resp: Any) -> Optional[Any]:
         """Extracts first function call from Gemini response candidate for backward compatibility."""
         calls = LLMSubAgent._extract_function_calls(resp)
@@ -268,6 +299,12 @@ class LLMSubAgent:
 
         contents = self._build_contents(user_task, history)
         tool_evidence: List[Dict[str, Any]] = []
+        accumulated_usage = {
+            "prompt_token_count": 0,
+            "candidates_token_count": 0,
+            "cached_content_token_count": 0,
+            "total_token_count": 0,
+        }
 
         try:
             for _ in range(max_turns):
@@ -276,6 +313,10 @@ class LLMSubAgent:
                     contents=contents,
                     config=self.config,
                 )
+                turn_usage = self._extract_usage(resp)
+                for k in accumulated_usage:
+                    accumulated_usage[k] += turn_usage[k]
+
                 calls = self._extract_function_calls(resp)
                 if not calls:
                     narrative = resp.text or "Audit analysis completed."
@@ -285,6 +326,8 @@ class LLMSubAgent:
                         "narrative": narrative,
                         "tool_evidence": tool_evidence,
                         "execution_mode": "llm_function_calling",
+                        "usage": accumulated_usage,
+                        "model_key": self.model_id,
                     }
 
                 response_parts = []
@@ -317,6 +360,8 @@ class LLMSubAgent:
                 "narrative": "Max turns reached during function calling sequence.",
                 "tool_evidence": tool_evidence,
                 "execution_mode": "llm_function_calling",
+                "usage": accumulated_usage,
+                "model_key": self.model_id,
             }
 
         except Exception as exc:
@@ -338,6 +383,12 @@ class LLMSubAgent:
 
         contents = self._build_contents(user_task, history)
         tool_evidence: List[Dict[str, Any]] = []
+        accumulated_usage = {
+            "prompt_token_count": 0,
+            "candidates_token_count": 0,
+            "cached_content_token_count": 0,
+            "total_token_count": 0,
+        }
 
         try:
             for _ in range(max_turns):
@@ -346,6 +397,10 @@ class LLMSubAgent:
                     contents=contents,
                     config=self.config,
                 )
+                turn_usage = self._extract_usage(resp)
+                for k in accumulated_usage:
+                    accumulated_usage[k] += turn_usage[k]
+
                 calls = self._extract_function_calls(resp)
                 if not calls:
                     narrative = resp.text or "Audit analysis completed."
@@ -355,6 +410,8 @@ class LLMSubAgent:
                         "narrative": narrative,
                         "tool_evidence": tool_evidence,
                         "execution_mode": "llm_async_function_calling",
+                        "usage": accumulated_usage,
+                        "model_key": self.model_id,
                     }
 
                 response_parts = []
@@ -389,6 +446,8 @@ class LLMSubAgent:
                 "narrative": "Max turns reached during async function calling sequence.",
                 "tool_evidence": tool_evidence,
                 "execution_mode": "llm_async_function_calling",
+                "usage": accumulated_usage,
+                "model_key": self.model_id,
             }
 
         except Exception as exc:
@@ -472,4 +531,11 @@ class LLMSubAgent:
             "narrative": narrative,
             "tool_evidence": tool_evidence,
             "execution_mode": "deterministic_fallback",
+            "usage": {
+                "prompt_token_count": 0,
+                "candidates_token_count": 0,
+                "cached_content_token_count": 0,
+                "total_token_count": 0,
+            },
+            "model_key": self.model_id,
         }

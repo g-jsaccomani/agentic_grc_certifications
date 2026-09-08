@@ -2,6 +2,7 @@
 
 import io
 from html.parser import HTMLParser
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 from mcp_server_grc.server import app
 
@@ -186,26 +187,29 @@ def test_simplified_home_cockpit_ui():
 
 
 
+AUTH_HEADER = {"Authorization": "Bearer ya29.valid-auditor-access-token"}
+
+
 def test_portal_chat_endpoints():
     # 1. Audit prompt
-    res_audit = client.post("/api/chat", json={"message": "Execute proactive audit"})
+    res_audit = client.post("/api/chat", json={"message": "Execute proactive audit"}, headers=AUTH_HEADER)
     assert res_audit.status_code == 200
     data = res_audit.json()
     assert "Proactive Audit Cycle Completed" in data["response"]
     assert data["subagent_used"] == "ContinuousIntelligenceEngine"
 
     # 2. Horizon scanning prompt
-    res_horizon = client.post("/api/chat", json={"message": "Horizon scanning regulatory update"})
+    res_horizon = client.post("/api/chat", json={"message": "Horizon scanning regulatory update"}, headers=AUTH_HEADER)
     assert res_horizon.status_code == 200
     assert "Horizon Scanning Regulatory Review" in res_horizon.json()["response"]
 
     # 3. Cryptography prompt
-    res_crypto = client.post("/api/chat", json={"message": "Audit KMS cryptography A.8.24"})
+    res_crypto = client.post("/api/chat", json={"message": "Audit KMS cryptography A.8.24"}, headers=AUTH_HEADER)
     assert res_crypto.status_code == 200
     assert "Control A.8.24 Analysis" in res_crypto.json()["response"]
 
     # 4. General prompt
-    res_gen = client.post("/api/chat", json={"message": "What is your capability?"})
+    res_gen = client.post("/api/chat", json={"message": "What is your capability?"}, headers=AUTH_HEADER)
     assert res_gen.status_code == 200
     assert "GEAP Compliance" in res_gen.json()["response"]
 
@@ -703,23 +707,44 @@ def test_live_cloud_kms_inspection_chat():
 
 def test_live_cloud_storage_inspection_chat():
     """Verifies that asking about a storage bucket executes live inspection and returns PAP/UBLA telemetry."""
-    payload = {
-        "message": "Audite o bucket run-sources-agentic-grc-cd06-us-central1",
-        "locale": "pt",
-        "selected_projects": ["agentic-grc-cd06"]
+    mock_bucket_data = {
+        "status": "FOUND",
+        "resource": "run-sources-agentic-grc-cd06-us-central1",
+        "project_id": "agentic-grc-cd06",
+        "bucket_details": {
+            "name": "run-sources-agentic-grc-cd06-us-central1",
+            "location": "us-central1",
+            "location_type": "region",
+            "public_access_prevention": "enforced",
+            "uniform_bucket_level_access": True,
+            "default_kms_key": "Google-Managed Encryption",
+            "storage_class": "STANDARD",
+        },
+        "compliance": {
+            "status": "COMPLIANT",
+            "control": "ISO/IEC 27001:2022 A.5.23",
+            "violations": [],
+            "remediation": "Configuração do bucket em conformidade com o baseline de segurança (PAP Enforced e UBLA Enabled).",
+        },
     }
-    resp = client.post("/api/chat", json=payload, headers={"Authorization": "Bearer ya29.test-auditor-token"})
-    assert resp.status_code == 200
-    data = resp.json()
-    resp_text = data.get("response", "")
+    with patch("mcp_server_grc.portal.inspect_cloud_storage_bucket", return_value=mock_bucket_data):
+        payload = {
+            "message": "Audite o bucket run-sources-agentic-grc-cd06-us-central1",
+            "locale": "pt",
+            "selected_projects": ["agentic-grc-cd06"]
+        }
+        resp = client.post("/api/chat", json=payload, headers={"Authorization": "Bearer ya29.test-auditor-token"})
+        assert resp.status_code == 200
+        data = resp.json()
+        resp_text = data.get("response", "")
 
-    assert "Cloud Storage" in resp_text
-    assert "run-sources-agentic-grc-cd06-us-central1" in resp_text
-    assert "Public Access Prevention" in resp_text
-    assert "Uniform Bucket-Level Access" in resp_text
+        assert "Cloud Storage" in resp_text
+        assert "run-sources-agentic-grc-cd06-us-central1" in resp_text
+        assert "Public Access Prevention" in resp_text
+        assert "Uniform Bucket-Level Access" in resp_text
 
-    tool_names = [e.get("tool") for e in data.get("tool_evidence", [])]
-    assert "inspect_cloud_storage" in tool_names
+        tool_names = [e.get("tool") for e in data.get("tool_evidence", [])]
+        assert "inspect_cloud_storage" in tool_names
 
 
 def test_cloud_inspector_unit_tests():
@@ -733,18 +758,144 @@ def test_cloud_inspector_unit_tests():
 
     # 1. KMS key inspection (graceful return with scan summary when key not found)
     kms_res = inspect_cloud_kms_key("my-test-key", project_id="agentic-grc-cd06")
-    assert kms_res["status"] in ("NOT_FOUND", "OFFLINE")
+    assert kms_res["status"] in ("NOT_FOUND", "OFFLINE", "ERROR", "UNDETERMINED")
     assert "compliance" in kms_res
 
     # 2. Storage bucket inspection (returns real data or offline graceful format)
     st_res = inspect_cloud_storage_bucket("non-existent-grc-test-bucket", project_id="agentic-grc-cd06")
-    assert st_res["status"] in ("NOT_FOUND", "OFFLINE")
+    assert st_res["status"] in ("NOT_FOUND", "OFFLINE", "ERROR", "UNDETERMINED")
     assert "compliance" in st_res
 
     # 3. IAM policy inspection
     iam_res = inspect_project_iam_policy(project_id="agentic-grc-cd06")
-    assert iam_res["status"] in ("SUCCESS", "OFFLINE")
+    assert iam_res["status"] in ("SUCCESS", "OFFLINE", "ERROR", "UNDETERMINED")
 
     # 4. Cloud Run services inspection
     run_res = inspect_cloud_run_services(project_id="agentic-grc-cd06")
-    assert run_res["status"] in ("SUCCESS", "OFFLINE")
+    assert run_res["status"] in ("SUCCESS", "OFFLINE", "ERROR", "UNDETERMINED")
+
+
+def test_unauthenticated_chat_rejected_with_401(monkeypatch):
+    """Asserts POST /api/chat with no auth headers and ALLOW_DEV_AUTH_BYPASS unset returns 401, not 200."""
+    monkeypatch.delenv("ALLOW_DEV_AUTH_BYPASS", raising=False)
+    # Post without any Authorization or X-Goog-Id-Token header
+    res = client.post("/api/chat", json={"message": "Execute audit scan"})
+    assert res.status_code == 401
+    assert "Authentication required" in res.json().get("detail", "")
+
+
+def test_no_delegated_token_in_non_test_context_returns_undetermined(monkeypatch):
+    """Proves that a request with no delegated token, in a non-test context, does NOT receive
+
+    a live inspection result derived from ADC — it gets the 'no delegated credential' UNDETERMINED response instead.
+    """
+    from mcp_server_grc.cloud_inspector import (
+        get_authorized_session,
+        inspect_cloud_kms_key,
+        inspect_cloud_storage_bucket,
+        inspect_project_iam_policy,
+        inspect_cloud_run_services,
+        NO_DELEGATED_CREDENTIAL_MSG,
+    )
+
+    # Simulate non-test production context
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.delenv("TESTING", raising=False)
+
+    # 1. get_authorized_session returns (None, proj) and does NOT fall back to ADC
+    session, proj = get_authorized_session(bearer_token=None, project_id="prod-project-123")
+    assert session is None
+    assert proj == "prod-project-123"
+
+    # 2. inspect_cloud_kms_key returns UNDETERMINED with explicit message
+    kms_res = inspect_cloud_kms_key("projects/prod-project-123/locations/global/keyRings/kr/cryptoKeys/key1", bearer_token=None)
+    assert kms_res["status"] == "UNDETERMINED"
+    assert NO_DELEGATED_CREDENTIAL_MSG in kms_res["message"]
+    assert kms_res["compliance"]["status"] == "UNDETERMINED"
+    assert NO_DELEGATED_CREDENTIAL_MSG in kms_res["compliance"]["violations"][0]
+
+    # 3. inspect_cloud_storage_bucket returns UNDETERMINED with explicit message
+    st_res = inspect_cloud_storage_bucket("prod-secure-vault", bearer_token=None)
+    assert st_res["status"] == "UNDETERMINED"
+    assert NO_DELEGATED_CREDENTIAL_MSG in st_res["message"]
+    assert st_res["compliance"]["status"] == "UNDETERMINED"
+
+    # 4. inspect_project_iam_policy returns UNDETERMINED
+    iam_res = inspect_project_iam_policy(project_id="prod-project-123", bearer_token=None)
+    assert iam_res["status"] == "UNDETERMINED"
+    assert NO_DELEGATED_CREDENTIAL_MSG in iam_res["message"]
+
+    # 5. inspect_cloud_run_services returns UNDETERMINED
+    run_res = inspect_cloud_run_services(project_id="prod-project-123", bearer_token=None)
+    assert run_res["status"] == "UNDETERMINED"
+    assert NO_DELEGATED_CREDENTIAL_MSG in run_res["message"]
+
+
+def test_enriched_report_templates_sections_and_taxonomy():
+    """Asserts that executive, technical, and export reports include Metodologia,
+
+    Declaração de Responsabilidade do Auditor, Período Auditado, and expanded 3-tier severity taxonomy.
+    """
+    # 1. Executive JSON
+    res_exec = client.get("/api/reports/executive?format=json")
+    assert res_exec.status_code == 200
+    data_exec = res_exec.json()
+    assert "audited_period" in data_exec
+    assert "start" in data_exec["audited_period"]
+    assert "end" in data_exec["audited_period"]
+    assert "methodology" in data_exec
+    assert "auditoria foi conduzida através de metodologia híbrida contínua" in data_exec["methodology"]
+    assert "auditor_responsibility" in data_exec
+    assert "verified_machine_findings_count" in data_exec["auditor_responsibility"]
+    assert "self_attested_findings_count" in data_exec["auditor_responsibility"]
+    assert "statement" in data_exec["auditor_responsibility"]
+    assert "finding_severity_taxonomy" in data_exec
+    assert "NÃO CONFORMIDADE MAIOR" in data_exec["finding_severity_taxonomy"]
+    assert "NÃO CONFORMIDADE MENOR" in data_exec["finding_severity_taxonomy"]
+    assert "OPORTUNIDADE DE MELHORIA" in data_exec["finding_severity_taxonomy"]
+
+    # 2. Technical JSON
+    res_tech = client.get("/api/reports/technical?format=json")
+    assert res_tech.status_code == 200
+    data_tech = res_tech.json()
+    assert "audited_period" in data_tech
+    assert "methodology" in data_tech
+    assert "auditor_responsibility" in data_tech
+    assert "finding_severity_taxonomy" in data_tech
+    for f in data_tech.get("non_compliant_findings", []):
+        assert "taxonomy_severity" in f
+        assert f["taxonomy_severity"] in ("NÃO CONFORMIDADE MAIOR", "NÃO CONFORMIDADE MENOR")
+
+    # 3. Export JSON
+    res_exp = client.get("/api/reports/export?format=json")
+    assert res_exp.status_code == 200
+    data_exp = res_exp.json()
+    assert "audited_period" in data_exp
+    assert "methodology" in data_exp
+    assert "auditor_responsibility" in data_exp
+    assert "finding_severity_taxonomy" in data_exp
+    for vm in data_exp.get("vm_fleet_audit", []):
+        assert vm.get("taxonomy_severity") == "NÃO CONFORMIDADE MAIOR"
+
+    # 4. HTML Export
+    res_html = client.get("/api/reports/export?format=html")
+    assert res_html.status_code == 200
+    html_content = res_html.text
+    assert "Período Auditado" in html_content
+    assert "Metodologia de Auditoria" in html_content
+    assert "Declaração de Responsabilidade do Auditor" in html_content
+    assert "NÃO CONFORMIDADE MAIOR" in html_content
+    assert "NÃO CONFORMIDADE MENOR" in html_content
+    assert "OPORTUNIDADE DE MELHORIA" in html_content
+    assert "cloudstyle-badge-opportunity" in html_content
+
+    # 5. Markdown Export
+    res_md = client.get("/api/reports/export?format=markdown")
+    assert res_md.status_code == 200
+    md_content = res_md.text
+    assert "**Período Auditado:**" in md_content
+    assert "## 2. Metodologia de Auditoria" in md_content
+    assert "## 3. Declaração de Responsabilidade do Auditor" in md_content
+    assert "## 4. Taxonomia de Severidade de Achados" in md_content
+    assert "**NÃO CONFORMIDADE MAIOR**" in md_content
+

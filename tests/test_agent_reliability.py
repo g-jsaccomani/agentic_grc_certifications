@@ -399,14 +399,14 @@ def test_chat_baseline_unaudited_reports_no_data():
         ci_engine.evidence_graph.links.clear()
 
         # In English
-        res_en = client.post("/api/chat", json={"message": "Are we ISO 27001 compliant?", "locale": "en"})
+        res_en = client.post("/api/chat", json={"message": "Are we ISO 27001 compliant?", "locale": "en"}, headers=VALID_HEADERS)
         assert res_en.status_code == 200
         data_en = res_en.json()
         assert "No environment data collected yet" in data_en["response"]
         assert "100.0% (Classificação: EXCELLENT)" not in data_en["response"]
 
         # In Portuguese
-        res_pt = client.post("/api/chat", json={"message": "Qual é a nossa postura de conformidade?", "locale": "pt"})
+        res_pt = client.post("/api/chat", json={"message": "Qual é a nossa postura de conformidade?", "locale": "pt"}, headers=VALID_HEADERS)
         assert res_pt.status_code == 200
         data_pt = res_pt.json()
         assert "No environment data collected yet" in data_pt["response"]

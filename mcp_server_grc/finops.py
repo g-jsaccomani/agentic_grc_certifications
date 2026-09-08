@@ -9,6 +9,8 @@ Tracks:
 
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timezone
+import time
+from dataclasses import dataclass, field
 
 # Vertex AI Gemini Pricing per 1M tokens (USD)
 MODEL_PRICING = {
@@ -107,9 +109,22 @@ class AgentFinOpsRecord:
         }
 
 
+@dataclass
+class FinOpsUsageEvent:
+    timestamp: float
+    agent_id: str
+    prompt_tokens: int
+    completion_tokens: int
+    cached_tokens: int
+    model_key: str
+    name: Optional[str] = None
+    category: Optional[str] = None
+
+
 class FinOpsTracker:
     def __init__(self):
         self.records: Dict[str, AgentFinOpsRecord] = {}
+        self.events: List[FinOpsUsageEvent] = []
         self.phase_metrics: Dict[str, Dict[str, Any]] = {
             "Fase 1: Triagem Zero-Copy": {
                 "description": "Ingestão semântica e mapeamento documental",
@@ -244,6 +259,104 @@ class FinOpsTracker:
         rec.cached_tokens += cached_tokens
         rec.completion_tokens += completion_tokens
 
+        # Record empirical usage event for analytics and optimization tips
+        self.events.append(
+            FinOpsUsageEvent(
+                timestamp=time.time(),
+                agent_id=agent_id,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                cached_tokens=cached_tokens,
+                model_key=model_key,
+                name=name,
+                category=category,
+            )
+        )
+
+    def get_token_saving_tips(self) -> List[Dict[str, Any]]:
+        """Computes actionable token-saving tips based on empirical recorded usage data."""
+        tips: List[Dict[str, Any]] = []
+
+        # 1. Model right-sizing: check for Pro model requests with short/simple prompts
+        pro_events = [e for e in self.events if "pro" in (e.model_key or "").lower()]
+        short_pro_events = [e for e in pro_events if 0 < e.prompt_tokens < 1500]
+        if short_pro_events:
+            n_short = len(short_pro_events)
+            short_prompt_tokens = sum(e.prompt_tokens for e in short_pro_events)
+            # Cost diff: gemini-2.5-pro ($1.25/1M) vs gemini-2.5-flash ($0.075/1M) = $1.175/1M tokens
+            savings_usd = (short_prompt_tokens / 1_000_000.0) * 1.175
+            tips.append({
+                "type": "model_right_sizing",
+                "title": "Ajuste de Modelo para Prompts Curtos (Flash vs Pro)",
+                "description": f"{n_short} requisições utilizaram 'gemini-2.5-pro' com prompts curtos (< 1.500 tokens). O uso de 'gemini-2.5-flash' para essas consultas economizaria aproximadamente ${savings_usd:.4f} USD.",
+                "potential_savings_usd": round(savings_usd, 4),
+                "severity": "MEDIUM",
+                "metric": f"{n_short} requisições Pro curtas ({short_prompt_tokens:,} tokens)",
+            })
+        else:
+            tips.append({
+                "type": "model_right_sizing",
+                "title": "Dimensionamento Eficiente de Modelos",
+                "description": "Nenhuma requisição curta utilizou modelos Pro desnecessariamente. A distribuição entre Flash e Pro está otimizada.",
+                "potential_savings_usd": 0.0,
+                "severity": "INFO",
+                "metric": "0 requisições Pro subdimensionadas",
+            })
+
+        # 2. Context Caching: check for large uncached prompts
+        uncached_large_events = [e for e in self.events if e.prompt_tokens >= 1024 and e.cached_tokens == 0]
+        if uncached_large_events:
+            n_uncached = len(uncached_large_events)
+            uncached_tokens = sum(e.prompt_tokens for e in uncached_large_events)
+            # Context caching offers ~75% discount on repeated prompt tokens
+            savings_usd = (uncached_tokens / 1_000_000.0) * 0.075 * 0.75
+            tips.append({
+                "type": "context_caching",
+                "title": "Oportunidade de Gemini Context Caching",
+                "description": f"Context caching poderia reduzir tokens de instruções de sistema e esquemas em {n_uncached} requisições com prompts extensos (> 1.024 tokens) que rodaram sem cache (economia estimada: ${savings_usd:.4f} USD).",
+                "potential_savings_usd": round(savings_usd, 4),
+                "severity": "HIGH" if n_uncached >= 3 else "MEDIUM",
+                "metric": f"{n_uncached} requisições elegíveis a cache ({uncached_tokens:,} tokens)",
+            })
+        else:
+            tips.append({
+                "type": "context_caching",
+                "title": "Eficácia de Context Caching",
+                "description": "Context Caching está operando com alta taxa de acerto, reutilizando prompts e instruções de auditoria com eficácia.",
+                "potential_savings_usd": 0.0,
+                "severity": "INFO",
+                "metric": "Cache de contexto ativo",
+            })
+
+        # 3. Deterministic execution efficiency (Zero-Token Calls)
+        zero_token_events = [e for e in self.events if e.prompt_tokens == 0 and e.completion_tokens == 0]
+        if zero_token_events:
+            z_count = len(zero_token_events)
+            z_savings = z_count * 0.005
+            tips.append({
+                "type": "zero_token_efficiency",
+                "title": "Eficiência de Inspeção Direta (Custo Zero de LLM)",
+                "description": f"{z_count} consultas foram atendidas via ferramentas determinísticas e inspeção direta da nuvem sem consumo de tokens LLM (100% economia de inferência).",
+                "potential_savings_usd": round(z_savings, 4),
+                "severity": "INFO",
+                "metric": f"{z_count} chamadas determinísticas (0 tokens)",
+            })
+
+        # 4. Output verbosity management
+        verbose_events = [e for e in self.events if e.completion_tokens > 2000]
+        if verbose_events:
+            v_count = len(verbose_events)
+            tips.append({
+                "type": "output_compression",
+                "title": "Otimização de Saída (Output Tokens)",
+                "description": f"{v_count} requisições geraram respostas com mais de 2.000 tokens de saída. Considere estruturação estrita em JSON ou tabelas Markdown para conter custos de geração.",
+                "potential_savings_usd": round(v_count * 0.002, 4),
+                "severity": "LOW",
+                "metric": f"{v_count} respostas extensas",
+            })
+
+        return tips
+
     def get_summary(self) -> Dict[str, Any]:
         agents_data = [rec.to_dict() for rec in self.records.values()]
         
@@ -272,6 +385,7 @@ class FinOpsTracker:
                 "total_cached_tokens": total_cached,
                 "total_completion_tokens": total_completion,
                 "total_invocations": total_invocations,
+                "total_events": len(self.events),
                 "cache_hit_ratio_percent": cache_hit_ratio,
                 "cost_per_control_usd": cost_per_control_usd,
                 "usd_to_brl_rate": USD_TO_BRL_RATE,
@@ -282,6 +396,7 @@ class FinOpsTracker:
             "agents": agents_data,
             "phases": self.phase_metrics,
             "pricing_reference": MODEL_PRICING,
+            "token_saving_tips": self.get_token_saving_tips(),
         }
 
 

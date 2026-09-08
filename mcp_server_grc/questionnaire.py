@@ -25,7 +25,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from fastapi import APIRouter, File, UploadFile, Request, Response, HTTPException, Depends, Query, Header
 from pydantic import BaseModel, Field
 
-from mcp_server_grc.auth import WorkspaceUserContext, get_current_workspace_user
+from mcp_server_grc.auth import WorkspaceUserContext, get_current_workspace_user, require_authenticated_workspace_user
 from agent_orchestrator.evidence_graph import EvidenceVerificationTier
 from agent_orchestrator.llm_subagent import LLMSubAgent
 from mcp_server_grc.catalog import ISO_27001_CATALOG
@@ -34,6 +34,7 @@ from mcp_server_grc.questionnaire_catalog import (
     get_localized_themes,
     THEMES_I18N,
 )
+from mcp_server_grc.finops import finops_tracker
 
 
 logger = logging.getLogger("questionnaire")
@@ -209,17 +210,6 @@ def sync_scan_telemetry_to_questionnaire(
 # Baseline synchronization for ISO 27001 compliance telemetry
 sync_scan_telemetry_to_questionnaire("ISO27001:2022")
 
-
-def require_authenticated_workspace_user(
-    user_context: WorkspaceUserContext = Depends(get_current_workspace_user),
-) -> WorkspaceUserContext:
-    """Enforces authenticated Google Workspace user for questionnaire submissions."""
-    if user_context.is_demo and os.getenv("ALLOW_DEV_AUTH_BYPASS", "false").lower() != "true":
-        raise HTTPException(
-            status_code=401,
-            detail="Authentication required: Valid Google Workspace identity token or OAuth Bearer token required.",
-        )
-    return user_context
 
 
 def sniff_and_validate_evidence_file(content: bytes, original_filename: str) -> Tuple[str, str, Optional[str]]:
@@ -599,6 +589,15 @@ def evaluate_answer_ai_consistency(
         )
     except Exception as exc:
         logger.warning("Failed to initialize LLMSubAgent for consistency validation: %s", exc)
+        finops_tracker.record_usage(
+            agent_id="questionnaire-consistency",
+            name="Questionnaire Consistency Auditor",
+            category="Consistência de Respostas",
+            prompt_tokens=0,
+            completion_tokens=0,
+            cached_tokens=0,
+            model_key="deterministic-fallback",
+        )
         return (
             "COMPLIANT_WITH_OBSERVATION",
             "Evidence received; pending automated analysis (AI engine offline).",
@@ -606,6 +605,15 @@ def evaluate_answer_ai_consistency(
 
     # If client is None (Vertex AI / Gemini unreachable or disabled)
     if subagent.client is None:
+        finops_tracker.record_usage(
+            agent_id="questionnaire-consistency",
+            name="Questionnaire Consistency Auditor",
+            category="Consistência de Respostas",
+            prompt_tokens=0,
+            completion_tokens=0,
+            cached_tokens=0,
+            model_key="deterministic-fallback",
+        )
         return (
             "COMPLIANT_WITH_OBSERVATION",
             "Evidence received; pending automated analysis (AI engine offline).",
@@ -627,6 +635,17 @@ def evaluate_answer_ai_consistency(
     try:
         res = subagent.run(user_task=user_task, max_turns=1)
         narrative = res.get("narrative", "")
+        usage = res.get("usage") or {}
+
+        finops_tracker.record_usage(
+            agent_id="questionnaire-consistency",
+            name="Questionnaire Consistency Auditor",
+            category="Consistência de Respostas",
+            prompt_tokens=int(usage.get("prompt_token_count", 0)),
+            completion_tokens=int(usage.get("candidates_token_count", 0)),
+            cached_tokens=int(usage.get("cached_content_token_count", 0)),
+            model_key="gemini-2.5-flash",
+        )
 
         import json as pyjson
         json_match = re.search(r"\{.*?\}", narrative, re.DOTALL)
@@ -651,6 +670,15 @@ def evaluate_answer_ai_consistency(
 
     except Exception as exc:
         logger.warning("LLMSubAgent execution error in consistency evaluation: %s", exc)
+        finops_tracker.record_usage(
+            agent_id="questionnaire-consistency",
+            name="Questionnaire Consistency Auditor",
+            category="Consistência de Respostas",
+            prompt_tokens=0,
+            completion_tokens=0,
+            cached_tokens=0,
+            model_key="deterministic-fallback",
+        )
         return (
             "COMPLIANT_WITH_OBSERVATION",
             "Evidence received; pending automated analysis (AI engine offline).",

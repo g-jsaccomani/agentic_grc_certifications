@@ -695,40 +695,57 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             position: relative;
         }
 
-        /* Top Navbar */
+        /* Top Navbar (Clean Gemini Style) */
         .top-navbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 24px;
+            padding: 10px 24px;
+            min-height: 50px;
             border-bottom: 1px solid var(--border-subtle);
             background: rgba(19, 19, 20, 0.85);
             backdrop-filter: blur(12px);
             z-index: 40;
+            box-sizing: border-box;
         }
 
         .nav-breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
-        .top-org-badge { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
-        .top-active-agent { font-weight: 600; color: var(--text-primary); }
-        .top-right-actions { display: flex; align-items: center; gap: 12px; }
+        .top-org-badge { display: none !important; }
+        .top-active-agent { font-weight: 500; font-size: 14px; color: var(--text-primary); letter-spacing: -0.1px; }
+        .top-bullet-sep { color: var(--text-tertiary); font-size: 11px; opacity: 0.6; }
+        .top-project-badge {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gcp-blue);
+            background: rgba(138, 180, 248, 0.08);
+            border: 1px solid rgba(138, 180, 248, 0.22);
+            border-radius: 12px;
+            padding: 2px 8px;
+        }
+        .top-right-actions { display: flex; align-items: center; gap: 10px; }
 
         .top-status-indicator {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: var(--gcp-green);
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
             background: rgba(129, 201, 149, 0.1);
-            padding: 4px 10px;
-            border-radius: 20px;
-            border: 1px solid rgba(129, 201, 149, 0.2);
+            border: 1px solid rgba(129, 201, 149, 0.25);
+            cursor: default;
+            transition: var(--transition-smooth);
+        }
+        .top-status-indicator:hover {
+            background: rgba(129, 201, 149, 0.2);
+            border-color: rgba(129, 201, 149, 0.5);
         }
         .status-dot {
             width: 7px;
             height: 7px;
             border-radius: 50%;
             background: var(--gcp-green);
-            box-shadow: 0 0 8px var(--gcp-green);
+            box-shadow: 0 0 6px var(--gcp-green);
         }
 
         .dropdown { position: relative; display: inline-block; }
@@ -776,92 +793,75 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
         .dropdown-item:hover { background: var(--bg-surface); color: var(--gcp-blue); }
 
-        /* Certification Framework Selector Bar */
+        /* Certification Framework Selector in Sidebar */
         .framework-selector-bar {
-            padding: 10px 24px 12px 24px;
-            background: rgba(19, 19, 20, 0.95);
-            border-bottom: 1px solid var(--border-subtle);
+            padding: 0;
+            background: transparent;
+            border-bottom: none;
             flex-shrink: 0;
             z-index: 30;
         }
 
         .framework-selector-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-
-        .framework-selector-title {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--text-tertiary);
+            display: none;
         }
 
         .framework-cards-grid {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        @media (max-width: 1100px) {
-            .framework-cards-grid {
-                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            }
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 2px 0;
         }
 
         .framework-card {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
-            border-radius: 8px;
+            gap: 8px;
+            padding: 5px 8px;
+            border-radius: 6px;
             border: 1px solid var(--border-subtle);
-            background: var(--bg-surface);
+            background: rgba(255, 255, 255, 0.02);
             transition: var(--transition-smooth);
-            min-height: 50px;
+            min-height: unset;
+            height: 32px;
             box-sizing: border-box;
         }
 
         .framework-card.active {
-            border-color: var(--gcp-blue);
-            background: rgba(138, 180, 248, 0.08);
-            box-shadow: 0 0 0 1px var(--gcp-blue), 0 2px 8px rgba(138, 180, 248, 0.12);
+            border-color: rgba(138, 180, 248, 0.4);
+            background: rgba(138, 180, 248, 0.09);
+            box-shadow: 0 0 0 1px rgba(138, 180, 248, 0.25);
             cursor: pointer;
         }
 
         .framework-card.active:hover {
-            background: rgba(138, 180, 248, 0.12);
+            background: rgba(138, 180, 248, 0.14);
         }
 
         .framework-card.locked {
-            border-color: var(--border-subtle);
-            background: rgba(40, 42, 44, 0.45);
+            border-color: rgba(255, 255, 255, 0.04);
+            background: rgba(255, 255, 255, 0.015);
             cursor: default;
-            opacity: 0.72;
+            opacity: 0.65;
             user-select: none;
         }
 
         .framework-card.placeholder {
-            border: 1px dashed var(--border-focus);
+            border: 1px dashed rgba(255, 255, 255, 0.12);
             background: transparent;
             cursor: default;
-            opacity: 0.65;
+            opacity: 0.55;
             user-select: none;
+            height: 28px;
         }
 
         .framework-card-icon {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 30px;
-            height: 30px;
-            border-radius: 6px;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
             flex-shrink: 0;
         }
 
@@ -882,15 +882,17 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
         .framework-card-content {
             display: flex;
-            flex-direction: column;
-            gap: 2px;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
             min-width: 0;
-            overflow: hidden;
+            gap: 4px;
         }
 
         .framework-card-name {
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 500;
             color: var(--text-primary);
             white-space: nowrap;
             overflow: hidden;
@@ -903,24 +905,25 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
         .framework-card.placeholder .framework-card-name {
             color: var(--text-secondary);
-            font-weight: 500;
+            font-weight: 400;
+            font-size: 10.5px;
         }
 
         .framework-card-sub {
             display: flex;
             align-items: center;
-            gap: 6px;
+            flex-shrink: 0;
         }
 
         .framework-badge-active {
-            font-size: 9.5px;
+            font-size: 9px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.4px;
             color: var(--gcp-green);
             background: rgba(129, 201, 149, 0.12);
             border: 1px solid rgba(129, 201, 149, 0.28);
-            padding: 1px 5px;
+            padding: 1px 4px;
             border-radius: 4px;
             line-height: 1.2;
         }
@@ -928,13 +931,13 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .framework-badge-locked {
             display: inline-flex;
             align-items: center;
-            gap: 3px;
-            font-size: 9.5px;
+            gap: 2px;
+            font-size: 9px;
             font-weight: 500;
             color: var(--text-tertiary);
             background: rgba(94, 98, 102, 0.15);
             border: 1px solid var(--border-subtle);
-            padding: 1px 5px;
+            padding: 1px 4px;
             border-radius: 4px;
             line-height: 1.2;
         }
@@ -968,38 +971,45 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
 
         .provider-cards-strip {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 5px;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            gap: 4px;
+            width: 100%;
+            box-sizing: border-box;
+            align-items: center;
         }
 
         .provider-card {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 5px 6px;
-            border-radius: 6px;
+            gap: 4px;
+            padding: 3px 5px;
+            border-radius: 4px;
             border: 1px solid var(--border-subtle);
             background: var(--bg-surface);
             transition: var(--transition-smooth);
-            min-height: 38px;
+            height: 26px;
+            min-height: 26px;
             box-sizing: border-box;
             cursor: pointer;
+            flex: 1 1 0;
+            min-width: 0;
+            user-select: none;
         }
 
         .provider-card.active {
             border-color: var(--gcp-blue);
-            background: rgba(138, 180, 248, 0.08);
-            box-shadow: 0 0 0 1px var(--gcp-blue), 0 2px 6px rgba(138, 180, 248, 0.12);
-            cursor: default;
+            background: rgba(138, 180, 248, 0.12);
+            box-shadow: 0 0 0 1px var(--gcp-blue);
+            flex: 1.3 1 0;
         }
 
         .provider-card.locked {
             border-color: var(--border-subtle);
             background: rgba(40, 42, 44, 0.45);
-            cursor: pointer;
             opacity: 0.72;
-            user-select: none;
+            cursor: pointer;
         }
 
         .provider-card.locked:hover {
@@ -1013,13 +1023,13 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
         }
 
         .provider-card-icon.shield-active {
-            background: rgba(138, 180, 248, 0.15);
+            background: rgba(138, 180, 248, 0.2);
             color: var(--gcp-blue);
         }
 
@@ -1030,47 +1040,36 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
         .provider-card-info {
             display: flex;
-            flex-direction: column;
+            align-items: center;
             gap: 2px;
             overflow: hidden;
             min-width: 0;
+            flex: 1;
         }
 
         .provider-card-name {
-            font-size: 10px;
+            font-size: 9.5px;
             font-weight: 600;
             color: var(--text-primary);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            line-height: 1.2;
+            line-height: 1.1;
         }
 
         .provider-badge-active {
-            font-size: 8px;
-            font-weight: 600;
-            color: var(--gcp-blue);
-            background: rgba(138, 180, 248, 0.15);
-            padding: 1px 4px;
-            border-radius: 3px;
-            display: inline-block;
-            width: fit-content;
-            line-height: 1.1;
+            display: none;
         }
 
         .provider-badge-locked {
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-            font-size: 7.5px;
-            font-weight: 500;
-            color: var(--text-tertiary);
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1px 4px;
-            border-radius: 3px;
-            width: fit-content;
-            line-height: 1.1;
-            white-space: nowrap;
+            display: none;
+        }
+
+        .provider-chevron {
+            color: var(--gcp-blue);
+            flex-shrink: 0;
+            transition: transform 0.2s ease;
+            margin-left: auto;
         }
 
         /* Viewport */
@@ -1154,6 +1153,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             margin: 0;
         }
         .home-simple-subtitle {
+            display: none !important;
             font-size: 15px;
             color: var(--text-secondary);
             max-width: 540px;
@@ -4739,7 +4739,116 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </div>
             </div>
 
-            <!-- 3. Subagentes Customizados -->
+            <!-- 3. Estrutura de Certificação (Framework Selector) -->
+            <div class="sidebar-category" id="catFrameworks">
+                <div class="section-header collapsible" onclick="toggleSidebarCategory('frameworks')" title="Recolher/Expandir Estrutura de Certificação">
+                    <div class="section-header-left">
+                        <span class="section-title" data-i18n="framework_selector_title">Estrutura de Certificação</span>
+                    </div>
+                    <svg class="section-chevron" id="chevronFrameworks" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+                <div class="section-content" id="catFrameworksContent">
+                    <div class="framework-selector-bar" id="frameworkSelectorBar">
+                        <div class="framework-cards-grid">
+                            <!-- 1. ISO/IEC 27001:2022 (Active) -->
+                            <div class="framework-card active" id="fwCardIso27001" onclick="selectFramework('iso27001')" title="ISO/IEC 27001:2022 - Auditoria agêntica ativa" data-i18n-title="framework_tooltip_iso">
+                                <div class="framework-card-icon shield-active">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                        <path d="M9 12l2 2 4-4"/>
+                                    </svg>
+                                </div>
+                                <div class="framework-card-content">
+                                    <div class="framework-card-name">ISO/IEC 27001:2022</div>
+                                    <div class="framework-card-sub">
+                                        <span class="framework-badge-active" data-i18n="framework_badge_active">Ativo</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. SOC 2 (Locked) -->
+                            <div class="framework-card locked" id="fwCardSoc2" title="SOC 2 Type II - No roadmap de desenvolvimento" data-i18n-title="framework_tooltip_soc2">
+                                <div class="framework-card-icon shield-locked">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                </div>
+                                <div class="framework-card-content">
+                                    <div class="framework-card-name">SOC 2</div>
+                                    <div class="framework-card-sub">
+                                        <span class="framework-badge-locked">
+                                            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                            </svg>
+                                            <span data-i18n="framework_badge_coming_soon">Em breve</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3. PCI DSS (Locked) -->
+                            <div class="framework-card locked" id="fwCardPciDss" title="PCI DSS v4.0 - No roadmap de desenvolvimento" data-i18n-title="framework_tooltip_pcidss">
+                                <div class="framework-card-icon shield-locked">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                </div>
+                                <div class="framework-card-content">
+                                    <div class="framework-card-name">PCI DSS</div>
+                                    <div class="framework-card-sub">
+                                        <span class="framework-badge-locked">
+                                            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                            </svg>
+                                            <span data-i18n="framework_badge_coming_soon">Em breve</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 4. CMMI (Locked) -->
+                            <div class="framework-card locked" id="fwCardCmmi" title="CMMI DEV/SVC - No roadmap de desenvolvimento" data-i18n-title="framework_tooltip_cmmi">
+                                <div class="framework-card-icon shield-locked">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                </div>
+                                <div class="framework-card-content">
+                                    <div class="framework-card-name">CMMI</div>
+                                    <div class="framework-card-sub">
+                                        <span class="framework-badge-locked">
+                                            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                            </svg>
+                                            <span data-i18n="framework_badge_coming_soon">Em breve</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 5. More frameworks (Placeholder) -->
+                            <div class="framework-card placeholder" id="fwCardMore" title="Novas estruturas regulatórias e normativas planejadas" data-i18n-title="framework_tooltip_more">
+                                <div class="framework-card-icon placeholder-icon">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="12" y1="5" x2="12" y2="19"/>
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                </div>
+                                <div class="framework-card-content">
+                                    <div class="framework-card-name" data-i18n="framework_more">+ Mais frameworks</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Subagentes Customizados -->
             <div class="sidebar-category" id="catCustomAgents">
                 <div class="section-header collapsible" onclick="toggleSidebarCategory('customAgents')" title="Recolher/Expandir Subagentes">
                     <div class="section-header-left">
@@ -4762,7 +4871,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </div>
             </div>
 
-            <!-- 4. Histórico de Auditorias -->
+            <!-- 5. Histórico de Auditorias -->
             <div class="sidebar-category" id="catHistory">
                 <div class="section-header collapsible" onclick="toggleSidebarCategory('history')" title="Recolher/Expandir Histórico">
                     <div class="section-header-left">
@@ -4795,7 +4904,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     </div>
                 </div>
                 <div class="provider-cards-strip">
-                    <!-- 1. Google Cloud (Active) -->
+                    <!-- 1. Google Cloud (Active) with Sub-Tree Chevron -->
                     <div class="provider-card active" id="provCardGcp" onclick="selectCloudProvider('gcp')" title="Google Cloud - Conector ativo" data-i18n-title="provider_tooltip_gcp">
                         <div class="provider-card-icon shield-active">
                             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -4805,8 +4914,10 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </div>
                         <div class="provider-card-info">
                             <div class="provider-card-name">Google Cloud</div>
-                            <span class="provider-badge-active" data-i18n="framework_badge_active">Ativo</span>
                         </div>
+                        <svg id="gcpScopeTreeChevron" class="provider-chevron" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" onclick="toggleGcpScopeTree(event)" style="transform: rotate(0deg); cursor: pointer;" title="Expandir/Recolher Projetos GCP">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
                     </div>
 
                     <!-- 2. AWS (Locked) -->
@@ -4818,13 +4929,6 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </div>
                         <div class="provider-card-info">
                             <div class="provider-card-name">AWS</div>
-                            <span class="provider-badge-locked">
-                                <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                </svg>
-                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
-                            </span>
                         </div>
                     </div>
 
@@ -4837,13 +4941,6 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </div>
                         <div class="provider-card-info">
                             <div class="provider-card-name">Azure</div>
-                            <span class="provider-badge-locked">
-                                <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                </svg>
-                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
-                            </span>
                         </div>
                     </div>
 
@@ -4856,80 +4953,89 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </div>
                         <div class="provider-card-info">
                             <div class="provider-card-name">Oracle Cloud</div>
-                            <span class="provider-badge-locked">
-                                <svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                </svg>
-                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
-                            </span>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Escopo de Projetos Selecionados (GCP Organization Dropdown) -->
-            <div class="scope-box" id="scopeContainer">
-                <div class="scope-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                    <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue); flex-shrink: 0;">
-                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-                        </svg>
-                        <span class="scope-label" style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;">Organização GCP</span>
-                    </div>
-                    <button class="btn-org-dropdown-toggle" id="btnOrgDropdownToggle" onclick="toggleOrgScopeDropdown()" title="Projetos da Organização GCP" style="background: rgba(138, 180, 248, 0.12); border: 1px solid rgba(138, 180, 248, 0.3); color: var(--gcp-blue); border-radius: 6px; padding: 2px 7px; font-size: 11px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: var(--transition-smooth);">
-                        <span id="orgScopeBadgeText">3/10 ativos</span>
-                        <svg id="orgDropdownChevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.2s ease;">
-                            <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- Dropdown Retrátil da Organização GCP -->
-                <div class="org-scope-dropdown" id="orgScopeDropdown" style="display: none; background: var(--bg-canvas); border: 1px solid var(--border-focus); border-radius: 8px; padding: 8px; margin-bottom: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--text-tertiary); margin-bottom: 6px;">
-                        <span>Altostrat Global Org (108928374619)</span>
-                        <span style="color: var(--gcp-green); font-weight: 600;">Nível Org</span>
-                    </div>
-                    <input type="text" id="orgSearchInput" placeholder="Filtrar projetos da Org..." aria-label="Filtrar projetos da organização" oninput="filterOrgDropdown(this.value)" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-primary); margin-bottom: 6px; outline: none; box-sizing: border-box;">
-                    
-                    <div style="display: flex; gap: 4px; margin-bottom: 6px;">
-                        <button onclick="selectAllOrgProjects()" style="flex: 1; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 9.5px; color: var(--text-secondary); padding: 3px 4px; cursor: pointer;">Marcar Todos</button>
-                        <button onclick="selectProdOnlyOrgProjects()" style="flex: 1; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 9.5px; color: var(--text-secondary); padding: 3px 4px; cursor: pointer;">Apenas Prod</button>
-                        <button onclick="openProjectModal()" style="background: rgba(138, 180, 248, 0.1); border: 1px solid rgba(138, 180, 248, 0.25); border-radius: 4px; font-size: 9.5px; color: var(--gcp-blue); padding: 3px 6px; cursor: pointer;">+ Manual</button>
-                    </div>
-
-                    <div class="org-dropdown-list" id="orgDropdownItemsList" style="display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto;">
-                        <!-- Dynamically populated with all organization projects -->
-                    </div>
-                </div>
-
-                <!-- Lista de projetos ativos no escopo -->
-                <div class="scope-projects-list" id="scopeProjectsList" style="display: flex; flex-direction: column; gap: 5px; max-height: 110px; overflow-y: auto;">
-                    <div class="project-pill-item">
-                        <div class="project-pill-left">
-                            <input type="checkbox" class="project-checkbox" checked onchange="toggleProjectSelection('agentic-grc-cd06', this.checked)">
-                            <span class="project-id-text" title="agentic-grc-cd06">agentic-grc-cd06</span>
+                <!-- Escopo de Projetos Selecionados (Sub-árvore Retrátil da Organização GCP) -->
+                <div class="scope-box" id="scopeContainer" style="margin-top: 6px; border-left: 2px solid var(--gcp-blue); padding-left: 8px;">
+                    <div class="scope-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                        <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue); flex-shrink: 0;">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                            </svg>
+                            <span class="scope-label" style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;">Organização GCP</span>
                         </div>
-                        <span class="env-badge">PRODUCTION</span>
+                        <button class="btn-org-dropdown-toggle" id="btnOrgDropdownToggle" onclick="toggleOrgScopeDropdown()" title="Projetos da Organização GCP" style="background: rgba(138, 180, 248, 0.12); border: 1px solid rgba(138, 180, 248, 0.3); color: var(--gcp-blue); border-radius: 6px; padding: 2px 7px; font-size: 11px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: var(--transition-smooth);">
+                            <span id="orgScopeBadgeText">3/10 ativos</span>
+                            <svg id="orgDropdownChevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.2s ease;">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </button>
                     </div>
-                    <div class="project-pill-item">
-                        <div class="project-pill-left">
-                            <input type="checkbox" class="project-checkbox" checked onchange="toggleProjectSelection('agentic-grc-staging', this.checked)">
-                            <span class="project-id-text" title="agentic-grc-staging">agentic-grc-staging</span>
+
+                    <!-- Environment Filters (PRODUCTION, STAGING, ANALYTICS) -->
+                    <div class="scope-env-selectors" id="scopeEnvSelectors" style="display: flex; gap: 4px; margin-bottom: 6px; align-items: center;">
+                        <label title="Alternar todos os projetos de Produção" style="display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600; cursor: pointer; background: rgba(52, 168, 83, 0.1); border: 1px solid rgba(52, 168, 83, 0.3); border-radius: 4px; padding: 2px 5px; color: var(--gcp-green); user-select: none;">
+                            <input type="checkbox" id="envToggleProd" checked onchange="toggleEnvironmentScope('PRODUCTION', this.checked)" style="width: 11px; height: 11px; cursor: pointer; margin: 0;">
+                            PROD
+                        </label>
+                        <label title="Alternar todos os projetos de Homologação/Staging" style="display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600; cursor: pointer; background: rgba(251, 188, 4, 0.1); border: 1px solid rgba(251, 188, 4, 0.3); border-radius: 4px; padding: 2px 5px; color: var(--gcp-yellow); user-select: none;">
+                            <input type="checkbox" id="envToggleStaging" checked onchange="toggleEnvironmentScope('STAGING', this.checked)" style="width: 11px; height: 11px; cursor: pointer; margin: 0;">
+                            STAGE
+                        </label>
+                        <label title="Alternar todos os projetos de Analytics/Data Lake" style="display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600; cursor: pointer; background: rgba(138, 180, 248, 0.1); border: 1px solid rgba(138, 180, 248, 0.3); border-radius: 4px; padding: 2px 5px; color: var(--gcp-blue); user-select: none;">
+                            <input type="checkbox" id="envToggleAnalytics" checked onchange="toggleEnvironmentScope('ANALYTICS', this.checked)" style="width: 11px; height: 11px; cursor: pointer; margin: 0;">
+                            DATA
+                        </label>
+                    </div>
+
+                    <!-- Dropdown Retrátil da Organização GCP -->
+                    <div class="org-scope-dropdown" id="orgScopeDropdown" style="display: none; background: var(--bg-canvas); border: 1px solid var(--border-focus); border-radius: 8px; padding: 8px; margin-bottom: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--text-tertiary); margin-bottom: 6px;">
+                            <span>Altostrat Global Org (108928374619)</span>
+                            <span style="color: var(--gcp-green); font-weight: 600;">Nível Org</span>
                         </div>
-                        <span class="env-badge">STAGING</span>
-                    </div>
-                    <div class="project-pill-item">
-                        <div class="project-pill-left">
-                            <input type="checkbox" class="project-checkbox" checked onchange="toggleProjectSelection('agentic-grc-data-lake', this.checked)">
-                            <span class="project-id-text" title="agentic-grc-data-lake">agentic-grc-data-lake</span>
+                        <input type="text" id="orgSearchInput" placeholder="Filtrar projetos da Org..." aria-label="Filtrar projetos da organização" oninput="filterOrgDropdown(this.value)" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-primary); margin-bottom: 6px; outline: none; box-sizing: border-box;">
+                        
+                        <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                            <button onclick="selectAllOrgProjects()" style="flex: 1; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 9.5px; color: var(--text-secondary); padding: 3px 4px; cursor: pointer;">Marcar Todos</button>
+                            <button onclick="selectProdOnlyOrgProjects()" style="flex: 1; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 9.5px; color: var(--text-secondary); padding: 3px 4px; cursor: pointer;">Apenas Prod</button>
+                            <button onclick="openProjectModal()" style="background: rgba(138, 180, 248, 0.1); border: 1px solid rgba(138, 180, 248, 0.25); border-radius: 4px; font-size: 9.5px; color: var(--gcp-blue); padding: 3px 6px; cursor: pointer;">+ Manual</button>
                         </div>
-                        <span class="env-badge">ANALYTICS</span>
+
+                        <div class="org-dropdown-list" id="orgDropdownItemsList" style="display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto;">
+                            <!-- Dynamically populated with all organization projects -->
+                        </div>
                     </div>
+
+                    <!-- Lista de projetos ativos no escopo -->
+                    <div class="scope-projects-list" id="scopeProjectsList" style="display: flex; flex-direction: column; gap: 5px; max-height: 110px; overflow-y: auto;">
+                        <div class="project-pill-item">
+                            <div class="project-pill-left">
+                                <input type="checkbox" class="project-checkbox" checked onchange="toggleProjectSelection('agentic-grc-cd06', this.checked)">
+                                <span class="project-id-text" title="agentic-grc-cd06">agentic-grc-cd06</span>
+                            </div>
+                            <span class="env-badge">PRODUCTION</span>
+                        </div>
+                        <div class="project-pill-item">
+                            <div class="project-pill-left">
+                                <input type="checkbox" class="project-checkbox" checked onchange="toggleProjectSelection('agentic-grc-staging', this.checked)">
+                                <span class="project-id-text" title="agentic-grc-staging">agentic-grc-staging</span>
+                            </div>
+                            <span class="env-badge">STAGING</span>
+                        </div>
+                        <div class="project-pill-item">
+                            <div class="project-pill-left">
+                                <input type="checkbox" class="project-checkbox" checked onchange="toggleProjectSelection('agentic-grc-data-lake', this.checked)">
+                                <span class="project-id-text" title="agentic-grc-data-lake">agentic-grc-data-lake</span>
+                            </div>
+                            <span class="env-badge">ANALYTICS</span>
+                        </div>
+                    </div>
+                    <div class="scope-value" id="currentScopeLabel" style="display: none;">agentic-grc-cd06 (+2 ativos)</div>
                 </div>
-                <div class="scope-value" id="currentScopeLabel" style="display: none;">agentic-grc-cd06 (+2 ativos)</div>
             </div>
 
             <!-- Perfil do Auditor: Google Cloud Wordmark (sem a nuvem) & Credentials -->
@@ -4948,25 +5054,21 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         <!-- Top Navbar -->
         <header class="top-navbar">
             <div class="nav-breadcrumb">
-                <span class="top-org-badge">
-                    <svg id="topGoogleCloudIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 28" width="18" height="18" style="vertical-align: middle; display: inline-block; flex-shrink: 0;"><path fill="#ea4335" d="M21.85,7.41l1,0,2.85-2.85.14-1.21A12.81,12.81,0,0,0,5,9.6a1.55,1.55,0,0,1,1-.06l5.7-.94s.29-.48.44-.45a7.11,7.11,0,0,1,9.73-.74Z"/><path fill="#4285f4" d="M29.76,9.6a12.84,12.84,0,0,0-3.87-6.24l-4,4A7.11,7.11,0,0,1,24.5,13v.71a3.56,3.56,0,1,1,0,7.12H17.38l-.71.72v4.27l.71.71H24.5A9.26,9.26,0,0,0,29.76,9.6Z"/><path fill="#34a853" d="M10.25,26.49h7.12v-5.7H10.25a3.54,3.54,0,0,1-1.47-.32l-1,.31L4.91,23.63l-.25,1A9.21,9.21,0,0,0,10.25,26.49Z"/><path fill="#fbbc05" d="M10.25,8A9.26,9.26,0,0,0,4.66,24.6l4.13-4.13a3.56,3.56,0,1,1,4.71-4.71l4.13-4.13A9.25,9.25,0,0,0,10.25,8Z"/></svg>
-                    <span>Gemini Enterprise Agent Platform</span>
-                </span>
-                <!-- Framework Active Badge -->
-                <button type="button" class="top-framework-chip" id="topFrameworkBadge" onclick="openFrameworkSelectorModal()" title="Módulo Ativo: ISO/IEC 27001:2022 (Clique para ver opções)">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-                    <span id="topFrameworkBadgeText">Módulo: ISO/IEC 27001:2022</span>
-                </button>
-                <span style="color: var(--text-tertiary)">/</span>
+                <svg id="topGoogleCloudIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 28" width="16" height="16" style="vertical-align: middle; display: inline-block; flex-shrink: 0;"><path fill="#ea4335" d="M21.85,7.41l1,0,2.85-2.85.14-1.21A12.81,12.81,0,0,0,5,9.6a1.55,1.55,0,0,1,1-.06l5.7-.94s.29-.48.44-.45a7.11,7.11,0,0,1,9.73-.74Z"/><path fill="#4285f4" d="M29.76,9.6a12.84,12.84,0,0,0-3.87-6.24l-4,4A7.11,7.11,0,0,1,24.5,13v.71a3.56,3.56,0,1,1,0,7.12H17.38l-.71.72v4.27l.71.71H24.5A9.26,9.26,0,0,0,29.76,9.6Z"/><path fill="#34a853" d="M10.25,26.49h7.12v-5.7H10.25a3.54,3.54,0,0,1-1.47-.32l-1,.31L4.91,23.63l-.25,1A9.21,9.21,0,0,0,10.25,26.49Z"/><path fill="#fbbc05" d="M10.25,8A9.26,9.26,0,0,0,4.66,24.6l4.13-4.13a3.56,3.56,0,1,1,4.71-4.71l4.13-4.13A9.25,9.25,0,0,0,10.25,8Z"/></svg>
                 <span class="top-active-agent" id="topActiveTitle" data-i18n="top_title_home">Visão Geral dos Módulos</span>
-                <span style="color: var(--text-tertiary)">•</span>
-                <span style="color: var(--gcp-blue); font-size: 13px;" id="topProjectCountBadge" data-i18n="top_project_count">1 projeto ativo</span>
+                <span class="top-bullet-sep">•</span>
+                <span class="top-project-badge" id="topProjectCountBadge" data-i18n="top_project_count">3 projetos ativos</span>
+                <!-- Accessible and compliance markers -->
+                <span class="sr-only">Gemini Enterprise Agent Platform</span>
+                <span class="sr-only" id="topFrameworkBadgeText">Módulo: ISO/IEC 27001:2022</span>
+                <button type="button" id="topFrameworkBadge" style="display: none;"></button>
             </div>
 
             <div class="top-right-actions">
-                <div class="top-status-indicator">
+                <!-- Clean minimal status indicator (Gemini style) -->
+                <div class="top-status-indicator" title="Vertex AI gemini-2.5-flash (Google Cloud Security Certified)" data-i18n-title="status_indicator">
                     <span class="status-dot"></span>
-                    <span data-i18n="status_indicator">Vertex AI gemini-2.5-flash (Google Cloud Security Certified)</span>
+                    <span class="sr-only" data-i18n="status_indicator">Vertex AI gemini-2.5-flash (Google Cloud Security Certified)</span>
                 </div>
 
                 <!-- Google Workspace Identity & Tenant Access -->
@@ -5003,167 +5105,10 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <button class="lang-btn" id="langBtnEs" onclick="setLanguage('es')">ES</button>
                 </div>
 
-                <div class="dropdown" id="exportDropdown">
-                    <button class="btn-action-primary" onclick="toggleExportMenu()">
-                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        <span data-i18n="export_btn">Exportar Relatório</span>
-                    </button>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" href="javascript:void(0)" onclick="openExecutiveReport()">
-                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                            </svg>
-                            <span data-i18n="export_exec">Visualizar Dossiê Executivo</span>
-                        </a>
-                        <a class="dropdown-item" href="javascript:void(0)" onclick="openTechnicalReport()">
-                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor">
-                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                            <span data-i18n="export_tech">Visualizar Relatório Técnico (Auditoria Externa)</span>
-                        </a>
-                        <a class="dropdown-item" href="javascript:void(0)" onclick="printExecutiveReport()">
-                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor">
-                                <polyline points="6 9 6 2 18 2 18 9"/>
-                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                                <rect x="6" y="14" width="12" height="8"/>
-                            </svg>
-                            <span data-i18n="export_print">Imprimir / Salvar PDF Oficial</span>
-                        </a>
-                        <a class="dropdown-item" href="/api/reports/export?format=json" target="_blank">
-                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                            </svg>
-                            Pacote Criptográfico JSON (SHA-256)
-                        </a>
-                        <a class="dropdown-item" href="/api/reports/export?format=markdown" target="_blank">
-                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                                <line x1="16" y1="13" x2="8" y2="13"/>
-                                <line x1="16" y1="17" x2="8" y2="17"/>
-                            </svg>
-                            Relatório Técnico Markdown
-                        </a>
-                    </div>
-                </div>
+                <!-- Hidden dropdown for backward compatibility with JS handlers -->
+                <div class="dropdown" id="exportDropdown" style="display: none;"></div>
             </div>
         </header>
-
-        <!-- Certification Framework Selector -->
-        <div class="framework-selector-bar" id="frameworkSelectorBar">
-            <div class="framework-selector-header">
-                <div class="framework-selector-title">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--gcp-blue);">
-                        <rect x="3" y="3" width="7" height="7"/>
-                        <rect x="14" y="3" width="7" height="7"/>
-                        <rect x="14" y="14" width="7" height="7"/>
-                        <rect x="3" y="14" width="7" height="7"/>
-                    </svg>
-                    <span data-i18n="framework_selector_title">Estrutura de Certificação</span>
-                </div>
-            </div>
-            <div class="framework-cards-grid">
-                <!-- 1. ISO/IEC 27001:2022 (Active) -->
-                <div class="framework-card active" id="fwCardIso27001" onclick="selectFramework('iso27001')" title="ISO/IEC 27001:2022 - Auditoria agêntica ativa" data-i18n-title="framework_tooltip_iso">
-                    <div class="framework-card-icon shield-active">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                            <path d="M9 12l2 2 4-4"/>
-                        </svg>
-                    </div>
-                    <div class="framework-card-content">
-                        <div class="framework-card-name">ISO/IEC 27001:2022</div>
-                        <div class="framework-card-sub">
-                            <span class="framework-badge-active" data-i18n="framework_badge_active">Ativo</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. SOC 2 (Locked) -->
-                <div class="framework-card locked" id="fwCardSoc2" title="SOC 2 Type II - No roadmap de desenvolvimento" data-i18n-title="framework_tooltip_soc2">
-                    <div class="framework-card-icon shield-locked">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        </svg>
-                    </div>
-                    <div class="framework-card-content">
-                        <div class="framework-card-name">SOC 2</div>
-                        <div class="framework-card-sub">
-                            <span class="framework-badge-locked">
-                                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                </svg>
-                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. PCI DSS (Locked) -->
-                <div class="framework-card locked" id="fwCardPciDss" title="PCI DSS v4.0 - No roadmap de desenvolvimento" data-i18n-title="framework_tooltip_pcidss">
-                    <div class="framework-card-icon shield-locked">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        </svg>
-                    </div>
-                    <div class="framework-card-content">
-                        <div class="framework-card-name">PCI DSS</div>
-                        <div class="framework-card-sub">
-                            <span class="framework-badge-locked">
-                                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                </svg>
-                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 4. CMMI (Locked) -->
-                <div class="framework-card locked" id="fwCardCmmi" title="CMMI DEV/SVC - No roadmap de desenvolvimento" data-i18n-title="framework_tooltip_cmmi">
-                    <div class="framework-card-icon shield-locked">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        </svg>
-                    </div>
-                    <div class="framework-card-content">
-                        <div class="framework-card-name">CMMI</div>
-                        <div class="framework-card-sub">
-                            <span class="framework-badge-locked">
-                                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                </svg>
-                                <span data-i18n="framework_badge_coming_soon">Em breve</span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 5. More frameworks (Placeholder) -->
-                <div class="framework-card placeholder" id="fwCardMore" title="Novas estruturas regulatórias e normativas planejadas" data-i18n-title="framework_tooltip_more">
-                    <div class="framework-card-icon placeholder-icon">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                    </div>
-                    <div class="framework-card-content">
-                        <div class="framework-card-name" data-i18n="framework_more">Mais frameworks</div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Dynamic Views Viewport -->
         <div class="views-viewport">
@@ -5181,7 +5126,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 </svg>
                             </div>
                             <h1 class="home-simple-title" data-i18n="home_search_title">O que você gostaria de verificar hoje?</h1>
-                            <p class="home-simple-subtitle" data-i18n="home_search_subtitle">Auditoria contínua de conformidade e segurança em nuvem com inteligência artificial.</p>
+                            <p class="home-simple-subtitle sr-only" data-i18n="home_search_subtitle" style="display: none;">Auditoria contínua de conformidade e segurança em nuvem com inteligência artificial.</p>
                         </div>
 
                         <!-- Large Centered Chat Input Box -->
@@ -7521,6 +7466,31 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     </div>
                 </div>
 
+                <!-- Painel de Recomendações Algorítmicas de Economia de Tokens (FinOps Optimization Tips) -->
+                <div class="card-panel" style="margin-top: 16px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                        <div>
+                            <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-green);">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                                </svg>
+                                <span>Recomendações Algorítmicas de Otimização de Tokens</span>
+                            </div>
+                            <div class="card-desc">Dicas e diagnósticos gerados a partir do histórico empírico de eventos de inferência e ferramentas locais.</div>
+                        </div>
+                        <button onclick="loadFinOpsTips()" style="background: rgba(138, 180, 248, 0.1); border: 1px solid rgba(138, 180, 248, 0.3); border-radius: 6px; padding: 4px 10px; font-size: 11px; color: var(--gcp-blue); cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M23 4v6h-6M1 20v-6h6"/>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                            </svg>
+                            Atualizar Dicas
+                        </button>
+                    </div>
+                    <div id="finopsTokenSavingTipsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 14px;">
+                        <!-- Dynamically populated by renderFinOpsDashboard / loadFinOpsTips -->
+                    </div>
+                </div>
+
                 <!-- Tabela de Referência de Tarifas Vertex AI / Gemini Enterprise -->
                 <div class="card-panel" style="margin-top: 16px;">
                     <div class="card-title">Tabela de Tarifação Oficial de Referência (Google Cloud Vertex AI)</div>
@@ -9171,7 +9141,7 @@ window.currentLanguage = 'pt';
         function initSidebarCategories() {
             try {
                 const saved = JSON.parse(localStorage.getItem("grc_collapsed_categories") || "{}");
-                ['pinned', 'nav', 'customAgents', 'history'].forEach(catId => {
+                ['pinned', 'nav', 'frameworks', 'customAgents', 'history'].forEach(catId => {
                     const capitalized = catId.charAt(0).toUpperCase() + catId.slice(1);
                     const content = document.getElementById(`cat${capitalized}Content`);
                     const chevron = document.getElementById(`chevron${capitalized}`);
@@ -9952,11 +9922,26 @@ Formulário preenchido com o subagente recomendado!`);
 
         let currentCloudProvider = 'gcp';
 
+        function toggleGcpScopeTree(event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            const scopeContainer = document.getElementById("scopeContainer");
+            const chevron = document.getElementById("gcpScopeTreeChevron");
+            if (!scopeContainer) return;
+            const isClosed = scopeContainer.style.display === "none";
+            scopeContainer.style.display = isClosed ? "block" : "none";
+            if (chevron) {
+                chevron.style.transform = isClosed ? "rotate(0deg)" : "rotate(-90deg)";
+            }
+        }
+
         function selectCloudProvider(providerId) {
             if (providerId === 'gcp') {
                 currentCloudProvider = 'gcp';
                 const card = document.getElementById('provCardGcp');
                 if (card) card.classList.add('active');
+                toggleGcpScopeTree();
             }
         }
 
@@ -10756,6 +10741,83 @@ function openNewsModal(newsKey) {
                 const count = selectedProjectIds.size;
                 badge.innerText = `${count} ${count === 1 ? 'projeto ativo' : 'projetos ativos'}`;
             }
+
+            updateEnvToggleState();
+        }
+
+        function updateEnvToggleState() {
+            const list = allOrgProjects.length > 0 ? allOrgProjects : activeProjects;
+            if (!list || list.length === 0) return;
+
+            const envs = [
+                { id: "envToggleProd", pattern: "PROD" },
+                { id: "envToggleStaging", pattern: "STAG" },
+                { id: "envToggleAnalytics", pattern: "ANALYTIC" }
+            ];
+
+            envs.forEach(env => {
+                const elem = document.getElementById(env.id);
+                if (!elem) return;
+                const matching = list.filter(p => (p.environment || "").toUpperCase().includes(env.pattern));
+                if (matching.length === 0) {
+                    elem.checked = false;
+                    elem.indeterminate = false;
+                    return;
+                }
+                const selectedCount = matching.filter(p => selectedProjectIds.has(p.project_id)).length;
+                if (selectedCount === matching.length) {
+                    elem.checked = true;
+                    elem.indeterminate = false;
+                } else if (selectedCount === 0) {
+                    elem.checked = false;
+                    elem.indeterminate = false;
+                } else {
+                    elem.checked = false;
+                    elem.indeterminate = true;
+                }
+            });
+        }
+
+        async function toggleEnvironmentScope(envPattern, isChecked) {
+            const list = allOrgProjects.length > 0 ? allOrgProjects : activeProjects;
+            const matching = list.filter(p => (p.environment || "").toUpperCase().includes(envPattern.toUpperCase()));
+            if (matching.length === 0) return;
+
+            if (isChecked) {
+                for (const p of matching) {
+                    selectedProjectIds.add(p.project_id);
+                    try {
+                        await fetch("/api/projects/toggle_scope", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ project_id: p.project_id, in_scope: true })
+                        });
+                    } catch(e) {}
+                }
+            } else {
+                const remaining = new Set(selectedProjectIds);
+                for (const p of matching) {
+                    remaining.delete(p.project_id);
+                }
+                if (remaining.size === 0) {
+                    alert("Pelo menos um projeto deve permanecer no escopo de auditoria.");
+                    updateEnvToggleState();
+                    return;
+                }
+                for (const p of matching) {
+                    selectedProjectIds.delete(p.project_id);
+                    try {
+                        await fetch("/api/projects/toggle_scope", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ project_id: p.project_id, in_scope: false })
+                        });
+                    } catch(e) {}
+                }
+            }
+            renderScopeBox();
+            renderOrgDropdown();
+            updateEnvToggleState();
         }
 
         function openProjectScopeModal() {
@@ -11638,6 +11700,70 @@ function openNewsModal(newsKey) {
                     `;
                     tbody.appendChild(tr);
                 });
+            }
+
+            // Render Token-Saving Tips
+            const tips = (data.summary && data.summary.token_saving_tips) || data.token_saving_tips || [];
+            renderFinOpsTips(tips);
+        }
+
+        function renderFinOpsTips(tips) {
+            const container = document.getElementById("finopsTokenSavingTipsContainer");
+            if (!container) return;
+            if (!tips || tips.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; padding: 16px; background: var(--bg-canvas); border: 1px dashed var(--border-subtle); border-radius: 8px; text-align: center; color: var(--text-tertiary); font-size: 12px;">
+                        Nenhuma recomendação no momento. Continue utilizando o sistema para acumular telemetria empírica.
+                    </div>
+                `;
+                return;
+            }
+            container.innerHTML = "";
+            tips.forEach(t => {
+                const card = document.createElement("div");
+                card.style.background = "var(--bg-canvas)";
+                card.style.border = "1px solid var(--border-subtle)";
+                card.style.borderRadius = "8px";
+                card.style.padding = "12px";
+                card.style.display = "flex";
+                card.style.flexDirection = "column";
+                card.style.gap = "6px";
+
+                let badgeColor = "var(--gcp-blue)";
+                let badgeBg = "rgba(138, 180, 248, 0.12)";
+                if (t.severity === "HIGH") {
+                    badgeColor = "var(--gcp-red)";
+                    badgeBg = "rgba(234, 67, 53, 0.12)";
+                } else if (t.severity === "MEDIUM") {
+                    badgeColor = "var(--gcp-yellow)";
+                    badgeBg = "rgba(251, 188, 4, 0.12)";
+                } else if (t.severity === "INFO") {
+                    badgeColor = "var(--gcp-green)";
+                    badgeBg = "rgba(52, 168, 83, 0.12)";
+                }
+
+                card.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                        <span style="font-size: 10px; font-weight: 700; color: ${badgeColor}; background: ${badgeBg}; border-radius: 4px; padding: 2px 6px; text-transform: uppercase;">${t.severity || "INFO"}</span>
+                        ${t.potential_savings_usd > 0 ? `<span style="font-size: 11px; font-weight: 600; color: var(--gcp-green);">Economia: $${t.potential_savings_usd.toFixed(4)} USD</span>` : ''}
+                    </div>
+                    <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-top: 2px;">${t.title}</div>
+                    <div style="font-size: 11.5px; color: var(--text-secondary); line-height: 1.4;">${t.description}</div>
+                    ${t.metric ? `<div style="font-size: 10.5px; color: var(--text-tertiary); font-family: monospace; margin-top: auto; padding-top: 4px; border-top: 1px dashed var(--border-subtle);">Métrica: ${t.metric}</div>` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function loadFinOpsTips() {
+            try {
+                const res = await fetch("/api/finops/tips");
+                if (res.ok) {
+                    const data = await res.json();
+                    renderFinOpsTips(data.tips || []);
+                }
+            } catch(e) {
+                console.error("Error loading FinOps tips", e);
             }
         }
 
