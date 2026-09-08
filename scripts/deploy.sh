@@ -121,14 +121,30 @@ ENV_VARS="${ENV_VARS},GOOGLE_CLOUD_PROJECT=${PROJECT_ID}"
 ENV_VARS="${ENV_VARS},GOOGLE_CLOUD_LOCATION=${REGION}"
 ENV_VARS="${ENV_VARS},ALLOW_DEV_AUTH_BYPASS=${ALLOW_DEV_AUTH_BYPASS}"
 
-gcloud run deploy "${SERVICE_NAME}" \
+if ! gcloud run deploy "${SERVICE_NAME}" \
     --source="${PROJECT_ROOT}" \
     --region="${REGION}" \
     --project="${PROJECT_ID}" \
     --platform=managed \
     --allow-unauthenticated \
+    --min-instances=1 \
+    --memory=2Gi \
+    --cpu=2 \
     --quiet \
-    --set-env-vars="${ENV_VARS}"
+    --set-env-vars="${ENV_VARS}"; then
+    echo "[WARN] Deployment with --allow-unauthenticated failed (possible Organization Policy constraint). Retrying with authenticated access..."
+    gcloud run deploy "${SERVICE_NAME}" \
+        --source="${PROJECT_ROOT}" \
+        --region="${REGION}" \
+        --project="${PROJECT_ID}" \
+        --platform=managed \
+        --no-allow-unauthenticated \
+        --min-instances=1 \
+        --memory=2Gi \
+        --cpu=2 \
+        --quiet \
+        --set-env-vars="${ENV_VARS}"
+fi
 
 SERVICE_URL=$(gcloud run services describe "${SERVICE_NAME}" --region="${REGION}" --project="${PROJECT_ID}" --format="value(status.url)")
 

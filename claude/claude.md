@@ -1792,3 +1792,32 @@ Per user clarification, [`documentation/poc/HOW_TO.md`](../documentation/poc/HOW
 4. **100% Cloud GCP Focus**:
    - Completely stripped of local workstation instructions, local test execution, and local Python environments.
    - Clean, simple, professional, 100% in English, and completely emoji-free.
+
+---
+
+### Milestone 43: Fully Automated Transparent Client Deployment & Instant Diagnostic Error Trapping (2026-09-08)
+
+#### A. Executive Summary & Changes
+Per user directive, the client deployment experience was made completely transparent, frictionless, and zero-touch:
+1. **Single-Interaction Client UX (`terraform/first_steps/bootstrap.sh`)**:
+   - The **ONLY** interaction required from the client is:
+     1. Open Google Cloud Shell.
+     2. Paste `curl -sSL https://raw.githubusercontent.com/g-jsaccomani/agentic_grc_certifications/main/terraform/first_steps/bootstrap.sh | bash` and press Enter.
+     3. Enter the email address(es) of users to authorize for access.
+     4. Copy the final output block (Organization, Project ID, Folder ID, Auditor SA, and Live Portal URL) and send it to the implementation engineer.
+   - Removed all interactive prompts for tool choice (Terraform is installed automatically in ~3 seconds without interrupting the client).
+   - Automatically chains Step 8: invokes `scripts/deploy.sh` directly within the same session, provisioning Model Armor and deploying `mcp-server-grc` to Cloud Run without requiring a secondary command.
+2. **Real-Time Error Diagnostic Trap ("Hotfix Resolution")**:
+   - Added a comprehensive `trap on_exit EXIT` handler tracking `CURRENT_STEP`.
+   - On ANY non-zero exit, automatically halts cleanly and renders a structured **Error Diagnostic Block** containing:
+     - Exact timestamp and failed step description
+     - Exit code and authenticated GCP account
+     - Organization ID and Project ID
+     - Path to the detailed log file (`/tmp/agentic_grc_bootstrap_*.log`)
+     - The last 30 lines of the execution log trace
+   - Allows the client to immediately copy and send the diagnostic block to the engineer for hotfix resolution on the fly ("corrigir a quente").
+3. **Cloud Run Resilience (`scripts/deploy.sh`)**:
+   - Updated `gcloud run deploy` with `--min-instances=1`, `--memory=2Gi`, `--cpu=2`, and an automatic fallback to `--no-allow-unauthenticated` in case an Organization Policy constraint blocks public ingress.
+4. **Documentation Alignment (`documentation/poc/HOW_TO.md`)**:
+   - Updated all sections to reflect the single-command workflow, the exact expected output format to send to the engineer, and the error diagnostic format.
+   - 100% in English and completely emoji-free.
