@@ -51,7 +51,37 @@ sequenceDiagram
 
 ---
 
-## 2. Tooling & System Prerequisites
+## 2. Security Posture & Identity Separation: Build vs. Runtime Inspection
+
+To satisfy strict enterprise security compliance and client zero-trust governance, the Agentic GRC platform enforces a rigorous architectural separation between **Build-Time Packaging Identities** and **Runtime Inspection Identities**:
+
+### 2.1 Build-Time Identity Boundary
+- **Identity**: Google Cloud Default Compute / Cloud Build Service Account (`<PROJECT_NUMBER>-compute@developer.gserviceaccount.com`).
+- **Assigned Roles**: `roles/storage.admin`, `roles/artifactregistry.writer`, `roles/logging.logWriter`.
+- **Scope & Lifecycle**: Used **ONLY** during container compilation, packaging, and Cloud Run deployment (`scripts/deploy.sh` or `make journey`).
+- **Operational Boundary**: This identity is **NEVER** used during live audit execution, compliance scanning, or client environment telemetry gathering.
+
+### 2.2 Runtime Inspection Path (`mcp_server_grc/cloud_inspector.py`)
+- **Identity**: Executes strictly under the **requesting user's own delegated OAuth 2.0 bearer token** (`ya29...`) or the dedicated read-only auditor service account (`sa-agentic-grc-auditor@<PROJECT_ID>.iam.gserviceaccount.com`).
+- **Assigned Roles**: Read-only organization viewer roles (`roles/cloudasset.viewer`, `roles/browser`, `roles/iam.securityReviewer`, `roles/securitycenter.findingsViewer`).
+- **Zero Mutation Guarantee**: Makes **zero write API calls** against client resources. Every live check is strictly a read-only `GET` or read-only `getIamPolicy` `POST`.
+- **Explicit Leadership Mandate**:
+  > [!IMPORTANT]
+  > **No service account used during live environment inspection has write permissions on client resources.**
+
+### 2.3 Identity Separation Matrix
+
+| Property | Build-Time Service Account | Runtime Cloud Inspector (`cloud_inspector.py`) |
+| :--- | :--- | :--- |
+| **Service Account** | `<PROJECT_NUMBER>-compute@developer.gserviceaccount.com` | Logged-in User Delegated OAuth Token / `sa-agentic-grc-auditor` |
+| **Permissions** | `storage.admin`, `artifactregistry.writer`, `logging.logWriter` | `cloudasset.viewer`, `iam.securityReviewer`, `browser` |
+| **Usage Phase** | Container build & Cloud Run deployment | Live audit scanning, natural language query, evidence verification |
+| **Write Access** | Restricted to container registry & build logs | **ZERO write permissions on client infrastructure** |
+| **Call Safety** | One-time execution during deployment pipeline | Read-only discovery with session rate limiting & call budget |
+
+---
+
+## 3. Tooling & System Prerequisites
 
 Ensure your deployment workstation has the following tools installed and authenticated:
 
@@ -66,7 +96,7 @@ Ensure your deployment workstation has the following tools installed and authent
 
 ---
 
-## 3. Phase 1: GCP Infrastructure & Security Identity Bootstrap
+## 4. Phase 1: GCP Infrastructure & Security Identity Bootstrap
 
 ### 3.1 Automated Cloud Shell Flow (Fastest)
 Run this single command inside [Google Cloud Shell](https://shell.cloud.google.com):
@@ -127,7 +157,7 @@ terraform apply -auto-approve
 
 ---
 
-## 4. Google Workspace OAuth 2.0 Client Setup
+## 5. Google Workspace OAuth 2.0 Client Setup
 
 The portal integrates with Google Workspace Single Sign-On. To configure authentication:
 
@@ -155,7 +185,7 @@ The portal integrates with Google Workspace Single Sign-On. To configure authent
 
 ---
 
-## 5. Granting Consultant/Partner Access for Final Configuration
+## 6. Granting Consultant/Partner Access for Final Configuration
 
 When engaging external security consultants or technical partners to assist with deployment, verification, and final configuration, adhere strictly to the principle of least privilege using time-boxed, temporary IAM conditions.
 
@@ -209,7 +239,7 @@ done
 
 ---
 
-## 6. Phase 2: Application Build & Cloud Run Deployment
+## 7. Phase 2: Application Build & Cloud Run Deployment
 
 Deploy the platform container to Cloud Run using the automated build script:
 
@@ -244,7 +274,7 @@ make journey
 
 ---
 
-## 7. Functional Lab Projects Setup (POC Target Scope)
+## 8. Functional Lab Projects Setup (POC Target Scope)
 
 For POC demonstrations, the system audits multi-project environments. You can connect existing corporate non-prod projects or provision the functional lab projects:
 
@@ -262,7 +292,7 @@ python scripts/verify_poc_environment.py
 
 ---
 
-## 8. Local Development & Testing Workflow
+## 9. Local Development & Testing Workflow
 
 To run and modify the platform locally:
 
@@ -295,7 +325,7 @@ make run-mcp
 
 ---
 
-## 9. Maintenance & Operational Commands
+## 10. Maintenance & Operational Commands
 
 | Command | Purpose |
 | :--- | :--- |

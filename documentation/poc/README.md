@@ -27,7 +27,7 @@ graph LR
         Orchestrator["Multi-Agent Orchestrator\n(Annex A, FinOps, Horizon)"]
         EGraph["Evidence Graph\n(Immutable SHA-256 DAG)"]
         Quest["Questionnaire Engine\n(Auto-Sync & AI Consistency)"]
-        Remediation["Autonomous Remediation\n(HITL Guardrails)"]
+        Remediation["Remediation Advisor\n(Prescriptive Playbooks)"]
     end
 
     subgraph Outputs["Executive & Audit Outputs"]
@@ -44,7 +44,7 @@ graph LR
     EGraph --> Scorecard
     Quest --> Portal
     Scorecard --> Reports
-    Remediation -.->|Approved Fix| Assets
+    Remediation -.->|Prescriptive Guidance| Portal
 ```
 
 ---
@@ -78,9 +78,9 @@ The documentation is organized into dedicated, comprehensive guides:
 4. **Immutable Cryptographic Proof**:
    - Every evidence node is sealed with a deterministic SHA-256 hash.
    - Produces tamper-evident audit receipts suitable for external certification auditors (e.g., BSI, Bureau Veritas, DNV).
-5. **Closed-Loop Remediation with Human-in-the-Loop (HITL)**:
-   - Automated remediation proposals for detected drifts (IAM over-privileging, firewall exposure, missing CMEK, lack of VPC Flow Logs).
-   - Requires explicit authorized human sign-off before executing infrastructure adjustments.
+5. **Actionable Remediation Guidance & Prescriptive Playbooks**:
+   - Generates precise, prescriptive remediation recommendations (exact gcloud CLI commands and Terraform patches) for detected non-conformances.
+   - Operates under a strict read-only model: the platform identifies findings and drafts recommendations, but NEVER executes mutations on client infrastructure.
 
 ---
 

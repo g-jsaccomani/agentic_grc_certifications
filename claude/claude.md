@@ -1821,3 +1821,40 @@ Per user directive, the client deployment experience was made completely transpa
 4. **Documentation Alignment (`documentation/poc/HOW_TO.md`)**:
    - Updated all sections to reflect the single-command workflow, the exact expected output format to send to the engineer, and the error diagnostic format.
    - 100% in English and completely emoji-free.
+
+---
+
+### Milestone 44: Read-Only Guardrail Enforcement & Technical Cost/Quota Call Budget Safeguards (2026-09-08)
+
+#### A. Executive Summary & Changes
+Per user directive (PROMPT A), implemented leadership-mandated read-only security guardrails, quota safeguards, and documentation alignment:
+1. **Security Posture & Identity Separation (`documentation/poc/ENVIRONMENT_SETUP.md`)**:
+   - Added Section 2: "Security Posture & Identity Separation: Build vs. Runtime Inspection".
+   - Explicitly distinguished the Cloud Build compute service account (`roles/storage.admin`, `roles/artifactregistry.writer`, `roles/logging.logWriter`—used **ONLY** during container compilation and deployment packaging, **NEVER** during live audit execution) from the runtime inspection path (`mcp_server_grc/cloud_inspector.py`).
+   - Stated the exact required mandate:
+     > *"No service account used during live environment inspection has write permissions on client resources."*
+   - Added Identity Separation Matrix comparing service account identities, permissions, usage phases, write access, and call safety.
+
+2. **Technical Cost & Quota Call Budget Safeguard (`mcp_server_grc/cloud_inspector.py`)**:
+   - Implemented a per-session rate limiter and call budget: `MAX_LIVE_INSPECTION_CALLS_PER_SESSION` (default: 50, configurable via env var) and per-call timeout `LIVE_INSPECTION_TIMEOUT_SECONDS` (default: 10s).
+   - Added `_SESSION_CALL_TRACKER`, `get_session_id`, `get_session_call_count`, `reset_session_call_budget`, `check_and_increment_call_budget`, and `get_session_disclosure_statement`.
+   - When the budget is exhausted, halts further network calls and returns `status: "UNDETERMINED"` with violation message: `"Live inspection call budget (N calls) exhausted for this session."`
+   - Logs the exact required statement on each call:
+     `"N read-only API calls were made against your environment during this session."`
+   - Enforced across Cloud KMS, Cloud Storage, Project IAM, and Cloud Run inspection functions, with graceful `TimeoutError` handling returning `UNDETERMINED`.
+
+3. **De-Automated Remediation & Prescriptive Guidance (`documentation/poc/HOW_TO.md`)**:
+   - Rewrote Scene 6 ("Actionable Remediation Guidance & Prescriptive Recommendations") to remove all automated-execution framing.
+   - Clarified that the platform generates prescriptive recommendations (exact `gcloud` CLI commands and Terraform HCL snippets) but **NEVER executes mutations against client environments**. DevOps/Platform teams retain full control through their own CI/CD pipelines.
+   - Updated FAQ Q3 to an airtight read-only answer reiterating zero write permissions and the explicit leadership mandate.
+   - Added FAQ Q4 detailing the rate limiter, call budget, and session disclosure statement.
+   - Aligned [`documentation/poc/README.md`](../documentation/poc/README.md) and [`documentation/poc/POC_DOCUMENT.md`](../documentation/poc/POC_DOCUMENT.md) with this prescriptive recommendation model.
+
+4. **Test Suite Expansion & Verification**:
+   - Added 4 new unit tests in [`tests/test_cloud_inspector.py`](../tests/test_cloud_inspector.py):
+     * `test_call_budget_exhaustion_returns_undetermined`
+     * `test_live_api_call_timeout_returns_undetermined`
+     * `test_session_call_budget_counting_and_disclosure_statement`
+     * `test_reset_session_call_budget`
+   - Verified 188/188 tests passing (100% pass rate).
+

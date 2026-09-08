@@ -7,6 +7,7 @@ Empowers the Agentic GRC Auditor with live cloud execution power:
 - Inspects Cloud Logging audit sinks and data access log configurations.
 - Inspects Cloud Run services and regional workload topology.
 - Strictly read-only: executes only discovery/inspection operations with zero mutation risk.
+- Enforces session call budgets and per-call timeouts to safeguard client quotas and costs.
 """
 
 import os
@@ -18,6 +19,113 @@ from typing import Any, Dict, List, Optional, Tuple
 logger = logging.getLogger("cloud_inspector")
 DEFAULT_PROJECT_ID = os.getenv("PROJECT_ID", "agentic-grc-cd06")
 DEFAULT_LOCATION = os.getenv("REGION", "us-central1")
+
+# Rate Limiter & Call Budget Configuration
+MAX_LIVE_INSPECTION_CALLS_PER_SESSION = int(
+    os.getenv("MAX_LIVE_INSPECTION_CALLS_PER_SESSION", "50")
+)
+LIVE_INSPECTION_TIMEOUT_SECONDS = float(
+    os.getenv("LIVE_INSPECTION_TIMEOUT_SECONDS", "10.0")
+)
+
+# Session tracking registry for live read-only API calls
+_SESSION_CALL_TRACKER: Dict[str, int] = {}
+
+
+def get_session_id(session_id: Optional[str] = None, bearer_token: Optional[str] = None) -> str:
+    """Derives a stable session identifier from session_id or bearer_token."""
+    if session_id and str(session_id).strip():
+        return str(session_id).strip()
+    if bearer_token and isinstance(bearer_token, str) and bearer_token.strip():
+        return f"token_{abs(hash(bearer_token.strip()))}"
+    return "default_session"
+
+
+def get_session_call_count(session_id: Optional[str] = None, bearer_token: Optional[str] = None) -> int:
+    """Returns the total number of live read-only API calls made in this session."""
+    sid = get_session_id(session_id, bearer_token)
+    return _SESSION_CALL_TRACKER.get(sid, 0)
+
+
+def reset_session_call_budget(session_id: Optional[str] = None, bearer_token: Optional[str] = None) -> None:
+    """Resets the call budget counter for a specific session or all sessions."""
+    global _SESSION_CALL_TRACKER
+    if session_id or bearer_token:
+        sid = get_session_id(session_id, bearer_token)
+        _SESSION_CALL_TRACKER.pop(sid, None)
+    else:
+        _SESSION_CALL_TRACKER.clear()
+
+
+def check_and_increment_call_budget(
+    session_id: Optional[str] = None,
+    bearer_token: Optional[str] = None,
+) -> Tuple[bool, int, int]:
+    """Checks and increments the live API call budget for the session.
+    
+    Returns:
+        (is_allowed: bool, current_call_count: int, max_budget: int)
+    """
+    sid = get_session_id(session_id, bearer_token)
+    current = _SESSION_CALL_TRACKER.get(sid, 0)
+    max_budget = int(os.getenv("MAX_LIVE_INSPECTION_CALLS_PER_SESSION", str(MAX_LIVE_INSPECTION_CALLS_PER_SESSION)))
+
+    if current >= max_budget:
+        logger.warning(
+            f"Live inspection call budget ({max_budget}) exhausted for session '{sid}'. "
+            f"Returning UNDETERMINED for further resources."
+        )
+        return False, current, max_budget
+
+    new_count = current + 1
+    _SESSION_CALL_TRACKER[sid] = new_count
+    logger.info(
+        f"{new_count} read-only API calls were made against your environment during this session."
+    )
+    return True, new_count, max_budget
+
+
+def get_session_disclosure_statement(
+    session_id: Optional[str] = None,
+    bearer_token: Optional[str] = None,
+) -> str:
+    """Returns the client audit disclosure string for API calls made."""
+    count = get_session_call_count(session_id, bearer_token)
+    return f"{count} read-only API calls were made against your environment during this session."
+
+
+def _budget_exhausted_response(
+    resource_name: str,
+    project_id: str,
+    max_budget: int,
+    control_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Generates an UNDETERMINED response when the session call budget is exhausted."""
+    msg = (
+        f"Live inspection call budget ({max_budget}) exhausted for this session. "
+        f"Resource inspection halted to safeguard cloud quotas and costs."
+    )
+    return {
+        "status": "UNDETERMINED",
+        "resource": resource_name,
+        "project_id": project_id,
+        "message": msg,
+        "key_details": {},
+        "bucket_details": {},
+        "services": [],
+        "bindings": [],
+        "compliance": {
+            "status": "UNDETERMINED",
+            "control": control_id or "ISO/IEC 27001:2022",
+            "violations": [
+                f"Live inspection call budget ({max_budget} calls) exhausted for this session."
+            ],
+            "remediation": (
+                f"Call budget limit reached ({max_budget} calls). "
+                "Increase MAX_LIVE_INSPECTION_CALLS_PER_SESSION or initiate a new audit cycle."
+            ),
+        },
+    }
 
 
 NO_DELEGATED_CREDENTIAL_MSG = (
@@ -78,10 +186,12 @@ def inspect_cloud_kms_key(
     keyring_name: Optional[str] = None,
     project_id: Optional[str] = None,
     bearer_token: Optional[str] = None,
+    session_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Inspects a Cloud KMS key in real time to fetch rotationPeriod and protectionLevel (A.8.24).
     
     Automatically searches across key rings and locations if full path is not provided.
+    Enforces per-session call budget and timeout limits.
     """
     clean_name = key_name.strip().strip("'").strip('"')
     session, proj = get_authorized_session(bearer_token=bearer_token, project_id=project_id)
@@ -100,11 +210,17 @@ def inspect_cloud_kms_key(
             },
         }
 
+    call_timeout = float(os.getenv("LIVE_INSPECTION_TIMEOUT_SECONDS", str(LIVE_INSPECTION_TIMEOUT_SECONDS)))
+
     # If full resource path provided: projects/{proj}/locations/{loc}/keyRings/{kr}/cryptoKeys/{k}
     if clean_name.startswith("projects/"):
+        allowed, count, max_b = check_and_increment_call_budget(session_id=session_id, bearer_token=bearer_token)
+        if not allowed:
+            return _budget_exhausted_response(clean_name, proj, max_b, control_id="ISO/IEC 27001:2022 A.8.24")
+
         try:
             url = f"https://cloudkms.googleapis.com/v1/{clean_name}"
-            resp = session.get(url, timeout=10)
+            resp = session.get(url, timeout=call_timeout)
             if resp.status_code == 200:
                 k_data = resp.json()
                 return _evaluate_kms_key_data(clean_name, k_data, proj)
@@ -127,6 +243,21 @@ def inspect_cloud_kms_key(
                     "compliance": {"status": "ERROR", "violations": ["Permission denied."]},
                 }
         except Exception as exc:
+            if isinstance(exc, TimeoutError) or any(t in str(exc).lower() for t in ["timeout", "timed out"]):
+                logger.warning(f"Timeout querying KMS key {clean_name}: {exc}")
+                return {
+                    "status": "UNDETERMINED",
+                    "resource": clean_name,
+                    "project_id": proj,
+                    "message": f"KMS API call timed out after {call_timeout}s.",
+                    "key_details": {},
+                    "compliance": {
+                        "status": "UNDETERMINED",
+                        "control": "ISO/IEC 27001:2022 A.8.24",
+                        "violations": [f"API call timed out after {call_timeout}s."],
+                        "remediation": "Retry inspection or increase LIVE_INSPECTION_TIMEOUT_SECONDS.",
+                    },
+                }
             logger.warning(f"Error querying KMS key {clean_name}: {exc}")
 
     # Search across locations and keyrings for short key name
@@ -139,8 +270,12 @@ def inspect_cloud_kms_key(
             continue
         checked_locations.append(loc)
         try:
+            allowed, count, max_b = check_and_increment_call_budget(session_id=session_id, bearer_token=bearer_token)
+            if not allowed:
+                return _budget_exhausted_response(clean_name, proj, max_b, control_id="ISO/IEC 27001:2022 A.8.24")
+
             kr_url = f"https://cloudkms.googleapis.com/v1/projects/{proj}/locations/{loc}/keyRings"
-            kr_resp = session.get(kr_url, timeout=5)
+            kr_resp = session.get(kr_url, timeout=call_timeout)
             if kr_resp.status_code != 200:
                 continue
 
@@ -151,8 +286,12 @@ def inspect_cloud_kms_key(
                     continue
                 checked_keyrings += 1
 
+                allowed, count, max_b = check_and_increment_call_budget(session_id=session_id, bearer_token=bearer_token)
+                if not allowed:
+                    return _budget_exhausted_response(clean_name, proj, max_b, control_id="ISO/IEC 27001:2022 A.8.24")
+
                 keys_url = f"https://cloudkms.googleapis.com/v1/{kr_path}/cryptoKeys"
-                keys_resp = session.get(keys_url, timeout=5)
+                keys_resp = session.get(keys_url, timeout=call_timeout)
                 if keys_resp.status_code != 200:
                     continue
 
@@ -162,6 +301,21 @@ def inspect_cloud_kms_key(
                     if k_short.lower() == clean_name.lower() or clean_name.lower() in k_full.lower():
                         return _evaluate_kms_key_data(k_full, k_item, proj)
         except Exception as exc:
+            if isinstance(exc, TimeoutError) or any(t in str(exc).lower() for t in ["timeout", "timed out"]):
+                logger.warning(f"Timeout scanning KMS in location {loc}: {exc}")
+                return {
+                    "status": "UNDETERMINED",
+                    "resource": clean_name,
+                    "project_id": proj,
+                    "message": f"KMS API call timed out after {call_timeout}s.",
+                    "key_details": {},
+                    "compliance": {
+                        "status": "UNDETERMINED",
+                        "control": "ISO/IEC 27001:2022 A.8.24",
+                        "violations": [f"API call timed out after {call_timeout}s."],
+                        "remediation": "Retry inspection or increase LIVE_INSPECTION_TIMEOUT_SECONDS.",
+                    },
+                }
             logger.debug(f"Error scanning location {loc}: {exc}")
 
     # Key not found after scanning
@@ -249,6 +403,7 @@ def list_cloud_kms_keys(
     location: Optional[str] = None,
     project_id: Optional[str] = None,
     bearer_token: Optional[str] = None,
+    session_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Lists all KMS key rings and crypto keys in the project across locations."""
     session, proj = get_authorized_session(bearer_token=bearer_token, project_id=project_id)
@@ -260,18 +415,39 @@ def list_cloud_kms_keys(
             "keys": [],
         }
 
+    call_timeout = float(os.getenv("LIVE_INSPECTION_TIMEOUT_SECONDS", str(LIVE_INSPECTION_TIMEOUT_SECONDS)))
     target_locations = [location] if location else ["global", "us-central1", "us", "us-east1"]
     all_keys = []
 
     for loc in target_locations:
+        allowed, count, max_b = check_and_increment_call_budget(session_id=session_id, bearer_token=bearer_token)
+        if not allowed:
+            logger.warning(f"KMS listing aborted early: call budget ({max_b}) reached.")
+            return {
+                "status": "UNDETERMINED",
+                "project_id": proj,
+                "total_keys_found": len(all_keys),
+                "keys": all_keys,
+                "message": f"Live inspection call budget ({max_b}) exhausted for this session.",
+            }
         try:
             url = f"https://cloudkms.googleapis.com/v1/projects/{proj}/locations/{loc}/keyRings"
-            resp = session.get(url, timeout=5)
+            resp = session.get(url, timeout=call_timeout)
             if resp.status_code == 200:
                 keyrings = resp.json().get("keyRings", [])
                 for kr in keyrings:
                     kr_name = kr.get("name")
-                    k_resp = session.get(f"https://cloudkms.googleapis.com/v1/{kr_name}/cryptoKeys", timeout=5)
+                    allowed, count, max_b = check_and_increment_call_budget(session_id=session_id, bearer_token=bearer_token)
+                    if not allowed:
+                        logger.warning(f"KMS listing aborted early: call budget ({max_b}) reached.")
+                        return {
+                            "status": "UNDETERMINED",
+                            "project_id": proj,
+                            "total_keys_found": len(all_keys),
+                            "keys": all_keys,
+                            "message": f"Live inspection call budget ({max_b}) exhausted for this session.",
+                        }
+                    k_resp = session.get(f"https://cloudkms.googleapis.com/v1/{kr_name}/cryptoKeys", timeout=call_timeout)
                     if k_resp.status_code == 200:
                         for k in k_resp.json().get("cryptoKeys", []):
                             all_keys.append({
@@ -296,6 +472,7 @@ def inspect_cloud_storage_bucket(
     bucket_name: str,
     project_id: Optional[str] = None,
     bearer_token: Optional[str] = None,
+    session_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Inspects a Cloud Storage bucket in real time for PAP, UBLA, and CMEK (A.5.23)."""
     clean_bname = bucket_name.strip().replace("gs://", "").strip("/").strip("'").strip('"')
@@ -314,9 +491,14 @@ def inspect_cloud_storage_bucket(
             },
         }
 
+    call_timeout = float(os.getenv("LIVE_INSPECTION_TIMEOUT_SECONDS", str(LIVE_INSPECTION_TIMEOUT_SECONDS)))
+    allowed, count, max_b = check_and_increment_call_budget(session_id=session_id, bearer_token=bearer_token)
+    if not allowed:
+        return _budget_exhausted_response(clean_bname, proj, max_b, control_id="ISO/IEC 27001:2022 A.5.23")
+
     try:
         url = f"https://storage.googleapis.com/storage/v1/b/{clean_bname}"
-        resp = session.get(url, timeout=10)
+        resp = session.get(url, timeout=call_timeout)
         if resp.status_code == 200:
             data = resp.json()
             iam_conf = data.get("iamConfiguration", {})
@@ -379,6 +561,20 @@ def inspect_cloud_storage_bucket(
                 "compliance": {"status": "ERROR", "violations": ["Permissão negada na Storage API."]},
             }
     except Exception as exc:
+        if isinstance(exc, TimeoutError) or any(t in str(exc).lower() for t in ["timeout", "timed out"]):
+            logger.warning(f"Timeout inspecting bucket {clean_bname}: {exc}")
+            return {
+                "status": "UNDETERMINED",
+                "resource": clean_bname,
+                "project_id": proj,
+                "message": f"Storage API call timed out after {call_timeout}s.",
+                "compliance": {
+                    "status": "UNDETERMINED",
+                    "control": "ISO/IEC 27001:2022 A.5.23",
+                    "violations": [f"API call timed out after {call_timeout}s."],
+                    "remediation": "Retry inspection or increase LIVE_INSPECTION_TIMEOUT_SECONDS.",
+                },
+            }
         logger.warning(f"Error inspecting bucket {clean_bname}: {exc}")
 
     return {
@@ -392,6 +588,7 @@ def inspect_cloud_storage_bucket(
 def list_cloud_storage_buckets(
     project_id: Optional[str] = None,
     bearer_token: Optional[str] = None,
+    session_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Lists all Cloud Storage buckets in the project with PAP and UBLA posture."""
     session, proj = get_authorized_session(bearer_token=bearer_token, project_id=project_id)
@@ -403,9 +600,19 @@ def list_cloud_storage_buckets(
             "buckets": [],
         }
 
+    call_timeout = float(os.getenv("LIVE_INSPECTION_TIMEOUT_SECONDS", str(LIVE_INSPECTION_TIMEOUT_SECONDS)))
+    allowed, count, max_b = check_and_increment_call_budget(session_id=session_id, bearer_token=bearer_token)
+    if not allowed:
+        return {
+            "status": "UNDETERMINED",
+            "project_id": proj,
+            "buckets": [],
+            "message": f"Live inspection call budget ({max_b}) exhausted for this session.",
+        }
+
     try:
         url = f"https://storage.googleapis.com/storage/v1/b?project={proj}"
-        resp = session.get(url, timeout=10)
+        resp = session.get(url, timeout=call_timeout)
         if resp.status_code == 200:
             items = resp.json().get("items", [])
             buckets_summary = []
@@ -433,6 +640,7 @@ def list_cloud_storage_buckets(
 def inspect_project_iam_policy(
     project_id: Optional[str] = None,
     bearer_token: Optional[str] = None,
+    session_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Inspects project IAM policy for primitive roles and least privilege compliance (A.5.15)."""
     session, proj = get_authorized_session(bearer_token=bearer_token, project_id=project_id)
@@ -449,9 +657,14 @@ def inspect_project_iam_policy(
             },
         }
 
+    call_timeout = float(os.getenv("LIVE_INSPECTION_TIMEOUT_SECONDS", str(LIVE_INSPECTION_TIMEOUT_SECONDS)))
+    allowed, count, max_b = check_and_increment_call_budget(session_id=session_id, bearer_token=bearer_token)
+    if not allowed:
+        return _budget_exhausted_response(f"projects/{proj}", proj, max_b, control_id="ISO/IEC 27001:2022 A.5.15")
+
     try:
         url = f"https://cloudresourcemanager.googleapis.com/v1/projects/{proj}:getIamPolicy"
-        resp = session.post(url, timeout=10)
+        resp = session.post(url, timeout=call_timeout)
         if resp.status_code == 200:
             bindings = resp.json().get("bindings", [])
             primitive_roles = {"roles/owner", "roles/editor"}
@@ -492,6 +705,21 @@ def inspect_project_iam_policy(
                 "bindings": bindings,
             }
     except Exception as exc:
+        if isinstance(exc, TimeoutError) or any(t in str(exc).lower() for t in ["timeout", "timed out"]):
+            logger.warning(f"Timeout inspecting IAM policy for {proj}: {exc}")
+            return {
+                "status": "UNDETERMINED",
+                "resource": f"projects/{proj}",
+                "project_id": proj,
+                "message": f"Resource Manager API call timed out after {call_timeout}s.",
+                "bindings": [],
+                "compliance": {
+                    "status": "UNDETERMINED",
+                    "control": "ISO/IEC 27001:2022 A.5.15",
+                    "violations": [f"API call timed out after {call_timeout}s."],
+                    "remediation": "Retry inspection or increase LIVE_INSPECTION_TIMEOUT_SECONDS.",
+                },
+            }
         logger.warning(f"Error inspecting IAM policy for {proj}: {exc}")
 
     return {"status": "ERROR", "project_id": proj, "bindings": []}
@@ -501,6 +729,7 @@ def inspect_cloud_run_services(
     location: Optional[str] = None,
     project_id: Optional[str] = None,
     bearer_token: Optional[str] = None,
+    session_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Inspects Cloud Run services for deployment status and ingress controls (A.8.20)."""
     session, proj = get_authorized_session(bearer_token=bearer_token, project_id=project_id)
@@ -519,9 +748,14 @@ def inspect_cloud_run_services(
             },
         }
 
+    call_timeout = float(os.getenv("LIVE_INSPECTION_TIMEOUT_SECONDS", str(LIVE_INSPECTION_TIMEOUT_SECONDS)))
+    allowed, count, max_b = check_and_increment_call_budget(session_id=session_id, bearer_token=bearer_token)
+    if not allowed:
+        return _budget_exhausted_response(f"cloud-run-{loc}", proj, max_b, control_id="ISO/IEC 27001:2022 A.8.20")
+
     try:
         url = f"https://run.googleapis.com/v2/projects/{proj}/locations/{loc}/services"
-        resp = session.get(url, timeout=10)
+        resp = session.get(url, timeout=call_timeout)
         if resp.status_code == 200:
             services = resp.json().get("services", [])
             summary = []
@@ -543,6 +777,21 @@ def inspect_cloud_run_services(
                 "services": summary,
             }
     except Exception as exc:
+        if isinstance(exc, TimeoutError) or any(t in str(exc).lower() for t in ["timeout", "timed out"]):
+            logger.warning(f"Timeout inspecting Cloud Run in {proj}/{loc}: {exc}")
+            return {
+                "status": "UNDETERMINED",
+                "resource": f"cloud-run-{loc}",
+                "project_id": proj,
+                "message": f"Cloud Run API call timed out after {call_timeout}s.",
+                "services": [],
+                "compliance": {
+                    "status": "UNDETERMINED",
+                    "control": "ISO/IEC 27001:2022 A.8.20",
+                    "violations": [f"API call timed out after {call_timeout}s."],
+                    "remediation": "Retry inspection or increase LIVE_INSPECTION_TIMEOUT_SECONDS.",
+                },
+            }
         logger.warning(f"Error inspecting Cloud Run in {proj}/{loc}: {exc}")
 
     return {"status": "ERROR", "project_id": proj, "services": []}

@@ -34,7 +34,7 @@ Agentic GRC Platform (Continuous & Cryptographically Proven)
                                                                                            │
                                                                                            ▼
                                                                            [ Real-Time 93-Control Matrix ]
-                                                                           [ Automated HITL Remediation ]
+                                                                           [ Prescriptive Remediation Guidance ]
                                                                            [ Instant Auditor Dossier Export ]
 ```
 
@@ -53,7 +53,7 @@ The primary objective of this Proof of Concept (POC) is to demonstrate a fully f
 | **Evidence Provenance** | Unverified text / Screenshots | Cryptographic DAG (SHA-256) | **100% immutable hashes** |
 | **Questionnaire Sync** | Manual spreadsheet data entry | Autonomous telemetry-driven sync | **Zero-touch auto-population** |
 | **Evidence File Integrity** | Unchecked file uploads | Magic byte MIME sniffing + AI check | **Strict rejection of spoofed files** |
-| **Remediation Latency** | Weeks of Jira ticket routing | 1-Click Human-in-the-Loop (HITL) | **Immediate API execution upon sign-off** |
+| **Remediation Guidance** | Generic audit warnings | Prescriptive CLI & Terraform patches | **Instant, actionable remediation code (Read-Only)** |
 | **Hallucination Rate** | High in generic AI tools | Zero (Deterministic API ground truth) | **0%** (Undetermined when API fails) |
 
 ---
@@ -93,7 +93,7 @@ graph TB
         subgraph "Continuous Intelligence (CI) Engine"
             Questionnaire["Questionnaire Engine\n(Auto-Sync & Telemetry Anchor)"]
             EvidenceGraph["Epistemic Evidence Graph\n(Immutable SHA-256 DAG)"]
-            RemediationEngine["Remediation Engine\n(HITL Approval Guardrails)"]
+            RemediationAdvisor["Remediation Engine\n(Prescriptive Recommendations)"]
         end
     end
 
@@ -126,7 +126,7 @@ graph TB
 
     TechAuditor --> EvidenceGraph
     EvidenceGraph --> Questionnaire
-    RemediationEngine -.->|Approved HITL Mutation| Compute
+    RemediationAdvisor -.->|Prescriptive Recommendations (Read-Only)| User
     LeadAuditor --> VertexAI
 ```
 
@@ -354,6 +354,9 @@ Compliance platforms that produce generic audit findings leave security teams bu
    - Corresponding Terraform configuration snippet for GitOps integration.
 3. **Engineering Review & Change Management**: Platform engineers review the recommendation, verify impact, and apply the change through standard organizational change-management pipelines.
 4. **Immediate Re-Audit & Verification**: After the change is applied, running a fresh audit scan immediately re-inspects the resource, confirms compliance, updates the Evidence Graph, and transitions the control to **`COMPLIANT`**.
+
+> [!IMPORTANT]
+> **No service account used during live environment inspection has write permissions on client resources.** The platform never executes mutations against client environments, functioning exclusively as an autonomous, read-only continuous assurance engine.
 
 ---
 
