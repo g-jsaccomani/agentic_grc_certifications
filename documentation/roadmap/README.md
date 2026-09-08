@@ -1,137 +1,140 @@
-# Strategic Roadmap — Agentic GRC Platform
-## Continuous Compliance, Multi-Framework Automation & Multi-Cloud Governance
+# Roadmap Estratégico — Agentic GRC Platform
 
-> **Platform**: Gemini Enterprise Agent Platform (GEAP) & Google Cloud Security  
-> **Status**: Active Product & Engineering Roadmap  
-> **Scope Boundary**: This platform performs continuous audit, automated evidence collection, and remediation recommendations; it does not directly modify client code or mutate infrastructure.  
-> **Language**: English
+Planejamento de evolução da plataforma **Agentic GRC (GEAP)** para governança contínua, auditoria autônoma multi-framework e conformidade multi-cloud.
+
+**Escopo declarado da ferramenta:** o Agentic GRC realiza auditoria, coleta de evidências e recomendações de adequação. **A ferramenta não modifica código, infraestrutura ou configurações do ambiente do cliente** — toda correção é responsabilidade do time do cliente, orientada pelos achados e recomendações do auditor.
 
 ---
 
-## 1. Evolution Phases & Strategic Milestones
+## 1. Fases e Marcos de Evolução (Milestones)
 
-| Milestone / Initiative | Primary Focus | Key Deliverables | Status |
+| Marco / Iniciativa | Foco Principal | Principais Entregas | Status |
 | :--- | :--- | :--- | :--- |
-| **Foundation Complete** | **ISO 27001:2022 (GCP)** | All 93 controls, MCP server, 4 autonomous phases, SHA-256 Evidence Graph, C-Level Executive Dossier, and Stage 2 External Audit Report (PDF/JSON). | Completed |
-| **Interactivity & Governance** | **ISO Questionnaires & Evidence** | Structured audit questionnaires, drag-and-drop evidence upload with SHA-256 anchoring, Gemini 2.5 AI consistency validation, and real-time score recalculation. | In Progress |
-| **Hybrid Telemetry** | **Multi-Cloud Connectors (AWS & Azure)** | Ingestion of AWS and Azure telemetry via OIDC Workload Identity Federation (Zero-Key), unified control abstraction (KMS, Storage, IAM, Network). | In Progress |
-| **Enterprise Cloud & B2B Frameworks** | **OCI & SOC 2 / PCI-DSS** | Oracle Cloud Infrastructure (OCI) connector, certification onboarding wizard (Pre-deploy / Pre-access), SOC 2 Type II and PCI-DSS v4.0 catalogs. | Backlog |
-| **Global 360 Compliance** | **NIST CSF & Privacy (GDPR/LGPD)** | NIST CSF 2.0, Cloud DLP privacy data mapping, cross-correlation engine (*Collect Once, Comply Many*), and continuous multi-cloud auditing. | Future Vision |
+| **Fundação** | **ISO 27001:2022 (GCP)** | 93 controles, servidor MCP, inspeção ao vivo (KMS, Storage, IAM, Cloud Run), Grafo SHA-256, Dossiê C-Level e Relatório Stage 2 (PDF/JSON). | Em Andamento 🚀 |
+| **Interatividade & Governança** | **Questionários ISO & Evidências** | Roteiro de perguntas de auditoria, upload de evidências validado por conteúdo, validação por IA com tier de confiança separado (autodeclarado vs. verificado), e recálculo em tempo real de métricas e relatórios. | Em Andamento 🚀 |
+| **Telemetria Híbrida** | **Conectores Multi-Cloud (AWS & Azure)** | Ingestão de telemetria AWS e Azure via federação OIDC (Zero-Key), abstração unificada de controles (KMS, Storage, IAM, Rede). | Backlog 💡 |
+| **Nuvem & Frameworks B2B** | **OCI & SOC 2 / PCI-DSS** | Conector Oracle Cloud (OCI), seletor de certificações (Pré-deploy/Pré-acesso), catálogos SOC 2 Type II e PCI-DSS v4.0. | Backlog 💡 |
+| **Conformidade Global 360°** | **NIST CSF & LGPD/GDPR** | NIST CSF 2.0, LGPD/GDPR via Cloud DLP, motor de correlação cruzada (*Collect Once, Comply Many*) e auditoria contínua multi-cloud. | Visão Futura 🌐 |
 
 ---
 
-## 2. Strategic Evolution Pillars
+## 2. Percentual de Implementação por Pilar
+
+> Percentuais baseados em verificação funcional direta (execução real de testes e endpoints),
+> não em estimativa de esforço restante. Atualizado nesta revisão do roadmap.
+
+| Pilar | % Implementado | O que já funciona de verdade | O que falta |
+| :--- | :---: | :--- | :--- |
+| **Fundação (ISO 27001 / GCP)** | **90%** | Inspeção ao vivo real para KMS, Cloud Storage, IAM e Cloud Run (falha fechada sem credencial, não fabrica dado). MCP server com dual-token + verificação de assinatura obrigatória. | Inspeção ao vivo de Firewall/VPC e Compute Engine ainda depende de config informado, não de chamada real à API. |
+| **Pilar 1 — Questionários & Evidências** | **90%** | CRUD completo dos 93 controles, upload de evidência validado por conteúdo real (não extensão), tier `SELF_ATTESTED` separado de `VERIFIED`/`TELEMETRY`, validação de consistência por IA com fallback conservador, recálculo em cascata no scorecard/relatórios. | Seção de Metodologia/Responsabilidade do Auditor nos relatórios; taxonomia de severidade (Maior/Menor/OFI) ainda binária em alguns pontos. |
+| **Pilar 2 — Multi-Cloud (AWS/Azure/OCI)** | **5%** | Seletor visual "em breve" no portal, honesto sobre o estado atual. | Nenhum conector real. Federação OIDC, ingestão de telemetria e mapeamento de controles ainda não iniciados. |
+| **Pilar 3 — Multi-Framework (SOC2/PCI/NIST/LGPD)** | **15%** | Campo `framework` já existe em toda a cadeia de dados (resposta, evidência, link de conformidade) sem exigir migração futura. Catálogo SOC 2 com 5 controles-piloto (Common Criteria). | PCI-DSS, NIST CSF e LGPD sem catálogo. Motor de mapeamento cruzado (*Collect Once, Comply Many*) não iniciado. |
+
+---
+
+## 3. Pilares Estratégicos de Evolução
 
 ```
                    +-------------------------------------------------------------+
                    |             AGENTIC GRC UNIFIED PLATFORM                    |
                    +------------------------------+------------------------------+
                                                   |
-                     +----------------------------+----------------------------+
-                     |                            |                            |
-                     v                            v                            v
-            +-----------------+          +-----------------+          +-----------------+
-            | PILLAR 1        |          | PILLAR 2        |          | PILLAR 3        |
-            | Questionnaires &|          | Multi-Cloud     |          | Multi-Framework |
-            | ISO Evidence    |          | Connectors      |          | Expansion       |
-            | (HITL + Metrics)|          | (AWS/Azure/OCI) |          | (SOC2/PCI/NIST) |
-            +-----------------+          +-----------------+          +-----------------+
+                   +-----------------------+-----------------+-----------------------+
+                   |                       |                                       |
+                   v                       v                                       v
+          +-----------------+     +-----------------+                     +-----------------+
+          | PILAR 1         |     | PILAR 2         |                     | PILAR 3         |
+          | Questionários & |     | Conectores      |                     | Expansão        |
+          | Evidências ISO  |     | Multi-Cloud     |                     | Multi-Framework |
+          | (HITL + Métricas|     | (AWS/Azure/OCI) |                     | (SOC2/PCI/NIST) |
+          +-----------------+     +-----------------+                     +-----------------+
 ```
 
 ---
 
-### Pillar 1: ISO Audit Questionnaires & Evidence Attachments
+### 📝 Pilar 1: Questionários de Auditoria ISO & Anexação de Evidências
 
-Addresses organizational controls (A.5), people controls (A.6), and governance clauses (4 to 10) requiring human attestation and documentary verification:
+Atende aos controles organizacionais (A.5), de pessoas (A.6) e cláusulas de governança (4 a 10) que exigem validação humana e documental.
 
-- **Structured Normative Questions**:
-  - Interactive evaluation matrix for all 93 ISO 27001 controls with formal acceptance criteria.
-- **Evidence Upload with SHA-256 Integrity**:
-  - Direct drag-and-drop ingestion of policy documents (PDF), meeting minutes, reports, and architecture diagrams.
-  - Deterministic cryptographic hashing (SHA-256) calculated at upload time and anchored directly to the Evidence Graph.
-- **Multimodal Consistency Analysis via Gemini 2.5**:
-  - AI-driven validation checking alignment between written explanations and uploaded documentary evidence.
-  - Formal classifications: *Consistent*, *Partial*, *Inconsistent*, *No Evidence*.
-- **Immediate Cascading Recalculation**:
-  - Instant scorecard updates for global compliance percentage.
-  - Real-time refresh of the C-Level Executive Dossier.
-  - Automatic injection of evidence receipts into the Stage 2 External Technical Audit Report (Print-ready A4 PDF / JSON / Markdown).
+- **Perguntas Normativas Estruturadas**:
+  - Formulário interativo para os 93 controles da ISO 27001 com critérios formais de aceitação.
+- **Anexação de Evidências com Integridade SHA-256**:
+  - Upload direto (*drag-and-drop*) de políticas (PDF), atas de reunião, relatórios e prints, validado por conteúdo real do arquivo (não por extensão).
+  - Carimbo criptográfico (SHA-256) gerado no upload e ancorado ao Grafo de Evidências.
+- **Análise & Scoring via Gemini 2.5**:
+  - Validação por IA da coerência entre resposta textual e documento anexado.
+  - Classificação formal: *Conforme*, *Conforme com Observação*, *Não Conformidade*.
+  - Distinção explícita entre evidência autodeclarada (`SELF_ATTESTED`) e evidência verificada por telemetria (`VERIFIED`/`TELEMETRY`) — nunca apresentadas com o mesmo peso.
+- **Recálculo Imediato em Cascata**:
+  - Atualização instantânea do **Scorecard e % de Conformidade**.
+  - Atualização do **Dossiê Executivo (C-Level)**.
+  - Inclusão automática das evidências no **Relatório Técnico de Auditoria Externa Stage 2 (A4 PDF / JSON / MD)**.
 
 ---
 
-### Pillar 2: Multi-Cloud Connectors & Telemetry (AWS, Azure, OCI)
+### 🌐 Pilar 2: Conectores e Telemetria Multi-Cloud (AWS, Azure, OCI)
 
-Unifies security posture management and continuous compliance for multi-cloud enterprise architectures:
+Unifica a governança de segurança para organizações que operam em múltiplos provedores de nuvem.
 
-- **OIDC Identity Federation (Zero-Key Principle)**:
-  - Eliminates static credentials using Google Cloud Workload Identity Federation to assume temporary, scoped roles in AWS IAM, Microsoft Entra ID, and OCI IAM.
-- **Native Cloud Service Connectors**:
+- **Federação de Identidade OIDC (Zero-Key)**:
+  - Autenticação sem chaves estáticas usando Google Workload Identity Federation para assumir roles na AWS, Azure e OCI.
+- **Conectores Nativos**:
   - **AWS**: Security Hub, AWS Config, IAM Access Analyzer, CloudTrail, KMS, S3.
-  - **Microsoft Azure**: Microsoft Defender for Cloud, Azure Policy, Entra ID, Key Vault, Network Security Groups (NSGs), Blob Storage.
+  - **Microsoft Azure**: Defender for Cloud, Azure Policy, Entra ID, Key Vault, NSGs, Blob Storage.
   - **Oracle Cloud (OCI)**: Cloud Guard, Security Zones, OCI Vault, VCN Security Lists, Object Storage.
-- **Agnostic Control Abstraction Layer**:
-  - Normalizes multi-cloud resources to ISO 27001 Annex A controls:
-    - *Cryptography (A.8.24)*: Google Cloud KMS = AWS KMS = Azure Key Vault = OCI Vault.
-    - *Network Security (A.8.20)*: GCP Compute Firewalls = AWS Security Groups = Azure NSGs = OCI Security Lists.
-    - *Data Leakage Prevention (A.8.12)*: GCS = AWS S3 = Azure Blob Storage = OCI Object Storage.
-- **Portal Unified & Provider-Specific Views**:
-  - Toggle between single-cloud perimeters (`GCP`, `AWS`, `Azure`, `OCI`) and the **Global Consolidated Compliance Posture**.
+- **Abstração Agnóstica de Controles**:
+  - Mapeamento uniforme para a ISO 27001:
+    - *Criptografia (A.8.24)*: Google Cloud KMS = AWS KMS = Azure Key Vault = OCI Vault.
+    - *Segurança de Rede (A.8.20)*: GCP Firewalls = AWS Security Groups = Azure NSGs = OCI Security Lists.
+    - *Prevenção de Vazamento (A.8.12)*: GCS = S3 = Azure Blob = OCI Object Storage.
+- **Filtro de Visão no Portal**:
+  - Alternância entre visões específicas (`GCP`, `AWS`, `Azure`, `OCI`) e a **Postura Consolidada Global**.
 
 ---
 
-### Pillar 3: Multi-Framework Expansion & Cross-Mapping
+### 📋 Pilar 3: Expansão Multi-Framework & Mapeamento Cruzado
 
-Transforms the audit engine into an enterprise multi-normative platform with evidentiary reuse (*Collect Once, Comply Many*):
+Transformação do motor de auditoria em uma plataforma multi-normativa com inteligência de reutilização de evidências (*Collect Once, Comply Many*).
 
-- **Target Regulatory Frameworks**:
-  - **SOC 2 Type II**: Trust Services Criteria (CC1 to CC9), Availability, and Confidentiality.
-  - **PCI-DSS v4.0**: Cardholder Data Environment (CDE), tokenization, firewall boundaries, and encryption of cardholder data.
-  - **NIST CSF 2.0 & SP 800-53 Rev. 5**: Govern, Identify, Protect, Detect, Respond, and Recover categories.
-  - **Privacy Regulations (GDPR / LGPD)**: PII discovery via Cloud DLP and automated Records of Processing Activities (ROPA).
-- **Framework Selection Architecture**:
-  - **Pre-Deployment**: Declarative activation via Terraform configuration (`terraform.tfvars`) or Cloud Run environment variables (`ACTIVE_FRAMEWORKS`).
-  - **Runtime & Pre-Access**: Workspace switcher in the portal header and self-service compliance onboarding wizard.
-- **Cross-Framework Evidence Reusability**:
-  - A single technical telemetry collector (e.g., KMS automatic key rotation) simultaneously satisfies ISO 27001 (A.8.24), SOC 2 (CC6.1), PCI-DSS (3.5.1), and NIST CSF (PR.DS-01), delivering up to 80% token savings through Gemini Context Caching.
-
----
-
-## 3. Implementation Percentage by Pillar
-
-| Initiative / Pillar | Estimated Completion | Status & Scope Gap Analysis (Real vs. Missing) |
-| :--- | :---: | :--- |
-| **Foundation (ISO 27001 / GCP)** | **90%** | Live Cloud KMS, Cloud Storage, IAM, and Cloud Run security inspections are fully implemented; live Firewall and Compute Engine deep inspection remain pending. |
-| **Pillar 1 (Questionnaires & Evidence)** | **90%** | Interactive 93-control questionnaire, drag-and-drop evidence uploads, SHA-256 graph anchoring, and AI consistency analysis are operational; formal report Methodology and Auditor Responsibility sections remain pending. |
-| **Pillar 2 (Multi-Cloud Connectors)** | **5%** | OIDC federation architecture and control abstraction schemas are specified, but zero real connectors for AWS, Azure, or OCI are implemented. |
-| **Pillar 3 (Multi-Framework Expansion)** | **15%** | A pilot SOC 2 catalog covering 5 controls is implemented; no catalogs currently exist for PCI-DSS, NIST CSF 2.0, or GDPR/LGPD. |
+- **Novos Frameworks Integrados**:
+  - **SOC 2 Type II**: Common Criteria (CC1 a CC9), Disponibilidade e Confidencialidade.
+  - **PCI-DSS v4.0**: Requisitos de CDE, tokenização, firewall, criptografia de dados de cartões.
+  - **NIST CSF 2.0 & SP 800-53 Rev. 5**: Govern, Identify, Protect, Detect, Respond, Recover.
+  - **LGPD / GDPR**: Mapeamento de PII via Cloud DLP e geração de Relatório de Impacto (ROPA).
+- **Mecanismos de Seleção**:
+  - **Pré-Deploy**: Ativação declarativa via Terraform (`terraform.tfvars`) ou variáveis de ambiente no Cloud Run (`ACTIVE_FRAMEWORKS`).
+  - **Pré-Acesso (Runtime)**: Seletor no cabeçalho do portal (*Workspace Switcher*) e wizard de onboarding de certificações.
+- **Cross-Mapping de Evidências**:
+  - Uma única verificação técnica (ex.: rotação de KMS) satisfaz simultaneamente ISO 27001 (A.8.24), SOC 2 (CC6.1), PCI-DSS (3.5.1) e NIST (PR.DS-01) — a redução de consumo de tokens via Gemini Context Caching será medida e reportada quando esse mecanismo for implementado, não estimada previamente.
 
 ---
 
-## 4. Prioritization Matrix
+## 4. Matriz de Priorização
 
 ```
-                  HIGH IMPACT
-                       ^
-                       |   [Pillar 1] ISO Questionnaires & Evidence
-                       |   [Pillar 2] Multi-Cloud Connectors (AWS/Azure)
-                       |   
-                       |   [Pillar 3] SOC 2 Type II & PCI-DSS
-                       |   
-                       |   [Pillar 3] NIST CSF 2.0 & OCI Connector
-                       |   [Pillar 3] GDPR / LGPD Privacy Automation
-                       +------------------------------------------>
-                      LOW                             HIGH
-                                  COMPLEXITY
+                  ALTO IMPACTO
+                       ▲
+                       │   [Pilar 1] Questionários & Evidências ISO
+                       │   [Pilar 2] Conectores Multi-Cloud (AWS/Azure)
+                       │
+                       │   [Pilar 3] SOC 2 Type II & PCI-DSS
+                       │
+                       │   [Pilar 3] NIST CSF 2.0 & OCI Connector
+                       │   [Pilar 3] LGPD/GDPR Automation
+                       └──────────────────────────────────────────►
+                     BAIXA                           ALTA
+                                 COMPLEXIDADE
 ```
 
 ---
 
-## 5. Engineering Guidelines & Definition of Done (DoD)
+## 5. Diretrizes de Engenharia e Critérios de Conclusão (DoD)
 
-Before any roadmap feature is released to production:
+Para cada funcionalidade do Roadmap ser considerada pronta para produção:
 
-1. **Zero Static Credentials**: All cloud integrations must strictly employ OIDC Workload Identity Federation.
-2. **Active Model Armor Guardrails**: Every new agent prompt and completion must pass through injection filtering, PII redaction, and anti-hallucination validation.
-3. **Cryptographic Proof Chain**: All collected or uploaded evidence must be hashed with SHA-256 and anchored to the epistemic Evidence Graph.
-4. **Automated Report Propagation**: New findings must immediately update both the C-Level Executive Dossier and the Stage 2 External Technical Audit Report.
-5. **Continuous Quality Gate**: Minimum of 90% test coverage with automated unit, integration, and guardrail tests passing in CI/CD (`pytest tests/`).
+1. **Zero Segredos Estáticos**: Qualquer integração multi-cloud ou externa deve utilizar federação OIDC / Workload Identity.
+2. **Model Armor & Guardrails Ativos**: Todas as entradas e saídas de novos subagentes devem passar pelos filtros de injeção, redação de PII e anti-alucinação.
+3. **Imutabilidade Probatória**: Toda evidência coletada ou anexada deve possuir hash SHA-256 registrado no Grafo de Evidências.
+4. **Impacto Contínuo nos Relatórios**: Novos dados devem alimentar automaticamente o Dossiê C-Level e o Relatório Técnico Stage 2 (PDF/JSON).
+5. **Cobertura de Testes**: Mínimo de 90% de cobertura com testes unitários e de integração automatizados no CI/CD (`make test`).
+6. **Verificação ao Vivo Obrigatória**: Nenhuma funcionalidade é considerada concluída apenas com testes unitários passando — é exigida ao menos uma verificação contra o endpoint real (não a função isolada) antes de qualquer status ser marcado como "Concluído".
