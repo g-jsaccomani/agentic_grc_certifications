@@ -127,7 +127,7 @@ gantt
 5. **Demonstrate Framework Breadth & Roadmap Transparency**:
    - Point out the active framework badge: **ISO/IEC 27001:2022**.
    - Open the framework dropdown to show **SOC 2 Type II**, **PCI-DSS 4.0**, and **CMMI v2.0**.
-   - **Transparency Script**: *"ISO 27001 is fully operational today with all 93 controls. SOC 2 and PCI-DSS share 70% of our telemetry collectors and are on our immediate Q3 roadmap."*
+   - **Transparency Script**: *"ISO 27001 is fully operational today with all 93 controls. SOC 2 and PCI-DSS share substantial overlap with our telemetry collectors and are on our immediate Q3 roadmap."*
 
 ---
 
@@ -192,27 +192,30 @@ gantt
 
 ---
 
-### Scene 6: Closed-Loop Remediation with Human-in-the-Loop (34:00 - 37:00)
+### Scene 6: Actionable Remediation Guidance & Prescriptive Recommendations (34:00 - 37:00)
 
 **Presenter Talk Track:**
-> *"Finding a security gap is only half the battle. What happens next? In most companies, a Jira ticket sits in a backlog for three weeks.*  
-> *In Agentic GRC, we provide closed-loop automated remediation, but with strict Human-in-the-Loop safety. The agent prepares the fix, but a human must approve it."*
+> *"Finding a security gap is only half the battle. What happens next? In most companies, an audit finding sits in a spreadsheet for weeks because engineers are not sure how to fix it without breaking production.*  
+> *In Agentic GRC, our platform adheres to a strict read-only audit model: it never modifies client infrastructure or code directly. Instead, it generates concrete, copy-pasteable remediation recommendations—including exact `gcloud` commands and configuration changes—so the client's platform team can review, approve, and apply the change safely within their standard change-management workflow."*
 
 #### Actions:
 1. Navigate to **"Scorecard & Non-Conformances"**.
 2. Locate the non-compliant finding for **Control A.8.20 (Network Security)**:
    - Rule `poc-fw-open-ssh-demo` allowing `0.0.0.0/0` on port 22.
-3. Click **"Remediar com HITL"** (Remediate).
-4. Review the approval modal:
+3. Click on the finding details to inspect the auditor's assessment and remediation guidance.
+4. Review the prescriptive remediation recommendation:
    - **Target Resource**: `poc-fw-open-ssh-demo` in `fnlab-apps-8fa913`.
-   - **Proposed Action**: Restrict source range to `10.0.0.0/8` and enable VPC Flow Logging.
-   - **Rollback Plan**: Automatic restore of original rule parameters if verification fails.
-5. Click **"Aprovar e Executar"** (Approve & Execute).
-6. Observe the immediate execution:
-   - The platform calls the Google Cloud Compute Engine API.
-   - The Cloud Inspector re-audits the rule immediately.
-   - Status updates to **`COMPLIANT`**.
-   - The global compliance score jumps from **78.5% towards 100%**.
+   - **Identified Violation**: Direct public ingress on management port 22 violates the least privilege principle and ISO/IEC 27001 Control A.8.20.
+   - **Prescriptive Recommendation**: Concrete CLI command and configuration change:
+     ```bash
+     gcloud compute firewall-rules update poc-fw-open-ssh-demo \
+       --source-ranges="10.0.0.0/8" \
+       --enable-logging \
+       --project="fnlab-apps-8fa913"
+     ```
+   - **Verification Workflow**: After the client platform team applies the update in their environment, re-running the phase audit scan verifies the updated state and moves the control to **`COMPLIANT`**.
+5. Reinforce the scope boundary:
+   - *"The platform's boundary is strict: audit, evidence collection, and remediation recommendations. Modifying production infrastructure remains strictly in the hands of authorized client engineers, guaranteeing zero operational risk."*
 
 ---
 
@@ -225,7 +228,7 @@ gantt
 #### Actions:
 1. Navigate to **"Relatórios"** (Reports) in the main navigation.
 2. Select **"Dossiê Executivo"** (Executive Dossier):
-   - Highlight the executive summary, C-level attestation certificate, and the **FinOps ROI widget** (showing 95% token savings from Gemini Context Caching).
+   - Highlight the executive summary, C-level attestation certificate, and the **FinOps ROI widget** (showing significant token savings from Gemini Context Caching).
 3. Select **"Relatório Técnico de Auditoria Externa"** (Stage 2 Technical Audit Report):
    - Point out the formal ISO/IEC 27001:2022 Stage 2 structure.
    - Expand any control finding and point to the **Evidence SHA-256 Hash**:
@@ -249,13 +252,13 @@ During executive and technical presentations, anticipate and address the followi
 > **Answer**: *"Absolutely not. The platform runs on Google Cloud Run and invokes Vertex AI (Gemini 2.5) enterprise endpoints under Google Cloud's commercial terms. Your prompts, telemetry, and evidence documents are strictly isolated within your tenant and are NEVER used to train foundation models."*
 
 ### Q3: "Can the AI make accidental destructive changes to our production environment?"
-> **Answer**: *"No. The Cloud Inspector uses strictly read-only IAM roles (`roles/cloudasset.viewer`, `roles/iam.securityReviewer`). Write actions can only be proposed through the Remediation Engine and require explicit, authenticated Human-in-the-Loop (HITL) authorization in the UI."*
+> **Answer**: *"No. By design and policy, the platform is strictly read-only and never modifies client infrastructure or code. The Cloud Inspector uses read-only IAM roles (`roles/cloudasset.viewer`, `roles/iam.securityReviewer`, `roles/securitycenter.findingsViewer`). When a gap is identified, the platform produces prescriptive remediation recommendations (such as CLI commands or Terraform snippets) for your engineering team to apply through your standard change management processes. The platform does not possess write or mutation permissions."*
 
 ### Q4: "Do you support AWS and Microsoft Azure?"
 > **Answer**: *"Our core Evidence Graph and Multi-Agent Orchestrator are completely cloud-agnostic. In this POC, our telemetry connectors are built for Google Cloud REST APIs. Multi-cloud connectors for AWS (Security Hub, CloudTrail) and Azure (Defender for Cloud) are on our immediate Q3 roadmap."*
 
 ### Q5: "What about SOC 2 Type II or PCI-DSS?"
-> **Answer**: *"70% of the technical telemetry we collect for ISO 27001 (encryption, IAM, firewalls, audit logs) directly satisfies SOC 2 Common Criteria and PCI-DSS requirements. We have already structured the framework selector in the portal, and multi-framework mapping will be released in Q4."*
+> **Answer**: *"A substantial portion of the technical telemetry we collect for ISO 27001 (encryption, IAM, firewalls, audit logs) directly satisfies SOC 2 Common Criteria and PCI-DSS requirements. We have already structured the framework selector in the portal, and multi-framework mapping will be released in Q4."*
 
 ---
 

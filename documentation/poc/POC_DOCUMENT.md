@@ -157,9 +157,9 @@ graph TB
 - **Scan Telemetry Synchronization**: Maps live findings from the Cloud Inspector directly to questionnaire responses.
 - **Multimodal AI Consistency Evaluation**: When human users attach evidence files (PNG, JPEG, PDF, TXT), the engine sniffs file magic bytes to verify MIME authenticity and invokes Gemini 2.5 to evaluate whether the attached document genuinely satisfies the declared control requirement.
 
-#### E. Autonomous Remediation with Human-in-the-Loop (`mcp_server_grc/remediation.py`)
-- Generates precise, idempotent remediation actions for detected non-conformances (e.g., restricting open firewall ports, enabling VPC Flow Logs, enforcing Uniform Bucket-Level Access).
-- Enforces strict safety guardrails: zero automated writes to cloud infrastructure without explicit, authenticated human approval via the portal UI.
+#### E. Actionable Remediation Guidance & Prescriptive Playbooks
+- Generates precise, idempotent remediation recommendations for detected non-conformances (e.g., CLI commands and configuration patches to restrict open firewall ports, enable VPC Flow Logs, and enforce Uniform Bucket-Level Access).
+- Enforces strict safety guardrails: adheres to a read-only audit architecture and never modifies client infrastructure or code directly, ensuring changes are reviewed and applied by authorized client engineers.
 
 ---
 
@@ -344,17 +344,16 @@ graph TD
 
 ---
 
-## 8. Closed-Loop Remediation with Human-in-the-Loop (HITL)
+## 8. Prescriptive Remediation Recommendations & Playbooks
 
-Compliance platforms that stop at reporting leave security teams burdened with remediation. The Agentic GRC Auditor implements **Autonomous Remediation with Strict HITL Guardrails**:
+Compliance platforms that produce generic audit findings leave security teams burdened with discovering how to fix them. The Agentic GRC Auditor provides **Prescriptive Remediation Recommendations** while strictly adhering to a read-only operational boundary:
 
 1. **Drift Detection**: Cloud Inspector identifies a non-compliant resource (e.g., `poc-fw-open-ssh-demo` exposing port 22 to `0.0.0.0/0`).
-2. **Remediation Proposal**: Remediation Engine drafts an exact patch payload:
-   - Restrict source range to authorized corporate CIDR block (`10.0.0.0/8`).
-   - Enable VPC Flow Logging on the firewall rule.
-3. **Human Authorization Request**: A pending remediation modal appears on the Portal with risk rating, command preview, and rollback instructions.
-4. **Authorized Execution**: Upon authenticated sign-off by a user with the `Admin` role, the platform executes the change via Google Cloud Compute APIs.
-5. **Immediate Re-Audit & Verification**: The engine automatically re-inspects the resource, confirms compliance, updates the Evidence Graph, and transitions the scorecard to 100%.
+2. **Remediation Recommendation**: The platform drafts an exact, prescriptive patch payload:
+   - Specific CLI command (e.g., `gcloud compute firewall-rules update`) to restrict source range to corporate CIDR (`10.0.0.0/8`) and enable VPC Flow Logging.
+   - Corresponding Terraform configuration snippet for GitOps integration.
+3. **Engineering Review & Change Management**: Platform engineers review the recommendation, verify impact, and apply the change through standard organizational change-management pipelines.
+4. **Immediate Re-Audit & Verification**: After the change is applied, running a fresh audit scan immediately re-inspects the resource, confirms compliance, updates the Evidence Graph, and transitions the control to **`COMPLIANT`**.
 
 ---
 

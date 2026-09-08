@@ -1682,3 +1682,81 @@ A narrow, targeted hardening pass was performed to address specific governance, 
   - Active Revision: `mcp-server-grc-00058-pzv` (serving 100% traffic)
   - Live Web Portal: `https://mcp-server-grc-938078169010.us-central1.run.app/portal`
   - Verified endpoints: `GET /portal` (HTTP 200), `GET /.well-known/agent.json` (HTTP 200), `GET /api/questionnaire/summary` (HTTP 200).
+
+---
+
+### Milestone 40: POC Documentation Accuracy Hardening (2026-09-08)
+
+#### A. Executive Summary & Verification of 3 Documentation Accuracy Fixes
+A targeted documentation accuracy pass was conducted to align operational runbooks and technical guides with the strict read-only scope boundary and actual codebase implementation:
+
+1. **Google Workspace OAuth Client ID Configuration (`documentation/poc/ENVIRONMENT_SETUP.md`)**:
+   - **Before**:
+     ```markdown
+     8. Update the client ID in `mcp_server_grc/portal_html.py` or provide via environment variable:
+        ```bash
+        export GOOGLE_CLIENT_ID="<YOUR_CLIENT_ID>.apps.googleusercontent.com"
+        ```
+     ```
+   - **After**:
+     ```markdown
+     8. Configure the client ID directly in the portal code:
+        Edit the `GOOGLE_WORKSPACE_CONFIG.clientId` (and optionally `expectedDomain`) value directly in `mcp_server_grc/portal_html.py` (around line 9723) and redeploy:
+        ```javascript
+        const GOOGLE_WORKSPACE_CONFIG = {
+            clientId: "<YOUR_CLIENT_ID>.apps.googleusercontent.com",
+            expectedDomain: "client.corp",
+            ...
+        };
+        ```
+        After updating, redeploy using `bash scripts/deploy.sh` or `make journey`.
+     ```
+
+2. **Temporary Consultant/Partner IAM Access Section (`documentation/poc/ENVIRONMENT_SETUP.md`)**:
+   - Added Section 5 ("Granting Consultant/Partner Access for Final Configuration") detailing the time-boxed, least-privilege IAM grant model using `--condition` with expiry timestamps across the 4 required scoped roles: `roles/run.admin`, `roles/iam.serviceAccountUser`, `roles/resourcemanager.projectIamAdmin`, and `roles/serviceusage.serviceUsageAdmin`.
+   - Included exact `gcloud projects add-iam-policy-binding` command and the matching `gcloud projects remove-iam-policy-binding` revocation command.
+
+3. **Remediation Realignment to Recommendations & Qualitative Figures (`documentation/poc/HOW_TO.md`)**:
+   - **Scene 6 Before**:
+     ```markdown
+     ### Scene 6: Closed-Loop Remediation with Human-in-the-Loop (34:00 - 37:00)
+     ...
+     5. Click "Aprovar e Executar" (Approve & Execute).
+     6. Observe the immediate execution:
+        - The platform calls the Google Cloud Compute Engine API.
+        - The Cloud Inspector re-audits the rule immediately.
+     ```
+   - **Scene 6 After**:
+     ```markdown
+     ### Scene 6: Actionable Remediation Guidance & Prescriptive Recommendations (34:00 - 37:00)
+     ...
+     3. Click on the finding details to inspect the auditor's assessment and remediation guidance.
+     4. Review the prescriptive remediation recommendation:
+        - Target Resource: poc-fw-open-ssh-demo in fnlab-apps-8fa913.
+        - Identified Violation: Direct public ingress on management port 22 violates the least privilege principle and ISO/IEC 27001 Control A.8.20.
+        - Prescriptive Recommendation: Concrete CLI command and configuration change:
+          gcloud compute firewall-rules update poc-fw-open-ssh-demo --source-ranges="10.0.0.0/8" --enable-logging --project="fnlab-apps-8fa913"
+        - Verification Workflow: After the client platform team applies the update in their environment, re-running the phase audit scan verifies the updated state and moves the control to COMPLIANT.
+     5. Reinforce the scope boundary:
+        - "The platform's boundary is strict: audit, evidence collection, and remediation recommendations. Modifying production infrastructure remains strictly in the hands of authorized client engineers, guaranteeing zero operational risk."
+     ```
+   - **FAQ Q3 Before**:
+     ```markdown
+     > Answer: "No. The Cloud Inspector uses strictly read-only IAM roles (roles/cloudasset.viewer, roles/iam.securityReviewer). Write actions can only be proposed through the Remediation Engine and require explicit, authenticated Human-in-the-Loop (HITL) authorization in the UI."
+     ```
+   - **FAQ Q3 After**:
+     ```markdown
+     > Answer: "No. By design and policy, the platform is strictly read-only and never modifies client infrastructure or code. The Cloud Inspector uses read-only IAM roles (roles/cloudasset.viewer, roles/iam.securityReviewer, roles/securitycenter.findingsViewer). When a gap is identified, the platform produces prescriptive remediation recommendations (such as CLI commands or Terraform snippets) for your engineering team to apply through your standard change management processes. The platform does not possess write or mutation permissions."
+     ```
+   - **Unverified Metrics Replaced with Qualitative Language**:
+     - *Token Savings Before*: `showing 95% token savings from Gemini Context Caching`
+     - *Token Savings After*: `showing significant token savings from Gemini Context Caching`
+     - *Framework Overlap Before*: `share 70% of our telemetry collectors` / `70% of the technical telemetry`
+     - *Framework Overlap After*: `share substantial overlap with our telemetry collectors` / `A substantial portion of the technical telemetry`
+   - **Document Alignment (`documentation/poc/POC_DOCUMENT.md`)**:
+     - Harmonized Sections 3.E and 8 to reflect prescriptive remediation recommendations rather than autonomous write execution.
+
+#### B. Verification & Integrity
+- Zero application code was touched.
+- All 184 tests pass without regressions.
+- All modified markdown files verified clean and emoji-free.

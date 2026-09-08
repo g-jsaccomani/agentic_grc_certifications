@@ -142,31 +142,91 @@ The portal integrates with Google Workspace Single Sign-On. To configure authent
    - `http://localhost:8080/portal`
    - `https://<YOUR_SERVICE_NAME>-<HASH>.a.run.app/portal`
 7. Click **Create**. Copy the generated `Client ID`.
-8. Update the client ID in `mcp_server_grc/portal_html.py` or provide via environment variable:
-   ```bash
-   export GOOGLE_CLIENT_ID="<YOUR_CLIENT_ID>.apps.googleusercontent.com"
+8. Configure the client ID directly in the portal code:
+   Edit the `GOOGLE_WORKSPACE_CONFIG.clientId` (and optionally `expectedDomain`) value directly in `mcp_server_grc/portal_html.py` (around line 9723) and redeploy:
+   ```javascript
+   const GOOGLE_WORKSPACE_CONFIG = {
+       clientId: "<YOUR_CLIENT_ID>.apps.googleusercontent.com",
+       expectedDomain: "client.corp",
+       ...
+   };
    ```
+   After updating, redeploy using `bash scripts/deploy.sh` or `make journey`.
 
 ---
 
-## 5. Phase 2: Application Build & Cloud Run Deployment
+## 5. Granting Consultant/Partner Access for Final Configuration
+
+When engaging external security consultants or technical partners to assist with deployment, verification, and final configuration, adhere strictly to the principle of least privilege using time-boxed, temporary IAM conditions.
+
+### 5.1 Required Scoped Roles
+Grant access only to the host project (`PROJECT_ID`) where the Cloud Run service and deployment artifacts reside. The consultant requires:
+- `roles/run.admin`: Manage, deploy, and inspect Cloud Run services.
+- `roles/iam.serviceAccountUser`: Impersonate the Cloud Run runtime service account during deployment.
+- `roles/resourcemanager.projectIamAdmin` (or narrower `roles/iam.securityAdmin`): Configure service-to-service IAM bindings.
+- `roles/serviceusage.serviceUsageAdmin`: Enable required GCP APIs if additional services are introduced.
+
+### 5.2 Time-Boxed IAM Binding Grant Command
+The client organization admin executes the following command, specifying an explicit expiry timestamp (e.g., 7 days from setup):
+
+```bash
+PROJECT_ID="<YOUR_HOST_PROJECT_ID>"
+CONSULTANT_USER="user:consultant@partner.corp"
+EXPIRY_TIMESTAMP="$(date -u -v+7d "+%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -d "+7 days" "+%Y-%m-%dT%H:%M:%SZ")"
+
+for ROLE in \
+  "roles/run.admin" \
+  "roles/iam.serviceAccountUser" \
+  "roles/resourcemanager.projectIamAdmin" \
+  "roles/serviceusage.serviceUsageAdmin"; do
+  gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+    --member="${CONSULTANT_USER}" \
+    --role="${ROLE}" \
+    --condition="expression=request.time < timestamp('${EXPIRY_TIMESTAMP}'),title=temporary_consultant_access,description=Expires at ${EXPIRY_TIMESTAMP}" \
+    --quiet
+done
+```
+
+### 5.3 Immediate Revocation Command (Post-Configuration)
+Once deployment and handover are verified, the client revokes all temporary bindings immediately:
+
+```bash
+PROJECT_ID="<YOUR_HOST_PROJECT_ID>"
+CONSULTANT_USER="user:consultant@partner.corp"
+
+for ROLE in \
+  "roles/run.admin" \
+  "roles/iam.serviceAccountUser" \
+  "roles/resourcemanager.projectIamAdmin" \
+  "roles/serviceusage.serviceUsageAdmin"; do
+  gcloud projects remove-iam-policy-binding "${PROJECT_ID}" \
+    --member="${CONSULTANT_USER}" \
+    --role="${ROLE}" \
+    --all \
+    --quiet
+done
+```
+
+---
+
+## 6. Phase 2: Application Build & Cloud Run Deployment
 
 Deploy the platform container to Cloud Run using the automated build script:
 
-### Step 5.1: Authenticate gcloud
+### Step 6.1: Authenticate gcloud
 ```bash
 gcloud auth login
 gcloud auth application-default login
 ```
 
-### Step 5.2: Set Environment Variables
+### Step 6.2: Set Environment Variables
 ```bash
 export PROJECT_ID="<YOUR_PROJECT_ID_FROM_PHASE_1>"
 export REGION="us-central1"
 export SERVICE_NAME="mcp-server-grc"
 ```
 
-### Step 5.3: Run Automated Deployment Journey
+### Step 6.3: Run Automated Deployment Journey
 ```bash
 make journey
 ```
@@ -184,7 +244,7 @@ make journey
 
 ---
 
-## 6. Functional Lab Projects Setup (POC Target Scope)
+## 7. Functional Lab Projects Setup (POC Target Scope)
 
 For POC demonstrations, the system audits multi-project environments. You can connect existing corporate non-prod projects or provision the functional lab projects:
 
@@ -202,23 +262,23 @@ python scripts/verify_poc_environment.py
 
 ---
 
-## 7. Local Development & Testing Workflow
+## 8. Local Development & Testing Workflow
 
 To run and modify the platform locally:
 
-### 7.1 Install Virtual Environment
+### 8.1 Install Virtual Environment
 ```bash
 make install
 ```
 *(Creates `.venv` using `uv` or `python -m venv` and installs all dependencies).*
 
-### 7.2 Run Test Suite
+### 8.2 Run Test Suite
 ```bash
 make test
 ```
 *(Executes all 184 tests with coverage output).*
 
-### 7.3 Launch Local Web Portal
+### 8.3 Launch Local Web Portal
 ```bash
 make run-portal
 ```
@@ -227,7 +287,7 @@ Open your browser and navigate to:
 http://localhost:8080/portal
 ```
 
-### 7.4 Launch Standalone MCP Server
+### 8.4 Launch Standalone MCP Server
 To expose the Model Context Protocol (MCP) server on port 8080 for Gemini Enterprise Agent Studio:
 ```bash
 make run-mcp
@@ -235,7 +295,7 @@ make run-mcp
 
 ---
 
-## 8. Maintenance & Operational Commands
+## 9. Maintenance & Operational Commands
 
 | Command | Purpose |
 | :--- | :--- |
