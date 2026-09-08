@@ -1677,3 +1677,8 @@ A narrow, targeted hardening pass was performed to address specific governance, 
 #### B. Verification & Test Suite Status
 - **Test Suite Result**: 184 passed, 2 warnings in 32.78s (100% pass rate maintained).
 - **Working Tree Integrity**: All files verified without emojis and with clean syntax.
+- **Cloud Run Deployment**:
+  - Service: `mcp-server-grc`
+  - Active Revision: `mcp-server-grc-00058-pzv` (serving 100% traffic)
+  - Live Web Portal: `https://mcp-server-grc-938078169010.us-central1.run.app/portal`
+  - Verified endpoints: `GET /portal` (HTTP 200), `GET /.well-known/agent.json` (HTTP 200), `GET /api/questionnaire/summary` (HTTP 200).
