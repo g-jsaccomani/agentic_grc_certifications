@@ -558,6 +558,77 @@ def test_get_questionnaire_summary():
     assert data_soc2["completion_percentage"] == 20.0  # 1 of 5
 
 
+def test_scan_execution_automatically_answers_questionnaire():
+    """Running a cloud inspection scan automatically answers questionnaire controls with real telemetry."""
+    from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
+    saved_answers = dict(QUESTIONNAIRE_ANSWERS)
+    try:
+        QUESTIONNAIRE_ANSWERS.clear()
+
+        # 1. Before scan: 0 answered
+        res_before = client.get("/api/questionnaire/summary?framework=ISO27001:2022")
+        assert res_before.status_code == 200
+        assert res_before.json()["answered"] == 0
+
+        # 2. Execute full phased scan
+        res_scan = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"]})
+        assert res_scan.status_code == 200
+        data_scan = res_scan.json()
+        assert data_scan.get("questionnaire_controls_synced") == 93
+
+        # 3. After scan: all 93 controls automatically answered
+        res_after = client.get("/api/questionnaire/summary?framework=ISO27001:2022")
+        assert res_after.status_code == 200
+        data_after = res_after.json()
+        assert data_after["total_controls"] == 93
+        assert data_after["answered"] == 93
+        assert data_after["compliant"] == 84
+        assert data_after["non_compliant"] == 9
+        assert data_after["completion_percentage"] == 100.0
+
+        # 4. Check that questionnaire controls list contains detailed telemetry
+        res_q = client.get("/api/questionnaire?framework=ISO27001:2022&lang=pt")
+        assert res_q.status_code == 200
+        q_data = res_q.json()
+        assert q_data["answered_controls"] == 93
+
+        # Non-compliant control A.5.15 has scanner verdict and finding
+        c_a515 = next(c for c in q_data["controls"] if c["id"] == "A.5.15")
+        assert c_a515["status"] == "NON_COMPLIANT"
+        assert c_a515["answer"]["verification_tier"] == "TELEMETRY"
+        assert "roles/editor" in c_a515["answer"]["justification"]
+        assert c_a515["answer"]["user_email"] == "gcp-telemetry-scanner@client.corp"
+
+        # Compliant control A.5.1 has compliant status and telemetry
+        c_a51 = next(c for c in q_data["controls"] if c["id"] == "A.5.1")
+        assert c_a51["status"] == "COMPLIANT"
+        assert c_a51["answer"]["verification_tier"] == "TELEMETRY"
+        assert "gcp://telemetry/scan/a_5_1" in c_a51["answer"]["evidence_uri"]
+
+    finally:
+        QUESTIONNAIRE_ANSWERS.clear()
+        QUESTIONNAIRE_ANSWERS.update(saved_answers)
+
+
+def test_sync_scan_telemetry_endpoint():
+    """POST /api/questionnaire/sync_scan explicitly synchronizes telemetry on demand."""
+    from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
+    saved_answers = dict(QUESTIONNAIRE_ANSWERS)
+    try:
+        QUESTIONNAIRE_ANSWERS.clear()
+        res = client.post("/api/questionnaire/sync_scan?framework=ISO27001:2022")
+        assert res.status_code == 200
+        data = res.json()
+        assert data["status"] == "SUCCESS"
+        assert data["synced_controls"] == 93
+        assert data["summary"]["answered"] == 93
+        assert data["summary"]["compliant"] == 84
+        assert data["summary"]["non_compliant"] == 9
+    finally:
+        QUESTIONNAIRE_ANSWERS.clear()
+        QUESTIONNAIRE_ANSWERS.update(saved_answers)
+
+
 # ---------------------------------------------------------------------------
 # 8. Additional Coverage and Edge Cases
 # ---------------------------------------------------------------------------

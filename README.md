@@ -4,7 +4,7 @@
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
 [![Standard](https://img.shields.io/badge/Standard-ISO%2FIEC%2027001%3A2022-green.svg)](https://www.iso.org/standard/27001)
 [![Amendment](https://img.shields.io/badge/Climate%20Action-Amd%201%3A2024-emerald.svg)](https://www.iso.org/)
-[![Tests](https://img.shields.io/badge/Tests-62%20Passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-184%20Passed-brightgreen.svg)](tests/)
 [![Coverage](https://img.shields.io/badge/Coverage-93%25-success.svg)](tests/)
 [![FinOps](https://img.shields.io/badge/FinOps-Token%20%26%20Cost%20Tracking-81c995.svg)](mcp_server_grc/finops.py)
 [![Cloud Run](https://img.shields.io/badge/Cloud%20Run-Live%20Portal-4285F4.svg)](https://mcp-server-grc-938078169010.us-central1.run.app/portal)
@@ -15,9 +15,11 @@ Directly maps live cloud telemetry and organizational policies to **ISO/IEC 2700
 
 > **Live Production Portal**: Access the web-based interactive auditing console at [https://mcp-server-grc-938078169010.us-central1.run.app/portal](https://mcp-server-grc-938078169010.us-central1.run.app/portal)
 > 
-> **Deployment Guide**: See [HOWTO.md](HOWTO.md) for step-by-step instructions on provisioning the GCP Organization folder, project, and deploying the agent with `make provision-org` and `make journey`.
+> **Documentation Hub**: See [documentation/](documentation/) for complete technical specifications, architecture blueprints, and operations runbooks.
 >
-> **Multi-Framework Roadmap**: See [ROADMAP.md](ROADMAP.md) for upcoming support for SOC 2 Type II, PCI-DSS v4.0, NIST CSF 2.0, LGPD/GDPR, and pre-deploy/pre-access selection mechanisms.
+> **Deployment Guide**: See [documentation/operations/README.md](documentation/operations/README.md) for step-by-step instructions on provisioning the GCP Organization folder, project, and deploying the agent with `make journey`.
+>
+> **Multi-Framework Roadmap**: See [documentation/roadmap/README.md](documentation/roadmap/README.md) for upcoming support for SOC 2 Type II, PCI-DSS v4.0, NIST CSF 2.0, LGPD/GDPR, and pre-deploy/pre-access selection mechanisms.
 
 ---
 
@@ -74,7 +76,7 @@ Connects directly to enterprise repositories (**Google Drive, Microsoft SharePoi
 
 ### VIII. Global Localization & Multilingual Architecture (i18n)
 - **Automatic Browser Language Detection**: Detects user browser locale (`navigator.language`) and dynamically defaults to **English (`en`)**, **Portuguese (`pt`)**, or **Spanish (`es`)** with international English fallback.
-- **Top Navbar Language Switcher**: Persistent interactive selector (`🌐 PT | EN | ES`) allowing instant language toggling with `localStorage` persistence.
+- **Top Navbar Language Switcher**: Persistent interactive selector (`PT | EN | ES`) allowing instant language toggling with `localStorage` persistence.
 - **Full UI & AI Reasoning Localization**:
   - Dynamically localizes all sidebar navigation, top bar controls, action buttons, prompt chips, and document viewer toolbars.
   - Propagates target `locale` to Vertex AI Gemini 2.5 and specialized subagents, formulating technical findings, evidence dossiers, and executive audit opinions in the selected language.
@@ -187,10 +189,14 @@ agentic_grc_certifications/
 │       └── climate_resilience.py       # Amd 1:2024 Climate Resilience Auditor
 ├── terraform/
 │   └── first_steps/                    # Terraform Bootstrap for Client GCP Environment
-├── tests/                              # 62 Automated Tests (Unit & Integration)
-├── HOWTO.md                            # Comprehensive Deployment & Operations Guide
-├── ROADMAP.md                          # Multi-Framework Roadmap & CodeMender Backlog
-├── Makefile                            # Developer workflow shortcuts (`make journey`, etc.)
+├── tests/                              # 184 Automated Tests (Unit, Integration & Guardrails)
+├── documentation/                      # Central Enterprise Documentation Hub
+│   ├── blueprint/                      # Technical Architecture Blueprint
+│   ├── guardrails/                     # Model Armor & Guardrails Specification
+│   ├── poc/                            # Proof of Concept Runbook, Specs & Scripts
+│   ├── operations/                     # Deployment & Operations Manual
+│   ├── roadmap/                        # Strategic Evolution & Multi-Framework Roadmap
+│   └── build/                          # Makefile & Developer Workflow Automation
 └── requirements.txt                    # Unified development dependencies
 ```
 
@@ -214,7 +220,7 @@ uv venv
 uv pip install -r requirements.txt --python .venv/bin/python
 ```
 
-### Run Full Test Suite (62 Tests, 93% Coverage)
+### Run Full Test Suite (184 Tests, 100% Passing)
 ```bash
 .venv/bin/python -m pytest tests/ -v
 ```

@@ -4959,20 +4959,25 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                 <!-- Escopo de Projetos Selecionados (Sub-árvore Retrátil da Organização GCP) -->
                 <div class="scope-box" id="scopeContainer" style="margin-top: 6px; border-left: 2px solid var(--gcp-blue); padding-left: 8px;">
-                    <div class="scope-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                        <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue); flex-shrink: 0;">
+                    <div class="scope-header" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: flex-start; gap: 6px;">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue); flex-shrink: 0; margin-top: 2px;">
                                 <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
                                 <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                             </svg>
-                            <span class="scope-label" style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;">Organização GCP</span>
+                            <div style="display: flex; flex-direction: column; min-width: 0;">
+                                <span class="scope-label" style="font-size: 10px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Organização GCP Conectada</span>
+                                <span id="scopeConnectedOrgName" style="font-size: 11px; font-weight: 600; color: var(--text-primary); line-height: 1.25; word-break: break-word;">Altostrat Global Org <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(108928374619)</span></span>
+                            </div>
                         </div>
-                        <button class="btn-org-dropdown-toggle" id="btnOrgDropdownToggle" onclick="toggleOrgScopeDropdown()" title="Projetos da Organização GCP" style="background: rgba(138, 180, 248, 0.12); border: 1px solid rgba(138, 180, 248, 0.3); color: var(--gcp-blue); border-radius: 6px; padding: 2px 7px; font-size: 11px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: var(--transition-smooth);">
-                            <span id="orgScopeBadgeText">3/10 ativos</span>
-                            <svg id="orgDropdownChevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.2s ease;">
-                                <polyline points="6 9 12 15 18 9"/>
-                            </svg>
-                        </button>
+                        <div style="display: flex; align-items: center; justify-content: flex-start; padding-left: 19px;">
+                            <button class="btn-org-dropdown-toggle" id="btnOrgDropdownToggle" onclick="toggleOrgScopeDropdown()" title="Projetos da Organização GCP" style="background: rgba(138, 180, 248, 0.12); border: 1px solid rgba(138, 180, 248, 0.3); color: var(--gcp-blue); border-radius: 6px; padding: 2px 8px; font-size: 10.5px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: var(--transition-smooth);">
+                                <span id="orgScopeBadgeText">3/10 ativos</span>
+                                <svg id="orgDropdownChevron" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.2s ease;">
+                                    <polyline points="6 9 12 15 18 9"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Environment Filters (PRODUCTION, STAGING, ANALYTICS) -->
@@ -6434,6 +6439,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <p data-i18n="quest_subtitle">Preenchimento de controles, justificativas técnicas e upload seguro de evidências auditáveis.</p>
                         </div>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" id="btnSyncScanQuestionnaire" onclick="syncScanToQuestionnaire()" title="Preencher questionário automaticamente com resultados do Scan de telemetria GCP" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(52, 168, 83, 0.15); border: 1px solid rgba(52, 168, 83, 0.4); color: var(--gcp-green); border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: var(--transition-smooth);">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+                                </svg>
+                                <span id="btnSyncScanText" data-i18n="quest_btn_sync_scan">Sincronizar com Scan</span>
+                            </button>
                             <button type="button" class="btn-action-primary" onclick="loadQuestionnaireData()" title="Atualizar dados do questionário">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="23 4 23 10 17 10"/>
@@ -7685,6 +7696,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 reports_hub_subtitle: "Visão consolidada de conformidade: Scorecard contínuo, Dossiê Executivo para liderança e Relatório Técnico detalhado.",
                 quest_title: "Questionário de Conformidade — ISO/IEC 27001:2022",
                 quest_subtitle: "Preenchimento de controles, justificativas técnicas e upload seguro de evidências auditáveis.",
+                quest_btn_sync_scan: "Sincronizar com Scan",
                 framework_modal_title: "Estrutura de Certificação & Conformidade",
                 framework_modal_desc: "Selecione o framework normativo para auditar ou confira os módulos em desenvolvimento no roadmap de expansão multi-normas:",
 
@@ -7983,6 +7995,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 reports_hub_subtitle: "Unified compliance view: Continuous Scorecard, Executive Leadership Dossier, and Detailed Technical Report.",
                 quest_title: "Compliance Questionnaire — ISO/IEC 27001:2022",
                 quest_subtitle: "Control evaluations, technical rationales, and secure evidence file uploads.",
+                quest_btn_sync_scan: "Sync with Scan",
                 framework_modal_title: "Certification Framework & Compliance Hub",
                 framework_modal_desc: "Select the normative compliance framework to audit or explore in-development frameworks in the multi-standard roadmap:",
 
@@ -8281,6 +8294,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 reports_hub_subtitle: "Visión unificada de cumplimiento: Scorecard continuo, Dossier Ejecutivo para liderazgo e Informe Técnico.",
                 quest_title: "Cuestionario de Conformidad — ISO/IEC 27001:2022",
                 quest_subtitle: "Evaluación de controles, justificaciones técnicas y carga segura de evidencias auditables.",
+                quest_btn_sync_scan: "Sincronizar con Scan",
                 framework_modal_title: "Estructura de Certificación y Cumplimiento",
                 framework_modal_desc: "Seleccione el marco normativo para auditar o consulte los módulos en desarrollo en la hoja de ruta multi-normas:",
 
@@ -8751,6 +8765,7 @@ window.currentLanguage = 'pt';
                 }
                 if (typeof loadScorecard === 'function') loadScorecard();
                 if (typeof loadIsoMatrix === 'function') loadIsoMatrix();
+                if (typeof loadQuestionnaireData === 'function') loadQuestionnaireData();
             } catch (e) {
                 statusTag.innerText = "Erro";
                 statusTag.className = "phase-status-tag failed";
@@ -8815,6 +8830,7 @@ window.currentLanguage = 'pt';
                 }
                 if (typeof loadScorecard === 'function') loadScorecard();
                 if (typeof loadIsoMatrix === 'function') loadIsoMatrix();
+                if (typeof loadQuestionnaireData === 'function') loadQuestionnaireData();
             } catch (e) {
                 appendLog(`[Remediação Erro] ${e}`, "error");
             }
@@ -11124,6 +11140,9 @@ function openNewsModal(newsKey) {
                     });
                 }
                 appendLog(`Auditoria Finalizada com Sucesso! Score Global: ${data.overall_score}%`, "success");
+                if (typeof loadScorecard === 'function') loadScorecard();
+                if (typeof loadIsoMatrix === 'function') loadIsoMatrix();
+                if (typeof loadQuestionnaireData === 'function') loadQuestionnaireData();
             } catch (err) {
                 appendLog(`Erro na execução do scan: ${err}`, "log-msg");
             }
@@ -11875,6 +11894,43 @@ function openNewsModal(newsKey) {
                 headers["X-Goog-Id-Token"] = window.currentGoogleIdToken;
             }
             return headers;
+        }
+
+        async function syncScanToQuestionnaire() {
+            const btn = document.getElementById("btnSyncScanQuestionnaire");
+            const btnText = document.getElementById("btnSyncScanText");
+            if (btn) btn.disabled = true;
+            if (btnText) btnText.innerText = "Sincronizando...";
+
+            const fw = window.currentFramework || "ISO27001:2022";
+            try {
+                const res = await fetch(`/api/questionnaire/sync_scan?framework=${encodeURIComponent(fw)}`, {
+                    method: "POST",
+                    headers: getAuthHeaders()
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (btnText) btnText.innerText = `✓ Sincronizado (${data.synced_controls})`;
+                    await loadQuestionnaireData();
+                    setTimeout(() => {
+                        if (btnText) btnText.innerText = "Sincronizar com Scan";
+                        if (btn) btn.disabled = false;
+                    }, 2500);
+                } else {
+                    if (btnText) btnText.innerText = "Erro ao sincronizar";
+                    setTimeout(() => {
+                        if (btnText) btnText.innerText = "Sincronizar com Scan";
+                        if (btn) btn.disabled = false;
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error("Error syncing scan to questionnaire:", err);
+                if (btnText) btnText.innerText = "Erro de rede";
+                setTimeout(() => {
+                    if (btnText) btnText.innerText = "Sincronizar com Scan";
+                    if (btn) btn.disabled = false;
+                }, 2000);
+            }
         }
 
         async function loadQuestionnaireData() {

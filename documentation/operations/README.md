@@ -130,7 +130,7 @@ Save this `PROJECT_ID` for Phase 2.
 
 #### Option B: Direct 1-Click Cloud Shell Link
 Click the button below to launch Google Cloud Shell pre-cloned into the bootstrap directory:  
-👉 [Open in Google Cloud Shell](https://shell.cloud.google.com/?cloudshell_git_repo=https://github.com/g-jsaccomani/agentic_grc_certifications.git&cloudshell_working_dir=terraform/first_steps)
+[Open in Google Cloud Shell](https://shell.cloud.google.com/?cloudshell_git_repo=https://github.com/g-jsaccomani/agentic_grc_certifications.git&cloudshell_working_dir=terraform/first_steps)
 
 Once the terminal loads, execute:
 ```bash
