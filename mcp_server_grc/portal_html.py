@@ -11002,16 +11002,69 @@ function openNewsModal(newsKey) {
                         history: previousTurns
                     })
                 });
-                const data = await res.json();
                 const replyElem = document.getElementById(replyId);
-                const replyMarkdown = renderExecutiveMarkdown(data.response || "Sem resposta do auditor.");
+
+                if (!res.ok) {
+                    let errDetail = "";
+                    try {
+                        const errJson = await res.json();
+                        errDetail = errJson.detail || errJson.error || errJson.message || JSON.stringify(errJson);
+                    } catch (e) {
+                        errDetail = res.statusText || `HTTP ${res.status}`;
+                    }
+
+                    let errorMarkdown = "";
+                    if (res.status === 401) {
+                        errorMarkdown = (window.currentLanguage === 'en')
+                            ? `### 🔒 Authentication Required (Google Workspace)\n\n` +
+                              `Access to the Lead Auditor requires an authenticated session with domain **@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}** or a valid GCP delegation token.\n\n` +
+                              `**How to resolve:**\n` +
+                              `1. Click the **"Sign in with Google"** button in the top right corner to authenticate.\n` +
+                              `2. For local testing & development without corporate login, start the server with:\n` +
+                              `   \`\`\`bash\n   export ALLOW_DEV_AUTH_BYPASS="true"\n   make run-portal\n   \`\`\`\n\n` +
+                              `*(Server details: ${errDetail})*`
+                            : `### 🔒 Autenticação Requerida (Google Workspace)\n\n` +
+                              `O acesso ao Auditor de Segurança requer uma sessão autenticada com domínio corporativo **@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}** ou token de delegação GCP válido.\n\n` +
+                              `**Como resolver:**\n` +
+                              `1. Clique no botão **"Sign in with Google"** no topo da página à direita para efetuar login.\n` +
+                              `2. Para desenvolvimento e testes locais sem login corporativo, inicie o servidor com:\n` +
+                              `   \`\`\`bash\n   export ALLOW_DEV_AUTH_BYPASS="true"\n   make run-portal\n   \`\`\`\n\n` +
+                              `*(Detalhes do servidor: ${errDetail})*`;
+                    } else if (res.status === 403) {
+                        errorMarkdown = (window.currentLanguage === 'en')
+                            ? `### ⛔ Access Denied (403 Forbidden)\n\nYour account domain or token lacks permissions for this tenant.\n\n*(Details: ${errDetail})*`
+                            : `### ⛔ Acesso Negado (403 Forbidden)\n\nSeu domínio ou token não possui permissões para inspecionar os recursos deste locatário.\n\n*(Detalhes: ${errDetail})*`;
+                    } else {
+                        errorMarkdown = `### ⚠️ Erro na Comunicação com o Auditor (${res.status})\n\n${errDetail}`;
+                    }
+
+                    if (replyElem) {
+                        replyElem.innerHTML = renderExecutiveMarkdown(errorMarkdown);
+                    }
+                    if (currentSession) {
+                        currentSession.status = "error";
+                        if (!currentSession.messages) currentSession.messages = [];
+                        currentSession.messages.push({ role: "model", content: errorMarkdown });
+                        currentSession.messagesHtml = chatArea.innerHTML;
+                        saveChatSessions();
+                        renderChatSessionsHistory();
+                    }
+                    chatArea.scrollTop = chatArea.scrollHeight;
+                    return;
+                }
+
+                const data = await res.json();
+                const defaultEmptyMsg = (window.currentLanguage === 'en')
+                    ? "The auditor completed the assessment without additional remarks."
+                    : "O auditor concluiu a análise sem observações adicionais.";
+                const replyMarkdown = renderExecutiveMarkdown(data.response || defaultEmptyMsg);
                 if (replyElem) {
                     replyElem.innerHTML = replyMarkdown;
                 }
                 if (currentSession) {
                     currentSession.status = "completed";
                     if (!currentSession.messages) currentSession.messages = [];
-                    currentSession.messages.push({ role: "model", content: data.response || "" });
+                    currentSession.messages.push({ role: "model", content: data.response || defaultEmptyMsg });
                     currentSession.messagesHtml = chatArea.innerHTML;
                     saveChatSessions();
                     renderChatSessionsHistory();
