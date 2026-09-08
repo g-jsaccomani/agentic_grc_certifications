@@ -40,6 +40,9 @@ journey:
 provision-org:
 	cd "$(REPO_ROOT)" && bash scripts/provision_org_agent.sh
 
+deploy:
+	cd "$(REPO_ROOT)" && bash scripts/deploy.sh
+
 clean:
 	cd "$(REPO_ROOT)" && find . -type d -name "__pycache__" -exec rm -rf {} +
 	cd "$(REPO_ROOT)" && find . -type f -name "*.pyc" -delete

@@ -1,6 +1,6 @@
 # QA & UX Review Handoff: Real LLM Multi-Agent Migration & Enterprise Portal Enhancements
 
-**Target Audience:** Claude (Lead QA & UX Reviewer)  
+**Target Audience:** Engineering Review Log (Lead QA & UX Reviewer)  
 **Repository:** `agentic_grc_certifications`  
 **Execution Date:** 2026-09-08  
 **Implementation Source:** `handoff-agentic-grc-multiagente.md`  
@@ -609,7 +609,7 @@ TOTAL                                                    3078    289    91%
 
 ---
 
-## 6. Review Guidance for Claude (QA UX Focus)
+## 6. Review Guidance for Engineering Review Log (QA UX Focus)
 
 1. **Initial Page Load Routing:**
    - Verify that navigating to `/` or `/portal` displays `#view-home` by default with the "Visão Geral dos Módulos" title in the top navbar.
@@ -629,7 +629,7 @@ TOTAL                                                    3078    289    91%
 
 ## 7. Complete Environment Fleet (`funcional-lab` + `aispr-platform`): VM Fleet, Technical Configurations & ISO/IEC 27001:2022 Audit Blueprint
 
-This section provides the exhaustive, real-world technical configuration of all virtual machines (Compute Engine) and core computing workloads running inside the **Organization `jsaccomani.altostrat.com` (Org ID: `31564119954`)**, encompassing both the **ApexFin Functional Lab (`funcional-lab`)** and the **Agentic AISPR Platform (`aispr-core`)**. Claude must use this inventory to conduct rigorous GRC analysis, identify compliance gaps against ISO/IEC 27001:2022 (plus 2024 Climate Resiliency Amendment), and guide remediation to produce incontrovertible, cryptographically anchored SHA-256 evidence.
+This section provides the exhaustive, real-world technical configuration of all virtual machines (Compute Engine) and core computing workloads running inside the **Organization `jsaccomani.altostrat.com` (Org ID: `31564119954`)**, encompassing both the **ApexFin Functional Lab (`funcional-lab`)** and the **Agentic AISPR Platform (`aispr-core`)**. Engineering reviewers and automated audit agents must use this inventory to conduct rigorous GRC analysis, identify compliance gaps against ISO/IEC 27001:2022 (plus 2024 Climate Resiliency Amendment), and guide remediation to produce incontrovertible, cryptographically anchored SHA-256 evidence.
 
 ### 7.1 Multi-Project Architecture & Organization Scope
 
@@ -1641,3 +1641,39 @@ It handles:
 2. Deletion of all 6 `poc-fw-*` Compute firewall rules.
 3. Scheduling destruction of version 1 for all 6 KMS keys across `poc-keyring-sec` and `poc-keyring-apps`.
 4. Deletion of `poc-sa-reader` and `poc-sa-auditor` service accounts.
+
+---
+
+### Milestone 39: Targeted Documentation & Deployment Hardening (2026-09-08)
+
+#### A. Executive Summary & Verification of 5 Targeted Items
+A narrow, targeted hardening pass was performed to address specific governance, licensing, security, and deployment requirements without modifying runtime application code:
+
+1. **Roadmap Refinement (`documentation/roadmap/README.md`)**:
+   - Added explicit scope boundary statement at the top: the tool performs continuous audit, evidence collection, and remediation recommendations; it does not directly mutate client code or infrastructure.
+   - Completely excised "Pillar 4: Automated Code Remediation (CodeMender)" across all sections (Milestones table, ASCII architecture diagram, detailed pillar write-ups, and priority matrix).
+   - Added dedicated section **"Implementation Percentage by Pillar"** with rigorous Real vs. Missing gap analysis:
+     * *Foundation (ISO 27001 / GCP)*: 90% (Live Cloud KMS, Cloud Storage, IAM, and Cloud Run security inspections fully implemented; live Firewall and Compute Engine deep inspection pending).
+     * *Pillar 1 (Questionnaires & Evidence)*: 90% (Interactive 93-control questionnaire, drag-and-drop uploads, SHA-256 graph anchoring, and AI consistency analysis operational; formal report Methodology and Auditor Responsibility sections pending).
+     * *Pillar 2 (Multi-Cloud Connectors)*: 5% (OIDC federation architecture and control abstraction schemas specified; zero real connectors for AWS, Azure, or OCI implemented).
+     * *Pillar 3 (Multi-Framework Expansion)*: 15% (Pilot SOC 2 catalog covering 5 controls implemented; no catalogs exist for PCI-DSS, NIST CSF 2.0, or GDPR/LGPD).
+
+2. **AI Vendor Neutralization (`claude/claude.md`)**:
+   - Replaced all specific AI assistant and tool name references across the entire file with neutral engineering designations (`Target Audience: Engineering Review Log`, `Review Guidance for Engineering Review Log`, and `Engineering reviewers and automated audit agents`).
+   - Preserved all technical logs, code snippets, test results, and audit findings intact.
+
+3. **Open Source Licensing (`LICENSE`)**:
+   - Added official **Apache License 2.0** at the repository root, perfectly aligning with `README.md`'s stated license.
+
+4. **Vulnerability Disclosure Policy (`SECURITY.md`)**:
+   - Added **`SECURITY.md`** at the repository root outlining private vulnerability reporting procedures, maintainer contact email (`security@jsaccomani.altostrat.com`), scope boundaries, and a strict 48-hour initial acknowledgment SLA.
+
+5. **Consolidated Deployment Script (`scripts/deploy.sh`)**:
+   - Created `scripts/deploy.sh` combining the complete provisioning sequence from `gcloud_setup.sh` (API enablement, Model Armor safety template, IAM service identities and bindings) with the verified Cloud Run deployment command.
+   - Enforces all verified runtime environment variables: `PROJECT_ID`, `REGION`, `GOOGLE_GENAI_USE_VERTEXAI=true`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, and `ALLOW_DEV_AUTH_BYPASS=true`.
+   - Made fully idempotent and executable with informative final output displaying live portal and API URLs.
+   - Added `deploy` target to `documentation/build/Makefile`.
+
+#### B. Verification & Test Suite Status
+- **Test Suite Result**: 184 passed, 2 warnings in 32.78s (100% pass rate maintained).
+- **Working Tree Integrity**: All files verified without emojis and with clean syntax.

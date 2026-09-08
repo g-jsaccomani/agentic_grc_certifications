@@ -3,6 +3,7 @@
 
 > **Platform**: Gemini Enterprise Agent Platform (GEAP) & Google Cloud Security  
 > **Status**: Active Product & Engineering Roadmap  
+> **Scope Boundary**: This platform performs continuous audit, automated evidence collection, and remediation recommendations; it does not directly modify client code or mutate infrastructure.  
 > **Language**: English
 
 ---
@@ -14,7 +15,6 @@
 | **Foundation Complete** | **ISO 27001:2022 (GCP)** | All 93 controls, MCP server, 4 autonomous phases, SHA-256 Evidence Graph, C-Level Executive Dossier, and Stage 2 External Audit Report (PDF/JSON). | Completed |
 | **Interactivity & Governance** | **ISO Questionnaires & Evidence** | Structured audit questionnaires, drag-and-drop evidence upload with SHA-256 anchoring, Gemini 2.5 AI consistency validation, and real-time score recalculation. | In Progress |
 | **Hybrid Telemetry** | **Multi-Cloud Connectors (AWS & Azure)** | Ingestion of AWS and Azure telemetry via OIDC Workload Identity Federation (Zero-Key), unified control abstraction (KMS, Storage, IAM, Network). | In Progress |
-| **Automated Remediation** | **CodeMender Agent** | Automated code remediation subagent (Control A.8.28) in isolated sandbox, pull request generation with Human-in-the-Loop (HITL) approval. | Next Cycle |
 | **Enterprise Cloud & B2B Frameworks** | **OCI & SOC 2 / PCI-DSS** | Oracle Cloud Infrastructure (OCI) connector, certification onboarding wizard (Pre-deploy / Pre-access), SOC 2 Type II and PCI-DSS v4.0 catalogs. | Backlog |
 | **Global 360 Compliance** | **NIST CSF & Privacy (GDPR/LGPD)** | NIST CSF 2.0, Cloud DLP privacy data mapping, cross-correlation engine (*Collect Once, Comply Many*), and continuous multi-cloud auditing. | Future Vision |
 
@@ -27,15 +27,15 @@
                    |             AGENTIC GRC UNIFIED PLATFORM                    |
                    +------------------------------+------------------------------+
                                                   |
-         +-----------------------+----------------+----------------+-----------------------+
-         |                       |                                 |                       |
-         v                       v                                 v                       v
-+-----------------+     +-----------------+               +-----------------+     +-----------------+
-| PILLAR 1        |     | PILLAR 2        |               | PILLAR 3        |     | PILLAR 4        |
-| Questionnaires &|     | Multi-Cloud     |               | Multi-Framework |     | Automated       |
-| ISO Evidence    |     | Connectors      |               | Expansion       |     | Remediation     |
-| (HITL + Metrics)|     | (AWS/Azure/OCI) |               | (SOC2/PCI/NIST) |     | (CodeMender)    |
-+-----------------+     +-----------------+               +-----------------+     +-----------------+
+                     +----------------------------+----------------------------+
+                     |                            |                            |
+                     v                            v                            v
+            +-----------------+          +-----------------+          +-----------------+
+            | PILLAR 1        |          | PILLAR 2        |          | PILLAR 3        |
+            | Questionnaires &|          | Multi-Cloud     |          | Multi-Framework |
+            | ISO Evidence    |          | Connectors      |          | Expansion       |
+            | (HITL + Metrics)|          | (AWS/Azure/OCI) |          | (SOC2/PCI/NIST) |
+            +-----------------+          +-----------------+          +-----------------+
 ```
 
 ---
@@ -96,17 +96,18 @@ Transforms the audit engine into an enterprise multi-normative platform with evi
 
 ---
 
-### Pillar 4: Automated Code Remediation (CodeMender)
+## 3. Implementation Percentage by Pillar
 
-Directly addresses controls **A.8.28 (Secure Coding)** and **A.8.25 (Secure System Development Life Cycle)**:
-
-- **Continuous Vulnerability Ingestion**: Automated discovery of CVEs, leaked credentials, and SAST findings across source repositories (GitHub, GitLab).
-- **Isolated Testing Sandbox**: Autonomous execution of code fixes within isolated test sandboxes, running project test suites to guarantee zero breaking changes.
-- **Human-in-the-Loop (HITL) Pull Requests**: Automatic generation of Pull Requests with code diffs, security rationale, and rollback plans; merging requires explicit approval from engineering leads and the Lead Auditor.
+| Initiative / Pillar | Estimated Completion | Status & Scope Gap Analysis (Real vs. Missing) |
+| :--- | :---: | :--- |
+| **Foundation (ISO 27001 / GCP)** | **90%** | Live Cloud KMS, Cloud Storage, IAM, and Cloud Run security inspections are fully implemented; live Firewall and Compute Engine deep inspection remain pending. |
+| **Pillar 1 (Questionnaires & Evidence)** | **90%** | Interactive 93-control questionnaire, drag-and-drop evidence uploads, SHA-256 graph anchoring, and AI consistency analysis are operational; formal report Methodology and Auditor Responsibility sections remain pending. |
+| **Pillar 2 (Multi-Cloud Connectors)** | **5%** | OIDC federation architecture and control abstraction schemas are specified, but zero real connectors for AWS, Azure, or OCI are implemented. |
+| **Pillar 3 (Multi-Framework Expansion)** | **15%** | A pilot SOC 2 catalog covering 5 controls is implemented; no catalogs currently exist for PCI-DSS, NIST CSF 2.0, or GDPR/LGPD. |
 
 ---
 
-## 3. Prioritization Matrix
+## 4. Prioritization Matrix
 
 ```
                   HIGH IMPACT
@@ -115,7 +116,6 @@ Directly addresses controls **A.8.28 (Secure Coding)** and **A.8.25 (Secure Syst
                        |   [Pillar 2] Multi-Cloud Connectors (AWS/Azure)
                        |   
                        |   [Pillar 3] SOC 2 Type II & PCI-DSS
-                       |   [Pillar 4] CodeMender (Automated Code Fixes)
                        |   
                        |   [Pillar 3] NIST CSF 2.0 & OCI Connector
                        |   [Pillar 3] GDPR / LGPD Privacy Automation
@@ -126,7 +126,7 @@ Directly addresses controls **A.8.28 (Secure Coding)** and **A.8.25 (Secure Syst
 
 ---
 
-## 4. Engineering Guidelines & Definition of Done (DoD)
+## 5. Engineering Guidelines & Definition of Done (DoD)
 
 Before any roadmap feature is released to production:
 
