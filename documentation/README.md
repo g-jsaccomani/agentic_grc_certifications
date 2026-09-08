@@ -37,7 +37,7 @@ All documentation, architecture specifications, deployment guides, proof-of-conc
 
 ## 3. Quick Navigation
 
-- **For Immediate Customer Demonstration**: Read the **[POC Runbook](./poc/HOW_TO.md)**.
+- **For Product Implementation & Deployment**: Follow the **[Product Implementation Guide](./poc/HOW_TO.md)**.
 - **For Infrastructure Provisioning**: Follow the **[Operations Guide](./operations/README.md)**.
 - **For Security & Red-Team Testing**: Review the **[Guardrails Specification](./guardrails/README.md)**.
 - **For Product & Multi-Cloud Plans**: Check the **[Strategic Roadmap](./roadmap/README.md)**.

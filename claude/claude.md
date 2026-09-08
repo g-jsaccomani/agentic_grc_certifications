@@ -1775,3 +1775,20 @@ Per user request, [`documentation/poc/HOW_TO.md`](../documentation/poc/HOW_TO.md
 3. **Simplified Structure**:
    - Structured into 4 clean sections: Cloud Pre-Flight Verification, Live Cloud Demonstration Flow (7 concise steps with presenter talking tracks), Executive Questions & Answers (FAQ), and Google Cloud Operational Commands (`gcloud run`).
    - 100% in English, completely free of emojis, and aligned with the read-only prescriptive remediation model.
+
+---
+
+### Milestone 42: Product Implementation How-To Guide Realignment (2026-09-08)
+
+#### A. Executive Summary & Changes
+Per user clarification, [`documentation/poc/HOW_TO.md`](../documentation/poc/HOW_TO.md) was rewritten to be the **Product Implementation & GCP Deployment Guide**:
+1. **Automated One-Click Cloud Shell Bootstrap (`curl ... | bash`)**:
+   - Prominently documents the automated bootstrap command (`curl -sSL https://raw.githubusercontent.com/g-jsaccomani/agentic_grc_certifications/main/terraform/first_steps/bootstrap.sh | bash`).
+   - Details how it auto-provisions the GCP folder (`fldr-agentic-grc`), project (`agentic-grc-xxxx`), billing link, all 16 required Google Cloud APIs, the auditor service account (`sa-agentic-grc-auditor`), and prompts for / grants operator IAM access to specified user email(s).
+2. **Cloud Run Application Deployment**:
+   - Step-by-step instructions to run `bash scripts/deploy.sh` inside Cloud Shell, building the container with Cloud Build, configuring Model Armor safety templates, and launching the Cloud Run service in `us-central1`.
+3. **Google Workspace SSO & Least-Privilege Consultant Access**:
+   - Outlines OAuth 2.0 Client ID setup and time-boxed consultant access grant/revocation commands using `--condition` expiry timestamps.
+4. **100% Cloud GCP Focus**:
+   - Completely stripped of local workstation instructions, local test execution, and local Python environments.
+   - Clean, simple, professional, 100% in English, and completely emoji-free.
