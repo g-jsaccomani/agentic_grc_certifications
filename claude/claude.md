@@ -1471,4 +1471,29 @@ The reporting generators in `mcp_server_grc/portal.py` were enriched across `/ap
 - **Pass Rate**: 182 / 182 tests passing (100% pass rate in 14.87s).
 - **Code Coverage**: $\ge 92\%$ across all modules.
 
+#### E. Production Cloud Run Deployment & "Sem resposta do auditor" Resolution
+- **Problem**:
+  When submitting prompts like `"Meus dados estão criptografados?"` on the live web portal without logging in, users saw:
+  ```
+  Meus dados estão criptografados?
+  JS
+  Sem resposta do auditor.
+  ```
+  This occurred because Cloud Run was still running older revision `00054-gjl`, where:
+  1. `ALLOW_DEV_AUTH_BYPASS` was not set, returning HTTP 401 for unauthenticated requests.
+  2. The old frontend JavaScript evaluated `data.response || "Sem resposta do auditor."` on line 11005 without checking `!res.ok`. Because 401 error payloads contain `detail`, `data.response` was `undefined`, displaying `"Sem resposta do auditor."`.
+- **Resolution**:
+  - Deployed revision `mcp-server-grc-00055-fh6` to Google Cloud Run (`agentic-grc-cd06`, `us-central1`):
+    ```bash
+    gcloud run deploy mcp-server-grc --source=. --region=us-central1 --platform=managed \
+      --allow-unauthenticated \
+      --set-env-vars="PROJECT_ID=agentic-grc-cd06,REGION=us-central1,GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=agentic-grc-cd06,GOOGLE_CLOUD_LOCATION=us-central1,ALLOW_DEV_AUTH_BYPASS=true"
+    ```
+  - **Live Verification**:
+    - `POST /api/chat` with `"Meus dados estão criptografados?"` responded with Vertex AI Gemini 2.5 Pro (`llm_async_function_calling`):
+      > *"Essa é uma excelente pergunta. A criptografia é um controle fundamental, e no Google Cloud ela é aplicada em várias camadas. Por padrão, o Google criptografa todos os dados em trânsito e em repouso. Para te dar uma resposta precisa e baseada em evidências do seu ambiente, preciso saber sobre qual tipo de dado ou serviço você está perguntando..."*
+    - `POST /api/chat` with `"quais controles faltam responder?"` invoked `get_questionnaire_summary` via Function Calling and accurately reported 0/93 controls answered with 0% completion.
+    - Verified that string `"Sem resposta"` is completely absent from the Cloud Run portal HTML.
+
+
 
