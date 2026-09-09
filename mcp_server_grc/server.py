@@ -48,6 +48,7 @@ class ToolCallRequest(BaseModel):
 
 
 @app.get("/health")
+@app.get("/healthz")
 def health_check():
     """Health check endpoint for Cloud Run and load balancers."""
     return {

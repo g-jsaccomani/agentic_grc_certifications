@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY agent_orchestrator /app/agent_orchestrator
 COPY mcp_server_grc /app/mcp_server_grc
 COPY static /app/static
+COPY data /app/data
 
 # Run as non-root user for security
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
