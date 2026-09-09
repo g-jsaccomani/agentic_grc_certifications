@@ -6071,8 +6071,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                     <span style="width: 6px; height: 6px; border-radius: 50%; background: #f28b82; display: inline-block;"></span>
                                     Alerta Agêntico em Tempo Real • Vertex AI
                                 </span>
-                                <div class="alert-headline" id="alertHeadline">Desvio Crítico no Controle A.8.24 (Cloud KMS HSM)</div>
-                                <div class="alert-desc" id="alertDesc">Chave 'app-secrets-master' configurada com ciclo de 180 dias (limite: 90 dias). Risco de não-conformidade.</div>
+                                <div class="alert-headline" id="alertHeadline">Lacuna de Prontidão no Controle A.8.24 (Cloud KMS HSM)</div>
+                                <div class="alert-desc" id="alertDesc">Nenhuma chave Cloud KMS HSM com rotação &lt;= 90 dias localizada. Recomendação prescritiva gerada.</div>
                             </div>
                         </div>
                         <div class="alert-actions">
@@ -6081,7 +6081,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4">
                                     <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
                                 </svg>
-                                Atualizar Política com IA (Zero-Touch)
+                                Gerar Proposta de Aditamento (Recomendação)
                             </button>
                         </div>
                     </div>
@@ -6243,7 +6243,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                                     <div class="compliance-footer-note">
                                         <span>Grafo SHA-256 Validado</span>
-                                        <span>Zero-Touch Ativo</span>
+                                        <span>Monitoramento Ativo (Read-Only)</span>
                                     </div>
                                 </div>
                             </div>
@@ -9327,7 +9327,7 @@ window.currentLanguage = 'pt';
         async function executePhaseRemediation() {
             const phaseNum = parseInt(document.getElementById("remPhaseNumber").value, 10);
             const project = Array.from(selectedProjectIds)[0] || "agentic-grc-cd06";
-            appendLog(`[Remediação Fase ${phaseNum}] Aplicando remediação automatizada em '${project}'...`);
+            appendLog(`[Recomendações Fase ${phaseNum}] Gerando plano prescritivo de remediação para '${project}'...`);
 
             try {
                 const res = await fetch("/api/audit/remediate_phase", {
@@ -9338,18 +9338,19 @@ window.currentLanguage = 'pt';
                 const data = await res.json();
                 closePhaseRemediation();
 
-                appendLog(`[Remediação Fase ${phaseNum}] Sucesso! Status: ${data.details.status}`, "success");
-                data.details.actions_executed.forEach(a => appendLog(`  [Auto-Fix] ${a}`, "success"));
+                appendLog(`[Recomendações Fase ${phaseNum}] Plano gerado com sucesso! Status: ${data.details.status}`, "success");
+                const actions = data.details.recommended_actions || data.details.actions_executed || [];
+                actions.forEach(a => appendLog(`  [Prescritivo] ${a}`, "info"));
 
                 const statusTag = document.getElementById(`statusPhase${phaseNum}`);
                 if (statusTag) {
-                    statusTag.innerText = "Remediado (100%)";
-                    statusTag.className = "phase-status-tag compliant";
+                    statusTag.innerText = "Recomendações Geradas (Em Andamento)";
+                    statusTag.className = "phase-status-tag in-progress";
                 }
                 const findingsBox = document.getElementById(`findingsPhase${phaseNum}`);
                 if (findingsBox) {
                     findingsBox.style.display = "block";
-                    findingsBox.innerHTML = `<span style="color: var(--gcp-green);"><strong>Fase ${phaseNum} Remediada com Sucesso:</strong></span><br>` + data.details.actions_executed.map(a => `✓ ${escapeHtml(a)}`).join("<br>");
+                    findingsBox.innerHTML = `<span style="color: var(--gcp-yellow, #fbbc04);"><strong>Fase ${phaseNum} — Recomendações Prescritivas para o Operador:</strong></span><br>` + actions.map(a => `📋 ${escapeHtml(a)}`).join("<br>");
                 }
                 if (typeof loadScorecard === 'function') loadScorecard();
                 if (typeof loadIsoMatrix === 'function') loadIsoMatrix();
@@ -10134,7 +10135,7 @@ Formulário preenchido com o subagente recomendado!`);
         // -------------------------------------------------------------------
         async function runAutonomousCheck() {
             const project = Array.from(selectedProjectIds)[0] || "agentic-grc-cd06";
-            appendLog(`[Monitor Autônomo Vertex AI] Inspecionando telemetria em tempo real no projeto '${project}'...`);
+            appendLog(`[Monitor Contínuo Vertex AI] Inspecionando telemetria em tempo real no projeto '${project}'...`);
 
             try {
                 const res = await fetch("/api/agent/autonomous_monitor", {
@@ -10148,11 +10149,11 @@ Formulário preenchido com o subagente recomendado!`);
                     const banner = document.getElementById("agenticAlertBanner");
                     if (banner) {
                         banner.style.display = "flex";
-                        document.getElementById("alertHeadline").innerText = `Desvio Crítico Detectado: Controle ${data.alert.control_id} (${data.alert.control_title})`;
+                        document.getElementById("alertHeadline").innerText = `Apontamento de Prontidão: Controle ${data.alert.control_id} (${data.alert.control_title})`;
                         document.getElementById("alertDesc").innerText = data.alert.deviation_summary;
                     }
-                    appendLog(`[ALERTA AGÊNTICO] ${data.alert.deviation_summary}`, "error");
-                    appendLog(`[IA Recomendação] ${data.alert.autonomous_recommendation}`, "warn");
+                    appendLog(`[APONTAMENTO GRC] ${data.alert.deviation_summary}`, "warn");
+                    appendLog(`[Recomendação Prescritiva] ${data.alert.remediation_recommendation || data.alert.autonomous_recommendation}`, "info");
                 }
             } catch (e) {
                 console.error("Autonomous check error", e);
@@ -10165,6 +10166,7 @@ Formulário preenchido com o subagente recomendado!`);
             const hero = document.getElementById("geminiHero");
             if (hero) hero.style.display = "none"; updateBottomInputVisibility();
 
+            const project = Array.from(selectedProjectIds)[0] || "agentic-grc-cd06";
             const botRow = document.createElement("div");
             botRow.className = "msg-row bot";
             botRow.innerHTML = `
@@ -10174,14 +10176,14 @@ Formulário preenchido com o subagente recomendado!`);
                     </svg>
                 </div>
                 <div class="msg-content">
-                    <h3>Diagnóstico Agêntico de Desvio — Vertex AI Gemini</h3>
+                    <h3>Diagnóstico de Prontidão Normativa — Vertex AI Gemini</h3>
                     <p><strong>Controle Afetado:</strong> ISO/IEC 27001:2022 A.8.24 (Uso de Criptografia)</p>
-                    <p><strong>Severidade:</strong> <span style="color: #f28b82; font-weight: 700;">ALTA (CRITICAL DRIFT)</span></p>
-                    <p><strong>Recurso em Desvio:</strong> <code>projects/agentic-grc-cd06/locations/us-central1/keyRings/production-ring/cryptoKeys/app-secrets-master</code></p>
-                    <p><strong>Achado Técnico:</strong> A chave está configurada com período de rotação de 180 dias. O baseline de conformidade do SGSI exige rotação automática a cada 60 a 90 dias com nível HSM.</p>
-                    <div style="background: rgba(52, 168, 83, 0.1); border: 1px solid rgba(52, 168, 83, 0.3); border-radius: 8px; padding: 12px; margin-top: 10px;">
-                        <span style="color: var(--gcp-green); font-weight: 600;">Ação Autônoma Sugerida pelo Agente:</span><br>
-                        Emitir aditamento da política <code>POL-SEC-004</code> forçando rotação compulsória de 60 dias no Cloud KMS e aplicar Organization Policy via API.
+                    <p><strong>Severidade:</strong> <span style="color: #fbbc04; font-weight: 700;">ALTA (READINESS GAP)</span></p>
+                    <p><strong>Escopo Avaliado:</strong> <code>projects/${escapeHtml(project)}/locations/us-central1</code></p>
+                    <p><strong>Achado Técnico:</strong> Nenhuma chave Cloud KMS gerenciada pelo cliente (CMEK) com rotação automática &lt;= 90 dias e proteção HSM foi localizada no projeto.</p>
+                    <div style="background: rgba(66, 133, 244, 0.08); border: 1px solid rgba(66, 133, 244, 0.3); border-radius: 8px; padding: 12px; margin-top: 10px;">
+                        <span style="color: var(--gcp-blue, #4285f4); font-weight: 600;">Recomendação Prescritiva (Ação do Operador):</span><br>
+                        Emitir aditamento prescritivo da política corporativa e aplicar comandos <code>gcloud kms</code> no pipeline Terraform/GitOps sem mutação direta de infraestrutura pelo portal.
                     </div>
                 </div>
             `;
@@ -10191,7 +10193,7 @@ Formulário preenchido com o subagente recomendado!`);
 
         async function triggerAutonomousPolicyUpdate() {
             const project = Array.from(selectedProjectIds)[0] || "agentic-grc-cd06";
-            appendLog(`[Vertex AI Autonomia] Atualizando política de segurança e aplicando enforcement no GCP...`);
+            appendLog(`[Vertex AI Consultivo] Gerando proposta de aditamento de política para o projeto '${project}'...`);
 
             try {
                 const res = await fetch("/api/agent/update_policy_autonomously", {
@@ -10205,9 +10207,10 @@ Formulário preenchido com o subagente recomendado!`);
                 const banner = document.getElementById("agenticAlertBanner");
                 if (banner) banner.style.display = "none";
 
-                appendLog(`[Sucesso Autônomo] ${data.message}`, "success");
-                data.enforcement_actions.forEach(act => appendLog(`  -> [Auto-Enforce] ${act}`, "success"));
-                appendLog(`[Cadeia de Evidências] Hash SHA-256: ${data.hash_sha256.substring(0, 24)}...`, "success");
+                appendLog(`[Proposta Gerada] ${data.message}`, "success");
+                const actions = data.recommended_actions || data.prescriptive_actions || data.enforcement_actions || [];
+                actions.forEach(act => appendLog(`  -> [Prescritivo] ${act}`, "info"));
+                appendLog(`[Grafo de Evidências] Hash SHA-256 da Proposta: ${data.hash_sha256.substring(0, 24)}...`, "success");
 
                 switchView("view-chat");
                 const chatArea = document.getElementById("chatArea");
@@ -10223,13 +10226,13 @@ Formulário preenchido com o subagente recomendado!`);
                         </svg>
                     </div>
                     <div class="msg-content">
-                        <h3>Política de Segurança Atualizada com Sucesso pelo Vertex AI</h3>
-                        <p>O agente autônomo identificou o desvio, sintetizou o aditamento normativo e aplicou a correção técnica sem intervenção manual (Zero-Touch):</p>
+                        <h3>Proposta de Aditamento Normativo Gerada pelo Vertex AI</h3>
+                        <p>O agente consultivo sintetizou a proposta prescritiva para análise da equipe de segurança e homologação formal (Read-Only Guardrail):</p>
                         <ul>
-                            ${data.enforcement_actions.map(a => `<li>${escapeHtml(a)}</li>`).join("")}
+                            ${actions.map(a => `<li>${escapeHtml(a)}</li>`).join("")}
                         </ul>
-                        <p><strong>Hash de Integridade Criptográfica (SHA-256):</strong><br><code>${data.hash_sha256}</code></p>
-                        <p><strong>Novo Scorecard de Conformidade:</strong> <span style="color: var(--gcp-green); font-weight: 700;">100.0% (EXCELLENT / LIMPO)</span></p>
+                        <p><strong>Hash de Integridade Criptográfica da Proposta (SHA-256):</strong><br><code>${data.hash_sha256}</code></p>
+                        <p><strong>Status de Homologação:</strong> <span style="color: var(--gcp-yellow, #fbbc04); font-weight: 700;">Aguardando Revisão & Aprovação Humana (Scorecard Projetado: 100.0%)</span></p>
                         <hr style="border: none; border-top: 1px solid var(--border-subtle); margin: 12px 0;">
                         <em>Google Cloud Security • Agentic GRC & Compliance Practice</em>
                     </div>
@@ -10237,7 +10240,7 @@ Formulário preenchido com o subagente recomendado!`);
                 chatArea.appendChild(botRow);
                 chatArea.scrollTop = chatArea.scrollHeight;
             } catch (e) {
-                appendLog(`[Erro na Atualização Autônoma] ${e}`, "error");
+                appendLog(`[Erro na Geração da Proposta] ${e}`, "error");
             }
         }
 
@@ -12538,7 +12541,7 @@ function openNewsModal(newsKey) {
                     body: JSON.stringify({ remediation_id: remId })
                 });
                 const data = await res.json();
-                alert(`Aditamento ${remId} APROVADO com sucesso! Status: ${data.status}`);
+                alert(`Recomendação ${remId} APROVADA para execução manual/pipeline! Status: ${data.status}`);
             } catch (e) {
                 alert("Erro ao aprovar: " + e);
             }

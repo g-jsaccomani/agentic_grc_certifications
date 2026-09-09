@@ -274,6 +274,9 @@ def test_portal_subagents_and_dashboard():
     )
     assert res_app.status_code == 200
     assert res_app.json()["status"] == "APPROVED"
+    assert res_app.json()["auto_executed"] is False
+    assert res_app.json()["execution_mode"] == "MANUAL_OR_PIPELINE"
+    assert res_app.json()["decision"] == "RECOMMENDATION_APPROVED_FOR_EXECUTION"
 
 
 def test_individual_phases_and_remediation():
@@ -290,12 +293,18 @@ def test_individual_phases_and_remediation():
     assert len(res_p2.json()["phases"]) == 1
     assert res_p2.json()["phases"][0]["phase"].startswith("Fase 2")
 
-    # 3. Remediate phase 2
+    # 3. Remediate phase 2 (Prescriptive recommendations)
     res_rem = client.post("/api/audit/remediate_phase", json={"phase": 2, "project_id": "agentic-grc-cd06"})
     assert res_rem.status_code == 200
     rem_data = res_rem.json()
-    assert rem_data["details"]["status"] == "REMEDIATED"
-    assert rem_data["details"]["new_score"] == 100.0
+    assert rem_data["details"]["status"] == "RECOMMENDATION_GENERATED"
+    assert rem_data["details"]["status"] not in ["REMEDIATED", "APPLIED", "ENFORCED"]
+    assert rem_data["details"]["drift_corrected"] is False
+    assert rem_data["details"]["execution_mode"] == "PRESCRIPTIVE_RECOMMENDATION_ONLY"
+    assert rem_data["details"]["requires_human_approval"] is True
+    assert rem_data["details"]["projected_score"] == 100.0
+    assert len(rem_data["details"]["recommended_actions"]) > 0
+    assert "actions_executed" not in rem_data["details"]
 
 
 def test_custom_subagents_lifecycle():
@@ -343,21 +352,98 @@ def test_agentic_recommendation_and_autonomous_policy_update():
     assert "Fintech & Banking" in rec_data["recommendation"]["name"]
     assert len(rec_data["recommendation"]["target_controls"]) > 0
 
-    # 2. Test autonomous monitor
+    # 2. Test autonomous monitor (read-only prescriptive)
     res_mon = client.post("/api/agent/autonomous_monitor", json={"project_id": "agentic-grc-cd06", "simulate_deviation": True})
     assert res_mon.status_code == 200
     mon_data = res_mon.json()
+    assert mon_data["status"] == "RECOMMENDATION_GENERATED"
+    assert mon_data["status"] not in ["REMEDIATED", "APPLIED", "ENFORCED"]
     assert mon_data["active_alert"] is True
     assert mon_data["alert"]["control_id"] == "A.8.24"
-    assert "proposed_amendment_text" in mon_data["alert"]
+    assert mon_data["alert"]["can_auto_update"] is False
+    assert mon_data["alert"]["requires_human_approval"] is True
+    assert mon_data["alert"]["execution_mode"] == "PRESCRIPTIVE_RECOMMENDATION_ONLY"
+    assert "app-secrets-master" not in str(mon_data)
+    assert "production-ring" not in str(mon_data)
+    assert "prescriptive_command" in mon_data["alert"]
 
-    # 3. Test autonomous policy update
+    # 3. Test autonomous policy update (read-only prescriptive)
     res_update = client.post("/api/agent/update_policy_autonomously", json={"project_id": "agentic-grc-cd06", "control_id": "A.8.24"})
     assert res_update.status_code == 200
     up_data = res_update.json()
-    assert up_data["status"] == "POLICY_UPDATED_AND_ENFORCED"
+    assert up_data["status"] == "RECOMMENDATION_GENERATED"
+    assert up_data["status"] not in ["POLICY_UPDATED_AND_ENFORCED", "REMEDIATED", "APPLIED", "ENFORCED"]
+    assert up_data["auto_enforced"] is False
+    assert up_data["requires_human_approval"] is True
+    assert up_data["execution_mode"] == "PRESCRIPTIVE_RECOMMENDATION_ONLY"
     assert len(up_data["hash_sha256"]) == 64
-    assert up_data["new_score"] == 100.0
+    assert up_data["projected_score"] == 100.0
+    assert "HOMOLOGADO E APLICADO" not in up_data["policy_document"]
+    assert "Zero-Touch" not in up_data["policy_document"]
+    assert "enforcement_actions" not in up_data
+    assert len(up_data["recommended_actions"]) > 0
+
+
+def test_readonly_guardrails_no_fabricated_execution():
+    """Validates the leadership-mandated read-only guardrail (documentation/roadmap/README.md:L6).
+    
+    Verifies that:
+    1. /api/audit/remediate_phase never returns 'REMEDIATED', never marks drift_corrected=True,
+       never invents fake execution actions, and marks questionnaire answers as IN_PROGRESS.
+    2. /api/agent/autonomous_monitor never invents fictional resources (app-secrets-master)
+       and always marks can_auto_update=False.
+    3. /api/agent/update_policy_autonomously never claims 'HOMOLOGADO E APLICADO' or
+       'POLICY_UPDATED_AND_ENFORCED', and always marks auto_enforced=False.
+    4. /api/remediation/approve approves recommendations only with auto_executed=False.
+    """
+    # 1. Remediate Phase 1
+    res_p1 = client.post("/api/audit/remediate_phase", json={"phase": 1, "project_id": "agentic-grc-cd06"})
+    assert res_p1.status_code == 200
+    p1 = res_p1.json()["details"]
+    assert p1["status"] == "RECOMMENDATION_GENERATED"
+    assert p1["status"] not in ["REMEDIATED", "APPLIED", "ENFORCED"]
+    assert p1["drift_corrected"] is False
+    assert p1["execution_mode"] == "PRESCRIPTIVE_RECOMMENDATION_ONLY"
+    assert "actions_executed" not in p1
+
+    # Check questionnaire answer was not falsified to COMPLIANT
+    from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
+    ans = QUESTIONNAIRE_ANSWERS.get(("ISO27001:2022", "A.5.15"))
+    assert ans is not None
+    assert ans.status != "COMPLIANT"
+    assert ans.status == "IN_PROGRESS"
+
+    # 2. Autonomous Monitor
+    res_mon = client.post("/api/agent/autonomous_monitor", json={"project_id": "agentic-grc-cd06"})
+    assert res_mon.status_code == 200
+    mon = res_mon.json()
+    assert mon["status"] == "RECOMMENDATION_GENERATED"
+    assert mon["status"] not in ["REMEDIATED", "APPLIED", "ENFORCED", "MUTATED"]
+    assert mon["alert"]["can_auto_update"] is False
+    assert mon["alert"]["requires_human_approval"] is True
+    assert "app-secrets-master" not in str(mon)
+    assert "production-ring" not in str(mon)
+
+    # 3. Policy Recommendation Update
+    res_pol = client.post("/api/agent/update_policy_autonomously", json={"project_id": "agentic-grc-cd06", "control_id": "A.8.24"})
+    assert res_pol.status_code == 200
+    pol = res_pol.json()
+    assert pol["status"] == "RECOMMENDATION_GENERATED"
+    assert pol["status"] not in ["POLICY_UPDATED_AND_ENFORCED", "REMEDIATED", "APPLIED", "ENFORCED"]
+    assert pol["auto_enforced"] is False
+    assert pol["requires_human_approval"] is True
+    assert "HOMOLOGADO E APLICADO" not in pol["policy_document"]
+    assert "Zero-Touch" not in pol["policy_document"]
+    assert "enforcement_actions" not in pol
+
+    # 4. Remediation Approval
+    res_app = client.post("/api/remediation/approve", json={"remediation_id": "REM-REC-001"})
+    assert res_app.status_code == 200
+    app = res_app.json()
+    assert app["status"] == "APPROVED"
+    assert app["auto_executed"] is False
+    assert app["execution_mode"] == "MANUAL_OR_PIPELINE"
+    assert app["decision"] == "RECOMMENDATION_APPROVED_FOR_EXECUTION"
 
 
 def test_cloudstyle_html_report_export():

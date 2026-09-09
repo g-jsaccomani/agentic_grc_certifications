@@ -2039,6 +2039,245 @@ Per user directive (PROMPT B), repositioned the platform from an "Auditor / Form
 - **Automated Tests**: `.venv/bin/pytest` ran with 195/195 tests passing (100%).
 - **Git & Cloud Run**: Changes committed to `main`, pushed to GitHub, and deployed to Cloud Run service `mcp-server-grc`.
 
+---
+
+### Milestone 65: Read-Only Guardrail Enforcement Across Autonomous Monitoring, Policy Recommendation, and Remediation Endpoints (2026-09-09)
+
+#### A. Executive Summary & Epistemic Integrity Mandate
+In strict compliance with the leadership-mandated scope boundary (`documentation/roadmap/README.md:L6`):
+> *"Scope Boundary: This platform performs continuous audit, automated evidence collection, and remediation recommendations; it does not directly modify client code or mutate infrastructure."*
+
+We eliminated fabricated results, fictional resource generation, and false claims of autonomous infrastructure mutation across four key endpoints in `mcp_server_grc/portal.py` and the portal UI (`mcp_server_grc/portal_html.py`):
+1. **`/api/agent/autonomous_monitor`**:
+   - Replaced fictional resource invention (such as the fake `app-secrets-master` key on `production-ring`) with authentic read-only telemetry queries (`list_cloud_kms_keys` and `list_cloud_storage_buckets`).
+   - For projects without customer-managed keys (e.g. `agentic-grc-cd06`), accurately detects the readiness gap (absence of CMEK with automatic rotation <= 90 days).
+   - Flags `can_auto_update: false`, `requires_human_approval: true`, and returns `status: "RECOMMENDATION_GENERATED"` with exact prescriptive `gcloud` commands.
+2. **`/api/agent/update_policy_autonomously`**:
+   - Eliminated docstring claims of "enforcing in GCP" and removed fabricated language (`"HOMOLOGADO E APLICADO"`, `"Zero-Touch Autonomous Update"`, `"actions_executed"`).
+   - Computes SHA-256 integrity hash directly over the actual proposed Markdown policy document (`hashlib.sha256(policy_doc.encode('utf-8')).hexdigest()`), proving cryptographic authenticity of the recommendation rather than a synthetic string.
+   - Anchors the proposal in the EvidenceGraph under `EvidenceVerificationTier.SELF_ATTESTED`.
+   - Returns `status: "RECOMMENDATION_GENERATED"`, `auto_enforced: false`, `requires_human_approval: true`, and authentic `current_score` with `projected_score: 100.0`.
+3. **`/api/audit/remediate_phase`**:
+   - Removed fabricated `actions_executed` lists claiming unperformed IAM revocations, MFA enforcement, and key rotations.
+   - Replaced with prescriptive recommendations (`recommended_actions` and `prescriptive_commands`) for phases 1 through 4.
+   - Sets `drift_corrected: false`, `status: "RECOMMENDATION_GENERATED"`, and `execution_mode: "PRESCRIPTIVE_RECOMMENDATION_ONLY"`.
+   - **Eliminated questionnaire answer falsification**: Controls are no longer falsely marked as `COMPLIANT`. Unmet controls are marked `status: "IN_PROGRESS"` under `EvidenceVerificationTier.SELF_ATTESTED`, reflecting that recommendations have been generated and await human operator execution.
+4. **`/api/remediation/approve`**:
+   - Clarified that HITL approval authorizes recommendations for operator or CI/CD pipeline execution with zero automatic mutation performed by the portal.
+   - Returns `decision: "RECOMMENDATION_APPROVED_FOR_EXECUTION"`, `auto_executed: false`, `execution_mode: "MANUAL_OR_PIPELINE"`.
+5. **Portal UI (`mcp_server_grc/portal_html.py`)**:
+   - Updated alert banners, buttons, and diagnostic modal from "Atualizar Política com IA (Zero-Touch)" to "Gerar Proposta de Aditamento (Recomendação)".
+   - Cleaned `showDeviationDiagnostic` to remove hardcoded fake resources.
+   - Cleaned `executePhaseRemediation` and `triggerAutonomousPolicyUpdate` to log prescriptive recommendations and avoid false claims of instant 100% remediation.
+
+---
+
+#### B. Before vs. After Endpoint Payloads
+
+##### 1. `/api/agent/autonomous_monitor`
+**Before (Fabricated Execution & Fictional Resources):**
+```json
+{
+  "status": "ALERT_TRIGGERED",
+  "active_alert": true,
+  "alert": {
+    "alert_id": "ALERT-DEV-1773089456",
+    "timestamp": "2026-09-09T20:00:00.000000Z",
+    "project_id": "agentic-grc-cd06",
+    "severity": "CRITICAL",
+    "control_id": "A.8.24",
+    "control_title": "Uso de Criptografia (Cloud KMS HSM)",
+    "deviation_summary": "Desvio Crítico Detectado no projeto 'agentic-grc-cd06': A chave Cloud KMS 'app-secrets-master' está configurada com ciclo de rotação de 180 dias, excedendo o limite normativo do SGSI (máximo de 90 dias).",
+    "affected_resources": [
+      "projects/agentic-grc-cd06/locations/us-central1/keyRings/production-ring/cryptoKeys/app-secrets-master"
+    ],
+    "impact": "Risco de não-conformidade com A.8.24 da ISO 27001 e exposição a comprometimento prolongado de material criptográfico.",
+    "autonomous_recommendation": "O Vertex AI Gemini elaborou um aditamento de política obrigando rotação de 60 dias com proteção em HSM e aplicação imediata da Organization Policy constraints/gcp.restrictKeyRotationPeriod.",
+    "suggested_policy_id": "POL-SEC-004-KMS",
+    "suggested_policy_title": "Política Corporativa de Criptografia & Gestão de Chaves Cloud KMS HSM",
+    "proposed_amendment_text": "EMENDA COMPULSÓRIA DE SEGURANÇA (A.8.24):\n1. Todas as chaves...",
+    "can_auto_update": true
+  }
+}
+```
+
+**After (Real Read-Only Inspection & Prescriptive Recommendation):**
+```json
+{
+  "status": "RECOMMENDATION_GENERATED",
+  "active_alert": true,
+  "alert": {
+    "alert_id": "ALERT-REC-1773098522",
+    "timestamp": "2026-09-09T23:20:00.000000Z",
+    "project_id": "agentic-grc-cd06",
+    "severity": "HIGH",
+    "control_id": "A.8.24",
+    "control_title": "Uso de Criptografia (Cloud KMS HSM)",
+    "deviation_summary": "Lacuna de Prontidão Detectada no projeto 'agentic-grc-cd06': Nenhuma chave Cloud KMS gerenciada pelo cliente (CMEK) com ciclo de rotação automática <= 90 dias e proteção HSM foi localizada para atendimento ao controle A.8.24.",
+    "affected_resources": [
+      "projects/agentic-grc-cd06/locations/us-central1"
+    ],
+    "impact": "Risco de não-conformidade com A.8.24 da ISO 27001 e exposição a comprometimento prolongado de material criptográfico.",
+    "remediation_recommendation": "Recomendação Prescritiva (Ação do Operador): Aplicar o comando gcloud prescrito: gcloud kms keyrings create grc-keyring --location=us-central1 --project=agentic-grc-cd06 && gcloud kms keys create grc-cmek-key --location=us-central1 --keyring=grc-keyring --purpose=encryption --protection-level=hsm --rotation-period=7776000s --project=agentic-grc-cd06",
+    "prescriptive_command": "gcloud kms keyrings create grc-keyring --location=us-central1 --project=agentic-grc-cd06 && gcloud kms keys create grc-cmek-key --location=us-central1 --keyring=grc-keyring --purpose=encryption --protection-level=hsm --rotation-period=7776000s --project=agentic-grc-cd06",
+    "suggested_policy_id": "POL-PROP-2026-A_8_24",
+    "suggested_policy_title": "Política Corporativa de Criptografia & Gestão de Chaves Cloud KMS HSM",
+    "proposed_amendment_text": "PROPOSTA DE DIRETRIZ PRESCRITIVA (A.8.24):\n1. Todas as chaves...",
+    "can_auto_update": false,
+    "requires_human_approval": true,
+    "execution_mode": "PRESCRIPTIVE_RECOMMENDATION_ONLY"
+  }
+}
+```
+
+---
+
+##### 2. `/api/agent/update_policy_autonomously`
+**Before (Fabricated Auto-Enforcement in GCP & Fictional 100% Score):**
+```json
+{
+  "status": "POLICY_UPDATED_AND_ENFORCED",
+  "message": "Política de segurança do controle A.8.24 foi atualizada e aplicada autonomamente no projeto agentic-grc-cd06.",
+  "policy_id": "POL-SEC-2026-AUTONOMOUS",
+  "policy_title": "Aditamento Autônomo de Política (A.8.24)",
+  "hash_sha256": "4b822d5bfb91...",
+  "enforcement_actions": [
+    "Período de rotação de chaves Cloud KMS no projeto agentic-grc-cd06 alterado para 60 dias via API.",
+    "Restrição de chaves Organization Policy ativada.",
+    "Novo nó imutável ancorado no Grafo de Evidências com assinatura SHA-256.",
+    "Alerta de desvio baixado com sucesso."
+  ],
+  "new_score": 100.0,
+  "drift_trajectory": "STABLE",
+  "policy_document": "# GOOGLE CLOUD SECURITY\n## POLÍTICA CORPORATIVA DE SEGURANÇA DA INFORMAÇÃO — ADITAMENTO AUTÔNOMO\n**Status:** HOMOLOGADO E APLICADO (Zero-Touch Autonomous Update)\n..."
+}
+```
+
+**After (Prescriptive Recommendation for Human Review & Authentic Projected Score):**
+```json
+{
+  "status": "RECOMMENDATION_GENERATED",
+  "message": "Proposta de aditamento para o controle A.8.24 gerada como recomendação prescritiva para revisão humana no projeto agentic-grc-cd06.",
+  "policy_id": "POL-PROP-2026-A_8_24",
+  "policy_title": "Proposta de Aditamento Normativo (A.8.24)",
+  "hash_sha256": "d748fbb18029b32938e5e8e811c777e1aa7163c631481b4766fbfd5320253f93",
+  "recommended_actions": [
+    "Revisar a minuta de aditamento normativo proposta para o controle A.8.24 no projeto agentic-grc-cd06.",
+    "Executar o comando gcloud prescrito: gcloud kms keys update KEY_NAME --location=us-central1 --keyring=RING_NAME --rotation-period=7776000s --project=agentic-grc-cd06",
+    "Integrar a parametrização recomendada ao repositório Terraform / GitOps da organização.",
+    "Registrar aprovação formal da recomendação via endpoint /api/remediation/approve."
+  ],
+  "prescriptive_actions": [
+    "gcloud kms keys update KEY_NAME --location=us-central1 --keyring=RING_NAME --rotation-period=7776000s --project=agentic-grc-cd06"
+  ],
+  "auto_enforced": false,
+  "requires_human_approval": true,
+  "execution_mode": "PRESCRIPTIVE_RECOMMENDATION_ONLY",
+  "current_score": 78.5,
+  "projected_score": 100.0,
+  "drift_trajectory": "PENDING_APPROVAL",
+  "policy_document": "# GOOGLE CLOUD SECURITY\n## PROPOSTA DE ADITAMENTO NORMATIVO (RECOMENDAÇÃO PRESCRITIVA)\n**Status:** PROPOSTA DE ADITAMENTO — AGUARDANDO REVISÃO HUMANA (Prescriptive Recommendation Only)\n..."
+}
+```
+
+---
+
+##### 3. `/api/audit/remediate_phase`
+**Before (Fabricated Executions & Falsified Questionnaire Compliance):**
+```json
+{
+  "remediation_id": "REM-PHASE-2-1773089456",
+  "timestamp": "2026-09-09T20:00:00.000000Z",
+  "project_id": "agentic-grc-cd06",
+  "phase": 2,
+  "details": {
+    "phase": "Fase 2: Auditoria Técnica Profunda & IaC",
+    "action": "Correção de IaC Terraform e Enforce de Criptografia",
+    "remediated_controls": ["A.5.23", "A.8.12", "A.8.24", "A.8.9"],
+    "actions_executed": [
+      "Aplicação de Public Access Prevention (PAP) e UBLA em 100% dos buckets do projeto agentic-grc-cd06.",
+      "Perímetro VPC Service Controls verificado e reforçado contra exfiltração de dados sensíveis.",
+      "Política de rotação de chaves Cloud KMS HSM reforçada para 60 dias (baseline <= 90 dias).",
+      "Remediação de drift em manifestos Terraform gerada e sincronizada com repositório GitOps."
+    ],
+    "drift_corrected": true,
+    "status": "REMEDIATED",
+    "new_score": 100.0
+  }
+}
+```
+
+**After (Prescriptive Guidance, Zero Fabricated Mutation, Questionnaire Answer Set to IN_PROGRESS):**
+```json
+{
+  "remediation_id": "REM-PHASE-2-1773098522",
+  "timestamp": "2026-09-09T23:20:00.000000Z",
+  "project_id": "agentic-grc-cd06",
+  "phase": 2,
+  "details": {
+    "phase": "Fase 2: Auditoria Técnica Profunda & IaC",
+    "action": "Correção de IaC Terraform e Enforce de Criptografia (Recomendações Prescritivas)",
+    "remediated_controls": ["A.5.23", "A.8.12", "A.8.24", "A.8.9"],
+    "recommended_actions": [
+      "1. [Storage PAP] Ativar Public Access Prevention em buckets do projeto 'agentic-grc-cd06': gcloud storage buckets update gs://BUCKET_NAME --public-access-prevention",
+      "2. [KMS Rotation] Configurar rotação automática <= 90 dias com nível HSM para chaves Cloud KMS: gcloud kms keys update KEY_NAME --location=LOCATION --keyring=RING_NAME --rotation-period=7776000s --project=agentic-grc-cd06",
+      "3. [VPC-SC] Adicionar o projeto 'agentic-grc-cd06' ao perímetro de segurança VPC Service Controls corporativo.",
+      "4. [IaC Drift] Aplicar manifestos Terraform de remediação gerados no repositório de infraestrutura via pipeline CI/CD auditado."
+    ],
+    "prescriptive_commands": [
+      "gcloud storage buckets update gs://BUCKET_NAME --public-access-prevention",
+      "gcloud kms keys update KEY_NAME --location=LOCATION --keyring=RING_NAME --rotation-period=7776000s --project=agentic-grc-cd06"
+    ],
+    "drift_corrected": false,
+    "status": "RECOMMENDATION_GENERATED",
+    "execution_mode": "PRESCRIPTIVE_RECOMMENDATION_ONLY",
+    "requires_human_approval": true,
+    "current_score": 78.5,
+    "projected_score": 100.0
+  }
+}
+```
+
+---
+
+##### 4. `/api/remediation/approve`
+**Before (Ambiguous Implication of Auto-Execution):**
+```json
+{
+  "status": "APPROVED",
+  "remediation_id": "HITL-AMENDMENT-001",
+  "approver": "security-officer@client.corp",
+  "timestamp": "2026-09-09T20:00:00.000000Z",
+  "message": "Remediation HITL-AMENDMENT-001 approved and recorded in audit log."
+}
+```
+
+**After (Explicit Recommendation Approval for Manual/Pipeline Execution, auto_executed: false):**
+```json
+{
+  "status": "APPROVED",
+  "decision": "RECOMMENDATION_APPROVED_FOR_EXECUTION",
+  "remediation_id": "HITL-AMENDMENT-001",
+  "approver": "security-officer@client.corp",
+  "timestamp": "2026-09-09T23:20:00.000000Z",
+  "auto_executed": false,
+  "execution_mode": "MANUAL_OR_PIPELINE",
+  "message": "Recomendação prescritiva HITL-AMENDMENT-001 aprovada pelo operador security-officer@client.corp. Autorizada para aplicação manual ou pipeline CI/CD sem execução autônoma pelo portal."
+}
+```
+
+---
+
+#### C. Verification & Automated Test Results
+- **Added Dedicated Guardrail Test**: `test_readonly_guardrails_no_fabricated_execution` in `tests/test_portal.py` asserting:
+  - Phase remediation returns `status: "RECOMMENDATION_GENERATED"`, never returns `"REMEDIATED"`, `"APPLIED"`, or `"ENFORCED"`, has `drift_corrected: false`, and questionnaire answers remain `status: "IN_PROGRESS"` (never falsified to `COMPLIANT`).
+  - Autonomous monitor returns `status: "RECOMMENDATION_GENERATED"`, never returns fictional keys/keyrings, sets `can_auto_update: false` and `requires_human_approval: true`.
+  - Policy update generates a cryptographic hash over the proposal markdown, sets `auto_enforced: false`, and contains no execution language.
+  - Remediation approval sets `auto_executed: false` and `execution_mode: "MANUAL_OR_PIPELINE"`.
+- **Full Test Suite Execution**:
+  - Executed: `.venv/bin/pytest tests/`
+  - **Result**: `196 passed, 2 warnings in 35.41s (100% pass rate)`.
+
 
 
 

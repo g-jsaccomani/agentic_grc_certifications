@@ -981,66 +981,88 @@ async def run_phased_audit(req: PhasedAuditRequest):
 
 @router.post("/api/audit/remediate_phase")
 async def remediate_phase(req: PhaseRemediationRequest):
-    """Applies automated technical and policy remediation for deviations in a specific phase."""
+    """Generates prescriptive remediation recommendations with exact gcloud commands and policy proposals for a specific phase (strictly read-only)."""
     phase_id = req.phase
     project_id = req.project_id
 
     if phase_id == 1:
         remediation_details = {
             "phase": "Fase 1: Descoberta de Ativos & IAM",
-            "action": "Ajuste de Menor Privilégio & Enforce de MFA",
+            "action": "Ajuste de Menor Privilégio & Enforce de MFA (Recomendações Prescritivas)",
             "remediated_controls": ["A.5.15", "A.8.2", "A.5.17"],
-            "actions_executed": [
-                f"Revogação preventiva de papéis herdados permissivos no projeto {project_id} via IAM Recommender.",
-                "Enforce de MFA mandatória ativada para todas as identidades com privilégios administrativos.",
-                "Contas de serviço inativas suspensas e chaves de acesso estáticas rotacionadas.",
+            "recommended_actions": [
+                f"1. [IAM Least Privilege] Executar comando para revogar papéis excessivos no projeto '{project_id}': gcloud projects remove-iam-policy-binding {project_id} --member='USER_OR_SA' --role='ROLE_NAME'",
+                "2. [MFA Enforcement] Ativar autenticação multifator mandatória no Cloud Identity / Google Workspace Admin Console para contas administrativas.",
+                f"3. [Service Account Keys] Inspecionar e rotacionar chaves de contas de serviço com mais de 90 dias: gcloud iam service-accounts keys list --iam-account=SA_EMAIL --project={project_id}",
             ],
-            "drift_corrected": True,
-            "status": "REMEDIATED",
-            "new_score": 100.0,
+            "prescriptive_commands": [
+                f"gcloud projects remove-iam-policy-binding {project_id} --member='USER_OR_SA' --role='ROLE_NAME'",
+                f"gcloud iam service-accounts keys list --iam-account=SA_EMAIL --project={project_id}",
+            ],
+            "drift_corrected": False,
+            "status": "RECOMMENDATION_GENERATED",
+            "execution_mode": "PRESCRIPTIVE_RECOMMENDATION_ONLY",
+            "requires_human_approval": True,
+            "projected_score": 100.0,
         }
     elif phase_id == 2:
         remediation_details = {
             "phase": "Fase 2: Auditoria Técnica Profunda & IaC",
-            "action": "Correção de IaC Terraform e Enforce de Criptografia",
+            "action": "Correção de IaC Terraform e Enforce de Criptografia (Recomendações Prescritivas)",
             "remediated_controls": ["A.5.23", "A.8.12", "A.8.24", "A.8.9"],
-            "actions_executed": [
-                f"Aplicação de Public Access Prevention (PAP) e UBLA em 100% dos buckets do projeto {project_id}.",
-                "Perímetro VPC Service Controls verificado e reforçado contra exfiltração de dados sensíveis.",
-                "Política de rotação de chaves Cloud KMS HSM reforçada para 60 dias (baseline <= 90 dias).",
-                "Remediação de drift em manifestos Terraform gerada e sincronizada com repositório GitOps.",
+            "recommended_actions": [
+                f"1. [Storage PAP] Ativar Public Access Prevention em buckets do projeto '{project_id}': gcloud storage buckets update gs://BUCKET_NAME --public-access-prevention",
+                f"2. [KMS Rotation] Configurar rotação automática <= 90 dias com nível HSM para chaves Cloud KMS: gcloud kms keys update KEY_NAME --location=LOCATION --keyring=RING_NAME --rotation-period=7776000s --project={project_id}",
+                f"3. [VPC-SC] Adicionar o projeto '{project_id}' ao perímetro de segurança VPC Service Controls corporativo.",
+                "4. [IaC Drift] Aplicar manifestos Terraform de remediação gerados no repositório de infraestrutura via pipeline CI/CD auditado.",
             ],
-            "drift_corrected": True,
-            "status": "REMEDIATED",
-            "new_score": 100.0,
+            "prescriptive_commands": [
+                f"gcloud storage buckets update gs://BUCKET_NAME --public-access-prevention",
+                f"gcloud kms keys update KEY_NAME --location=LOCATION --keyring=RING_NAME --rotation-period=7776000s --project={project_id}",
+            ],
+            "drift_corrected": False,
+            "status": "RECOMMENDATION_GENERATED",
+            "execution_mode": "PRESCRIPTIVE_RECOMMENDATION_ONLY",
+            "requires_human_approval": True,
+            "projected_score": 100.0,
         }
     elif phase_id == 3:
         remediation_details = {
             "phase": "Fase 3: Governança Zero-Copy & Políticas do SGSI",
-            "action": "Aplicação de Organization Policies e Ancoragem de Políticas",
+            "action": "Aplicação de Organization Policies e Ancoragem de Políticas (Recomendações Prescritivas)",
             "remediated_controls": ["A.5.1", "A.5.36", "A.5.28"],
-            "actions_executed": [
-                "Aplicação estrita da Organization Policy `constraints/gcp.resourceLocations` no nível raiz da organização.",
-                "Políticas corporativas do SGSI aprovadas e validadas via Conector Zero-Copy (Google Drive).",
-                "Registro imutável de aprovação da diretoria com hash SHA-256 gerado no grafo de evidências.",
+            "recommended_actions": [
+                f"1. [Org Policy] Aplicar a Organization Policy 'constraints/gcp.resourceLocations' na organização/pasta do projeto '{project_id}'.",
+                "2. [SGSI Policies] Submeter políticas corporativas do SGSI para validação documental e aprovação formal no Google Drive com ancoragem Zero-Copy.",
+                "3. [HITL Review] Registrar aprovação formal da diretoria/CISO via endpoint /api/remediation/approve antes da auditoria externa.",
             ],
-            "drift_corrected": True,
-            "status": "REMEDIATED",
-            "new_score": 100.0,
+            "prescriptive_commands": [
+                f"gcloud resource-manager org-policies enable-enforce constraints/gcp.resourceLocations --project={project_id}",
+            ],
+            "drift_corrected": False,
+            "status": "RECOMMENDATION_GENERATED",
+            "execution_mode": "PRESCRIPTIVE_RECOMMENDATION_ONLY",
+            "requires_human_approval": True,
+            "projected_score": 100.0,
         }
     elif phase_id == 4:
         remediation_details = {
             "phase": "Fase 4: Grafo Criptográfico & Scorecard Final",
-            "action": "Reconciliação e Re-Hashing SHA-256",
+            "action": "Reconciliação e Recálculo SHA-256 (Recomendações Prescritivas)",
             "remediated_controls": ["A.5.28", "A.8.15"],
-            "actions_executed": [
-                "Recálculo completo de hashes SHA-256 para todos os nós de evidência do ambiente.",
-                "Geração de novo recibo criptográfico de conformidade contínua e não-repúdio.",
-                "Scorecard executivo consolidado em 100.0% (EXCELLENT) com emissão de selo digital.",
+            "recommended_actions": [
+                "1. [Grafo SHA-256] Disparar recálculo de integridade criptográfica após a execução dos comandos prescritivos das Fases 1 a 3 pelo operador.",
+                "2. [Dossiê Executivo] Exportar o Relatório de Auditoria e Recibo Criptográfico de Conformidade Contínua com verificação de não-repúdio.",
+                "3. [Scorecard Final] Consolidar o scorecard executivo para atingimento do índice projetado de 100.0% (EXCELLENT).",
             ],
-            "drift_corrected": True,
-            "status": "REMEDIATED",
-            "new_score": 100.0,
+            "prescriptive_commands": [
+                "curl -s -X POST http://localhost:8080/api/evidence/verify_integrity",
+            ],
+            "drift_corrected": False,
+            "status": "RECOMMENDATION_GENERATED",
+            "execution_mode": "PRESCRIPTIVE_RECOMMENDATION_ONLY",
+            "requires_human_approval": True,
+            "projected_score": 100.0,
         }
     else:
         raise HTTPException(status_code=400, detail="Fase inválida. Escolha entre 1, 2, 3 ou 4.")
@@ -1049,20 +1071,23 @@ async def remediate_phase(req: PhaseRemediationRequest):
     now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
     for cid in remediation_details.get("remediated_controls", []):
         safe_cid = cid.lower().replace(".", "_")
-        QUESTIONNAIRE_ANSWERS[("ISO27001:2022", cid)] = QuestionnaireAnswer(
-            control_id=cid,
-            framework="ISO27001:2022",
-            status="COMPLIANT",
-            justification=f"Remediação automatizada executada para Fase {phase_id}: {remediation_details.get('action', 'Correção de infraestrutura e governança')}.",
-            evidence_text=f"Ação corretiva aplicada para o controle {cid} no projeto {project_id}.",
-            evidence_uri=f"gcp://remediation/phase{phase_id}/{safe_cid}",
-            verification_tier=EvidenceVerificationTier.TELEMETRY.value,
-            user_email="autonomous-remediation-engine@client.corp",
-            updated_at=now_ts,
-            ai_consistency_verdict="COMPLIANT",
-            ai_consistency_reasoning=f"Remediação do controle {cid} executada e verificada com sucesso.",
-        )
+        existing_answer = QUESTIONNAIRE_ANSWERS.get(("ISO27001:2022", cid))
+        if not existing_answer or existing_answer.status != "COMPLIANT":
+            QUESTIONNAIRE_ANSWERS[("ISO27001:2022", cid)] = QuestionnaireAnswer(
+                control_id=cid,
+                framework="ISO27001:2022",
+                status="IN_PROGRESS",
+                justification=f"Recomendações prescritivas de remediação geradas para a Fase {phase_id} ({remediation_details.get('action')}). Implementação técnica pendente de execução pelo operador.",
+                evidence_text=f"Plano de remediação prescritivo gerado para o controle {cid} no projeto {project_id}. Nenhuma mutação de infraestrutura foi executada autonomamente.",
+                evidence_uri=f"gcp://remediation/prescriptive/phase{phase_id}/{safe_cid}",
+                verification_tier=EvidenceVerificationTier.SELF_ATTESTED.value,
+                user_email="grc-remediation-advisor@client.corp",
+                updated_at=now_ts,
+                ai_consistency_verdict="IN_PROGRESS",
+                ai_consistency_reasoning=f"Recomendações prescritivas para o controle {cid} registradas. Execução manual ou via pipeline requerida.",
+            )
     scorecard_data = calculate_scorecard_data("ISO27001:2022")
+    remediation_details["current_score"] = scorecard_data.get("overall_score", 0.0)
     remediation_details["scorecard"] = scorecard_data
 
     return {
@@ -1153,35 +1178,132 @@ async def recommend_subagent(req: AgentRecommendationRequest):
 
 @router.post("/api/agent/autonomous_monitor")
 async def autonomous_monitor(req: AutonomousMonitorRequest):
-    """Autonomous monitoring engine: evaluates GCP posture, detects deviations, and issues proactive alerts."""
+    """Autonomous monitoring engine: evaluates GCP posture via read-only inspection, detects deviations, and issues prescriptive recommendations."""
     project_id = req.project_id
-    alert = {
-        "alert_id": f"ALERT-DEV-{int(datetime.datetime.now().timestamp())}",
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        "project_id": project_id,
-        "severity": "CRITICAL",
-        "control_id": req.target_control or "A.8.24",
-        "control_title": "Uso de Criptografia (Cloud KMS HSM)",
-        "deviation_summary": f"Desvio Crítico Detectado no projeto '{project_id}': A chave Cloud KMS 'app-secrets-master' está configurada com ciclo de rotação de 180 dias, excedendo o limite normativo do SGSI (máximo de 90 dias).",
-        "affected_resources": [
-            f"projects/{project_id}/locations/us-central1/keyRings/production-ring/cryptoKeys/app-secrets-master"
-        ],
-        "impact": "Risco de não-conformidade com A.8.24 da ISO 27001 e exposição a comprometimento prolongado de material criptográfico.",
-        "autonomous_recommendation": "O Vertex AI Gemini elaborou um aditamento de política obrigando rotação de 60 dias com proteção em HSM e aplicação imediata da Organization Policy constraints/gcp.restrictKeyRotationPeriod.",
-        "suggested_policy_id": "POL-SEC-004-KMS",
-        "suggested_policy_title": "Política Corporativa de Criptografia & Gestão de Chaves Cloud KMS HSM",
-        "proposed_amendment_text": (
-            "EMENDA COMPULSÓRIA DE SEGURANÇA (A.8.24):\n"
-            "1. Todas as chaves Cloud KMS utilizadas em ambientes de produção devem possuir nível de proteção HSM (FIPS 140-2 Nível 3).\n"
-            "2. O período máximo de rotação automática fica estipulado em 60 dias (5.184.000 segundos), revogando prazos superiores.\n"
-            "3. Proibida a destruição imediata de versões anteriores até que decorra a janela de retenção de 365 dias.\n"
-            "4. Enforce automático ativado via Organization Policy no Google Cloud Platform."
-        ),
-        "can_auto_update": True,
-    }
+    target_control = req.target_control or "A.8.24"
+    location = os.getenv("REGION", "us-central1")
+    timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    alert_id = f"ALERT-REC-{int(datetime.datetime.now().timestamp())}"
+
+    # Target: A.8.12 or A.5.23 (Storage & Data Protection)
+    if target_control in ["A.8.12", "A.5.23"]:
+        bucket_data = list_cloud_storage_buckets(project_id=project_id)
+        buckets = bucket_data.get("buckets", [])
+        deviating_bucket = None
+        for b in buckets:
+            pap = b.get("publicAccessPrevention", "unspecified")
+            if pap != "enforced":
+                deviating_bucket = b
+                break
+
+        if deviating_bucket:
+            b_name = deviating_bucket.get("name", "unknown")
+            pap = deviating_bucket.get("publicAccessPrevention", "unspecified")
+            deviation_summary = (
+                f"Desvio de Configuração Detectado no projeto '{project_id}': O bucket '{b_name}' "
+                f"está configurado com Public Access Prevention '{pap}' (esperado: 'enforced')."
+            )
+            affected_resources = [f"gs://{b_name}"]
+            prescriptive_command = f"gcloud storage buckets update gs://{b_name} --public-access-prevention"
+        else:
+            deviation_summary = (
+                f"Lacuna de Prontidão Detectada no projeto '{project_id}': Necessária verificação preventiva "
+                f"e enforce de Public Access Prevention (PAP) e Uniform Bucket-Level Access (UBLA) no controle {target_control}."
+            )
+            affected_resources = [f"projects/{project_id}/locations/{location}"]
+            prescriptive_command = f"gcloud storage buckets update gs://YOUR_BUCKET --public-access-prevention"
+
+        alert = {
+            "alert_id": alert_id,
+            "timestamp": timestamp,
+            "project_id": project_id,
+            "severity": "HIGH",
+            "control_id": target_control,
+            "control_title": "Prevenção contra Vazamento de Dados & Proteção de Armazenamento",
+            "deviation_summary": deviation_summary,
+            "affected_resources": affected_resources,
+            "impact": f"Risco de exposição pública inadvertida ou vazamento de dados confidenciais ({target_control}).",
+            "remediation_recommendation": f"Recomendação Prescritiva (Ação do Operador): Aplicar o comando gcloud prescrito: {prescriptive_command}",
+            "prescriptive_command": prescriptive_command,
+            "suggested_policy_id": f"POL-PROP-2026-{target_control.replace('.', '_')}",
+            "suggested_policy_title": "Política Corporativa de Proteção de Armazenamento e Prevenção de Acesso Público",
+            "proposed_amendment_text": (
+                f"PROPOSTA DE DIRETRIZ PRESCRITIVA ({target_control}):\n"
+                "1. Todos os buckets de Cloud Storage devem manter Public Access Prevention (PAP) em modo 'enforced'.\n"
+                "2. Habilitação compulsória de Uniform Bucket-Level Access (UBLA).\n"
+                "3. Vedado acesso público não autenticado (allUsers / allAuthenticatedUsers)."
+            ),
+            "can_auto_update": False,
+            "requires_human_approval": True,
+            "execution_mode": "PRESCRIPTIVE_RECOMMENDATION_ONLY",
+        }
+
+    # Default / Target: A.8.24 (Cloud KMS HSM & Encryption)
+    else:
+        kms_data = list_cloud_kms_keys(location=location, project_id=project_id)
+        keys = kms_data.get("keys", [])
+        deviating_key = None
+        for k in keys:
+            rot = k.get("rotationPeriod")
+            prot = k.get("protectionLevel")
+            if not rot or (rot.endswith("s") and int(rot[:-1]) > 7776000) or prot != "HSM":
+                deviating_key = k
+                break
+
+        if deviating_key:
+            k_name = deviating_key.get("name")
+            rot = deviating_key.get("rotationPeriod") or "NÃO_CONFIGURADO"
+            deviation_summary = (
+                f"Desvio de Conformidade Detectado no projeto '{project_id}': A chave Cloud KMS '{k_name}' "
+                f"possui ciclo de rotação '{rot}' (limite normativo máximo de 90 dias / 7.776.000s)."
+            )
+            affected_resources = [k_name]
+            prescriptive_command = (
+                f"gcloud kms keys update {deviating_key.get('name', '').split('/')[-1]} "
+                f"--location={deviating_key.get('location', location)} "
+                f"--keyring={deviating_key.get('keyring', 'grc-keyring')} "
+                f"--rotation-period=7776000s --project={project_id}"
+            )
+        else:
+            deviation_summary = (
+                f"Lacuna de Prontidão Detectada no projeto '{project_id}': Nenhuma chave Cloud KMS gerenciada pelo cliente (CMEK) "
+                f"com ciclo de rotação automática <= 90 dias e proteção HSM foi localizada para atendimento ao controle A.8.24."
+            )
+            affected_resources = [f"projects/{project_id}/locations/{location}"]
+            prescriptive_command = (
+                f"gcloud kms keyrings create grc-keyring --location={location} --project={project_id} && "
+                f"gcloud kms keys create grc-cmek-key --location={location} --keyring=grc-keyring "
+                f"--purpose=encryption --protection-level=hsm --rotation-period=7776000s --project={project_id}"
+            )
+
+        alert = {
+            "alert_id": alert_id,
+            "timestamp": timestamp,
+            "project_id": project_id,
+            "severity": "HIGH",
+            "control_id": "A.8.24",
+            "control_title": "Uso de Criptografia (Cloud KMS HSM)",
+            "deviation_summary": deviation_summary,
+            "affected_resources": affected_resources,
+            "impact": "Risco de não-conformidade com A.8.24 da ISO 27001 e exposição a comprometimento prolongado de material criptográfico.",
+            "remediation_recommendation": f"Recomendação Prescritiva (Ação do Operador): Aplicar o comando gcloud prescrito: {prescriptive_command}",
+            "prescriptive_command": prescriptive_command,
+            "suggested_policy_id": "POL-PROP-2026-A_8_24",
+            "suggested_policy_title": "Política Corporativa de Criptografia & Gestão de Chaves Cloud KMS HSM",
+            "proposed_amendment_text": (
+                "PROPOSTA DE DIRETRIZ PRESCRITIVA (A.8.24):\n"
+                "1. Todas as chaves Cloud KMS utilizadas em ambientes de produção devem possuir nível de proteção HSM (FIPS 140-2 Nível 3).\n"
+                "2. O período máximo de rotação automática fica estipulado em 90 dias (7.776.000 segundos) ou inferior.\n"
+                "3. Proibida a destruição imediata de versões anteriores até que decorra a janela de retenção de 365 dias.\n"
+                "4. Enforce técnico via Organization Policy ou Terraform IaC pelo operador humano."
+            ),
+            "can_auto_update": False,
+            "requires_human_approval": True,
+            "execution_mode": "PRESCRIPTIVE_RECOMMENDATION_ONLY",
+        }
 
     return {
-        "status": "ALERT_TRIGGERED",
+        "status": "RECOMMENDATION_GENERATED",
         "active_alert": True,
         "alert": alert
     }
@@ -1189,64 +1311,82 @@ async def autonomous_monitor(req: AutonomousMonitorRequest):
 
 @router.post("/api/agent/update_policy_autonomously")
 async def update_policy_autonomously(req: PolicyUpdateRequest):
-    """Vertex AI Gemini autonomously updates the security policy, enforces it in GCP, and anchors SHA-256 evidence."""
+    """Generates a prescriptive security policy recommendation for human review and approval; strictly read-only with zero infrastructure mutation."""
     project_id = req.project_id
     control_id = req.control_id
     timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    safe_cid = control_id.replace('.', '_')
+    policy_id = f"POL-PROP-2026-{safe_cid}"
 
     policy_doc = f"""# GOOGLE CLOUD SECURITY
-## POLÍTICA CORPORATIVA DE SEGURANÇA DA INFORMAÇÃO — ADITAMENTO AUTÔNOMO
-**Código:** POL-SEC-2026-AUTONOMOUS  
+## PROPOSTA DE ADITAMENTO NORMATIVO (RECOMENDAÇÃO PRESCRITIVA)
+**Código:** {policy_id}  
 **Controle Associado:** ISO/IEC 27001:2022 {control_id}  
 **Data de Publicação:** {timestamp}  
-**Status:** HOMOLOGADO E APLICADO (Zero-Touch Autonomous Update)  
-**Autor:** Vertex AI Gemini 2.5 Flash Autonomous Readiness Advisor  
+**Status:** PROPOSTA DE ADITAMENTO — AGUARDANDO REVISÃO HUMANA (Prescriptive Recommendation Only)  
+**Autor:** Vertex AI Gemini 2.5 Flash GRC Advisory Engine  
 **Escopo:** Projeto {project_id} e Organização Google Cloud  
 
-### 1. Justificativa do Aditamento Autônomo
-Detectado desvio operacional no controle {control_id}. O agente de inteligência autônoma da Google Cloud Security executou a correção proativa e atualizou a política para garantir conformidade contínua.
+### 1. Justificativa da Proposta de Aditamento
+Identificada oportunidade de melhoria técnica no controle {control_id} no projeto {project_id}.
+Em conformidade com a fronteira de escopo da plataforma (somente-leitura, sem mutação direta de infraestrutura), o agente gerou esta proposta prescritiva para análise e homologação formal pelo operador humano e equipe de segurança.
 
-### 2. Disposições Normativas Atualizadas
-1. **Enforce de Rotação de Chaves (A.8.24):** Todas as chaves ativas do Cloud KMS devem conter período de rotação <= 60 dias.
-2. **Proteção HSM:** O nível de proteção mandatário é HSM (Hardware Security Module).
-3. **Bloqueio de Drift:** Fica vedada qualquer alteração manual via console (ClickOps), sendo obrigatório pipeline GitOps validado.
+### 2. Disposições Normativas Recomendadas (Ações Prescritivas para o Operador)
+1. **Configuração de Rotação de Chaves ({control_id}):** Todas as chaves ativas do Cloud KMS devem conter período de rotação <= 90 dias (7.776.000 segundos) com proteção em módulo HSM.
+2. **Execução Técnica Recomendada:** O operador deve aplicar os comandos via `gcloud` ou manifestos Terraform no repositório IaC com aprovação em pull request.
+3. **Bloqueio de Drift:** Fica recomendada a proibição de alterações manuais sem pipeline GitOps correspondente.
+4. **Governança:** Registrar a aprovação formal desta proposta via endpoint `/api/remediation/approve`.
 
-### 3. Evidência Técnica & Assinatura Criptográfica
-- Hash SHA-256 da Política: {hashlib.sha256(f"{project_id}-{control_id}-{timestamp}".encode()).hexdigest()}
-- Integridade validada no Grafo de Evidências Imutável."""
+### 3. Evidência Técnica & Hash Criptográfico
+- Integridade SHA-256 da Proposta: Calculada sobre o conteúdo integral deste documento.
+- Registro consultivo ancorado no Grafo de Evidências sob o nível de verificação SELF_ATTESTED."""
 
     policy_hash = hashlib.sha256(policy_doc.encode('utf-8')).hexdigest()
 
     evidence_payload = {
         "target_control": f"ISO/IEC 27001:2022 {control_id}",
-        "resource_type": "security_policy_autonomous",
-        "resource_id": f"policy-{control_id.lower().replace('.', '')}-{int(datetime.datetime.now().timestamp())}",
+        "resource_type": "security_policy_recommendation",
+        "resource_id": f"policy-rec-{control_id.lower().replace('.', '')}-{int(datetime.datetime.now().timestamp())}",
         "config": {
-            "policy_code": "POL-SEC-2026-AUTONOMOUS",
-            "enforced_by": "Vertex AI Gemini 2.5 Flash",
-            "rotation_period_days": 60,
+            "policy_code": policy_id,
+            "proposed_by": "Vertex AI Gemini 2.5 Flash GRC Advisory Engine",
+            "rotation_period_days": 90,
             "protection_level": "HSM",
-            "status": "COMPLIANT"
+            "status": "RECOMMENDATION_GENERATED",
+            "execution_mode": "PRESCRIPTIVE_RECOMMENDATION_ONLY",
+            "requires_human_approval": True,
         },
-        "verification_tier": "VERIFIED"
+        "verification_tier": "SELF_ATTESTED",
     }
-    ci_engine.execute_proactive_audit_cycle(f"auto-policy-{int(datetime.datetime.now().timestamp())}", [evidence_payload])
+    ci_engine.execute_proactive_audit_cycle(f"prop-policy-{int(datetime.datetime.now().timestamp())}", [evidence_payload])
+
+    scorecard_data = calculate_scorecard_data("ISO27001:2022")
+    current_score = scorecard_data.get("overall_score", 0.0)
+
+    recommended_actions = [
+        f"Revisar a minuta de aditamento normativo proposta para o controle {control_id} no projeto {project_id}.",
+        f"Executar o comando gcloud prescrito: gcloud kms keys update KEY_NAME --location=us-central1 --keyring=RING_NAME --rotation-period=7776000s --project={project_id}",
+        "Integrar a parametrização recomendada ao repositório Terraform / GitOps da organização.",
+        "Registrar aprovação formal da recomendação via endpoint /api/remediation/approve.",
+    ]
 
     return {
-        "status": "POLICY_UPDATED_AND_ENFORCED",
-        "message": f"Política de segurança do controle {control_id} foi atualizada e aplicada autonomamente no projeto {project_id}.",
-        "policy_id": "POL-SEC-2026-AUTONOMOUS",
-        "policy_title": f"Aditamento Autônomo de Política ({control_id})",
+        "status": "RECOMMENDATION_GENERATED",
+        "message": f"Proposta de aditamento para o controle {control_id} gerada como recomendação prescritiva para revisão humana no projeto {project_id}.",
+        "policy_id": policy_id,
+        "policy_title": f"Proposta de Aditamento Normativo ({control_id})",
         "hash_sha256": policy_hash,
-        "enforcement_actions": [
-            f"Período de rotação de chaves Cloud KMS no projeto {project_id} alterado para 60 dias via API.",
-            "Restrição de chaves Organization Policy ativada.",
-            "Novo nó imutável ancorado no Grafo de Evidências com assinatura SHA-256.",
-            "Alerta de desvio baixado com sucesso."
+        "recommended_actions": recommended_actions,
+        "prescriptive_actions": [
+            f"gcloud kms keys update KEY_NAME --location=us-central1 --keyring=RING_NAME --rotation-period=7776000s --project={project_id}"
         ],
-        "new_score": 100.0,
-        "drift_trajectory": "STABLE",
-        "policy_document": policy_doc
+        "auto_enforced": False,
+        "requires_human_approval": True,
+        "execution_mode": "PRESCRIPTIVE_RECOMMENDATION_ONLY",
+        "current_score": current_score,
+        "projected_score": 100.0,
+        "drift_trajectory": "PENDING_APPROVAL",
+        "policy_document": policy_doc,
     }
 
 
@@ -3806,13 +3946,16 @@ async def get_dashboard():
 
 @router.post("/api/remediation/approve")
 async def approve_remediation(req: RemediationApprovalRequest):
-    """Executes Human-in-the-Loop approval for pending playbooks."""
+    """Records Human-in-the-Loop approval for a prescriptive remediation recommendation only, with zero auto-execution."""
     return {
         "status": "APPROVED",
+        "decision": "RECOMMENDATION_APPROVED_FOR_EXECUTION",
         "remediation_id": req.remediation_id,
         "approver": req.approver,
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        "message": f"Remediation {req.remediation_id} approved and recorded in audit log.",
+        "auto_executed": False,
+        "execution_mode": "MANUAL_OR_PIPELINE",
+        "message": f"Recomendação prescritiva {req.remediation_id} aprovada pelo operador {req.approver}. Autorizada para aplicação manual ou pipeline CI/CD sem execução autônoma pelo portal.",
     }
 
 
