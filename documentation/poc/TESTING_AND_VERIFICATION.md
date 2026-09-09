@@ -12,7 +12,7 @@
 
 ## 1. Testing Strategy & Assurance Pillars
 
-The Agentic GRC Auditor implements a rigorous, multi-layered quality assurance methodology ensuring complete reliability, determinism, and resistance to prompt-injection attacks:
+The Agentic Compliance Readiness Accelerator implements a rigorous, multi-layered quality assurance methodology ensuring complete reliability, determinism, and resistance to prompt-injection attacks:
 
 ```
 +---------------------------------------------------------------------------------------------------+

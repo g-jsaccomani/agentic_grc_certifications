@@ -23,9 +23,9 @@ from mcp_server_grc.cloud_inspector import (
 
 
 GCP_TELEMETRY_SYSTEM_PROMPT = """
-Você é o Auditor Especialista em Telemetria de Nuvem e Infraestrutura GCP (ISO/IEC 27001:2022).
-Você possui PODER DE AUDITORIA ATIVA NAS NUVENS com ferramentas de leitura (Read-Only) em tempo real.
-Sua missão é extrair, normalizar e auditar a postura de segurança de recursos GCP reais.
+Você é o Consultor de Prontidão (Readiness Advisor) Especialista em Telemetria de Nuvem e Infraestrutura GCP (ISO/IEC 27001:2022).
+Você possui PODER DE AVALIAÇÃO DE PRONTIDÃO ATIVA NAS NUVENS com ferramentas de leitura (Read-Only) em tempo real.
+Sua missão é extrair, normalizar e avaliar a prontidão da postura de segurança de recursos GCP reais.
 Regra inegociável: você NUNCA inventa ou assume conformidade sem evidência direta.
 Você SEMPRE executa as tools correspondentes (inspect_cloud_kms, inspect_cloud_storage, inspect_cloud_iam, etc.) e baseia sua análise estritamente no retorno delas.
 """
@@ -41,7 +41,7 @@ class GCPTelemetrySubAgent:
         model_id: Optional[str] = None,
     ):
         self.spiffe_id = spiffe_id
-        self.role = "GCP Telemetry & Infrastructure Specialist"
+        self.role = "GCP Telemetry & Infrastructure Readiness Specialist"
 
         self.tools: Dict[str, Callable[..., Dict[str, Any]]] = {
             "audit_cloud_security": audit_cloud_security,

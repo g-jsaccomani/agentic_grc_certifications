@@ -11,6 +11,7 @@ import json
 import logging
 import datetime
 import hashlib
+import uuid
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from fastapi import APIRouter, File, UploadFile, Response, Query, HTTPException, Header, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -43,6 +44,7 @@ from mcp_server_grc.cloud_inspector import (
     inspect_cloud_run_services,
     list_cloud_kms_keys,
     list_cloud_storage_buckets,
+    reset_session_call_budget,
 )
 from mcp_server_grc.catalog import (
     ACTIVE_PROJECTS,
@@ -77,6 +79,118 @@ zero_copy_manager = ZeroCopyConnectorManager()
 
 
 # ---------------------------------------------------------------------------
+# Client Workspaces & Multi-Tenant Session Isolation State
+# ---------------------------------------------------------------------------
+
+OPERATOR_ACTIVE_CLIENTS: Dict[str, str] = {}
+OPERATOR_SESSIONS: Dict[str, str] = {}
+CLIENT_CI_ENGINES: Dict[str, ContinuousIntelligenceEngine] = {
+    "altostrat-ventures": ci_engine,
+}
+SESSION_CLIENT_BINDINGS: Dict[str, str] = {}
+
+
+def load_onboarded_clients() -> List[Dict[str, Any]]:
+    """Loads onboarded client workspace records, dynamically calculating read-only expiry countdown."""
+    file_path = os.path.join(os.getcwd(), "data", "clients.json")
+    clients = []
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                clients = json.load(f)
+        except Exception as e:
+            logger.warning(f"Failed to read clients.json: {e}")
+            clients = []
+
+    if not clients:
+        clients = [
+            {
+                "client_id": "altostrat-ventures",
+                "name": "Altostrat Ventures",
+                "avatar": "AV",
+                "projects": ["agentic-grc-cd06", "fnlab-apps-8fa913", "fnlab-sec-mgmt-8fa913"],
+                "org_id": "108928374619",
+                "org_name": "Altostrat Global Org",
+                "contact_email": "security@altostrat.com",
+                "created_at": "2026-09-01T12:00:00Z",
+                "read_only_access_expires_at": "2026-09-23T16:00:00Z",
+                "read_only_access_days_remaining": 14,
+                "status": "active"
+            },
+            {
+                "client_id": "cymbal-retail",
+                "name": "Cymbal Retail",
+                "avatar": "CR",
+                "projects": ["cymbal-prod-4b12", "cymbal-sec-4b12"],
+                "org_id": "554109283120",
+                "org_name": "Cymbal Group Org",
+                "contact_email": "compliance@cymbalretail.com",
+                "created_at": "2026-08-25T08:00:00Z",
+                "read_only_access_expires_at": "2026-09-07T08:00:00Z",
+                "read_only_access_days_remaining": 0,
+                "status": "expired"
+            },
+            {
+                "client_id": "stark-capital",
+                "name": "Stark Capital",
+                "avatar": "SC",
+                "projects": ["stark-core-99a1", "stark-vault-99a1", "stark-data-99a1", "stark-audit-99a1"],
+                "org_id": "881920394812",
+                "org_name": "Stark Financial Org",
+                "contact_email": "grc@starkcapital.com",
+                "created_at": "2026-09-06T14:00:00Z",
+                "read_only_access_expires_at": "2026-10-06T16:00:00Z",
+                "read_only_access_days_remaining": 27,
+                "status": "active"
+            }
+        ]
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    for c in clients:
+        exp_str = c.get("read_only_access_expires_at")
+        if exp_str:
+            try:
+                dt = datetime.datetime.fromisoformat(exp_str.replace("Z", "+00:00"))
+                diff = (dt - now).total_seconds()
+                days = max(0, int(diff // 86400))
+                c["read_only_access_days_remaining"] = days
+                c["status"] = "active" if days > 0 else "expired"
+            except Exception:
+                pass
+    return clients
+
+
+def resolve_operator_id(
+    user_context: Optional[WorkspaceUserContext] = None,
+    x_operator_id: Optional[str] = None,
+    operator_id: Optional[str] = None,
+) -> str:
+    """Resolves stable operator identity per logged-in consultant."""
+    if x_operator_id and str(x_operator_id).strip():
+        return str(x_operator_id).strip()
+    if operator_id and str(operator_id).strip():
+        return str(operator_id).strip()
+    if user_context and user_context.email and user_context.email != "auditor@client.corp":
+        return user_context.email.strip().lower()
+    return "default_operator"
+
+
+def get_operator_active_client(operator_id: str) -> str:
+    """Returns the active client_id for the given operator, defaulting to altostrat-ventures."""
+    return OPERATOR_ACTIVE_CLIENTS.get(operator_id, "altostrat-ventures")
+
+
+def get_client_ci_engine(client_id: Optional[str] = None) -> ContinuousIntelligenceEngine:
+    """Returns or provisions an isolated ContinuousIntelligenceEngine for the specific client."""
+    cid = client_id or "altostrat-ventures"
+    if cid not in CLIENT_CI_ENGINES:
+        clients = load_onboarded_clients()
+        c_name = next((c["name"] for c in clients if c.get("client_id") == cid), cid)
+        CLIENT_CI_ENGINES[cid] = ContinuousIntelligenceEngine(organization_name=f"{c_name}-Environment")
+    return CLIENT_CI_ENGINES[cid]
+
+
+# ---------------------------------------------------------------------------
 # Pydantic Request Models
 # ---------------------------------------------------------------------------
 
@@ -95,6 +209,13 @@ class ChatRequest(BaseModel):
     model: Optional[str] = Field(default="gemini-auto", description="Selected model: gemini-auto, gemini-2.5-pro, gemini-2.5-flash, gemini-3.5-flash")
     locale: Optional[str] = Field(default="pt", description="Target locale/language: pt, en, es")
     history: Optional[List[Dict[str, str]]] = Field(default=None, description="Recent conversation turns: [{'role': 'user'|'model', 'content': '...'}]")
+    client_id: Optional[str] = Field(default=None, description="Active client workspace ID")
+    session_id: Optional[str] = Field(default=None, description="Session identifier bound to client scope")
+
+
+class ActiveClientSwitchRequest(BaseModel):
+    client_id: str
+    session_id: Optional[str] = None
 
 
 class StorageLinkRequest(BaseModel):
@@ -172,12 +293,20 @@ class AgentRecommendationRequest(BaseModel):
 # Dynamic Audit Context & Vertex AI Gemini Reasoning Helper
 # ---------------------------------------------------------------------------
 
-def build_audit_context_summary(projects: Optional[List[str]] = None, locale: str = "pt") -> str:
+def build_audit_context_summary(
+    projects: Optional[List[str]] = None,
+    locale: str = "pt",
+    ci_engine: Optional[ContinuousIntelligenceEngine] = None,
+    client_id: Optional[str] = None,
+) -> str:
     """Builds an empirical context summary directly from EvidenceGraph and MemoryBank.
     
     Ensures epistemic truthfulness: If no audit cycle has been executed yet,
     explicitly declares 'No environment data collected yet' and never assumes compliance.
     """
+    if ci_engine is None:
+        ci_engine = get_client_ci_engine(client_id)
+
     primary_project = os.getenv("PROJECT_ID") or "agentic-grc-cd06"
     region = os.getenv("REGION") or "us-central1"
     audited_projects = projects or [primary_project]
@@ -250,12 +379,16 @@ def build_audit_context_summary(projects: Optional[List[str]] = None, locale: st
 
         posture_section = "Posturas e Controles Auditados no Ambiente:\n" + ("\n".join(posture_lines) if posture_lines else "- Evidências registradas no Grafo de Evidências.")
 
-    vm_fleet_section = """Frota de VMs Ativas no Ambiente Multi-Projeto (jsaccomani.altostrat.com):
+    cid = client_id or "altostrat-ventures"
+    if cid == "altostrat-ventures":
+        vm_fleet_section = """Frota de VMs Ativas no Ambiente Multi-Projeto (jsaccomani.altostrat.com):
 - vm-legacy-crm (fnlab-apps-8fa913, 10.20.10.2): NÃO CONFORME | A.5.17 (senha estática em metadados: legacy-credentials), A.8.24 (sem CMEK), A.8.14 (zona única)
 - vm-payment-api (fnlab-apps-8fa913, 10.20.10.3): NÃO CONFORME | A.8.20 (firewall aberto 0.0.0.0/0:22), A.8.28 (BOLA, vazamento /debug/env, Prompt Injection), A.8.24 (sem CMEK)
 - vm-ai-inference (fnlab-ai-data-8fa913, 10.30.10.2): NÃO CONFORME | A.5.15 (sa-ai-pipeline-dev possui roles/editor), A.8.24 (sem CMEK), A.8.14 (zona única)
 - vm-mgmt-bastion (fnlab-sec-mgmt-8fa913, 10.10.10.2): NÃO CONFORME | A.5.15 (conta compute padrão), A.8.24 (sem CMEK), A.8.14 (sem proteção contra exclusão)
 - vm-aispr-runner (aispr-core-1cab11, 10.50.10.2): NÃO CONFORME | A.5.15 (escopo amplo cloud-platform), A.8.24 (sem CMEK), A.8.14 (zona única)"""
+    else:
+        vm_fleet_section = f"Frota de VMs do Workspace ({cid}): Nenhuma telemetria de VM ou recurso registrada neste workspace até o momento."
 
     eg_summary = ci_engine.evidence_graph.get_summary()
     eg_tiers = eg_summary.get("verification_tiers", {})
@@ -296,17 +429,17 @@ Proteção de Borda: Model Armor ativo inspecionando prompts e respostas contra 
 
 
 def get_auditor_system_instruction(locale: str = "pt", context_summary: str = "") -> str:
-    """Generates localized Lead Auditor system instructions bound to the dynamic context summary."""
+    """Generates localized Readiness Advisor system instructions bound to the dynamic context summary."""
     loc = (locale or "pt").lower()
     if loc.startswith("en"):
         system_instruction = (
-            "You are the 'Agentic GRC Auditor', Autonomous Lead Auditor and Senior Specialist from Google Cloud Security Practice, operating on the Gemini Enterprise Agent Platform (GEAP).\n"
-            "You possess ACTIVE CLOUD AUDIT POWER with live, real-time read-only access to the customer's Google Cloud environment.\n\n"
+            "You are the 'Agentic Compliance Readiness Accelerator', Autonomous Readiness Advisor and Senior Specialist from Google Cloud Security Practice, operating on the Gemini Enterprise Agent Platform (GEAP).\n"
+            "You possess ACTIVE CLOUD READINESS EVALUATION POWER with live, real-time read-only access to the customer's Google Cloud environment.\n\n"
             "Mandatory Integrity & Cloud Execution Rules:\n"
-            "1. Real-Time Telemetry: The human auditor is connected and expecting REAL-TIME empirical answers from Google Cloud on their screen.\n"
-            "2. NEVER give manual command tutorials (e.g. NEVER say 'Run `gcloud kms keys describe ...`' or 'Go to GCP Console'). The user is already connected; YOU are the autonomous auditor who executes the read queries!\n"
-            "3. Whenever the auditor asks about a key (e.g. 'my-key', rotation period, protection level), bucket, IAM, or service: YOU MUST CALL THE CORRESPONDING CLUSTER OF TOOLS ('inspect_cloud_kms', 'inspect_cloud_storage', 'inspect_cloud_iam', 'inspect_cloud_run') to retrieve live telemetry and state.\n"
-            "4. Report the exact live configuration found in GCP (e.g. rotationPeriod, protectionLevel, PAP, UBLA) and issue the ISO/IEC 27001:2022 compliance verdict with methodological rigor.\n"
+            "1. Real-Time Telemetry: The human practitioner is connected and expecting REAL-TIME empirical answers from Google Cloud on their screen.\n"
+            "2. NEVER give manual command tutorials (e.g. NEVER say 'Run `gcloud kms keys describe ...`' or 'Go to GCP Console'). The user is already connected; YOU are the autonomous readiness advisor who executes the read queries!\n"
+            "3. Whenever the user asks about a key (e.g. 'my-key', rotation period, protection level), bucket, IAM, or service: YOU MUST CALL THE CORRESPONDING CLUSTER OF TOOLS ('inspect_cloud_kms', 'inspect_cloud_storage', 'inspect_cloud_iam', 'inspect_cloud_run') to retrieve live telemetry and state.\n"
+            "4. Report the exact live configuration found in GCP (e.g. rotationPeriod, protectionLevel, PAP, UBLA) and issue the ISO/IEC 27001:2022 readiness assessment with methodological rigor.\n"
             "5. If a scanned key or resource does not exist in the project (e.g. 0 keys found in project keyrings), clearly report that live inspection across the project's locations completed successfully and the resource was not found (UNDETERMINED), followed by the exact ISO 27001 baseline requirements.\n\n"
             "Conciseness and Output Constraints:\n"
             "- Use clean, professional Markdown with tables for evaluated controls.\n"
@@ -314,13 +447,13 @@ def get_auditor_system_instruction(locale: str = "pt", context_summary: str = ""
         )
     elif loc.startswith("es"):
         system_instruction = (
-            "Usted es el 'Agentic GRC Auditor', Auditor Líder Autónomo y Especialista Senior de la Práctica de Google Cloud Security, operando sobre la Gemini Enterprise Agent Platform (GEAP).\n"
-            "Posee PODER DE AUDITORÍA ACTIVA EN LAS NUBES con acceso de lectura (Read-Only) en tiempo real al entorno de Google Cloud.\n\n"
+            "Usted es el 'Agentic Compliance Readiness Accelerator', Asesor de Prontitud Autónomo y Especialista Senior de la Práctica de Google Cloud Security, operando sobre la Gemini Enterprise Agent Platform (GEAP).\n"
+            "Posee PODER DE EVALUACIÓN DE PRONTITUD ACTIVA EN LAS NUBES con acceso de lectura (Read-Only) en tiempo real al entorno de Google Cloud.\n\n"
             "Reglas Obligatorias de Integridad y Ejecución Cloud:\n"
-            "1. Telemetría en Tiempo Real: El auditor humano ya está conectado y espera respuestas empíricas y telemetría EN VIVO extraídas de la nube.\n"
+            "1. Telemetría en Tiempo Real: El usuario ya está conectado y espera respuestas empíricas y telemetría EN VIVO extraídas de la nube.\n"
             "2. NUNCA dé tutoriales de consola o comandos CLI manuales (NUNCA diga 'ejecute `gcloud ...`' ni mande al usuario a la consola de GCP). ¡Usted ejecuta las lecturas!\n"
-            "3. Cuando el auditor pregunte sobre una clave (ej: 'my-key', período de rotación, nivel de protección), bucket, IAM o servicio: DEBE INVOCAR LA TOOL CORRESPONDIENTE ('inspect_cloud_kms', 'inspect_cloud_storage', 'inspect_cloud_iam', 'inspect_cloud_run') para obtener la telemetría viva.\n"
-            "4. Presente la configuración técnica real obtenida de GCP y emita el dictamen de cumplimiento ISO/IEC 27001:2022.\n"
+            "3. Cuando el usuario pregunte sobre una clave (ej: 'my-key', período de rotación, nivel de protección), bucket, IAM o servicio: DEBE INVOCAR LA TOOL CORRESPONDIENTE ('inspect_cloud_kms', 'inspect_cloud_storage', 'inspect_cloud_iam', 'inspect_cloud_run') para obtener la telemetría viva.\n"
+            "4. Presente la configuración técnica real obtenida de GCP y emita la evaluación de prontitud ISO/IEC 27001:2022.\n"
             "5. Si el recurso no existe en el proyecto, reporte que la inspección en vivo se ejecutó con éxito y no se encontró el recurso (UNDETERMINED), indicando los requisitos de la norma.\n\n"
             "Concisión y Restricciones de Salida:\n"
             "- Utilice formato Markdown limpio y profesional con tablas para los controles evaluados.\n"
@@ -328,13 +461,13 @@ def get_auditor_system_instruction(locale: str = "pt", context_summary: str = ""
         )
     else:
         system_instruction = (
-            "Você é o 'Agentic GRC Auditor', Auditor Líder Autônomo e Especialista Sênior da Prática de Google Cloud Security, operando sobre o Gemini Enterprise Agent Platform (GEAP).\n"
-            "Você possui PODER DE AUDITORIA ATIVA NAS NUVENS com acesso de LEITURA (Read-Only) em tempo real ao ambiente Google Cloud do cliente.\n\n"
+            "Você é o 'Agentic Compliance Readiness Accelerator', Consultor de Prontidão (Readiness Advisor) Autônomo e Especialista Sênior da Prática de Google Cloud Security, operando sobre o Gemini Enterprise Agent Platform (GEAP).\n"
+            "Você possui PODER DE AVALIAÇÃO DE PRONTIDÃO ATIVA NAS NUVENS com acesso de LEITURA (Read-Only) em tempo real ao ambiente Google Cloud do cliente.\n\n"
             "Regras Mandatórias de Integridade e Execução em Nuvem:\n"
-            "1. Telemetria em Tempo Real: O auditor humano está do outro lado da tela, já está autenticado/conectado e espera respostas e telemetria EM TEMPO REAL extraídas da nuvem.\n"
+            "1. Telemetria em Tempo Real: O avaliador humano está do outro lado da tela, já está autenticado/conectado e espera respostas e telemetria EM TEMPO REAL extraídas da nuvem.\n"
             "2. NUNCA forneça tutoriais de linha de comando ou mande o usuário abrir o Console do GCP (NUNCA diga 'Execute o comando `gcloud kms keys describe ...`' ou 'Acesse o Console'). O usuário já está conectado e espera que VOCÊ execute as consultas de leitura!\n"
-            "3. Sempre que o auditor perguntar sobre uma chave (ex: 'my-key', período de rotação, nível de proteção HSM), bucket de storage, IAM, ou serviços: VOCÊ DEVE EXECUTAR A FERRAMENTA DE INSPEÇÃO TÉCNICA CORRESPONDENTE ('inspect_cloud_kms', 'inspect_cloud_storage', 'inspect_cloud_iam', 'inspect_cloud_run', etc.) para inspecionar os recursos ao vivo na nuvem.\n"
-            "4. Apresente na tela os dados técnicos reais obtidos da API (ex: rotationPeriod, protectionLevel, algoritmo, PAP, UBLA) e emita o parecer normativo da ISO/IEC 27001:2022 (A.8.24, A.5.23, etc.) com rigor executivo e técnico.\n"
+            "3. Sempre que o usuário perguntar sobre uma chave (ex: 'my-key', período de rotação, nível de proteção HSM), bucket de storage, IAM, ou serviços: VOCÊ DEVE EXECUTAR A FERRAMENTA DE INSPEÇÃO TÉCNICA CORRESPONDENTE ('inspect_cloud_kms', 'inspect_cloud_storage', 'inspect_cloud_iam', 'inspect_cloud_run', etc.) para inspecionar os recursos ao vivo na nuvem.\n"
+            "4. Apresente na tela os dados técnicos reais obtidos da API (ex: rotationPeriod, protectionLevel, algoritmo, PAP, UBLA) e emita a avaliação de prontidão normativa da ISO/IEC 27001:2022 (A.8.24, A.5.23, etc.) com rigor executivo e técnico.\n"
             "5. Se a varredura ao vivo na API indicar que o recurso não existe no projeto (ex: nenhum Key Ring ou chave 'my-key' encontrada nas localizações verificadas), informe com clareza: reporte que a consulta ao vivo foi executada com sucesso via API, que o recurso inexiste no projeto ativo (UNDETERMINED), e detalhe os requisitos normativos para quando a chave for provisionada (rotação <= 90 dias / 7.776.000s e nível de proteção HSM).\n\n"
             "Diretrizes de Concisão e Restrições de Saída:\n"
             "- Estruture sua resposta com Markdown limpo, claro e tabelas para controles avaliados.\n"
@@ -944,10 +1077,10 @@ async def recommend_subagent(req: AgentRecommendationRequest):
     recommendations_by_industry = {
         "FINANCIAL_SERVICES": {
             "name": "Fintech & Banking Compliance Sentinel",
-            "role": "Auditor Especialista em Criptografia e Regulação Bancária",
+            "role": "Consultor de Prontidão em Criptografia e Regulação Bancária",
             "target_controls": ["A.5.15", "A.5.23", "A.8.2", "A.8.12", "A.8.24"],
             "description": f"Auditoria especializada para cargas críticas em {project_id}, focando em proteção de chaves HSM, segregação de ambientes e perímetros de dados contra exfiltração.",
-            "system_prompt": f"Você é o Fintech & Banking Compliance Sentinel de Google Cloud Security no projeto {project_id}. Audite com máximo rigor chaves Cloud KMS HSM (A.8.24), perímetros de VPC Service Controls (A.8.12) e privilégio mínimo no IAM (A.5.15).",
+            "system_prompt": f"Você é o Fintech & Banking Compliance Sentinel de Google Cloud Security no projeto {project_id}. Avalie a prontidão com máximo rigor para chaves Cloud KMS HSM (A.8.24), perímetros de VPC Service Controls (A.8.12) e privilégio mínimo no IAM (A.5.15).",
             "tools": ["cloud_kms", "vpc_sc", "iam_recommender", "asset_inventory"],
             "model": "gemini-2.5-flash",
             "temperature": 0.1,
@@ -956,10 +1089,10 @@ async def recommend_subagent(req: AgentRecommendationRequest):
         },
         "HEALTHCARE": {
             "name": "HealthData Privacy & HIPAA Sentinel",
-            "role": "Auditor de Proteção de Dados de Saúde e Anonimização",
+            "role": "Consultor de Prontidão de Proteção de Dados de Saúde e Anonimização",
             "target_controls": ["A.5.12", "A.5.34", "A.8.10", "A.8.11", "A.8.24"],
             "description": f"Inspeção de anonimização com Cloud DLP e criptografia de registros médicos em {project_id}.",
-            "system_prompt": f"Você é o HealthData Privacy Sentinel de Google Cloud Security. Audite desidentificação de prontuários, retenção de dados e mascaramento no BigQuery.",
+            "system_prompt": f"Você é o HealthData Privacy Sentinel de Google Cloud Security. Avalie a prontidão na desidentificação de prontuários, retenção de dados e mascaramento no BigQuery.",
             "tools": ["asset_inventory", "cloud_kms", "zero_copy_drive"],
             "model": "gemini-2.5-flash",
             "temperature": 0.1,
@@ -979,23 +1112,23 @@ async def recommend_subagent(req: AgentRecommendationRequest):
             "reason": f"Cluster de contêineres detectado em {project_id} requer enforcement de Binary Authorization e isolamento de pods."
         },
         "ZEROTRUST": {
-            "name": "Zero-Trust & Identity Governance Auditor",
-            "role": "Auditor de Identidade, MFA e Menor Privilégio",
+            "name": "Zero-Trust & Identity Governance Advisor",
+            "role": "Consultor de Prontidão de Identidade, MFA e Menor Privilégio",
             "target_controls": ["A.5.15", "A.5.16", "A.5.17", "A.8.5"],
-            "description": f"Auditoria contínua de contas de serviço, MFA obrigatório e políticas de acesso contextual BeyondCorp em {project_id}.",
-            "system_prompt": f"Você é o Zero-Trust & Identity Governance Auditor de Google Cloud Security. Identifique privilégios excessivos e contas inativas.",
+            "description": f"Avaliação contínua de prontidão de contas de serviço, MFA obrigatório e políticas de acesso contextual BeyondCorp em {project_id}.",
+            "system_prompt": f"Você é o Zero-Trust & Identity Governance Advisor de Google Cloud Security. Identifique privilégios excessivos e contas inativas.",
             "tools": ["iam_recommender", "asset_inventory"],
             "model": "gemini-2.5-flash",
             "temperature": 0.1,
             "industry_alignment": "Zero-Trust Architecture & ISO 27001",
-            "reason": f"Controle estrito de privilégios e auditoria de credenciais administrativas em {project_id}."
+            "reason": f"Controle estrito de privilégios e avaliação de credenciais administrativas em {project_id}."
         },
         "FINOPS": {
             "name": "FinOps & Storage Lifecycle Sentinel",
-            "role": "Auditor de Retenção de Dados e Otimização de Custos",
+            "role": "Consultor de Prontidão de Retenção de Dados e Otimização de Custos",
             "target_controls": ["A.5.9", "A.8.10", "A.8.13"],
             "description": f"Inspeção de regras de ciclo de vida de dados (Object Lifecycle Management), WORM Bucket Lock e descarte seguro em {project_id}.",
-            "system_prompt": f"Você é o FinOps & Storage Lifecycle Sentinel de Google Cloud Security. Audite retenção imutável e expiração de partições no BigQuery.",
+            "system_prompt": f"Você é o FinOps & Storage Lifecycle Sentinel de Google Cloud Security. Avalie retenção imutável e expiração de partições no BigQuery.",
             "tools": ["asset_inventory", "zero_copy_drive"],
             "model": "gemini-2.5-flash",
             "temperature": 0.1,
@@ -1061,7 +1194,7 @@ async def update_policy_autonomously(req: PolicyUpdateRequest):
 **Controle Associado:** ISO/IEC 27001:2022 {control_id}  
 **Data de Publicação:** {timestamp}  
 **Status:** HOMOLOGADO E APLICADO (Zero-Touch Autonomous Update)  
-**Autor:** Vertex AI Gemini 2.5 Flash Autonomous Lead Auditor  
+**Autor:** Vertex AI Gemini 2.5 Flash Autonomous Readiness Advisor  
 **Escopo:** Projeto {project_id} e Organização Google Cloud  
 
 ### 1. Justificativa do Aditamento Autônomo
@@ -1234,6 +1367,17 @@ async def get_scorecard(framework: str = Query(default="ISO27001:2022")):
 # Formal Audit Reporting: Methodology, Auditor Responsibility & Enriched Taxonomy
 # ---------------------------------------------------------------------------
 
+MANDATORY_REPORT_DISCLAIMER = (
+    "Este relatório é uma avaliação de prontidão gerada por ferramenta automatizada e não constitui uma auditoria formal "
+    "nem certificação ISO/IEC 27001, SOC 2 ou PCI-DSS. A Google não emite certificações de conformidade. "
+    "A certificação formal deve ser conduzida por um organismo certificador acreditado e independente."
+)
+
+SHORTENED_CHAT_DISCLAIMER = (
+    "Avaliação de prontidão automatizada. Não constitui auditoria formal nem certificação ISO/IEC 27001, SOC 2 ou PCI-DSS. "
+    "A Google não emite certificações de conformidade."
+)
+
 REPORT_METHODOLOGY_TEXT = (
     "A auditoria foi conduzida através de metodologia híbrida contínua, combinando inspeção "
     "técnica automatizada de configurações de infraestrutura e serviços em nuvem (telemetria ao vivo via "
@@ -1287,17 +1431,18 @@ def get_auditor_responsibility_declaration(scorecard: Dict[str, Any]) -> Dict[st
     verified_count = summary.get("verified_telemetry_count", 0)
     self_attested_count = summary.get("self_attested_count", 0)
     statement = (
-        "O sistema autônomo Agentic GRC Virtual Lead Auditor (alimentado por Gemini 2.5 na Google Enterprise "
+        "O sistema autônomo Agentic Compliance Readiness Accelerator (alimentado por Gemini 2.5 na Google Enterprise "
         "Agent Platform) assume a responsabilidade técnica pela execução das rotinas de inspeção automatizada "
-        "e consolidação dos achados deste relatório. Registra-se formalmente que, do total de evidências catalogadas, "
+        "e consolidação das avaliações de prontidão deste relatório. Registra-se formalmente que, do total de evidências catalogadas, "
         f"{verified_count} nós correspondem a achados verificados por máquina (VERIFIED - telemetria ao vivo de APIs GCP), "
         f"enquanto {self_attested_count} nós representam evidências autoatestadas (SELF_ATTESTED - respostas declaratórias a "
         "questionários de conformidade). As conclusões automatizadas refletem estritamente os dados telemétricos e "
-        "documentais disponíveis até a data e hora de encerramento do período auditado."
+        "documentais disponíveis até a data e hora de encerramento do período avaliado."
     )
     return {
-        "lead_auditor": "Agentic GRC Virtual Lead Auditor (Gemini 2.5 / SPIFFE Verified)",
-        "responsible_party": "Google Cloud Security Practice - Agentic GRC Platform",
+        "lead_auditor": "Agentic Compliance Readiness Advisor (Gemini 2.5 / SPIFFE Verified)",
+        "readiness_advisor": "Agentic Compliance Readiness Advisor (Gemini 2.5 / SPIFFE Verified)",
+        "responsible_party": "Google Cloud Security Practice - Agentic Compliance Readiness Accelerator",
         "verified_machine_findings_count": verified_count,
         "self_attested_findings_count": self_attested_count,
         "statement": statement,
@@ -1333,7 +1478,8 @@ async def get_executive_dossier(
 
     if format.lower() == "json":
         return {
-            "document_title": "Google Cloud Security - Executive Compliance & Audit Dossier",
+            "disclaimer": MANDATORY_REPORT_DISCLAIMER,
+            "document_title": "Google Cloud Security - Relatório de Avaliação de Prontidão Executiva (Executive Readiness Dossier)",
             "report_id": report_id,
             "generated_at": timestamp,
             "audited_period": audited_period,
@@ -1391,7 +1537,8 @@ async def get_technical_report_api(
             })
 
         return {
-            "document_title": "Google Cloud Security - Technical Audit Report (External Auditor Edition)",
+            "disclaimer": MANDATORY_REPORT_DISCLAIMER,
+            "document_title": "Google Cloud Security - Relatório de Avaliação de Prontidão Técnica para Certificação (Technical Audit Report)",
             "report_id": report_id,
             "generated_at": timestamp,
             "audited_period": audited_period,
@@ -1435,13 +1582,14 @@ async def export_report(
 
     if format.lower() == "json":
         data = {
-            "document_title": "Google Cloud Security - Continuous Compliance & Audit Dossier",
+            "disclaimer": MANDATORY_REPORT_DISCLAIMER,
+            "document_title": "Google Cloud Security - Relatório de Avaliação de Prontidão para Certificação",
             "organization": "Google Cloud Security",
             "practice": "Cybersecurity, Cloud Governance & Regulatory Compliance Practice",
             "report_id": f"GCS-GRC-ISO27001-{now_utc.strftime('%Y%m%d-%H%M%S')}",
             "generated_at": timestamp,
             "audited_period": audited_period,
-            "classification": "CONFIDENTIAL / FORMAL AUDIT DOSSIER",
+            "classification": "CONFIDENCIAL / AVALIAÇÃO DE PRONTIDÃO",
             "standard": "ABNT NBR ISO/IEC 27001:2022 (Sistemas de Gestão de Segurança da Informação) + Amd 1:2024",
             "projects_audited": project_list,
             "lead_auditor": auditor_resp["lead_auditor"],
@@ -1816,14 +1964,18 @@ async def export_report(
     <div class="cloudstyle-doc-sheet">
         <div class="cloudstyle-header-row">
             <img src="{GOOGLE_CLOUD_WORDMARK_URI}" alt="Google Cloud" class="cloudstyle-brand-logo">
-            <span class="cloudstyle-confidential-pill">Confidencial • Relatório de Auditoria Formal</span>
+            <span class="cloudstyle-confidential-pill">Confidencial • Avaliação de Prontidão</span>
         </div>
 
         <div class="google-color-stripe-bar"></div>
 
-        <h1 class="cloudstyle-doc-title">Continuous Compliance & Audit Dossier</h1>
+        <h1 class="cloudstyle-doc-title">Relatório de Avaliação de Prontidão para Certificação</h1>
         <div class="cloudstyle-doc-subtitle">
             Avaliação autônoma de segurança da informação, conformidade contínua com a <strong>ISO/IEC 27001:2022</strong> (93 Controles do Anexo A) e validação de telemetria nos ambientes Google Cloud Platform.
+        </div>
+
+        <div class="cloudstyle-disclaimer-box" style="margin: 18px 0; padding: 14px 18px; background: #fef7e0; border-left: 4px solid #f9ab00; border-radius: 4px; font-size: 12px; color: #3c4043; line-height: 1.5;">
+            <strong>Aviso Legal / Disclaimer:</strong> {MANDATORY_REPORT_DISCLAIMER}
         </div>
 
         <table class="cloudstyle-meta-box">
@@ -1848,8 +2000,8 @@ async def export_report(
                 <td>ABNT NBR ISO/IEC 27001:2022 (Anexo A - 93 Controles) + Amd 1:2024 (Ação Climática)</td>
             </tr>
             <tr>
-                <td>Auditor Líder Responsável</td>
-                <td>Agentic GRC Auditor (Vertex AI Gemini 2.5 Flash Autonomous Lead Auditor)</td>
+                <td>Consultor de Prontidão Responsável</td>
+                <td>Agentic Compliance Readiness Accelerator (Vertex AI Gemini 2.5 Flash Autonomous Readiness Advisor)</td>
             </tr>
             <tr>
                 <td>Projetos no Escopo</td>
@@ -2056,27 +2208,30 @@ async def export_report(
 
     elif format.lower() == "markdown":
         md = f"""# GOOGLE CLOUD SECURITY
-## DOSSIÊ EXECUTIVO DE AUDITORIA & CONFORMIDADE CONTÍNUA
+## RELATÓRIO DE AVALIAÇÃO DE PRONTIDÃO PARA CERTIFICAÇÃO
+
+> **Aviso Legal / Disclaimer**: {MANDATORY_REPORT_DISCLAIMER}
+
 **Organização:** Google Cloud Security  
 **Prática Especializada:** Cybersecurity, Cloud Governance & Regulatory Compliance Advisory  
 **Código do Documento:** `GCS-GRC-ISO27001-{now_utc.strftime('%Y%m%d-%H%M%S')}`  
 **Data de Emissão:** {timestamp}  
 **Período Auditado:** {audited_period['formatted']}  
-**Classificação da Informação:** CONFIDENCIAL / RELATÓRIO DE AUDITORIA FORMAL  
-**Auditor Líder Responsável:** {auditor_resp['lead_auditor']}  
+**Classificação da Informação:** CONFIDENCIAL / AVALIAÇÃO DE PRONTIDÃO  
+**Consultor de Prontidão Responsável:** {auditor_resp['lead_auditor']}  
 **Plataforma de Execução:** Gemini Enterprise Agent Platform (GEAP)  
-**Projetos GCP no Escopo de Auditoria:** {', '.join(project_list)}  
+**Projetos GCP no Escopo de Avaliação:** {', '.join(project_list)}  
 **Normas Auditadas:** ABNT NBR ISO/IEC 27001:2022 (Anexo A - 93 Controles)  
 **Selo de Integridade:** Hash Criptográfico SHA-256 Imutável Ancorado  
 
 ---
 
-## 1. Parecer Executivo de Auditoria (Auditor Opinion)
+## 1. Avaliação de Prontidão (Readiness Assessment)
 A prática de **Google Cloud Security** realizou a auditoria contínua de conformidade e segurança da informação nos ambientes Google Cloud Platform especificados no escopo (`fnlab-apps-8fa913`, `fnlab-ai-data-8fa913`, `fnlab-sec-mgmt-8fa913`, `aispr-core-1cab11`, `agentic-grc-cd06`).
 
 Com base na coleta automatizada de telemetria, inspeção de configurações de instâncias e análise profunda de segurança, emitimos uma **OPINIÃO COM RESSALVAS (QUALIFIED OPINION - ACTION REQUIRED)**, com índice de conformidade global de **78.5%** e trajetória de drift **DESVIO DETECTADO**, apontando **9 NÃO-CONFORMIDADES TÉCNICAS CRÍTICAS** que requerem remediação prioritária.
 
-| Métrica de Avaliação | Resultado Auditado | Parecer Técnico |
+| Métrica de Avaliação | Resultado Auditado | Avaliação de Prontidão |
 | :--- | :--- | :--- |
 | **Scorecard Global de Conformidade** | **78.5%** | **Qualificada / Ação Requerida** |
 | **Status da Frota de Máquinas Virtuais** | **5 VMs Auditadas** | **100% com Não-Conformidades Detectadas** |
@@ -2166,14 +2321,107 @@ Com base na coleta automatizada de telemetria, inspeção de configurações de 
         return {"report_id": report_id, "score": 100.0, "status": "COMPLIANT", "timestamp": timestamp}
 
 
+@router.get("/api/clients")
+async def get_clients_list(
+    x_operator_id: Optional[str] = Header(None),
+    operator_id: Optional[str] = Query(None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
+    """Returns list of onboarded client workspaces and active selection for the requesting operator."""
+    op_id = resolve_operator_id(user_context, x_operator_id, operator_id)
+    clients = load_onboarded_clients()
+    active_cid = get_operator_active_client(op_id)
+    active_client = next((c for c in clients if c.get("client_id") == active_cid), clients[0] if clients else None)
+    return {
+        "clients": clients,
+        "active_client_id": active_cid,
+        "active_client": active_client,
+        "operator_id": op_id,
+    }
+
+
+@router.post("/api/clients/active")
+async def switch_active_client(
+    req: ActiveClientSwitchRequest,
+    x_operator_id: Optional[str] = Header(None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
+    """Switches active client workspace for the requesting operator and invalidates prior session state."""
+    op_id = resolve_operator_id(user_context, x_operator_id)
+    clients = load_onboarded_clients()
+    target_client = next((c for c in clients if c.get("client_id") == req.client_id), None)
+    if not target_client:
+        raise HTTPException(status_code=404, detail=f"Client '{req.client_id}' not found in onboarded registry.")
+
+    # Invalidate previous session and rate limiter call budget
+    old_session_id = OPERATOR_SESSIONS.get(op_id)
+    if old_session_id:
+        SESSION_CLIENT_BINDINGS.pop(old_session_id, None)
+        reset_session_call_budget(session_id=old_session_id)
+
+    # Bind new operator active client
+    OPERATOR_ACTIVE_CLIENTS[op_id] = req.client_id
+
+    # Initialize fresh session bound strictly to new client
+    new_session_id = f"sess_{uuid.uuid4().hex[:12]}"
+    OPERATOR_SESSIONS[op_id] = new_session_id
+    SESSION_CLIENT_BINDINGS[new_session_id] = req.client_id
+
+    # Ensure isolated ContinuousIntelligenceEngine is ready
+    get_client_ci_engine(req.client_id)
+
+    return {
+        "status": "success",
+        "operator_id": op_id,
+        "active_client_id": req.client_id,
+        "active_client": target_client,
+        "session_id": new_session_id,
+        "message": f"Successfully switched to client '{target_client['name']}'. Prior session invalidated.",
+    }
+
+
 @router.post("/api/chat")
 async def handle_chat(
     req: ChatRequest,
     user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
     authorization: Optional[str] = Header(None),
+    x_operator_id: Optional[str] = Header(None),
 ):
     """Processes user chat prompts and routes to Vertex AI Gemini or specialized subagents."""
     msg = req.message.strip()
+    is_new_session = not req.history or len(req.history) == 0
+
+    # 0. Resolve operator identity and active client scope
+    operator_id = resolve_operator_id(user_context, x_operator_id, authorization)
+    active_cid = req.client_id or get_operator_active_client(operator_id)
+
+    # Cross-tenant session validation
+    if req.session_id:
+        bound_client = SESSION_CLIENT_BINDINGS.get(req.session_id)
+        if bound_client and bound_client != active_cid:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Cross-tenant access violation: Session '{req.session_id}' is bound to client '{bound_client}' and cannot access client '{active_cid}'. Please start a fresh session.",
+            )
+        SESSION_CLIENT_BINDINGS[req.session_id] = active_cid
+    else:
+        current_sess = OPERATOR_SESSIONS.get(operator_id)
+        if not current_sess or SESSION_CLIENT_BINDINGS.get(current_sess) != active_cid:
+            current_sess = f"sess_{uuid.uuid4().hex[:12]}"
+            OPERATOR_SESSIONS[operator_id] = current_sess
+            SESSION_CLIENT_BINDINGS[current_sess] = active_cid
+
+    scoped_ci = get_client_ci_engine(active_cid)
+
+    def _format_chat_response(data: Dict[str, Any]) -> Dict[str, Any]:
+        if is_new_session and "response" in data and isinstance(data["response"], str):
+            disclaimer_block = f"> ℹ️ *{SHORTENED_CHAT_DISCLAIMER}*\n\n"
+            if SHORTENED_CHAT_DISCLAIMER not in data["response"]:
+                data["response"] = f"{disclaimer_block}{data['response']}"
+            data["disclaimer"] = SHORTENED_CHAT_DISCLAIMER
+        data["client_id"] = active_cid
+        data["session_id"] = req.session_id or OPERATOR_SESSIONS.get(operator_id)
+        return data
 
     # Extract authenticated user token and Workspace identity from dependency context
     user_token = user_context.access_token
@@ -2200,12 +2448,12 @@ async def handle_chat(
         block_msg = model_armor_gateway.format_block_message(
             ingress_verdict.violations, locale=req.locale or "pt"
         )
-        return {
+        return _format_chat_response({
             "response": block_msg,
             "status": "BLOCKED_BY_MODEL_ARMOR",
             "violations": ingress_verdict.violations,
             "subagent_used": "ModelArmorGateway (Perimeter Defense)",
-        }
+        })
 
     # Downstream execution uses sanitized prompt (PII redacted)
     sanitized_msg = ingress_verdict.sanitized_prompt
@@ -2235,7 +2483,7 @@ async def handle_chat(
             f"- Rotation Period: {finding['metrics']['rotation_period_seconds']} seconds (60 days <= 90 days baseline)\n"
             f"- Assessment: {finding['remediation']}"
         )
-        return {"response": response_text, "subagent_used": "AnnexASubAgent"}
+        return _format_chat_response({"response": response_text, "subagent_used": "AnnexASubAgent"})
 
     elif lower_msg == "horizon scanning regulatory update":
         finops_tracker.record_usage("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
@@ -2251,11 +2499,11 @@ async def handle_chat(
             f"{proposal['proposed_amendment_text']}\n\n"
             f"Amendment draft queued for Human-in-the-Loop review and approval."
         )
-        return {
+        return _format_chat_response({
             "response": response_text,
             "subagent_used": "HorizonScannerSubAgent",
             "action_required": proposal["action_required"],
-        }
+        })
 
     elif lower_msg == "execute proactive audit":
         finops_tracker.record_usage("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
@@ -2282,7 +2530,7 @@ async def handle_chat(
                 "verification_tier": "VERIFIED",
             }
         ]
-        res = ci_engine.execute_proactive_audit_cycle("portal-interactive-cycle", sample_assets)
+        res = scoped_ci.execute_proactive_audit_cycle("portal-interactive-cycle", sample_assets)
         response_text = (
             f"Proactive Audit Cycle Completed Successfully\n\n"
             f"- Overall Compliance Score: {res['scorecard']['overall_score']}% ({res['scorecard']['rating']})\n"
@@ -2294,18 +2542,18 @@ async def handle_chat(
             f"2. VPC Service Controls perimeter active across required services (storage, bigquery).\n"
             f"3. Cloud KMS key rotation compliant with 90-day policy (Control A.8.24)."
         )
-        return {
+        return _format_chat_response({
             "response": response_text,
             "scorecard": res["scorecard"],
             "subagent_used": "ContinuousIntelligenceEngine",
-        }
+        })
     elif "capability" in lower_msg or "capacidade" in lower_msg or lower_msg == "what is your capability?":
         finops_tracker.record_usage("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
-        return {
+        return _format_chat_response({
             "response": (
-                "Agentic GRC Auditor - GEAP Compliance & Continuous Audit Agent (Google Cloud Security)\n\n"
+                "Agentic Compliance Readiness Accelerator - GEAP Compliance & Continuous Audit Agent (Google Cloud Security)\n\n"
                 "Capacidades Principais de Auditoria:\n"
-                "1. Auditoria Contínua e Parecer Executivo para ISO/IEC 27001:2022 (Controles A.5, A.6, A.7 e A.8).\n"
+                "1. Avaliação Contínua de Prontidão Executiva para ISO/IEC 27001:2022 (Controles A.5, A.6, A.7 e A.8).\n"
                 "2. Avaliação Contínua de Políticas Organizacionais e Governança do SGSI (Tema A.5).\n"
                 "3. Inspeção Estática de Infraestrutura como Código (Terraform .tf e Ansible .yml).\n"
                 "4. Grafo Imutável de Evidências Criptográficas ancorado com Hashes SHA-256.\n"
@@ -2313,10 +2561,10 @@ async def handle_chat(
                 "6. Proteção de Borda com Model Armor contra Prompt Injection e vazamento de PII."
             ),
             "subagent_used": "ContinuousIntelligenceEngine",
-        }
+        })
 
     # Route through LLMSubAgent with Gemini Function Calling and Egress Grounding
-    context_summary = build_audit_context_summary(projects=projects, locale=req.locale or "pt")
+    context_summary = build_audit_context_summary(projects=projects, locale=req.locale or "pt", ci_engine=scoped_ci, client_id=active_cid)
     system_instruction = get_auditor_system_instruction(locale=req.locale or "pt", context_summary=context_summary)
     auditor_tools = get_auditor_tools(bearer_token=user_token)
 
@@ -2533,7 +2781,7 @@ async def handle_chat(
                     f"| **Nível de Proteção** | `{kd.get('protectionLevel')}` | HSM ou SOFTWARE | {'✅ HSM' if kd.get('protectionLevel') == 'HSM' else 'ℹ️ SOFTWARE'} |\n"
                     f"| **Algoritmo** | `{kd.get('algorithm')}` | Criptografia Forte | ✅ OK |\n"
                     f"| **Estado Primário** | `{kd.get('state')}` | Ativo (ENABLED) | ✅ OK |\n\n"
-                    f"**Parecer do Auditor:** {kms_info.get('compliance', {}).get('remediation')}"
+                    f"**Avaliação de Prontidão:** {kms_info.get('compliance', {}).get('remediation')}"
                 )
             else:
                 ai_response = (
@@ -2575,7 +2823,7 @@ async def handle_chat(
                     f"| **Public Access Prevention (PAP)** | `{pap_val}` | Enforced | {'✅ CONFORME' if str(pap_val).lower() == 'enforced' else '❌ NÃO CONFORME'} |\n"
                     f"| **Uniform Bucket-Level Access (UBLA)** | `{ubla_val}` | True (Ativado) | {'✅ CONFORME' if ubla_val else '❌ NÃO CONFORME'} |\n"
                     f"| **Chave de Criptografia (CMEK)** | `{bd.get('default_kms_key')}` | Gerenciada pelo Cliente (Recomendado) | ℹ️ Ativo |\n\n"
-                    f"**Parecer do Auditor:** {s_info.get('compliance', {}).get('remediation')}"
+                    f"**Avaliação de Prontidão:** {s_info.get('compliance', {}).get('remediation')}"
                 )
             else:
                 ai_response = (
@@ -2599,7 +2847,7 @@ async def handle_chat(
                 f"**Status da Consulta:** Sucesso (Conexão ao vivo via Cloud Resource Manager API - HTTP 200)\n\n"
                 f"**Avaliação do Princípio do Menor Privilégio:**\n"
                 f"- Papéis Primitivos Atribuídos a Usuários Finais: {len(prim_grants)} detectados.\n"
-                f"- **Parecer:** {iam_info.get('compliance', {}).get('remediation')}"
+                f"- **Avaliação de Prontidão:** {iam_info.get('compliance', {}).get('remediation')}"
             )
             tool_evidence.append({
                 "tool": "inspect_cloud_iam",
@@ -2611,8 +2859,8 @@ async def handle_chat(
             if is_discovery_query:
                 if loc.startswith("en"):
                     guidance = (
-                        f"### Autonomous Lead Auditor: Cloud Asset Posture\n\n"
-                        f"The Agentic GRC Auditor is actively connected to Google Cloud for project `{target_project}`.\n\n"
+                        f"### Autonomous Readiness Advisor: Cloud Asset Posture\n\n"
+                        f"The Agentic Compliance Readiness Accelerator is actively connected to Google Cloud for project `{target_project}`.\n\n"
                         f"You can prompt me directly to inspect any cloud asset in real time:\n"
                         f"- \"Inspect KMS key my-key\"\n"
                         f"- \"Audit bucket run-sources-agentic-grc-cd06-us-central1\"\n"
@@ -2621,8 +2869,8 @@ async def handle_chat(
                     )
                 else:
                     guidance = (
-                        f"### Auditor Líder Autônomo: Postura de Ativos em Nuvem\n\n"
-                        f"O Agentic GRC Auditor está conectado ativamente ao Google Cloud para o projeto `{target_project}` com capacidade de inspeção em tempo real (Read-Only).\n\n"
+                        f"### Consultor de Prontidão Autônomo: Postura de Ativos em Nuvem\n\n"
+                        f"O Agentic Compliance Readiness Accelerator está conectado ativamente ao Google Cloud para o projeto `{target_project}` com capacidade de inspeção em tempo real (Read-Only).\n\n"
                         f"Você pode solicitar a inspeção direta de qualquer ativo na nuvem:\n"
                         f"- \"Inspecione a chave KMS my-key\"\n"
                         f"- \"Audite o bucket run-sources-agentic-grc-cd06-us-central1\"\n"
@@ -2637,7 +2885,7 @@ async def handle_chat(
             ):
                 if loc.startswith("en"):
                     ai_response = (
-                        f"**Agentic GRC Lead Auditor (Google Cloud Security)**\n\n"
+                        f"**Agentic Compliance Readiness Advisor (Google Cloud Security)**\n\n"
                         f"{context_summary}\n\n"
                         f"**Assessment of Inquiry**: \"{sanitized_msg}\"\n\n"
                         f"- No direct cloud resource was specified for telemetry extraction.\n"
@@ -2645,9 +2893,9 @@ async def handle_chat(
                     )
                 else:
                     ai_response = (
-                        f"**Agentic GRC Lead Auditor (Google Cloud Security)**\n\n"
+                        f"**Agentic Compliance Readiness Advisor (Google Cloud Security)**\n\n"
                         f"{context_summary}\n\n"
-                        f"**Parecer da Consulta**: \"{sanitized_msg}\"\n\n"
+                        f"**Avaliação de Prontidão da Consulta**: \"{sanitized_msg}\"\n\n"
                         f"- Nenhum recurso de nuvem específico foi identificado para extração de telemetria.\n"
                         f"- Para avaliar a conformidade técnica, especifique um recurso alvo (ex: bucket GCS, chave KMS, perímetro VPC) ou execute 'Execute proactive audit'."
                     )
@@ -2659,26 +2907,26 @@ async def handle_chat(
             block_msg = model_armor_gateway.format_block_message(
                 egress_verdict.violations, locale=req.locale or "pt"
             )
-            return {
+            return _format_chat_response({
                 "response": strip_boilerplate_signature(block_msg),
                 "status": "BLOCKED_BY_MODEL_ARMOR",
                 "violations": egress_verdict.violations,
                 "subagent_used": "ModelArmorGateway (Egress Grounding Guardrail)",
                 "execution_mode": execution_mode,
                 "tool_evidence": tool_evidence,
-            }
-        return {
+            })
+        return _format_chat_response({
             "response": strip_boilerplate_signature(egress_verdict.sanitized_output),
-            "subagent_used": f"VertexAI-Gemini-{model_key} (Lead Auditor Function Calling)",
+            "subagent_used": f"VertexAI-Gemini-{model_key} (Readiness Advisor Function Calling)",
             "execution_mode": execution_mode,
             "tool_evidence": tool_evidence,
             "user_email": user_email,
             "user_hd": user_hd,
-        }
+        })
 
     # Graceful fallback for offline / disconnected environments
     response_text = strip_boilerplate_signature(
-        f"GEAP Compliance & Continuous Audit Agent (ISO/IEC 27001:2022)\n\n"
+        f"GEAP Compliance & Continuous Readiness Accelerator (ISO/IEC 27001:2022)\n\n"
         f"Received request: \"{msg}\"\n\n"
         f"Available actions:\n"
         f"1. Run 'Execute proactive audit' to trigger an end-to-end multi-cloud compliance cycle.\n"
@@ -2686,14 +2934,14 @@ async def handle_chat(
         f"3. Upload Terraform (.tf) or policy files in the Upload & Connect tab for instant analysis.\n"
         f"4. Connect Google Drive or cloud storage for Zero-Copy continuous auditing."
     )
-    return {
+    return _format_chat_response({
         "response": response_text,
         "subagent_used": "OrchestratorCoordinator",
         "execution_mode": execution_mode,
         "tool_evidence": tool_evidence,
         "user_email": user_email,
         "user_hd": user_hd,
-    }
+    })
 
 
 @router.post("/api/guardrails/inspect")
@@ -3003,8 +3251,8 @@ def resolve_subagent_spec(
 
     if custom:
         agent_name = custom.get("name", agent_id)
-        agent_role = custom.get("role", "Auditor Especialista")
-        system_instruction = custom.get("system_prompt") or f"Você é o auditor {agent_name} especializado em conformidade ISO 27001."
+        agent_role = custom.get("role", "Consultor de Prontidão")
+        system_instruction = custom.get("system_prompt") or f"Você é o consultor de prontidão {agent_name} especializado em conformidade ISO 27001."
         target_controls = custom.get("target_controls", ["A.5.1"])
         model_id = custom.get("model", "gemini-2.5-flash")
 
@@ -3021,7 +3269,7 @@ def resolve_subagent_spec(
     if agent_id == "annex_a":
         return (
             "Annex A Auditor Agent",
-            "Auditor Técnico de Criptografia & Controles Tecnológicos (A.8)",
+            "Consultor Técnico de Criptografia & Controles Tecnológicos (A.8)",
             ANNEX_A_SYSTEM_PROMPT,
             ["A.5.23", "A.8.9", "A.8.12", "A.8.16", "A.8.24", "A.8.28"],
             annex_a_subagent.tools,
@@ -3039,7 +3287,7 @@ def resolve_subagent_spec(
     elif agent_id == "org_policies":
         return (
             "Organization Policies Enforcer",
-            "Auditoria & Enforce de Políticas de Organização GCP",
+            "Avaliação & Enforce de Políticas de Organização GCP",
             ORG_POLICIES_SYSTEM_PROMPT,
             ["A.5.1", "A.5.15", "A.5.23"],
             org_policies_subagent.tools,
@@ -3058,7 +3306,7 @@ def resolve_subagent_spec(
         return (
             "IaC Scanner Agent",
             "Análise Estática de Infraestrutura como Código (Terraform / Ansible)",
-            "Você é o Auditor Especialista em IaC Scanner. Realize a análise estática de segurança em configurações de Infraestrutura como Código contra a ISO 27001.",
+            "Você é o Consultor de Prontidão em IaC Scanner. Realize a análise estática de segurança em configurações de Infraestrutura como Código contra a ISO 27001.",
             ["A.8.20", "A.8.28"],
             {"scan_iac_configuration": scan_iac_configuration},
             "gemini-2.5-flash",
@@ -3067,7 +3315,7 @@ def resolve_subagent_spec(
         return (
             "CodeMender Agent",
             "Desenvolvimento Seguro & Remediação Autônoma de Vulnerabilidades em Código (A.8.28)",
-            "Você é o Auditor Especialista CodeMender para o controle A.8.28 da ISO 27001. Inspecione repositórios e políticas de desenvolvimento seguro.",
+            "Você é o Consultor de Prontidão CodeMender para o controle A.8.28 da ISO 27001. Inspecione repositórios e políticas de desenvolvimento seguro.",
             ["A.8.28"],
             {"audit_secure_development_a828": annex_a_subagent._eval_secure_development_a828},
             "gemini-2.5-flash",
@@ -3076,8 +3324,8 @@ def resolve_subagent_spec(
         clean_name = agent_id.replace("_", " ").replace("-", " ").title()
         return (
             f"{clean_name} Agent",
-            "Auditoria Especializada de Conformidade",
-            f"Você é o auditor especializado {clean_name}. Execute uma auditoria rigorosa de conformidade no projeto contra a ISO 27001.",
+            "Avaliação Especializada de Prontidão",
+            f"Você é o consultor de prontidão especializado {clean_name}. Execute uma avaliação rigorosa de prontidão no projeto contra a ISO 27001.",
             ["A.5.1"],
             base_tools,
             "gemini-2.5-flash",
@@ -3263,18 +3511,18 @@ async def run_subagent_task(
 
     narrative_text = subagent_res.get("narrative", f"Inspeção técnica concluída pelo subagente {agent_name}.")
 
-    markdown_report = f"""### Relatório Executivo de Auditoria • {agent_name}
+    markdown_report = f"""### Relatório Executivo de Auditoria & Avaliação de Prontidão • {agent_name}
 **Função do Agente:** {agent_role}  
 **Projeto GCP Auditado:** `{target_project}`  
 **Classificação Normativa:** **{score_label}**  
 **Modo de Execução:** `{execution_mode}`  
 **Hash de Evidência SHA-256:** `{evidence_hash[:32]}...`  
 
-#### 1. Parecer Técnico da Inspeção
+#### 1. Avaliação de Prontidão da Inspeção
 {narrative_text}
 
 #### 2. Evidências Técnicas & Ferramentas Acionadas
-| Controle ISO | Recurso Auditado | Ferramenta MCP | Status | Parecer / Violações |
+| Controle ISO | Recurso Auditado | Ferramenta MCP | Status | Avaliação de Prontidão / Violações |
 | :--- | :--- | :--- | :---: | :--- |
 {rows}
 

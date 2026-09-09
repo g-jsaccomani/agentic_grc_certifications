@@ -1,6 +1,6 @@
 """Cloud Inspector: Real-Time Read-Only Google Cloud Telemetry & Inspection Engine.
 
-Empowers the Agentic GRC Auditor with live cloud execution power:
+Empowers the Agentic Compliance Readiness Accelerator with live cloud execution power:
 - Inspects Cloud KMS keyrings, crypto keys, rotation periods, and protection levels.
 - Inspects Cloud Storage buckets, PAP (Public Access Prevention), and UBLA settings.
 - Inspects Project IAM policies, least privilege, and role bindings.

@@ -1,4 +1,4 @@
-# Proof of Concept Specification — Agentic GRC Auditor
+# Proof of Concept Specification — Agentic Compliance Readiness Accelerator
 ## Autonomous Continuous Compliance & Real-Time Telemetry Audit for ISO/IEC 27001:2022
 
 > **Document Version**: 1.0.0  
@@ -21,7 +21,7 @@ Modern enterprise organizations operating on Google Cloud face a structural cris
 - **Audit Hallucination & Evidence Tampering**: Generic LLM assistants hallucinate compliance statuses when disconnected from authoritative APIs. Furthermore, manually assembled audit binders lack cryptographic integrity, leaving evidence vulnerable to tampering or dispute during Stage 2 certification audits.
 
 ### 1.2 The Agentic GRC Solution
-The **Agentic GRC Auditor** replaces static, periodic compliance workflows with an **autonomous, continuous compliance platform powered by Google Cloud security telemetry, multi-agent AI orchestration, and epistemic evidence graphs**.
+The **Agentic Compliance Readiness Accelerator** replaces static, periodic compliance workflows with an **autonomous, continuous compliance platform powered by Google Cloud security telemetry, multi-agent AI orchestration, and epistemic evidence graphs**.
 
 ```
 Traditional Audit (Periodic & Subjective)
@@ -346,7 +346,7 @@ graph TD
 
 ## 8. Prescriptive Remediation Recommendations & Playbooks
 
-Compliance platforms that produce generic audit findings leave security teams burdened with discovering how to fix them. The Agentic GRC Auditor provides **Prescriptive Remediation Recommendations** while strictly adhering to a read-only operational boundary:
+Compliance platforms that produce generic audit findings leave security teams burdened with discovering how to fix them. The Agentic Compliance Readiness Accelerator provides **Prescriptive Remediation Recommendations** while strictly adhering to a read-only operational boundary:
 
 1. **Drift Detection**: Cloud Inspector identifies a non-compliant resource (e.g., `poc-fw-open-ssh-demo` exposing port 22 to `0.0.0.0/0`).
 2. **Remediation Recommendation**: The platform drafts an exact, prescriptive patch payload:
@@ -375,4 +375,4 @@ To maintain the highest standard of technical integrity during client presentati
 
 ## 10. Conclusion
 
-The Agentic GRC Auditor POC proves that enterprise cloud compliance can transcend static questionnaires and manual evidence gathering. By combining **zero-trust identity, Model Armor perimeter defense, direct Google Cloud telemetry, and cryptographic evidence sealing**, the platform provides continuous, auditable, and automated assurance for ISO/IEC 27001:2022.
+The Agentic Compliance Readiness Accelerator POC proves that enterprise cloud compliance can transcend static questionnaires and manual evidence gathering. By combining **zero-trust identity, Model Armor perimeter defense, direct Google Cloud telemetry, and cryptographic evidence sealing**, the platform provides continuous, auditable, and automated assurance for ISO/IEC 27001:2022.

@@ -30,8 +30,8 @@ All documentation, architecture specifications, deployment guides, proof-of-conc
    Every operation is bound by verifiable SPIFFE identities, Model Armor perimeter filtering, and an epistemic Directed Acyclic Graph (DAG) sealed with SHA-256 hashes.
 3. **Continuous Compliance vs. Point-in-Time Audits**:
    Transforms periodic compliance into real-time posture awareness, automatically updating the 93 ISO 27001 controls and detecting configuration drift.
-4. **Closed-Loop Remediation with Human-in-the-Loop (HITL)**:
-   Idempotent cloud remediations are proposed by the system but strictly require authenticated human approval prior to mutation.
+4. **Prescriptive Remediation Guidance (Zero-Mutation Guardrail)**:
+   The platform identifies findings and generates exact remediation recommendations (CLI commands and Terraform configuration changes); it never executes mutations against client environments. Production changes remain strictly with client platform teams.
 
 ---
 

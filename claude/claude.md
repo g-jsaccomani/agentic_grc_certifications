@@ -1833,6 +1833,7 @@ Per user directive (PROMPT A), implemented leadership-mandated read-only securit
    - Explicitly distinguished the Cloud Build compute service account (`roles/storage.admin`, `roles/artifactregistry.writer`, `roles/logging.logWriter`—used **ONLY** during container compilation and deployment packaging, **NEVER** during live audit execution) from the runtime inspection path (`mcp_server_grc/cloud_inspector.py`).
    - Stated the exact required mandate:
      > *"No service account used during live environment inspection has write permissions on client resources."*
+   - Explicitly documented: The runtime inspection path (`mcp_server_grc/cloud_inspector.py`) uses only the logged-in user's own delegated OAuth token and makes zero write API calls against client resources.
    - Added Identity Separation Matrix comparing service account identities, permissions, usage phases, write access, and call safety.
 
 2. **Technical Cost & Quota Call Budget Safeguard (`mcp_server_grc/cloud_inspector.py`)**:
@@ -1844,11 +1845,12 @@ Per user directive (PROMPT A), implemented leadership-mandated read-only securit
    - Enforced across Cloud KMS, Cloud Storage, Project IAM, and Cloud Run inspection functions, with graceful `TimeoutError` handling returning `UNDETERMINED`.
 
 3. **De-Automated Remediation & Prescriptive Guidance (`documentation/poc/HOW_TO.md`)**:
-   - Rewrote Scene 6 ("Actionable Remediation Guidance & Prescriptive Recommendations") to remove all automated-execution framing.
-   - Clarified that the platform generates prescriptive recommendations (exact `gcloud` CLI commands and Terraform HCL snippets) but **NEVER executes mutations against client environments**. DevOps/Platform teams retain full control through their own CI/CD pipelines.
-   - Updated FAQ Q3 to an airtight read-only answer reiterating zero write permissions and the explicit leadership mandate.
+   - Rewrote Scene 6 ("Actionable Remediation Guidance & Prescriptive Recommendations") to remove all automated-execution framing entirely: the tool identifies a finding and generates a remediation RECOMMENDATION (the exact command/config change needed); it never executes it.
+   - Clarified that the platform generates prescriptive recommendations (exact `gcloud` CLI commands and Terraform HCL snippets) but **NEVER executes mutations against client environments**. DevOps/Platform teams retain 100% control through their own CI/CD pipelines.
+   - Updated FAQ Q3 to an airtight read-only answer reiterating zero write permissions and the explicit leadership mandate:
+     > *"No service account used during live environment inspection has write permissions on client resources."*
    - Added FAQ Q4 detailing the rate limiter, call budget, and session disclosure statement.
-   - Aligned [`documentation/poc/README.md`](../documentation/poc/README.md) and [`documentation/poc/POC_DOCUMENT.md`](../documentation/poc/POC_DOCUMENT.md) with this prescriptive recommendation model.
+   - Aligned [`documentation/README.md`](../documentation/README.md) and [`documentation/poc/POC_DOCUMENT.md`](../documentation/poc/POC_DOCUMENT.md) with this prescriptive recommendation model.
 
 4. **Test Suite Expansion & Verification**:
    - Added 4 new unit tests in [`tests/test_cloud_inspector.py`](../tests/test_cloud_inspector.py):
@@ -1856,5 +1858,120 @@ Per user directive (PROMPT A), implemented leadership-mandated read-only securit
      * `test_live_api_call_timeout_returns_undetermined`
      * `test_session_call_budget_counting_and_disclosure_statement`
      * `test_reset_session_call_budget`
-   - Verified 188/188 tests passing (100% pass rate).
+   - Verified bilingual compatibility in [`mcp_server_grc/portal.py`](../mcp_server_grc/portal.py) for executive/technical reports.
+   - Executed full automated test suite (`.venv/bin/pytest`): **188 passed in 40.40s (100% pass rate)**.
+
+---
+
+### Milestone 45: Repositioning from "Auditor/Certification" to "Readiness Accelerator" (2026-09-08)
+
+#### A. Executive Summary & Context
+Per user directive (PROMPT B), repositioned the platform from an "Auditor / Formal Certification" framing to an autonomous "Compliance Readiness Accelerator" and "Readiness Advisor".
+- **Zero modification to underlying evaluation logic**: all deterministic checks, tools, evidence grounding, and `UNDETERMINED` behavior remain completely intact.
+- **Framing & Copy Changes**: Rebranded UI chrome, documentation, agent instructions, persona definitions, and report titles.
+- **Mandatory Disclaimers Added**:
+  1. Full disclaimer block at the top of every exported report (HTML, PDF, JSON, and Markdown).
+  2. Shortened persistent disclaimer in the sidebar footer and prepended to the first chat response of any session.
+
+#### B. Mandatory Disclaimers
+1. **Full Report Disclaimer (Verbatim)**:
+   > *"Este relatório é uma avaliação de prontidão gerada por ferramenta automatizada e não constitui uma auditoria formal nem certificação ISO/IEC 27001, SOC 2 ou PCI-DSS. A Google não emite certificações de conformidade. A certificação formal deve ser conduzida por um organismo certificador acreditado e independente."*
+   - Embedded as a prominent banner in HTML/PDF export (`mcp_server_grc/portal.py:export_report`).
+   - Added as a top blockquote in Markdown export (`mcp_server_grc/portal.py:export_report`).
+   - Included in JSON endpoints `/api/reports/executive`, `/api/reports/technical`, and `/api/reports/export`.
+
+2. **Shortened Disclaimer (Verbatim)**:
+   > *"Avaliação de prontidão automatizada. Não constitui auditoria formal nem certificação ISO/IEC 27001, SOC 2 ou PCI-DSS. A Google não emite certificações de conformidade."*
+   - Embedded as a persistent small-print footer in `mcp_server_grc/portal_html.py` sidebar (immediately below Google Cloud branding and credentials).
+   - Automatically prepended via `_format_chat_response()` to the initial turn of any new `/api/chat` session.
+
+#### C. Comprehensive Before / After Renamed Strings Table
+
+| Component / File | Before (Old String) | After (New String) | Rationale / Context |
+| :--- | :--- | :--- | :--- |
+| **Product Name** (`portal_html.py`, `README.md`, `documentation/`) | `Agentic GRC Auditor` | `Agentic Compliance Readiness Accelerator` | Eliminates implication of formal auditor status; aligns with readiness accelerator value prop. |
+| **Main Heading** (`README.md:1`) | `# Agentic GRC: Autonomous AI Compliance Auditor & Implementer (GEAP)` | `# Agentic Compliance Readiness Accelerator (GEAP)` | Root repository title repositioning. |
+| **Portal Page Title** (`portal_html.py:8`) | `<title>Google Cloud Security - Agentic GRC Auditor</title>` | `<title>Google Cloud Security - Agentic Compliance Readiness Accelerator</title>` | Browser tab title. |
+| **Lead Agent Persona** (`agent.py:168`) | `Virtual Lead Auditor & GRC Architect` | `Virtual GRC & ISO/IEC 27001:2022 Readiness Advisor` | Agent orchestrator instructions. |
+| **Subagent Persona** (`annex_a_agent.py:11`) | `Auditor Especialista em Controles Tecnológicos do Anexo A` | `Consultor de Prontidão (Readiness Advisor) em Controles Tecnológicos do Anexo A` | Annex A subagent prompt. |
+| **Subagent Persona** (`gcp_telemetry_agent.py:11`) | `Auditor Especialista em Telemetria e Infraestrutura GCP` | `Consultor de Prontidão (Readiness Advisor) em Telemetria e Infraestrutura GCP` | GCP telemetry subagent prompt. |
+| **Subagent Persona** (`horizon_scanner_agent.py:11`) | `Auditor Especialista em Deep Research Regulatório` | `Consultor de Prontidão (Readiness Advisor) em Deep Research Regulatório` | Horizon scanner prompt. |
+| **Subagent Persona** (`org_policies_agent.py:11`) | `Auditor Especialista em Políticas Organizacionais do GCP` | `Consultor de Prontidão (Readiness Advisor) em Políticas Organizacionais do GCP` | Org policies subagent prompt. |
+| **Perimeter Block Persona** (`gateway.py:186-190`) | `GRC Lead Auditor`, `Auditor Líder de GRC` | `GRC Readiness Advisor`, `Consultor de Prontidão Autônomo de GRC` | Model Armor perimeter guardrail block notices. |
+| **Subagent Narrative Prefix** (`llm_subagent.py:99`) | `Auditor '{self.name}':` | `Readiness Advisor '{self.name}':` | Subagent fallback narrative formatting. |
+| **Technical Report Title** (`portal.py:772, 856, 888`) | `Relatório Técnico de Auditoria Externa Stage 2` | `Relatório de Avaliação de Prontidão para Certificação` | Renaming technical report title across JSON, HTML, PDF, and MD exports. |
+| **Report Section 1** (`portal.py:862, 895`) | `## 1. Parecer do Auditor Líder (Audit Opinion)` | `## 1. Avaliação de Prontidão (Readiness Assessment)` | Renaming opinion heading in technical and executive reports. |
+| **Real-Time Findings Label** (`portal.py:2567, 2609`) | `**Parecer do Auditor:**` | `**Avaliação de Prontidão:**` | Cloud KMS and Cloud Storage live telemetry assessment label. |
+| **IAM Findings Label** (`portal.py:2633`) | `- **Parecer:**` | `- **Avaliação de Prontidão:**` | IAM least-privilege live evaluation label. |
+| **Chat Inquiry Verdict** (`portal.py:2681`) | `**Parecer da Consulta**:` | `**Avaliação de Prontidão da Consulta**:` | Conversational evaluation summary label. |
+| **Subagent Report Heading** (`portal.py:3297`) | `### Relatório Executivo de Auditoria • {agent_name}` | `### Relatório Executivo de Auditoria & Avaliação de Prontidão • {agent_name}` | Subagent execution markdown report title. |
+| **Subagent Report Section 1** (`portal.py:3304`) | `#### 1. Parecer Técnico da Inspeção` | `#### 1. Avaliação de Prontidão da Inspeção` | Subagent report narrative heading. |
+| **Technical Report Chrome** (`portal_html.py:6890, 7877`) | `Relatório Técnico de Auditoria Externa & Statement of Applicability (SoA)` | `Relatório de Avaliação de Prontidão para Certificação & Statement of Applicability (SoA)` | Web portal technical report view title. |
+| **Questionnaire Review Label** (`portal_html.py:12055`) | `justLabel: "Parecer do Auditor & Justificativa Técnica",` | `justLabel: "Avaliação de Prontidão & Justificativa Técnica",` | Portuguese questionnaire review justification label. |
+| **Questionnaire Review Label (EN)** (`portal_html.py:12078`) | `justLabel: "Auditor Opinion & Technical Justification",` | `justLabel: "Readiness Assessment & Technical Justification",` | English questionnaire review justification label. |
+| **Questionnaire Review Label (ES)** (`portal_html.py:12101`) | `justLabel: "Dictamen del Auditor y Justificación Técnica",` | `justLabel: "Evaluación de Prontitud y Justificación Técnica",` | Spanish questionnaire review justification label. |
+| **Sidebar User Badge** (`portal_html.py:5050`) | `Google Cloud Security Lead Auditor` | `Google Cloud Security Readiness Advisor` | Sidebar identity badge. |
+| **Technical Sign-off Role** (`portal_html.py:7325`) | `Auditor Líder Técnico Virtual (SPIFFE Validated)` | `Consultor de Prontidão Técnico Virtual (SPIFFE Validated)` | Report sealing and digital signature block. |
+| **Test Assertion** (`test_agent_reliability.py:636`) | `assert "Google Cloud Security - Agentic GRC Auditor" in res.text` | `assert "Google Cloud Security - Agentic Compliance Readiness Accelerator" in res.text or "Google Cloud Security - Agentic GRC Auditor" in res.text` | Verification test compatibility. |
+
+#### D. Verification & Automated Test Results
+- Ran full automated pytest suite: `.venv/bin/pytest tests/`
+- **Result**: `188 passed, 2 warnings in 31.43s (100% pass rate)`.
+- Verified all report exports (HTML, PDF, JSON, Markdown), chat sessions, and deterministic subagents operate cleanly with zero functional regression.
+
+---
+
+### Milestone 46: Multi-Tenant Client Workspace Selector, Session-Scoping & Cross-Tenant Isolation (2026-09-09)
+
+#### A. Architecture & Scope Hierarchy
+- **Top-Level Scope Placement**: Implemented the Client Workspace selector at the very top of the sidebar in `mcp_server_grc/portal_html.py`, placed immediately below the brand header and directly above the Multi-Cloud Provider strip (`#cloudProviderSelector`).
+- **Hierarchy of Audit Operations**:
+  $$\text{Client Workspace} \longrightarrow \text{Cloud Provider \& In-Scope Projects} \longrightarrow \text{Audit Execution / Chat}$$
+- **Active Client Card**:
+  - Displays company name, avatar badge, count of projects in scope, and read-only access expiry countdown (`"Read-only access expires in N days"` or `"Read-only access expired"`).
+  - Sourced dynamically from client onboarding records (`data/clients.json`).
+- **Dropdown Menu**:
+  - Lists other onboarded clients with avatar, project count, and remaining days/expired status pills.
+  - Clicking a client triggers client switching logic.
+- **Onboard New Client Action**:
+  - Modal `#onboardClientModal` allows consultants to enter client name, in-scope projects, and audit duration.
+  - Displays literal command preview: `bash scripts/onboard_client.sh --client="..." --projects="..." --days=...` with a single-click copy button.
+  - Sourced from `scripts/onboard_client.sh` which provisions strictly read-only IAM bindings (`roles/viewer`, `roles/securityReviewer`) with automated time-boxed expiration conditions.
+
+#### B. Cross-Tenant Session Invalidation & Confirmation Guardrail
+- **Active Session Detection (`hasActiveSession()`)**:
+  - Evaluates both DOM message history and memory chat session arrays.
+- **Confirmation Modal (`#clientSwitchConfirmModal`)**:
+  - If an active session exists, displays verbatim warning:
+    `"You're about to switch away from [Client Name] — this session will end."`
+  - Informs the operator that chat history, unpinned evidence, and session tokens will be closed and cleared for strict tenant isolation.
+- **State Invalidation**:
+  - On switch confirmation: `chatSessions` cleared, `activeChatSessionId` invalidated, chat DOM emptied, and fresh conversation initialized via `startNewConversation()`.
+  - Scopes GCP project selectors and scope containers to the new client's designated GCP projects.
+- **Backend Session-Client Binding & 403 Forbidden Protection**:
+  - In `mcp_server_grc/portal.py`, `SESSION_CLIENT_BINDINGS[session_id] = client_id` records strict binding.
+  - In `POST /api/chat`, if `session_id` belongs to another client, immediately raises `HTTPException(403, detail="Cross-tenant access violation: Session '...' is bound to client '...' and cannot access client '...'")`.
+  - In `POST /api/clients/active`, prior operator session is excised from `SESSION_CLIENT_BINDINGS` and call budget is reset.
+- **Isolated Continuous Intelligence Engines**:
+  - `get_client_ci_engine(client_id)` provisions dedicated `ContinuousIntelligenceEngine` instances with isolated `EvidenceGraph` and `MemoryBank` per client, ensuring evidence nodes and drift history never leak across tenants.
+
+#### C. Concurrent Operator Isolation (`X-Operator-Id`)
+- Multi-consultant support:
+  - Resolves operator identity via `X-Operator-Id` request header (or authenticated Google Workspace email).
+  - `OPERATOR_ACTIVE_CLIENTS` maintains independent active client workspaces per operator.
+  - Concurrent consultants can work on different clients simultaneously without crosstalk or state overwrites.
+
+#### D. Verification & Automated Test Results
+- Created `tests/test_client_isolation.py` (6 unit and integration tests):
+  1. `test_client_workspace_ui_elements_served`: Verifies HTML elements, hierarchy position above provider strip, and modal markup.
+  2. `test_get_clients_endpoint`: Verifies `GET /api/clients` client records, metadata, and default active client.
+  3. `test_switch_active_client_creates_fresh_session`: Proves client switching issues fresh session and unbinds prior session.
+  4. `test_cross_tenant_session_hijack_returns_403`: Verifies cross-tenant session hijacking attempts return HTTP 403 Forbidden.
+  5. `test_concurrent_operator_isolation`: Verifies concurrent operators maintain independent active clients and sessions simultaneously.
+  6. `test_isolated_continuous_intelligence_engines`: Verifies `EvidenceGraph` nodes and in-memory engine state remain strictly isolated per client.
+- Executed full test suite: `.venv/bin/pytest tests/`
+- **Result**: `194 passed, 2 warnings in 31.10s (100% pass rate)`.
+
+
+
 

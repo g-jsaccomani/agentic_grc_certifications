@@ -633,7 +633,7 @@ def test_portal_unauthenticated_load_unaffected():
     """The /portal endpoint loads successfully without requiring any authentication headers."""
     res = client.get("/portal")
     assert res.status_code == 200
-    assert "Google Cloud Security - Agentic GRC Auditor" in res.text
+    assert "Google Cloud Security - Agentic Compliance Readiness Accelerator" in res.text or "Google Cloud Security - Agentic GRC Auditor" in res.text
     assert "workspaceAuthContainer" in res.text
     assert "https://accounts.google.com/gsi/client" in res.text
 

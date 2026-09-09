@@ -1,11 +1,11 @@
-"""Official Google Cloud Security - Agentic GRC Auditor Web Portal."""
+"""Official Google Cloud Security - Agentic Compliance Readiness Accelerator Web Portal."""
 
 PORTAL_HTML = r"""<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Cloud Security - Agentic GRC Auditor</title>
+    <title>Google Cloud Security - Agentic Compliance Readiness Accelerator</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -940,6 +940,261 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             padding: 1px 4px;
             border-radius: 4px;
             line-height: 1.2;
+        }
+
+        /* Client Workspace Selector */
+        .client-workspace-wrapper {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 7px 8px;
+            margin-bottom: 6px;
+            position: relative;
+            user-select: none;
+        }
+
+        .client-workspace-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .client-workspace-title {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+
+        .client-active-card {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            background: rgba(138, 180, 248, 0.08);
+            border: 1px solid rgba(138, 180, 248, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .client-active-card:hover {
+            background: rgba(138, 180, 248, 0.14);
+            border-color: var(--gcp-blue);
+        }
+
+        .client-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #1a73e8, #8ab4f8);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .client-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .client-name-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+        }
+
+        .client-name {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .client-status-pill {
+            font-size: 8.5px;
+            font-weight: 600;
+            padding: 1px 5px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            flex-shrink: 0;
+        }
+
+        .client-status-pill.active {
+            background: rgba(129, 201, 149, 0.15);
+            color: var(--gcp-green);
+            border: 1px solid rgba(129, 201, 149, 0.3);
+        }
+
+        .client-status-pill.expired {
+            background: rgba(242, 139, 130, 0.15);
+            color: var(--gcp-red);
+            border: 1px solid rgba(242, 139, 130, 0.3);
+        }
+
+        .client-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9.5px;
+            color: var(--text-secondary);
+        }
+
+        .client-expiry-countdown {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9px;
+            color: var(--gcp-yellow);
+            font-weight: 500;
+        }
+
+        .client-expiry-countdown.expired {
+            color: var(--gcp-red);
+        }
+
+        .client-dropdown-chevron {
+            color: var(--text-secondary);
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .client-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-focus);
+            border-radius: 8px;
+            padding: 6px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            z-index: 100;
+        }
+
+        .client-dropdown-menu.active {
+            display: block;
+        }
+
+        .client-dropdown-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .client-dropdown-list::-webkit-scrollbar {
+            width: 3px;
+        }
+        .client-dropdown-list::-webkit-scrollbar-thumb {
+            background: var(--border-focus);
+            border-radius: 3px;
+        }
+
+        .client-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-subtle);
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .client-dropdown-item:hover {
+            background: var(--bg-surface-hover);
+            border-color: var(--gcp-blue);
+        }
+
+        .client-dropdown-item.active-item {
+            border-color: var(--gcp-blue);
+            background: rgba(138, 180, 248, 0.08);
+        }
+
+        .client-avatar-small {
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9.5px;
+            font-weight: 600;
+            flex-shrink: 0;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .client-item-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .client-item-name-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+        }
+
+        .client-item-name {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .client-item-meta {
+            font-size: 9px;
+            color: var(--text-tertiary);
+        }
+
+        .client-onboard-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 6px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px dashed rgba(138, 180, 248, 0.4);
+            background: rgba(138, 180, 248, 0.05);
+            color: var(--gcp-blue);
+            font-size: 10.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .client-onboard-trigger:hover {
+            background: rgba(138, 180, 248, 0.12);
+            border-color: var(--gcp-blue);
         }
 
         /* Cloud Provider Connector Selector in Sidebar Bottom */
@@ -4569,7 +4824,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <a href="#" class="brand-left" onclick="switchView('view-home')" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
                     <svg id="brandSidebarCloudIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 28" width="28" height="28" style="vertical-align: middle; display: block; flex-shrink: 0;"><path fill="#ea4335" d="M21.85,7.41l1,0,2.85-2.85.14-1.21A12.81,12.81,0,0,0,5,9.6a1.55,1.55,0,0,1,1-.06l5.7-.94s.29-.48.44-.45a7.11,7.11,0,0,1,9.73-.74Z"/><path fill="#4285f4" d="M29.76,9.6a12.84,12.84,0,0,0-3.87-6.24l-4,4A7.11,7.11,0,0,1,24.5,13v.71a3.56,3.56,0,1,1,0,7.12H17.38l-.71.72v4.27l.71.71H24.5A9.26,9.26,0,0,0,29.76,9.6Z"/><path fill="#34a853" d="M10.25,26.49h7.12v-5.7H10.25a3.54,3.54,0,0,1-1.47-.32l-1,.31L4.91,23.63l-.25,1A9.21,9.21,0,0,0,10.25,26.49Z"/><path fill="#fbbc05" d="M10.25,8A9.26,9.26,0,0,0,4.66,24.6l4.13-4.13a3.56,3.56,0,1,1,4.71-4.71l4.13-4.13A9.25,9.25,0,0,0,10.25,8Z"/></svg>
                     <div class="brand-text-col">
-                        <span class="brand-title" style="font-size: 14.5px; font-weight: 600; color: var(--text-primary); display: block; line-height: 1.2;">Agentic GRC Auditor</span>
+                        <span class="brand-title" style="font-size: 14.5px; font-weight: 600; color: var(--text-primary); display: block; line-height: 1.2;">Agentic Compliance Readiness Accelerator</span>
                         <span class="brand-subtitle-badge" style="font-size: 10px; font-weight: 600; color: #8ab4f8; text-transform: uppercase; letter-spacing: 0.5px;">Google Cloud Security</span>
                     </div>
                 </a>
@@ -4579,6 +4834,203 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <line x1="9" y1="3" x2="9" y2="21"/>
                     </svg>
                 </button>
+            </div>
+
+            <!-- Client Workspace Selector -->
+            <div class="client-workspace-wrapper" id="clientWorkspaceSelector">
+                <div class="client-workspace-header">
+                    <div class="client-workspace-title">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue);">
+                            <path d="M3 21h18M3 7v14M21 7v14M6 21V11m4 10V11m4 10V11M3 7l9-4 9 4"/>
+                        </svg>
+                        <span data-i18n="client_workspace_title">Client Workspace</span>
+                    </div>
+                </div>
+                <div class="client-active-card" id="clientActiveCard" onclick="toggleClientDropdown(event)" title="Clique para trocar de cliente">
+                    <div class="client-avatar" id="clientActiveAvatar">AV</div>
+                    <div class="client-info">
+                        <div class="client-name-row">
+                            <span class="client-name" id="clientActiveName">Altostrat Ventures</span>
+                            <span class="client-status-pill active" id="clientActiveStatusPill">Active</span>
+                        </div>
+                        <div class="client-meta-row">
+                            <span class="client-projects-count" id="clientActiveProjectsCount">3 projects in scope</span>
+                        </div>
+                        <div class="client-expiry-countdown" id="clientActiveExpiry">
+                            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            <span id="clientActiveExpiryText">Read-only access expires in 14 days</span>
+                        </div>
+                    </div>
+                    <svg class="client-dropdown-chevron" id="clientDropdownChevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+                <!-- Dropdown Menu -->
+                <div class="client-dropdown-menu" id="clientDropdownMenu">
+                    <div class="client-dropdown-list" id="clientDropdownList">
+                        <!-- Populated dynamically -->
+                    </div>
+                    <div class="client-onboard-trigger" onclick="openOnboardClientModal()">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        <span data-i18n="client_onboard_new_action">+ Onboard new client</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conectores Multi-Cloud (Cloud Provider Selector) -->
+            <div class="provider-selector-strip-wrapper" id="cloudProviderSelector">
+                <div class="provider-strip-header">
+                    <div class="provider-strip-title">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue);">
+                            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                        </svg>
+                        <span data-i18n="cloud_provider_title">Provedores Cloud</span>
+                    </div>
+                </div>
+                <div class="provider-cards-strip">
+                    <!-- 1. Google Cloud (Active) with Sub-Tree Chevron -->
+                    <div class="provider-card active" id="provCardGcp" onclick="selectCloudProvider('gcp')" title="Google Cloud - Conector ativo" data-i18n-title="provider_tooltip_gcp">
+                        <div class="provider-card-icon shield-active">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                <path d="M9 12l2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <div class="provider-card-info">
+                            <div class="provider-card-name">Google Cloud</div>
+                        </div>
+                        <svg id="gcpScopeTreeChevron" class="provider-chevron" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" onclick="toggleGcpScopeTree(event)" style="transform: rotate(0deg); cursor: pointer;" title="Expandir/Recolher Projetos GCP">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+
+                    <!-- 2. AWS (Locked) -->
+                    <div class="provider-card locked" id="provCardAws" onclick="showLockedProviderNotice('AWS')" title="AWS - No roadmap de desenvolvimento" data-i18n-title="provider_tooltip_aws">
+                        <div class="provider-card-icon shield-locked">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                        </div>
+                        <div class="provider-card-info">
+                            <div class="provider-card-name">AWS</div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Azure (Locked) -->
+                    <div class="provider-card locked" id="provCardAzure" onclick="showLockedProviderNotice('Azure')" title="Azure - No roadmap de desenvolvimento" data-i18n-title="provider_tooltip_azure">
+                        <div class="provider-card-icon shield-locked">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                        </div>
+                        <div class="provider-card-info">
+                            <div class="provider-card-name">Azure</div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Oracle Cloud Infrastructure (Locked) -->
+                    <div class="provider-card locked" id="provCardOci" onclick="showLockedProviderNotice('Oracle Cloud Infrastructure')" title="Oracle Cloud Infrastructure - No roadmap de desenvolvimento" data-i18n-title="provider_tooltip_oci">
+                        <div class="provider-card-icon shield-locked">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                        </div>
+                        <div class="provider-card-info">
+                            <div class="provider-card-name">Oracle Cloud</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Escopo de Projetos Selecionados (Sub-árvore Retrátil da Organização GCP) -->
+                <div class="scope-box" id="scopeContainer" style="margin-top: 6px; border-left: 2px solid var(--gcp-blue); padding-left: 8px;">
+                    <div class="scope-header" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: flex-start; gap: 6px;">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue); flex-shrink: 0; margin-top: 2px;">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                            </svg>
+                            <div style="display: flex; flex-direction: column; min-width: 0;">
+                                <span class="scope-label" style="font-size: 10px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Organização GCP Conectada</span>
+                                <span id="scopeConnectedOrgName" style="font-size: 11px; font-weight: 600; color: var(--text-primary); line-height: 1.25; word-break: break-word;">Altostrat Global Org <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(108928374619)</span></span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: flex-start; padding-left: 19px;">
+                            <button class="btn-org-dropdown-toggle" id="btnOrgDropdownToggle" onclick="toggleOrgScopeDropdown()" title="Projetos da Organização GCP" style="background: rgba(138, 180, 248, 0.12); border: 1px solid rgba(138, 180, 248, 0.3); color: var(--gcp-blue); border-radius: 6px; padding: 2px 8px; font-size: 10.5px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: var(--transition-smooth);">
+                                <span id="orgScopeBadgeText">3/10 ativos</span>
+                                <svg id="orgDropdownChevron" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.2s ease;">
+                                    <polyline points="6 9 12 15 18 9"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Environment Filters (PRODUCTION, STAGING, ANALYTICS) -->
+                    <div class="scope-env-selectors" id="scopeEnvSelectors" style="display: flex; gap: 4px; margin-bottom: 6px; align-items: center;">
+                        <label title="Alternar todos os projetos de Produção" style="display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600; cursor: pointer; background: rgba(52, 168, 83, 0.1); border: 1px solid rgba(52, 168, 83, 0.3); border-radius: 4px; padding: 2px 5px; color: var(--gcp-green); user-select: none;">
+                            <input type="checkbox" id="envToggleProd" checked onchange="toggleEnvironmentScope('PRODUCTION', this.checked)" style="width: 11px; height: 11px; cursor: pointer; margin: 0;">
+                            PROD
+                        </label>
+                        <label title="Alternar todos os projetos de Homologação/Staging" style="display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600; cursor: pointer; background: rgba(251, 188, 4, 0.1); border: 1px solid rgba(251, 188, 4, 0.3); border-radius: 4px; padding: 2px 5px; color: var(--gcp-yellow); user-select: none;">
+                            <input type="checkbox" id="envToggleStaging" checked onchange="toggleEnvironmentScope('STAGING', this.checked)" style="width: 11px; height: 11px; cursor: pointer; margin: 0;">
+                            STAGE
+                        </label>
+                        <label title="Alternar todos os projetos de Analytics/Data Lake" style="display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600; cursor: pointer; background: rgba(138, 180, 248, 0.1); border: 1px solid rgba(138, 180, 248, 0.3); border-radius: 4px; padding: 2px 5px; color: var(--gcp-blue); user-select: none;">
+                            <input type="checkbox" id="envToggleAnalytics" checked onchange="toggleEnvironmentScope('ANALYTICS', this.checked)" style="width: 11px; height: 11px; cursor: pointer; margin: 0;">
+                            DATA
+                        </label>
+                    </div>
+
+                    <!-- Dropdown Retrátil da Organização GCP -->
+                    <div class="org-scope-dropdown" id="orgScopeDropdown" style="display: none; background: var(--bg-canvas); border: 1px solid var(--border-focus); border-radius: 8px; padding: 8px; margin-bottom: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--text-tertiary); margin-bottom: 6px;">
+                            <span>Altostrat Global Org (108928374619)</span>
+                            <span style="color: var(--gcp-green); font-weight: 600;">Nível Org</span>
+                        </div>
+                        <input type="text" id="orgSearchInput" placeholder="Filtrar projetos da Org..." aria-label="Filtrar projetos da organização" oninput="filterOrgDropdown(this.value)" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-primary); margin-bottom: 6px; outline: none; box-sizing: border-box;">
+                        
+                        <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                            <button onclick="selectAllOrgProjects()" style="flex: 1; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 9.5px; color: var(--text-secondary); padding: 3px 4px; cursor: pointer;">Marcar Todos</button>
+                            <button onclick="selectProdOnlyOrgProjects()" style="flex: 1; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 9.5px; color: var(--text-secondary); padding: 3px 4px; cursor: pointer;">Apenas Prod</button>
+                            <button onclick="openProjectModal()" style="background: rgba(138, 180, 248, 0.1); border: 1px solid rgba(138, 180, 248, 0.25); border-radius: 4px; font-size: 9.5px; color: var(--gcp-blue); padding: 3px 6px; cursor: pointer;">+ Manual</button>
+                        </div>
+
+                        <div class="org-dropdown-list" id="orgDropdownItemsList" style="display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto;">
+                            <!-- Dynamically populated with all organization projects -->
+                        </div>
+                    </div>
+
+                    <!-- Lista de projetos ativos no escopo -->
+                    <div class="scope-projects-list" id="scopeProjectsList" style="display: flex; flex-direction: column; gap: 5px; max-height: 110px; overflow-y: auto;">
+                        <div class="project-pill-item">
+                            <div class="project-pill-left">
+                                <input type="checkbox" class="project-checkbox" checked onchange="toggleProjectSelection('agentic-grc-cd06', this.checked)">
+                                <span class="project-id-text" title="agentic-grc-cd06">agentic-grc-cd06</span>
+                            </div>
+                            <span class="env-badge">PRODUCTION</span>
+                        </div>
+                        <div class="project-pill-item">
+                            <div class="project-pill-left">
+                                <input type="checkbox" class="project-checkbox" checked onchange="toggleProjectSelection('agentic-grc-staging', this.checked)">
+                                <span class="project-id-text" title="agentic-grc-staging">agentic-grc-staging</span>
+                            </div>
+                            <span class="env-badge">STAGING</span>
+                        </div>
+                        <div class="project-pill-item">
+                            <div class="project-pill-left">
+                                <input type="checkbox" class="project-checkbox" checked onchange="toggleProjectSelection('agentic-grc-data-lake', this.checked)">
+                                <span class="project-id-text" title="agentic-grc-data-lake">agentic-grc-data-lake</span>
+                            </div>
+                            <span class="env-badge">ANALYTICS</span>
+                        </div>
+                    </div>
+                    <div class="scope-value" id="currentScopeLabel" style="display: none;">agentic-grc-cd06 (+2 ativos)</div>
+                </div>
             </div>
 
             <!-- Top Action Button (Gemini style) -->
@@ -4893,163 +5345,18 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         </div>
 
         <div class="sidebar-bottom">
-            <!-- Conectores Multi-Cloud (Cloud Provider Selector) -->
-            <div class="provider-selector-strip-wrapper" id="cloudProviderSelector">
-                <div class="provider-strip-header">
-                    <div class="provider-strip-title">
-                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue);">
-                            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
-                        </svg>
-                        <span data-i18n="cloud_provider_title">Provedores Cloud</span>
-                    </div>
-                </div>
-                <div class="provider-cards-strip">
-                    <!-- 1. Google Cloud (Active) with Sub-Tree Chevron -->
-                    <div class="provider-card active" id="provCardGcp" onclick="selectCloudProvider('gcp')" title="Google Cloud - Conector ativo" data-i18n-title="provider_tooltip_gcp">
-                        <div class="provider-card-icon shield-active">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                                <path d="M9 12l2 2 4-4"/>
-                            </svg>
-                        </div>
-                        <div class="provider-card-info">
-                            <div class="provider-card-name">Google Cloud</div>
-                        </div>
-                        <svg id="gcpScopeTreeChevron" class="provider-chevron" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" onclick="toggleGcpScopeTree(event)" style="transform: rotate(0deg); cursor: pointer;" title="Expandir/Recolher Projetos GCP">
-                            <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                    </div>
-
-                    <!-- 2. AWS (Locked) -->
-                    <div class="provider-card locked" id="provCardAws" onclick="showLockedProviderNotice('AWS')" title="AWS - No roadmap de desenvolvimento" data-i18n-title="provider_tooltip_aws">
-                        <div class="provider-card-icon shield-locked">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                            </svg>
-                        </div>
-                        <div class="provider-card-info">
-                            <div class="provider-card-name">AWS</div>
-                        </div>
-                    </div>
-
-                    <!-- 3. Azure (Locked) -->
-                    <div class="provider-card locked" id="provCardAzure" onclick="showLockedProviderNotice('Azure')" title="Azure - No roadmap de desenvolvimento" data-i18n-title="provider_tooltip_azure">
-                        <div class="provider-card-icon shield-locked">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                            </svg>
-                        </div>
-                        <div class="provider-card-info">
-                            <div class="provider-card-name">Azure</div>
-                        </div>
-                    </div>
-
-                    <!-- 4. Oracle Cloud Infrastructure (Locked) -->
-                    <div class="provider-card locked" id="provCardOci" onclick="showLockedProviderNotice('Oracle Cloud Infrastructure')" title="Oracle Cloud Infrastructure - No roadmap de desenvolvimento" data-i18n-title="provider_tooltip_oci">
-                        <div class="provider-card-icon shield-locked">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                            </svg>
-                        </div>
-                        <div class="provider-card-info">
-                            <div class="provider-card-name">Oracle Cloud</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Escopo de Projetos Selecionados (Sub-árvore Retrátil da Organização GCP) -->
-                <div class="scope-box" id="scopeContainer" style="margin-top: 6px; border-left: 2px solid var(--gcp-blue); padding-left: 8px;">
-                    <div class="scope-header" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
-                        <div style="display: flex; align-items: flex-start; gap: 6px;">
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue); flex-shrink: 0; margin-top: 2px;">
-                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-                            </svg>
-                            <div style="display: flex; flex-direction: column; min-width: 0;">
-                                <span class="scope-label" style="font-size: 10px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Organização GCP Conectada</span>
-                                <span id="scopeConnectedOrgName" style="font-size: 11px; font-weight: 600; color: var(--text-primary); line-height: 1.25; word-break: break-word;">Altostrat Global Org <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(108928374619)</span></span>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; justify-content: flex-start; padding-left: 19px;">
-                            <button class="btn-org-dropdown-toggle" id="btnOrgDropdownToggle" onclick="toggleOrgScopeDropdown()" title="Projetos da Organização GCP" style="background: rgba(138, 180, 248, 0.12); border: 1px solid rgba(138, 180, 248, 0.3); color: var(--gcp-blue); border-radius: 6px; padding: 2px 8px; font-size: 10.5px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: var(--transition-smooth);">
-                                <span id="orgScopeBadgeText">3/10 ativos</span>
-                                <svg id="orgDropdownChevron" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.2s ease;">
-                                    <polyline points="6 9 12 15 18 9"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Environment Filters (PRODUCTION, STAGING, ANALYTICS) -->
-                    <div class="scope-env-selectors" id="scopeEnvSelectors" style="display: flex; gap: 4px; margin-bottom: 6px; align-items: center;">
-                        <label title="Alternar todos os projetos de Produção" style="display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600; cursor: pointer; background: rgba(52, 168, 83, 0.1); border: 1px solid rgba(52, 168, 83, 0.3); border-radius: 4px; padding: 2px 5px; color: var(--gcp-green); user-select: none;">
-                            <input type="checkbox" id="envToggleProd" checked onchange="toggleEnvironmentScope('PRODUCTION', this.checked)" style="width: 11px; height: 11px; cursor: pointer; margin: 0;">
-                            PROD
-                        </label>
-                        <label title="Alternar todos os projetos de Homologação/Staging" style="display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600; cursor: pointer; background: rgba(251, 188, 4, 0.1); border: 1px solid rgba(251, 188, 4, 0.3); border-radius: 4px; padding: 2px 5px; color: var(--gcp-yellow); user-select: none;">
-                            <input type="checkbox" id="envToggleStaging" checked onchange="toggleEnvironmentScope('STAGING', this.checked)" style="width: 11px; height: 11px; cursor: pointer; margin: 0;">
-                            STAGE
-                        </label>
-                        <label title="Alternar todos os projetos de Analytics/Data Lake" style="display: inline-flex; align-items: center; gap: 3px; font-size: 9px; font-weight: 600; cursor: pointer; background: rgba(138, 180, 248, 0.1); border: 1px solid rgba(138, 180, 248, 0.3); border-radius: 4px; padding: 2px 5px; color: var(--gcp-blue); user-select: none;">
-                            <input type="checkbox" id="envToggleAnalytics" checked onchange="toggleEnvironmentScope('ANALYTICS', this.checked)" style="width: 11px; height: 11px; cursor: pointer; margin: 0;">
-                            DATA
-                        </label>
-                    </div>
-
-                    <!-- Dropdown Retrátil da Organização GCP -->
-                    <div class="org-scope-dropdown" id="orgScopeDropdown" style="display: none; background: var(--bg-canvas); border: 1px solid var(--border-focus); border-radius: 8px; padding: 8px; margin-bottom: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
-                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--text-tertiary); margin-bottom: 6px;">
-                            <span>Altostrat Global Org (108928374619)</span>
-                            <span style="color: var(--gcp-green); font-weight: 600;">Nível Org</span>
-                        </div>
-                        <input type="text" id="orgSearchInput" placeholder="Filtrar projetos da Org..." aria-label="Filtrar projetos da organização" oninput="filterOrgDropdown(this.value)" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-primary); margin-bottom: 6px; outline: none; box-sizing: border-box;">
-                        
-                        <div style="display: flex; gap: 4px; margin-bottom: 6px;">
-                            <button onclick="selectAllOrgProjects()" style="flex: 1; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 9.5px; color: var(--text-secondary); padding: 3px 4px; cursor: pointer;">Marcar Todos</button>
-                            <button onclick="selectProdOnlyOrgProjects()" style="flex: 1; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: 9.5px; color: var(--text-secondary); padding: 3px 4px; cursor: pointer;">Apenas Prod</button>
-                            <button onclick="openProjectModal()" style="background: rgba(138, 180, 248, 0.1); border: 1px solid rgba(138, 180, 248, 0.25); border-radius: 4px; font-size: 9.5px; color: var(--gcp-blue); padding: 3px 6px; cursor: pointer;">+ Manual</button>
-                        </div>
-
-                        <div class="org-dropdown-list" id="orgDropdownItemsList" style="display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto;">
-                            <!-- Dynamically populated with all organization projects -->
-                        </div>
-                    </div>
-
-                    <!-- Lista de projetos ativos no escopo -->
-                    <div class="scope-projects-list" id="scopeProjectsList" style="display: flex; flex-direction: column; gap: 5px; max-height: 110px; overflow-y: auto;">
-                        <div class="project-pill-item">
-                            <div class="project-pill-left">
-                                <input type="checkbox" class="project-checkbox" checked onchange="toggleProjectSelection('agentic-grc-cd06', this.checked)">
-                                <span class="project-id-text" title="agentic-grc-cd06">agentic-grc-cd06</span>
-                            </div>
-                            <span class="env-badge">PRODUCTION</span>
-                        </div>
-                        <div class="project-pill-item">
-                            <div class="project-pill-left">
-                                <input type="checkbox" class="project-checkbox" checked onchange="toggleProjectSelection('agentic-grc-staging', this.checked)">
-                                <span class="project-id-text" title="agentic-grc-staging">agentic-grc-staging</span>
-                            </div>
-                            <span class="env-badge">STAGING</span>
-                        </div>
-                        <div class="project-pill-item">
-                            <div class="project-pill-left">
-                                <input type="checkbox" class="project-checkbox" checked onchange="toggleProjectSelection('agentic-grc-data-lake', this.checked)">
-                                <span class="project-id-text" title="agentic-grc-data-lake">agentic-grc-data-lake</span>
-                            </div>
-                            <span class="env-badge">ANALYTICS</span>
-                        </div>
-                    </div>
-                    <div class="scope-value" id="currentScopeLabel" style="display: none;">agentic-grc-cd06 (+2 ativos)</div>
-                </div>
-            </div>
-
             <!-- Perfil do Auditor: Google Cloud Wordmark (sem a nuvem) & Credentials -->
             <div class="user-meta" onclick="switchView('view-scorecard')" title="Clique para ver Scorecard de Conformidade" style="cursor: pointer; padding: 10px 4px 4px 4px; display: flex; flex-direction: column; gap: 4px; border: none; background: transparent;">
                 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABAAAAACwCAYAAACRmBzlAABvsklEQVR4nO3dB5wcdfk/8M8zu3uXspsNJfROUIgCSY5iIJdcEopBEBRDsYAogqAgPSShLCVNUBREpSgqRUgQFaWT3KVAaJeEAEEh9E4KTGZS7m5nnt/rmZv4CyHl7va7uzO7z/v/yx+NYXYytzs73+f7FEAppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppZRSSimllFJKKaWUUkoppVRVIlSQfjmu6Z7CFj5hF/mvTNgBQKqj/74F2Ay87rfhP8ke+Kj5AlpS3DNWSimllPos23EtAL0BbAOgL4A9AGzWweu0GsAiAP8B8B6AZdlM2tNrrJRSKtYBAFnsJ1P4QtLCCWBsFfwmB4v9LFPwhbkLCFuGv9dRLoD3AbxNwCcAPpXf9BlsAW8D+Fdtd7w65zxaVay/l1JKKaWqh+243QDsDeDQ4NmlnQQA0gA2B4LNDPmV6eAhWwG8K88yAGQjw5ZHmeApCXgBwKMA3shm0m1F/GsppZSKqBgFAJgGTMBeAM4AYUdmJKh9gS9fmj2L/eLyBUrAfxlYCkKbBfzH83F37za82JSjfJFfXymllFIVwnZc2dE/D8C2AJIAtgaweyd2+bv6LPNRmB0gGxySFTAdwF+ymXSw4aGUUqryRToAkMux9e9a7OszzmAKFvoZMHYD0L3c50aAw4R34cOBheWej3MXjKMXy31eSikVG/cdNxUWyc5mYXz6I7559y1GzkmpIrEd9wAAlwHYItzdl9R+2f0vp8VhpoBkDTwD4IpsJi0ZkJFgO+6+AH5v4FC/BvCPbCYt5RFKKQXbcW8EMLDAS/EGgB9mM+lYZYdL1Dly9rmGeyba8MP7gZ8xoztJRJzL/iX5GdwejNgrCKEw/AThkf4TeDUBz3op/HDBhbSi3OeolFKRRtQfHCyCCmOxpDQrFTm248oO/+Vher9sXkjJYgLR0Sf8JfoDOMZ23DcB/ALAv7OZtGQNlJOUPXzFwHGmROy6K6XKr5+B+0smjveWSAUABv2Su69ajZeoLfiCTDFQI79f7m+fDpBave3CdIqdE204cuBEnseM0+eNpYXlPjmllFJKlYbtuPI4sD+AyeE/a6P2vLUBEqDYGcCOAA4EsMp23IkAbtCdc6WUqhxl/0Lqez3X9sxjS6sFT61ejR0iXZPQMRIF6smMwQBeGjCRn0wA41a24MmFl6MNRDGIZyillFKqM2zH7SFJjAAeLHItfyk2NbqFv34uv2zH/RGAewEsz2bS0lBQKaVUjG/yZdEvx5sPnMx7ZRw0WavxLjjocFt5GAd5jMZuNbi9/2QMkvIGaWhY7tNSSimlVOFsx93adtw9AbwFYE7MF/8bIj02pDfAobbjSoaAUkqpmCp5BsCBOe7VlsIusHAhezgBVP4shFJg4DjycVzCx5i6CWjcrS8/N/U40rm8SimlVAzZjiuN/KSb//VAkPVXDR4G8I7tuMcCeCWbScuIQaWUUjFilbKj/4CreeeWWvyECfcx47tRKEEog4k+MO211/AtCYaU+2SUUkop1bkaf9tx9wNwOoBHq2jxv4ZkAMwGcLbtuAeHPQ+UUkrFREkCAP1ynL4/hW8jgSuJMSGcdVvNpEfA3S21OLduIh9W7pNRSiml1KbZjrs5gK8BuAnAtQC2rNLrJk2arwBwm1wP23GlE7ZSSqkYKHoAoH+Oe9fU4FIm3ADGScV+vTgh4HIGrh8wkX+gfQGUUkqp6LIddwCASwH8ysDs6EpAYQnEDQDOtx1Xr4lSSsVAUVPwB07io3wf3yDglGK+TmwxZCTAFwFMGng1elAfvqn5dGor92kppZRSqp3tuLJZIin/ksHYEMeZz0W2C4CLAAyxHffKbCbdVO4TUkopVYYMgIET+Br2MUkX/x3Shy1c4i3DBXtP5ErsHqyUUkrFdbTftwD8GsAIXfxvUHcAwwD8wnbchjBoopRSKoKM36BHjeLEgIn8OwbOkPJ/08evYFsTcF4KGHPgZK7MkYhKKaVUTIR17ZLuPwnAV8p9PjEhZQA3AjjEdtxUuU9GKaVUkQMAI6/n2kX98XswTpZGdyaPXRUYWzLj9FYP5w7I8XblPh2llFKqGoWd7acBwcSiXct9PjEjmz+3AjjRdtzacp+MUkqpIgUA+l/HvT9agd+DgkZ/kgqmukZGA57JNfjZPtfwVnoRlVJKqZL7IKz71+eZro8K/A2A72s5gFJKVWAAYP+reUdahd8z4/vhaJio8gC0BL8YrQz4iKZuBFyUbMM3GnLcrdwno5RSSlUL23E/lrK8sMu96jopofgdgMv0IiqlVKVMAWCmAb/ATvnWYBbs8SgPWcQvByDd8/NEeAuMm/MpTFlwIa3oygHrJvAZPuEMMLZZ6zplSzE2cW0M/HZ5DRYCPBvBwACllFJKFYPtuL0BPC2Nect0heV7fiWAVeF/ln++BmB8NpOWcoQOsx1XJhUcB+BiAFuEmzPJsDyzlBs1EkS53HZc+ftMzmbSq0v42koppcwGAJj2vwZbe3mcwwhq/ku96F8EQhszFluEC+aOoWZTB28eSxKx/t2aIMe+k9Evwfg9A5uB0ZsI2zAXfQyQ/B1fYmCpLv6VUkqp4rEdV1LW7wPwhRJfZ/muXwbgo3DBL7Xzf8lm0vKfuyybSUvG41/DXwHbcfcGcDaAAyTTMEzTL1WJwxgAq23HvSGbSUuQQymlVNwCAAdMwOZtbTgbhHNQOvIF+bp8j3kpnLzgQpI0veIi4ueBlwDUy38dOIkP9338lADp1N8XQNr8a4LBeMECTm8eSwuNH18ppZRSAdtx5bv8lrDmv1TyAJ4A4AL4RzaTloV/UWUz6RcA/Ej+s+24WwK4Kgx4DIBscBSXNAM8D8B/APyzyK+llFLKdACgX47TbcBPQEFEtxReY8ICIjRaSfy1+QJagjKZezE9AuCRfSfxl8jHSUQ4AIwDjUXR2xf/zzPh3OYxJKmISimllCoC23F3ATBhTZC/BFoB/CssXTwtm0lLIKDkspm0PEedEV6DcQD2DTMDdi7SS3KY6VDsQINSSinTAYC6mzjFy/Az5qDuv9g+YMI0C/i3l8S/u1rTXwzPX0ySFTB67wm8ZxL4DjFGMeGLBR+YMQ+E0fPHUJORE1VKKaXU59iOK4tRaV58KFD0sr58WGLwBoBclGrhs5n0eNtx5XnwRJnoDOCb4Y69SbKhcX02k/5fSYJSSqmYBAC8xTiGrKJ3dG0D41km3JxowQPNufLt+G/KC2NJ0tku7X81P0cW9gFwBbjLnYOfZ8bF88fS44ZPUymllFKhcDTd4LCBsTT/KybZ8X8SwO3ZTPq9KP4QwkyE223HfQzA/PDaHGXo8NMBXJnNpGcYOp5SSqlSBQD2uYZ7UnvH/2J2kF1BwFlI4uV5o+kpxMT8S+ifYL5/4CR8ItFzBoZ18hALLca5zeOosUinqJRSSql2A8PGdHsW8YK8H+76S1Phl7OZdOSn+WQz6Q9tx70WwL/leQzAsQBSBRzyTgDXZTNpY42alVJKlTAAkGjFnSDshSIhxn8ZOHfuOHoIcUTEvXL8++UpzAThmCAboGMkJfDU5nE0p8hnqJRSSlU123HlOeY6AIOK+DKzZPydBPezmbQ0MI6NbCYtkwkWhr0BpNzxBwB27cKhbgTw62Bqk1JKqfgFAAZO5JuYcWQRz+VM8jB77mUkXWpjqylHkka3oG4Sv+XLV+imgwCLiXHM3HG0oCQnqJRSSlUp23F7hDX/BxXpJeSbf7YE9bOZ9KuIsWwm/bqM7QtT+K+XNlCd+NevDf+d9+KQ+aCUUtVEauA26YAJ/AVmHFGsJjkEHJVtxW3NMV/8r635YrJbWvFLAD8LxxeuTx4+9tfFv1JKKVUSO4Q78x16/umkleFEgePjvvhfI5tJ2wCkHPPrAF7s4L92CYBJAN4NswmUUkpFSIe+APOEPwDYvkjncPTcVjzYlKPIdMQ1ZWGO3Gwrfmsxfhg21fkMrxXbz7uE3irP2SmllFLVw3bcLQBII7rNi3B4WehK6d9VUkePCiKL+GwmLf0MviKL+k38cQmu/DKbSS/VnX+llIppCUDdJL7M9/Hl9o16o9qI8L25Y+h+VLCwJOCBARN4GQPXEbC//N1THvaal6OPy31+SimlVJXYD8A2RTiubGDsHi6SK1Y2k15hO+5OAJYCkBGKa/MATAwDIJryr5RScc0AOGACb+H7QTd70yNybDB+PHcM3YMqMW8szbESOAXAND+BIc940J1/pZRSqgRsx5XnmIeLcOgPAOxV6Yv/NcLFvWRSvL1O6YOUPF6mi3+llIpzACDHVh4YH86CNWkxE8bOG0d/RJWZO5pezrbiiOdH41nkSOvilFJKqdL4RRGOKYtg6Y9UVQH9cJHfTxoeA3AB/B7AaF38K6VUzAMAA7phb26fj9upUYGbsIwJ181vCb4sqlJ7SQBpepxSSilVArbj7gMEGXgmSZ3/GAD/qcaFr5QDABgJ4CYAF1TjNVBKqbha7+K+7iZO8TKcwsBQY69EaAHwWK2PP+rut+ooHjUqgWXLtmxBS5bIqq1h9pCgVVjpf4ptt11OU6dK3aEqEm4M7hFbIole8FGLVkhPC3nws3EIHKKg8ZVSSkXZtYb7GEnN/20AHs1m0hXXwLijwrKHC8p9HkoppQwEAPxPMIg46PZqDuMdj3Dz0+NoQyPxVJWyDx+0ebe2xNCkj91gWSmf+X8PavklHyYt0PZJ0JYM7ukR8sizQzXWx/6SD5e2DauXBWnAIsms4BU+Y0Fy6IhZlMvp4rQD+BFshRQawNgJFpLgtR6UGalgbFZbUPPZA4kgkCdjoZZiOpbx9KDx05o/K//PgYXnaDieNvkeqUT9r+PetBr7kY8vEqG7DyR57WsfIgIzkLcAxyfM7d2CFypxakq14UMOyXp+20E+e3sQWzUW/AQsi9a+//3vvsbsA1aewUvylv9U7bTZi6i967zaBNtxD0B7812THpAAQDaTXqI/AFUstuPK9K36cApXqgtBLHk+agXweDaTfqlIp6lUh9mOK5nnck+uC54pN51lLt9zbQBelh4ummlkznovPHs4EBYOgKmELoJ8SV62YAxNN3REFWPc0NAtT97BFnCYfKlxGzZj4GAm7ALmJK3zJSerShH8Jv//7637TciyTCJaQcQv+TOnz/GG1fs+0cok+3+nxtnNpfr7RR0/iF6oxQgQBgX3AEafoNcHYQdwJ0p+1v0BUPBDccGYz9PxXPuLYTkYU+gQLEQVy+XY+ncK/Tzg22yhW/Cbq9CbCP1B6OsD3QEkiNb7gCcrQo8BhxgL7Bos7D+RV8uyEMB788aSNN9SEc9kalvywekJsnYFc0J+z/NW92JYB1qg3UCcYqIEmK313teChyBfHuaXJdh6Nj98yOses+8TPAJeSiS7T6VHH5XMHPV55wFIG7wwj4Sd7l/Vi62KsOA/fa3363bh6EX5Z7ILAQAvDAB81XZcWUAJCR4/AeAhGe+oP0FVTLbj9gQwIuwnJ+9h+f4bKHsgCJ97OhgAeAXAYbbjcvjfm7OZ9BT96XXd524m/Sfy/uTjWhCGwAx5aPnrvDE4GcEOrapWbSOGDrJ8/3Rm6sGEPQi8dwc+/IWSHWtZ/L8BwspECpfTI7Oka3NVYYaFJhwGxonhw8WXAPQtwfVfBQTZAO+B8CnyGEeHBhkEVaHuGj7Qb8WZoGD3Rh7iDgp3ckyQ++knBDzEgE+MeXPH0XWIk78f/2r4PiwM4Uocc4/MH48MHj58dx/57zK4LwEJZh4Ooj6Qz6IpBJ+Adxl4BowWAl5LNM6K1HUoJ9tx5b31kJH32P83/RsH4E7diSoN23Fl4TDLUCDo5rB3QWTYjrs5gEkAeoajFWXyVnuQuDjWLKYWhM9HtwOYmc2k/5dNqVQhbMeVZ5yDAXw/fF/L8+YXDD5vynv1zfDZUsapT8lm0k918VwbATQUeD6SXfOVbCYtDVFj43O7fcTYE2Qu/Z+AVZTEFbr4r175YfXXg3lPZn8bJrkRfH6Xq4hqw0XXQWDkvVZ8KT98iAvQb5LTZ/wLVYCn4w9ohMxu3jG8CZfw8gcR3vabK6MFCezN07EaCYynoZiJCtV/PF9NhP38NmwLwpc3NXK1i+TnuDkD3wliPBYOHzCBR4LxnAXc0DyOOhToGjiB633CucQF75J+Z95YWowqxg0NSY/8rwP4ocdtW1L75y0ruUnB/5kOgTMsRvDZll+SgmPnG4YMIsIbVtK7gh57oipG023EhWH6tCkzw51T3cxQBbEd9xwAhwDoBYTZeKWRChdkXwp3Vw8E8L7tuK9JU8tsJr0MEWA7rjQL363Aw/wnHE35KSLKdtxc+Ixa0GEAXJ3NpJ83dFpdPxHH/Q3aG8hvG/6zGM8+yTCo2zfcZDrEdlwJCEzOZtKS3aI64DM3nAGTeTv4wUKpBqb4+FHzRSQ3FlVl2obV/9JiNDDwRRD1iED+h7zfD5LtcAL65YcNuYwJ/0xNn3k1KrF5n49bICnmjL1AQSCk3OQc2jOLPHyRG4PdtBtpGO5BJRjFif4DMNoCvsXA7iBk1lOpUixSgLEVgEOJ8BWfcEz/iXwPMX67qUU5A1sTB0Ea2X3qsqRf1F2rSOPDDuvp5VtPzLN3FknTzPaHnzLc8jgLwqEMrM7naUh+2OAnEp41mWbOrNZ09T3CIKQJTeFD9lJDx1NVyHZcCUodD2AXCeCWOCC/Llmc7RX+kh3bwbbjLs5m0oXuiJogG5H7FngMCa6YW88Uh/wdDy3wGPIdfyPKyHbcvwCQrN4vhLX9pdI9fF0JaO1tO6581/0om0lX1WjWggMAlMfeTDgZBlEf3GfyeCr6vOFDRjP4TFmQMEVzUcDgHWRnqD0QUH9MAjSBGmdWxHuVGzERjO+Bgtr+mrI+XmzYzuAgI2Ffno4zAFxOwzEDMTVgAn9P6oIB9OE1X35lCngxgsDDXgSMlnrSAeP5e/PG0bTynE1lC3b2RzQc7ret/hPAPclsrXkhuhFIsvl28xP89dah9RNT7srfUHOzpP9WBdtxfwQJPpshtdRvh6nTSnXl/SjfEVfKd0S4QIraN7M8q/WTbTvbcSVzaEE2k/5quU9KRZvtuD8F8BPIpoe58sauBrMkqCbPlc/ZjnsrgLGarbVhn0nNkC7UBqPlSBB2bz6dquaBo9q1NQz+qje8/r/MLAtQSUmN5OJ/nV1T+SKu84in5ocN+TMPHlzQLmg5cSNO4Ol4Bxws/LaPQeTbCiP0Q8GYztMxmadE/pw/Y7/J/MWBE1magv05CGqUNvK9KXIvlxKExwZM4IcGTGB58FSG8KhRNd7wIas833uQwVsbbjRnBqOGgT6WhV94mR5v8bB6c6N9o29E2HfDhNnhrlL589hUrNiO29923ObwO2KXsCY6aov/db+XJYPpcAkEhIE0pT7X3M923LsBXB+m+pdz8b826TMgWXijwwaYalMBgL0n8m5EOBfmLP/0fbxn8HgqgjiXs5zDDtqqdXj9WUT0EHPJa8zNCBpz8UleynpH/i4yqaC9bjfaeAoS/Ci24+m4DIy/BiP7YnDen0PBvegibIn3eDq+zS9GOxDQL8c1dZN4sOfhJeZgmkWUr7mcm+zkvF03iYNacVXY+D5/WP293pIPV4C5NuI/+zVkvsS2HtCUH1Z/NDc0RC9YYZDtuL0MbmbIJsYH2UxaHyZVZ96Dm9mOK/1A5oVdz+Nwn1iXBAJush33Lttxtwybu6kqZjtuN9txfwxgUVjKEtX3tZxX0nZc13bc74fTCNT6AgCWF0RMJGJuBBGOX3S9Rl8qffGfnzGtvkdbcobFQRSwAnBP+bv4CW8sDh3SV5p6IaL4OaSwOUYiiTkArkBlkPvQnViCU3kWdgqmF0TMPpN5h24p/Mj3g87UxZ6iYFI338dbdRN4z/bJgqozJCi4asiQXT2v5VEfOLaETbtM+0cbede3NDTIrk2lkmkn+xk61qJwNJtSHWI7rtQjPwbgnxVwySj8PEkWzEm242bLfUKqrIHV88J+A9vE5OcgC//fAviN7bhxOeeSCB6uR03hBCWDuiRTFpOP57Xzf2XPtfZmTP8qAY8zZEFRWdjHpV4edwHekVxXF7moNzeiG5bjG7CCB4zK29X1cSPacDumYUR7z8ZoGDiR6xI+/swE6XQbSz4wf+CEYCav6iAeMWJrj/LHJZP8AIAD4n7hLOCUBHmPymhWVKYvG0r/l3FTr2Yz6eUGjqUqnO24iXBsoez616GySD+N3wG4IBxdqKqE7biW7biSXXo+gPFF6uxfTN3DINYNtuPuWu6TiYrgh/jWIvS2gFNNHZQIN7fVQL8wKxR/bfBm3tIPvg0ED8Nx3QXrAN7PI9zp9eouzXsig2dDpnVIXd49MbwRd8YQEO5GI0YhAgZM5EMYuBuM4Yi3Wgb+1n88F9p5uCpwQ8Muvt96EYGuJZmoUTl2JN+/v21Y/eGoILbjZgz2Y3AqKLtKFVG4M/4NAA9HqB7aNPl7XRIGAbayHTcywXlVvMV/2GX/UhmpGOPrLOV6R0kjTttxpRdH1QsWD201SIODC2PK3xdcSCuq/upWIEmBza+kc8H0R1SHHiC6pbWhXjqdlh0/ji+gBZeAKqXkYhMIm4NwB08zF6Dsiv4T+Aj4uDnsdFsJ+kigduBE1i7PG8HDD9rdt7zLGThDmumh8mxJwK35YUOOQOWQnVdJwTbh02wmPdfQsVSFsh13p7BMRL4jqqHWeEwYCNhZgwAVr7+MPwVwGuJPggBHAjhFenSgygUBAG4DMRuqZWW8nM/DNXIsFbmH4VTCH03ABZW9878OhmURrm9rGDy6rKfxGPaChctAwe5/9eBg1+HXPB1nl2vxT4RJoGB0YSXteOzEPsZYFMxKV+vg4cN39jhxFTO+a3I6TvTwdkR8dVvlTAjoH44zM2GKoeOoCmU7rkx/ke8meT6opkXFWQAmVFBQXK3/vT0xXDRXit5h88KDqz14ZY0axQkyWatEuDXvaff/SuPU1/fxOPEzgL5d2Q/DG0REdHnbsPqypEDxo9gDiSDqHufmY11HkomBHE8PGtCUTN14HkjS9KY99bvSyi0sEPZhxklUnZ/pjdf8c5vUOo6q/M8bWczoR6Cz+bAhlVAf2cvQLqyM/LvBwHFUhbIdd8dwBvrJAKqxLl7qqn8V1oeryiul+gUQTDlCBfazGB1O56ha1rz64OHGZP3/woU50gyACiJN8LolIWM/vgNAbgrVqjuBzvOGD7m8lC/KD2NzJIMRnVJf2A3VioPdldGlCgLsPZE3Y4L0fziwgheBvRnYk6v5fbUOPuywnm1+i9R9f6uCf+7rqpWwRz6Pk2W6C2IqHFNmbIRoNpPWUcZqQ+81CTRJdtAp4fSaavW1cFRgNZQ+VBNpdHwMKtfBYQaLjC6vSlaPFiTBGGLoeLLw11m5FcbP9vgxtae4lSPCLbswS0F4EqAHATwCoDlszlSO08mC8WNv2ODSpaPXQPoPSOZF6Wd3szSNx0dgzATQfv0J88BYifKQOuyf8nScVOwXSjJOYAQBgIqema4+y2tbfawF+k5YL1hqHkA2EX0EKvl3aZaYz/BnPC7B3riSDAZTU2lkjJtS6+32Hy6Oflbli/81pJHo7eU+CWWG7bi3hGnycRpz3FkEYFiMxhkat2Z3o4eJg8lIOABvmziWiob88PpTGciVavHPRK8mfek2ajW3hL9XK6OYaryWFfmULyHmVbwyaVGiFl4y2KmqTfmEPAZ4xLeAg/TP4p4jeGvAOpGH1TdT46wnivpa7bvd8qtUs3dfBGMsLLwc/DdZgtQij1ZIqNAPP+gSNKyFFabES/8QQj04aExY7FRyAmNnEE7kxzCPDsULxXiRAeP5BACS6bEFSs+Xe6lPeJ58vMMWVhFhS2Z8kRj1BOzClf3FXDafNDT0Jni/4OIHfZYT6A7LojtaPFq85jdrLYuRz/uwLG6xWhPgmqBGsTaRtzxO7A6fzwCxyYa969rKB53GI4a+StNmxHEBLP0s9jV0rEmGjqMqz8gwPbpUi38ZR/krIBj7+1G4MbIx8hy0n3Q8B7B1Cc5Pvo+OtB33nmwmLQtHFVO240qp6TdLHAD/IGw0KJt7SzfwZygM8Mr76weGXjeFKmY0vdEnPNbaogGASiFNoYjpJwwu9uLf9X2MTfm4e3HCWtWnT59VNHWq15kD8KhRryfef/8h17K69UjgWKZgXm2xEMD7e7JD3K/fs7RwYVF26nh6cBP+aQkW/8tBOBMteAiEFthYTcfJTmTHcSNeQw3ugYs0avD9MLWqOAgWGIcigW8x4yWiMDBhyN4TebdwKkopHpzE40SYuLoF8zPtD3ry/+XdpfCyLfAz24GdbUGZD5D4GEhmwl4EqVokVjBGAJhaovOseBny3uailjnRXYk2/6dgzqNXr1Y89FBrt00/zAc4l1uERx5p+rS2traX5X1PGjiCsK3xMyTsnff9QdzQMIuamlYjXqQWeTdDx5KsJ6U+w3bcgwDcVoLFv2TZXQfgRgAyVUv2RNqymfQmv+/C5mYLAPw1XDj1C7Mni7lBIoupr9mOe102k5aSRRUz4Xi8kSVqZvli2NPqQ1k+hu/vfDaT3uD3oe24r4X35XPDzabvhM+a5cjWi71kwkNfUwcjhrMwR1oCUAG4oSGd5/xgpqCjcjHIAvMDsuhqa9rMm5MdfAjekDBg4IS/fs8NDbe2sfcjywp2cSRxwPSOqex6/zS/zZZL+UujrupswGJTeCb6IA/pyl2splyy0JSb6VgajvsKPRgNC4635vpP5OdwLZYHN+lLwgwjs9efguNdimlYxjncQDlDQYAcWwlgUFhyUSxyrZYyMMlN43eLzqY1yS6b0rae37tXrkZdjnv4tTgLHGTrJKuodt0IzsHKz6h/pgg9TuS+1krAFVa39C/poYc6+rP+HMrl5D2+KvwlzeluaBtW/0tqb0AmD2xmOhozLAJyHoJgyJ8l2on4kOCYkR4G2Uza6D1dxZ/tuFsBwRSeYi3+5T23SLLPspn0PV09SLiIWvOdLJ6S37YdVzJk/hI2P5MFu+ku6PKs1WA77uBsJj3b8LFVEdmOK88MVwGoL9JL+OEzzJ/l2S2bSX/c2QOEwa/V4a/lAH4pv2zHlWaUV4TBX82O7CALfrCDpNT/PFdXl/LgH01EkpJTjC+4DwH6Q2L5yt0S02beVIwHTGpqytfMmPW7T1r9HZhIUuc+CV/bKIv5O96yDyRiagy/iBq04rhwtJBpcgN+G4TJGIZ+Jhb/60P7oY2G4+dYHezI/UG+X8IvAKMvA8LJGBIs2I0Y2B0HEOMaFIdc+//Il9+8Mdh2/lj6VScW/xvVnKOV88bQZG7FtkQYC0C+XDUY20H5GfWHUnv6uEk2AzO9BA1INM6aWMjif0NSjbPOS7T6UhIyJ9xBMYWCUoPhB5naTY8b/eyo9dX9y4aIZLiZJs9Ab8i422wmvWchi/+NyWbSr2Yz6UFh/4KXwr5dpsk1+ontuKUqW1QFCjNGflbEcX+yWH8YgASGTu/K4n9jspm0ZLrsFQbG3w2DX6oDY6AkncmEVljr3aFSMVO3Wc++ZHExZt7LAvwxH3xksnHm6dTcXPT3S58nnnBS02deAMaZDEhE2uhDOAN9ia2hPGKEuVrxj7AfErgApnHwUHs/8jiEhuES06nz60NHYDkNx+mgYOTKs8ZvzIQBYAzjpwpPbZRddPhB3aTxtGoQloBw38oEDpg3liaBqCi7qvNz9OncMXQN+TgawN/BWFaM16kk3NCwgwX6jcn0WAK9R0yjk6nuX6t9fGZ7P40iIbnHNc46GBSk+xr8edM3PT9R/+rIkdWYXvlkuU9ARc4eYSNc09rCHfr9spn0+SiBbCb9UNgFfTIA6UFi+vtIUrtH245rbCKHKqrt5RFIpgIV4Zn//bCf0jeymfRzho//mYytsPSkAcADG8iYVGuRZl4y4qpwhNeIg12nSOuX45qaFA5FhevdhkeactTpxdb7dXU9/DwfzoS9DZ+SB6b7En22PjFpOF2+I5JNs+7mhoYmj/LjAZLRPca+mBh8XpvX+hLX1d1ZaFCDG9EbjMPBkFoskyRt+B4swamdre83gYbhJp6Gh0H4eThezdyoMcJlWIm5zHi4kKBGWwq7JYqz+/8MGPfMG0uSrlYScy+hpxpy/P3ltTiLOQgmSeqqWg+P/EsBNjnH+k0mf2yicfbdpUyfT06fdYo3fMhoZpwFsDzQFY7w0775FdLo9FXEI4XVVLCiydBxVOXskJ5VhPRiaeg3LZtJSy1zSWUzadmVvdp23E/DmuqdDf79UmGAYQCApw0dUxXvvinTjkw3b5Q0/fkyTjCbSd+JEslm0q/ZjntsWGpwXLU3+tsY+cGbevB5kyiIJEZabU3QUO3fqHAft9eydiq9i+Vxr3ePXTwfEw2fzgqA70w2zTodZURNTR/yqFGn5Zd85BLYXHo9w7IsHIve3aU5yetdPkwuyMjZGz4uMVyZZ4NxC43AhSgjGoG3+FWchHeCusQfGjx0CoRReBISXe5SELIhx91sCtLfuhk8L/lM/dtijJs7jqQhU0k15Ui+gK/pP55bycLFQVNDNl7zGWutDQd/hcAHs7mf++sAXZqcPkt240vO2mLra9uWfLDKAuUMNXKq89owhEeOfLsYJQyGSQbHdoaOJf0glFpjMIAzDV+OhWEzQZmeUzbZTPo3tuNKieTZYW8AU/1jZLz48bbjLspm0hvq7K7K74thsMYyvPiXbJnrytELIuzf8t3wfS3BDS1HWQ9zP3DG+0kK6qxVXI3ql/J9+onRRRChlYFfJ7bc1vSXZ5dIs77k9BnnMIKdaHMYR3qMg3nUqK5nFhyMDHycGnS5N8cGYWK5F/9r0B5owRKcDg5qtcxhfB9tqOMpXdvBcNLB2DcZf2PSfWjFWeVY/K9t/jj6NUkKHgd9GNRaLEr8iIEvGLoob8HCuGTjzLvKeX9LcfKPTHQzDJX4EPG5K1atKkVX6ELJZ7iPoWNJrw6l1pCRf6Y7oI+XDv/ZTLrs/SbCHdpLwzI9k6WBXw+DCiq6u//S9O8Ig4fNh+MqLy93I8hsJi1ZO9cUqddF7JkMAHycbG/0pSIgZQXpXJ2zeKseTPxjk+dBPv8yyYmJprvkF4KIONk462KG4UwHxpmrFi/ueqo1BXVY3zV4PvJFPh6vBJ1SIyMoQcgGO9Jmdz58nI8+Xevi7rUETZGM1YAz0OgxLp9/Od5CBMwdQzcDQSlA2R82o6JtWP0IAteZSRHkj0B8aXLarLtRZtTU5CYpdR0x3WrieAx8qZuVH8S5nMnAZDHItBFTI2vXdE9XVc523MMA7G/wkO+E3333ZzNpKc2LhGwm/SiAcUGTYHN2B3C47bimAnPK/O6/pMubzAyUko8rspm0BLmiEryTDb+i97yKG2Nf6ET4dLtdg7mlKgKsROd7O3iWf5Wks5s6BwKusWq9a+SBFBEjtbkrV+evBWCwNom+0t3yd+vKgzI3IgkrGMFisjY+B8Lv6PQINkPZD6uQwi9AkGZEpoyAjy41Y7TI6O6/1HVen2/DK8Vq9tcV88bSH9DeD0C1f9Ck14l0Di7Uama6PbHFsqJ07u4KmjbtI4/zvwMF0wEKPx5bl+Hpp6NeS9mtyHPOVXW6zHBqtIzhuy+bSUfuuSibSTcCOMPwxKQTwgaKKnp2CpvmmSL9JC7IZtJFbXzbGdlMenUYcJOMG7UWY4sNBvJTj6PI7PJWO6IupF0x/8DY64P+bCX839AjcyLbhbzX4XM+TVjWjWEXXCM8YBIee0xm4XbO4uCzKOlyplyPJH5Pw6KZ+hQ0R8vjfTB+DzYYOLTwK+5knXu/HG/D7fNjzSBc1zOBaQtzFLnd9m7dIbvCL6DK8SFD9mai/mATzUBpaTLlX0dTF0bq551q4f8S870mjsXg/mhtNd0h2jQp/6nGiQWqSGzHlYXrlwwe8o4w7T+yNfHZTFrGtX3D4CEls3GA7biSoaMiwnbcLQF81WDPBzEqm0nLRItIyWbSkp0uk35+Xe5ziZKop/SpLuL2Wawd1tpQL7NtTd2gFzPzv7HZdu8hwigHHzU95vpgg7uifCDSfud3yrbEOcZuxBx07L4P0xHZhwxBw5DHCjwOBOUAZjC+iis6FwCorcGNBl//97Bw+xOjKZIpxHPOo1Ue49uocnlfJm2wND4qEPuJBEbSY0/IqKNIkAyk1uH1A73a1AMMkvuKEXluNVJSUEQmpwAoJa5De0NlE6T59LXZTPqDGFxaCQKMNXg8OZbpyUaqMNIA/mSDF/FHAKYjuhaHvQkik51QbhoAqFDUXnvVYRYF82CNYOCGRPf0v6JU978h0tk6Rd40v70bb+EYlt+a/HGZ0wxvQC88GQQ4Io6OwkowphksBUiiHid18t85ysQLk9QNJzBn3kWI9ANe6i38l4EJqFLc0JCE7/c2E/CkeXh8ZlRqHZEfVn+0N+Pxty2mR0E8FMCOpo5NElyL/vOM6TFtqrrtZug9JanRT8ZhnKbIZtJSNjjVYC8Mmc6hwbloSRnsjv8ugEeymXRknzmzmbSUY8pI2z+U+1yiQgMAFYqBbbrQQdmER5Ps/SsGI6P+h6bPec8CScTbCAau7sK/1tPQi98BC/+i/SJY978BdAgWgvEPYwe0IA3vOuTgi1h2d4zUNrOMvFmNu6JU978+zTdTm+8FpQDVyfKHWEQy8rFgiaEjDgjKWcrMG15/Q35Y/WoQ7gNoe4C3KML3e5IHDzZXKmOe3PMi01RNxZvtuMcZbCopAe5JUV4grcdrAEYaPN7JtuOaes5UBbAdV6a6mJzM9Y1sJi3NLSMtnLghU3puK/e5VNoUAHkO0hnTMdQ6tP5cQ4ugPANPUdOT8xEziZq2x6VpoaHDEY8c2eFoNzcZG0nYCgvNNAxvIm78oBTAzOx0Roqf69j7eeXmkHnpBSNgKVl4vylHMgIn8rpnsZSAX6EKtbG/JwP7FnocAl6iXK7kD/Q8alSCRx7Ya+UhB+/U1jBkSn5YfQszfhrssBls4ro+Xo0ljVOjHACQhk9KmSCZfFsbOI6UBzWFO5CxEZ7vx2Hmggk/03nskSE7/1L2a4KM+otsr691hSU4r+hEJLM7BNl9rjFWQ65KiCjo+moiADA7Cb4PMSTNCpn4ZTI0L9Rf7Z7f8T8c1E6Z8A9Y+BtiiA7B6+EMYjM7eA6O79Cf8/E9Ey/HwL3Le+BPiImnz6bl7AcTMGIRsDCF6+pSifZu8QWzyDsaJcQNDd34sCG7eks/+Lq3uubBGs96i4hHASYaGXb0JPgQRJfs7qwo90mo+LMdN2WoJ48ECOdnM+kOZ6VFSTaTfjXsnm6qnFPXCNFgqvGfvC+uzmbS8vwWJ38OnpernLkAgIU+qVYdwRM3sptEZOABktDKoAXUOPt5xFQC/kymoPmNCR0KAPCLxh7eV4GwkIYGM4bjKRn0ApBocuF8nLfpP2QsY2kFMT5cdDbFpuxF+BaWgxG7bJ2CZDK7M2iIgSMtQatVkl0P2e1vGzq03oP3Xb+NHwKTBFkNNDDsGttxTXaNNkl2/6XbswndDR1HxZNkCEmatIna/yg3RuvoWFtTz3VH2Y6rpcdlFF7/TjUJ3wjpf7MEMRNmAbxW7RljlsELsL1PRm6YqpSWfbC7id1/Zn6dwI8ixmj6k68xY4GJaDd3dB71UuxnKBq7AD4eQ4zRkODav9R++Qo92Kabn+1/ddAF10SDpwWUwv2ImRVpvAXgd6giHnm7E1BwAICBm5FMFrXefPWIwbvlhw05Lt+SOpss/1EQbmHgiygjlvtMKTMOOscNFysmmBz9puLnWAA7GzjOe+H4sTh7IdwxNVVWoY06yytlsP7/j+EzWxw9EONzN8IiMtSVlIMRH32MHEsVjjrWBC7P1ono6GJ1o69HixJbbmOskV65kIWXiYJ09ILxoQdL59uN83CqjGc38HL/pRHGavXKh4MRLYV30WdY3IiNzi3PJ3GMoWv/VvNFNBcxIxkLbG7BFA/EPdjAzl4SPAVNTcYzPljOcMTQ+taG+h8nfesqgO8hpqsMvU+7hoLU+r8BfGMSGJ3NpFcimpYD+NDQsSQwq6pXXwPj/2Qj4b1sJh2rzLANNE6TEWomyiP3aG+fosooYSiDTL4HPsxm0rHcRc9m0jIRIG6lC0bJzuMcAHsXeiACdmENAEQHB6lnHfhzPMRAXVYLMX0Uh7F/m7ISLY09uOZZgOSLqhCW71lHd2CH9QADGQBuuNMQf0n8C3nIddt08GRjCCn4qAfwrw3+mfaxZoWOJmoFdfCzFkGJBGzfx9sAdkKFY8DyTGTbEPxW32upNdj9n4+q6+Gt6H64D2tf9v2RFmEAwEamUxTgAxD+yT6/2eZbd3WfOevdKEw82BBZaNmOa2ps2XCpbTV0LFWdpB/F7agML4drhUMNHEtLAMrPRBZXcwUsoD8IAxlV2ZtCHoZmAjit0ANxe7RU6+aio0MLQiJkDHSO/gjkSzpN7PWa9sxSb9iQT7nw51zyGSdsMgAg/RcKfSnGG7DwICoADcEHPN3IgrobKAgkbDgA0J7iWWg64ofkB7NlY8nK4y22MI2BU1DpDjkkw15L30K3n8jHS75FRtL/Vw4ftH0SyW96LuoYGATivuV+QGbQixbhb8z8QsJPzKCmptjVeBqgGQBVynbczQ0tCFZt4vsnTv5jMACwD4BnDBxHldeMMDAUZw+Eoy4L3fCLpWTCw8y8xuMq0aJSvRADi5O1bdNQIXz23yciOxyV0lVEIOmvUHyEj1AbRGMrxdKwN0khac9JsOyiFhnj3XwbYtv7YkUeH3VLYi6syg8AtPgrt0xQ4oBCA26+hUe6+TV2oQv/FCfPJ5aHYfoywFsHgYny7a97DDQT6MakRa/CXf0SPf20pNRXq0LTv1V87WVo/J+fzaRNZaSUlaR5245rqvRHSu80AFA+/Qwd59NsJh33qStPhqMuqzMA0FKLZYkOVYtvGhGyfc/i2kU3RLcbdp6QT0a783U2TH8uLDWZgmZNG/WqzKpfXXhHVgK10UMV9LBI9BQDb1F7pLoAvNFryzPRB56RlOQ8HWRofF4UEJ4A4ygg6CvS9aNYJchIIqxakAvqI2NpYY5a+49ntxqKMmt92swn7FvoGpsYTejTp0sP9q3DBtcR4zqLqSeDvghwzzJn1UvZ1r1MdH3St5bBcV6j5mZDTwRKxXaBtI2B48jCopKsNJQufTiAsYbOSXXeYAMXjcMRl7GWzaRd23Gr9vvO6Dgf9nFIr+2CMWol233urBdaYO/TPVhcRFLSxyhmXFZoAIAY8zb1Z3Z0nJ0pRd0jW9RZJklOPO3BfwvEBQYANsHHnuAyNveKKhez0SOoPy4kAFBCpB+hGMhbiR7EXFhviWB4JDmd7XeSb2j4LpM/mqQBIfF20uyv3OX0DIxLcmKK63l2ZtbM2Aax1iFNAGUU6iangGyK7bj12Ux6lpnTUjEimXtbFHgMWRw9jsryJhD0i9mzwOMU3HNMlb286Z2K6TtVxZKpFWC/Jqi53WjH7A4hjOT2kSeRDQAgR/4C4F1EVP8JLMPJC0k9DyTb67U2KpGiXbnwaG4bOMaz59eDmprc/PD6lqI/nzO+AEZtgT1x3YobZXIk3kdjsNNQNA3Xce/lK5GUD5uqEsGttXQjqHjQoO5+99REME5geFkqZyf///cxAydJkBOOs6ICd/tfCWeWFxwAAIJAvImaZxW/8o9CP6vy9NCEyrIonJ1eaACg3M1Nq91AA8d4rQIaAK4hQa0WAw2hY0cGGedTwF8s4GwDx6shX2d8FsJiEFPhY1Lc1uANvVHE/g5EVrcC17mryfIrawFqDnFDQ5KamvLr/V8Z2wfd6guzAn7QoKdiEIG5EQb6MG6YswrbGLj2lYGi29k9ToJd/X79Uthmmx09brvCI5wI3ngZUAnITmSbBTR7wEWpxlmxbVjZQf8Fguy3Iw0ca4SBY6jqxBVY5/6+kRG9qtx2NXCM98L3QyVYGDbsrLoAgLUwhzZi3GbsiIydB53LOg2gaxfPyOK/469mbQ5QoYugNmbrDUOnVFGovQp9Y7WEWxdchsNBszyJYKrPXxuLH1z/Td3ysTkXeO2J4IGKm6lQCtQ+5z32f49ykSAfH3rwdhhWPyS/9RaPetwmO2XfMTBdpcunJO9LkvsC466Exf2sxlkHV8HiX2o6Jdi6/oBrF9iOmzZ1LFVdspl0RfUAyGbS0vi0oOanKhJMZKJ9Ik0AURneCjMAqk4yqF+1+FNTe0Bs4acr+wSpT5KKpzrhwBwyrYQtDfwsOpTWaVnIsF9wH4h8wvIr6ovOFJYFQKvXayN/REYwJgoK+RDaYAU3Y/V5CaQh1/9z9c1M6FloOjhz0EAt/l2eObhftFTrLNyuWnbIIdl0ftUeHrVth7x1kzQOi0BFyYcAvcnMs97hxGW7NjVJgLDayHtZ3tOFBrflx3kugKsMnZdSSlWCFdlMulI2DZaZDBrHSbD48y3kE17QPMdE59O9ZRqAgeNUndVJ7Gn5GFpwDgBhQbZXsDjZKJ+phjbRqb4D/LxvZiZ2pSEQtVnWxhZVPWAVnIDtw6rO6GWHeOtf5PsWEgYCbfJJLXeKtyoxYn+XthEH11p+64FMVhQWh5I49jwzPkhY/lSaPstcRl88yWzqReE4t0L9WAMASilVsVZWwkSDrggeXvOrglSOWw0et2HQL7UMoLMShF2IDDTo8PHX2uUdywIw8+xJJWusFSdSxJ6yqG2ju/dafV0Wvh+k7xd69SV8E/tyJyIkiMxOhKlsdLblJ/7OzOVe/EsD0IcBus1i64xEw/Ajafrsal/8C2mAa2rUb63tuIU2PVNKKaWiFwBYmMMKy8cjBg96XusqA1MFqk8NG6jP8YDGptymMwAs5laACox8kUXM0jVXrXtlJBTTRvKQvn6MFeEc7kJY8KuveUmHIzDe+gNhzEHTl0KjvlYljHFkH7UGpoFUkzoGSwlJuXwIwt1MND5P3k8TjTNPpaampyiXq8pdjHVlM2kp+Vlq6HDy3XaeoWMppZSKlpowm7PqhLs+xF4Nu5QPaiE2L/SgzNjGtzAYOf6bjN0zcJ4Vb8AE7gNgXxPHqrEko6Mjs8n5U5ImfoW9XNJnMlE6UnEYYLetbflG/shyMPwCbz014KCZoFqXNOnLYr3XP5mEHWQBFEZ+crHfOWfAIulFoaI+xHCRxbibmf6bSGEmPTqzosavFqGxk4nnGXk4rLcdNxs2QVNKqWqXsh03GTZdjbvNKuE5riv+V79KebwHwh2mDkzApf2q9KJ2BfvYg4ETDBzqPdrArufnXpOtjxhBB/BC1BL8PQo8RqXy0ytXfrqJnbxCSzV6gLFbgceoTASm/dZ/fX0/6HlSaTPQVeVhIswF4yT4fKaV7j0p2TTzTl38b9LfDZYBbBc2A1Sqw2zHrajMSNtxJUtMM8Xiz8SmrDRX3liD6zjZIQz0Vm8AYF4rlhJjhrEjM/aurcUQY8ercCz9ytvfiIUdB7jTyndsVAtbeIfa518WopaIvlzgMSoVU3PzhheZjHcMLEIzpjJHooJliJn8KqK+fau386uKB59xd8KyDrf8xA+TTbPuSDXNfpz+9a9K6bxcbK8DWGLoWPKgO6zSFnSqqOT7q9KeiyTTU7MN4+8jA8eopPfCF4D493Lqiv/vYJ0jn4D3pCWAsaOz0caCFatuPG9rMX5g4ljMePjp9uZQm5RMdX/VL3yOeQJElRIJDPCIEVuDg4V1cVlBt+pCx3RJ5LKySjBmQzJKijpJZOpxZKIJoKBcruBJGmXTkOMkWfHvY1A5uJWZL/Z964CUh/No2ozHqKnJ1E521chm0vLZnmewF4A0573U0LFUtK0yEJiXAMBgVJZdAOxc7pNQBfuvoffCThXys+gLA73X4ugzD66rWoMvTJlnbMrOA6/m7xg8XkVioA8Ix5g4VlIW9B3tuzBo0EdgKnyEXJF3a0vN81r2Zy7Jze1FAwEAAlXYKLpWDAUHabdxsOUDtahDTK3qjm3A2K/c56EkG4hOTuRpl2SLd31qxoznaNasD/S6FOQGgxsakqG3j+24BWfpqch7FwgmYxVCnomOQmWRndI9DPXnUOUjz50mFs27ozLUVGsTwM8sHBbmqJU4aJplrHEfW8GXsNoAGZfIhCPAhXdyJ8LfYaHDD43SNZqIC94FZSDJhx1Wzq7YRrFFQ8kq/s2NhiFvZBeaQZyroCCAhaGgAgMAcl254P4Wm8bYKc8YiZjK54MHuq+jCjDYBeMNRAgDCxLMI2dxYrdE48zbZdFPc+asouB/UoXIZtIyZUXuAaau5WEALtSfSsV7KejPUxgKF0mVxFTdd5OBY6ium2ng4nWv1rT5SvK5RQMTHgDwW4Ov0av/BP4XYpwmW0yrWoI6molGDubhtuaL6W2UGIG399pWH48KQYye4IKbgjCIZqM0dsEwfBWVU/9f+L1CFv+Mxo39EWK0FByAoWDc6V6IKa+9qZNMIKl4nmcts4gky62cJLV4CZj/vXz5yt6pxln7UtPsh4c1NeV10V8UYwGY+k6URd1htuMaydZTkfW8NFM2cSDbcSviuTf8e5iaFPOgoePEnu24VIbdZ1O93qzw/GPLdlxpoF21vV0+d3OaN5YWE+M/QDCj3IQEAQP2SaG/oeNVjhzL+K2TTByKAAfUlR1PklS3QsehbQPCkagAPPLAXjAw45sAP0H426ZfMPicFbpDtTv8CtnFfTAIiBW+yyCL+2TQCXxjHjeUJVBTl+PYdUeuu4lTsIIARlXo1ttbwuDnyvLihI8J9B+Abk82zuqTbJp91ObNzTpWrsiymfQzYUq3qazGPQEcbjtuVQTNqlE2k/4YHeyjtAmyiRDb8rB17Bi+902QTcZSivIiVRafBWf/dpKJ9/aakpC4lGpuyPFhP4OqtN7opEd4DMA0g6+zfYJwW/+rWMfFrWVfK9g5vMLEBWbC1FbuSr0jT4EEDwpDYO7ODQ1SJxlvrbUjiajg5j0s/+dZm/6iI/wjTFMtRBKMXvxgyb9IzOuObxp5aCK00tBNpLolggDBagOlN1/iJA5HzNAy7GgxfogqQfc/4TDxohK+pEcUNPqcAVjnWMtX7JNsnFk11ztCfmNwQ0P8GMA5tuNWTfCsI2QuuO24qXKfR4RIIPscVIYBYQmMCaUcv5uMeKr6vjFu4nxE+L6IswEAtkCVWm8A4Pmx9ApRUKcjo7JM2dNK4Kq6a3lLg8dEnLtvJ5LG+iNILfmMFy8hGSvXKS1tQTS24IggEXZvJS92i6C1MUB5n7/EDEkLKhg1NW36urbhLgMBADn5vqjBAYgxniITJYKgmIkvxE1mVcwdTU+ZuPbM+CJbGIZYYfItbMWI23nHgsuMOQS+0/f902Zx4pDk9Bl/3ehIUFU02Uz67nAsoEmnATjadtyq7B69LttxZSdQGj4Pth03/oFo4GMDwWEJhnw57kER23El9X9bQ9/LJtcUHc3C2AzRNSjMriglNjQdRT7zW8S1DMB2XHk/V9QEs87aYH0S5XE/gGcNvlYNAwdzK46VxS+q3PIUTjf18M3A057ftdEePds7TRc8D50ZfRMU8zr04cN3IyIjaW7t6b4d+HOH4VUDJRjygv1hxfz6b4F9wehnsI5z08yMApQP4S5xynDqdyN6+vnKKNvpjATBIQoe7otBHqr+RkzXMhJnJhpnn5xqemK21PcX6fVUx/3CYDNAIRsZp0r/j0qp8+4q23GlbOsyAH8CMF6+SSsgMCLPv53eUFkPWXyOQLzJ6L+hho51n5HnnY7rHgYvoqpvGXag5fpL5qkJ+wNB2WYcHSOTXVDFNvjF1XwpvUYIUmTfN/h6OzBw5qc1kkrEsYwamTBgAn+LCT83dTwCHk29ibldPgDTq6CCayRlKdW3taEhtr0ePG49GMxG0tzY9yeUeCxOShbPPC3Go1kIDQAOMnQseRDdNIaZmnDCYCRxKGKiZjm2JMJZqD6vMBstb5Mb33vMfAUxjUtw4pxE08wrapqa5pt8DVWYbCZ9O4A5hq/j4LDJYNzrYLvMdlxZ4F4N4PS1djRzMlnEdtw4N9eSBr4mAoWy+PwB4s3kpJg/mpwy1gG9wlr1yLEdV7ITypEdIplodxg61gkAvoiYCa/9gIgHh4puo5HrJHAvENQwmoyc72MBVw8Yj+GoQvteyV8CcLH0pDJ0yGYizG6+mbqcXppgug5spC5rPyLPVJ1YSa1qaNiFYEmkPmvieB+7q/7Z4T/M+LWJ1wShHlawiI4dnoG9w50SM5+Lhg6PupGHVxM2A2Nk+PmOfPM/Ypxflelvn656h5iajR2P4DPRJcmm2VcmmmbeRE1N0nBORVMxRvh9C8CvYr7Y7ZJwl//X61ngHhBmBBxjO27PGI+QbDHw7CvZrv1sx61HfNOkv2Wwjv7tbCZdyhGn0qcjqt/Jg8pxbuH1f9PQ4SR7YajtuEaem0vo8DCAW9U2GgB4Ziwttfwgmmu0fo4l8kL45YCreQiqSL8cb24lMZraP/Sm0gafoRZILXPX9egxHWQkLUuaAB7ROrw+drXoKfK+xMSGUqLpve2am1d2+I/XBoE2E7YA4+s801gafelwMCXETJoh4wXqYEbLvFY8beQ128cKNlAC+0d95GliabDwj/uuVJdIHb4HXiE5OkYOyCCf+VCZ+oEY4ZEja9tGHBybjBUTspn0k+GC1bRjAfxVmuChutwZ1v2v734nzziXyn3GdtwoN2HbmKmGatZ3DxfRcST16ccZOtbjsteC0pKd3qg265Rsxy+X6bXbDI5HlVKo7Q0dq1Q9LfYzONUitjb5oNo8Dk+E87QlGmrSPpTAzXUT+MBqKAfoN4VrutUEX4jfYHO7/89aFu5qzlHHF5vrQQ891MKgjtVMb4LVHv0/kHO5SC+C1rZ6xGBJETsbjM0NHfK8zvxhGhxMYTBRBiCGw8MA5kiPvvkMbsR+8IJ0dDO7RYQfdfjP5sgnwMxseEKaCJcMqEGkd3va2ucwx25soTn+c9I01dDByAId7TUM/hlixFu94i7yrd/mh9U/xqNGmZrvHQc3Gmm6+nlfAzDddtyq+FzZjitlNN/YxDPkHmGJxOjwoTtu/mqoWZo8733NdlxJl44N23G3AjDZYKbYdXJYQ8eKNdtxdwnrz8sVHPsEwG8NBolOiVEW1FEATja4CRtbm74ARLKUkJv4EtMvLt2zfeBv+05Ef3DlBgH6Xs+1NYtwFSNYmJgalccMvILNzOxgJmusb5s4DgPdLeZxXuPj8kAUeeHD7xfC+nMjEql8U+dPBEauf/D+YkzAjHikNwWjCylI/x9o7KCETqV4EwcRbFN2B+OsAVezNE6KnP7jWXpTxC5Dx6SUs/p55mAChCk9YNHJ3HDgDoiBfEP9bQDL/bkvCMPzSz56Kj98qDwUVQPJZjy6SMeWwF+j7bixeB90tXbWdlwJnkkD4448s0kK+bkArkTMZDNpWax+aqgEdpdwQkIssiHCxpaSlWcqmC0ZUu9nM+lSNgBcY1vbccu1074hkn1Vzia8kokxy+DxTo9wpsW6DUul/Hzncp9LFHQoAjJvLC22khhKBmZmr8f2FmPmvuNxcCVmAvTPce+0g4nUPg/WXD0cYQ4IlzSf3vXa/88c7uEmUzVBcrStmXDK6oZB0uE00lo/+ugLSZ/uAQepYoVjSecP6gc7Z6fOLVo3irAjfIziRyAR/GjrjgHwcSMIZnaIfPwWDZ0rZ2keaygDYA3C0ZTA4H45NvOeMmT/8dyfCD9BlQvG8THLw72p7zNi5n09qvl91HfTW4fVnwsKdqvbR7UxLALXAf7d+WH19/KofpF6z5oWLkCaw471xSBdsR+zHfcQVBjbcSXNV3qrSHC5M89qsoN8ge249yB+fmBo11ruC7IBFJf7rwQqpAm4qbKWqwC80cl/Z7Wh4Et/g2UMpj5H+xvcDOxqHwDJPH3P0CFl939+2Fwvyg5aq2Fp1etwCkTzRfQaUzCzvBjSloVZAybi1r5ncSXMkIXUAddN4D2tGtxMFETATX4wWsjHK/PHkMFFuyye+CRThyKibyQTqQOj/EDJDQ1bJpMs9fem0jY5T/4l9OijnQ8AzEMeFPTbMHAWwcPZWajFvszRTXPiRvQFBw8ZpnZF5EvtSursaD8iyT+6GeYkmXFH0sKAqPQD2Hsib5Yn/LMqG/+tRxLJmwg0xdwRSX7OX/OWfHAXNzRErhZcSrLyDUOOt4CfAuizzv8snxi5Bx6bX7LF3Pyw+qOjHsgoRDaTXgzgDwA6f5/eNAprS/9pO640B4zce6Gz5O9gO+73ATwh5X1dTJ2V54Bjbcf9h+245eh83iXZTPolg4HCmrAc4sQoz04Pfz4fGnwukt3/J8KMis6YZaj0WDbe+kRhXGf4c5cd6I6XKRaPjKoeY/B4UkJ7RRTf23JOtuNKjylZw0Z2TVJqnfpAzBtDPzRYq/x5jB9ktsVHB07mHRpy3C3OKf/9a/B1H2hiYJThw8vN9Km54+gUw8dFotdmfwPgGjugz3d4S7Y8JIoPk9zQ0M0n7zI2N3de1t1P+5zq0kMlHQcPbbgFQEH9HD7Dx6NoxKAo9gPgx4PusZPCFFEzCNOQ6NoDg98S9OcwOq89kcRT+yaxX0OOy7YIGDWFE3WTeKckBzXvO5XrPKKGmpo+BfhDgA3Xg9NxHnk388gDe0XpXuc1TR9FFl8OYLeN/dmwQe0/8ks+nMCHHrwd19XFZrHWGdlMWsa8nRjughWDLJ6kL8RtUu8bdsyP48J/SwDXhwGTQtNm5TngCGmuZzuuqX47pSBBM1Pkev5YdoCjsCBdV1jHfa/h3WkJtL7ahX9vmsHgi5QYlrUsMlwYS/ndOERANpOW7OGPDDdmvDjsbRAZ4XXf1fD0tYrQ6RuQlwoeEBaheLKtHuYvr8WpAydy36jsoHUMU90k3ju9At+j9vSprc2/BJbBChqzmPf++23EdK3Zg/ID3tKPD+POpQwW1TuDBnWH5Z3CsktuCkljKb6gRyFjwFYFD6O3wqzZaJLymujgRvRGAj8FB92zTVkFxjk0LKjZ7LRUN7RQ+wOHUZaFp+3uOGLAZC75rPC6SZxd9DoO9n3cJ0kApX79qMtz/jbAaC+ANU7xVtdM4vr6dXfaS44bGnp7lvddIuSYsVdH/z0CLsrnrYe83j2O5YMPjktzp86SoNjPi9yZ/LvSHBDAD6X+NIqLvg3slskC/asA/gLgDIMNsySgJCUof7YdV5qHRV42k5aNkXcMHlKmX50pe0VRej+EP/PLwyCNKcsloJDNpN8scwBAFt5HlbkHQ69w/NwXER2SBWC6NOcJ23H3RXT0Dj9vcj9Ta+n0zWfBCqxiK+igWMx5x1sw4wZm3DmgBkf2/znvEfUmgZLuP3ACvuYzHiYOdnKLQXb//zHvYnqoWLWxLbD+YDzLg/0HvWFDjopCEEDS/rftnvyOx8Y6oIYHRqPHCYmmdhkdHQQAJBW9oON8DmMWT8fhUcgE4FnBLvT5YEPlDv/vX6Cud2xuvphseEGpjvnFgId/II9fDJzA9aUJaDLtN5F38xjnwA8e4OuK/5rxU9s05z+MoImquayn/3eGn6TLefjwncs1EYUPO2grn7zzwLiGwZ0eeUSyk+Pjr34qcSYPrz+AK6xrcjaTlsXJA2EgoJhjHGX36TdhHfTRtuNuhoiyHTcY5QvgouCeCowswsskw+P+xnZcmRRQbVkAQp6hz5fFYBSCALbjyvfyOWF9tMmMtX8HBY5d36E20QNgjaFh7X3JhRlAUmJ7BSIkm0nLKEBZT8i90BQpuXjIdtyDy10OEGa0/CD8rKl1dP7GkyPfT+B5bp+nW4waunWjdn+z8vh5/0k4OYoZAfuN5y/3H8/f9gm/YPnCZBRtp4+B++eNo6LWDn3qOMt8wq/MH5n/6Q0f/F0+7DBzjRA7qXV4/QF5y78AHKQ0GkPAYgau69bUVHhmTCs+ABWhQRXjfjRiFD8X7MCUBU/HULTiCvjBVBGT3gbjFzQsqFvssnw3LCUEu+WmEQgnMHBX/xp8b8Bklhm0RTFgAvcZOAHf8BmTqD3Iot1uNyLJCQm4/bcYPwsG/8Tn/JXezMaj+aijSjYeTnoQ8Ij6ffzWxBhun8VeUHdmJp7kA7d6DUNOqbSSgGwmLYuTGwBIrXexyXe33F/Otx33lCgFAmSBEtb5ny39C6RWvcgvKeUA+8ZoIokEQx4xfMzT5IkawNdRRrbj7h+ex88Mp/7Lrv992UxaJm901esGgwDy95TPXUlL4cIAj5R9GH3uNEhGgD9u+JjbSpaPTDsoVx+UcNSi3M8MZzVXji79YBZcSCvqxvOdPmFPEL4PNtTBe/2SDBxDHNwk/zagBnP9ifzIF3bHgqnHUTlGikC6e9emMIItfNkHhhJjOLi48zwZeD3vB2/motquuXnlqoaGf1jkHwqwyVQweZK8xW9dvRuPGDqdps0wOYJk4y+by1nejGlHgXEBiA8w3QSEwfcnOWnkAZK+imX8GO5EIqhXM5e6T8Hf+SZ8ih15Oh6n4cFNvySCRoSN+FYwE5og43hMB/HuRPfCy5IWXEgf7zuZr7d8DAWjGKO8diDJ8MjjqYHj+R++hdnzW9AsQdVCD3xgjnu11eBYBgYycPx6Gr2p9aCmpkVew5DbmFh2aY3XJTP4JDAP91fYf3ZHHHhDetrTZrN71n29QYO6+8ifxz4NBplLeWTG3iC+FVttdQcqTDaTfjDsXj2pROm5a2qAv2w77vsAFgJ4tNQj0sLduS+HI/3WpH+Xynvhgkh2iCNPuqbbjitZETIu2GSjaulOf5DtuLsD+FUp3wPhwrQhXPwPMrzzL4v2R2UsZoHH+QWAr4QBI1MlOe/ajntdNpNehtKQ981ERFQ2k/6v7bj3hz0STE6Okve0bBRPtB334Wwm/TFKxHZcGfX6zTDrQm1Alz/wzePog32u4fGJtmDhe0IRHurXZYUN9UZZjENeXYQXBk7gfKIW1z97vpQjkMlUoc+pu4lT3ifY3/JxNAPdqL2T55dKlFadJ8IlL15CJuvQNqhbnz7veEs+uim8IZhsZlXLxOPyPo/MNwy5JdFn69tp6lTDTbg+q+WQIXv5M6YdScCpDHzBaEJZu9kJ5lupkNr/dbXhFRBuhxWkbptsWtIbhCvBOJwb8WdkMIX2g5ExkhvC0zAQ03EECKcWZTea8G8kcAcdBCNf5rUeXmsD7ggbxhRDDQhDGPgKMeb0r8VcawJ/mE9h6oIVeKszwYBdctxt8xS+zsABbUCGCd8EB02mVCdYzoqbvV49jgIgo9uKEczegZnHdeOandqG1X+QXJ3P0Zw5q0zv+ufJu9QDbQFwcUaNEX5HDz1koit35GQzaelOL4uvX22qUaJB5wUFQsDL4U7Zp2G/gKeymbTRhqTrLPpkPK8E93cIAwBDS9wcS+7VkuX25y50hi+nReGC1HQGm/wcpK/TlrbjPhA2qCwq23G/IFMZwl/FKBGT0qrbDSyypUSHDa95ZFH4ie24t4ZlQEUR7nxfhvYsrKhrCn+ZHpcopWdXy+QD23H/kM2kZ5VggsWpYTlL5MeQl1vBi9e6q3h3P4GrQTg+HD9WWoSHGFhqAXnfx3wi3NW3L5YVmh3QbwrXdHsNOzEHX9KSFpUMI1qSRlTKvycT43zaEr9pPp3aSvaiI0ZsnffbxhK4KFkHBHqPiWcBfH/CT06lpiajDzw8YsQWHrfKguiEsANsQWmwG2Az81XJPtveYDqQwY9hJyRxBRiSllkMkp43B8DdWIIHgikEBvHj2BqEUZL6HqZ6mp95y/gYFs7HDNxFOXM1vNJzhNowEWS0SeHGyEPIHCYsJm5/2CEKmhq+TIT3PA+tiQT6+MBuDGxL/59xVRM+vEXiiy7pY6dnOxuk/Pvxrxo5fwlsHXNPl3cw24YPOYiYH5S1IIqJ4IPpXga/53P+5pqmOf+lAh5wuaFhG5+8sxm0M8Dyfi3WGN13W7l1UI+mp4vZ+6fsbMcdGTZiLXnTzrD/yIthx3QvTH++U3ryZDPp1gIW/H3CxnsN4bPLNuF3Yjk68Uufm99L2UU2k+7QvcJ2XNmIMLFwkGe5m7OZdJdLV23H3SYMEkmWlWnyfDcfwMPheb5bpB4PR4aLJHmW7VWk7I4rs5m0kdG6tuNKmU5/mCXvvcek7CGbSRvvARM2wTstvM6lGDsno02Py2bSsojvEttxDwubohajgZ98xzWHAZ0/hr0HTGczHRve50YWpQH7xkkG8FeK8V4qJiML2X2u4l0TieCNIz+AcjV9kDfYxyD8FxyMAlt7QSBfpC9YFl6gBD6FjzZYSFErts5bwa6kvOF3BX/mg5og2VVr/6IsW92jZeEcrMYtzTkyNx6ug1YNGbJrKuFfDdC3i/UaBLzJTK/64PtSeb6HZs/+pKvHCpoMHjZkB7/NH+eD9iLQ7gBvj6KhKQlqO4+mz5EvPON4ejBxY3J4UysOwqtgvAEft8PD3+nwrvf1CLJhZmEvtCEHC9uAsYfRMX/rTi5n3Io2XEKHw2xq2ShODOyPE0HSPK1I579peRCWEcNlghfOaZfFqfwzUn1QKiEAIPLDhhwhU0tQGquY8SIIn1igD33wXclu6aZN7bDLTj+S/t55n08ixl4M9KT2h2PzAba1XhYWvpmoH3E/5XLFbJZXduGD5AgpNyzS4qhTpxP2p5AA4boBWgkIyH1PSkrknp0J03e3XiezU/4+kqUpJS7FKGvqjNZw8Syp7h909F+KWABAru2hsrstzapRHMvDQJCUhvwxzAgpaBfcdlz53hgfjmiTDBepjy4G2ciRe+ip2Ux6iYkD2o77lXCzohjvx2AcqKn09LCUSDJEJKPsS0UMyBYjANA9LMs5uYhrHjtcLEvj1cmFZgCFAc5Dw+aVso6T9Vw5xo6/VLUBALHv1by9ZQWd1eWNX/Zu4+uJrMsPxgUhTzKhXh6i2xf83cIvz25Re7Am4Nx8CrdIz4VyvL5cI2/40MOJ/YlcnKjg2hYz+COLgiyH+VaqxwXo1cumqVM3ujPNI/vWtq7aYY8E5W8holpfyjM4eNgpdkrjIwlOnGo09X8dPAUJ9MH3UJpmbh+GATQPPmbCx+X4BO6mMgO4Ed3gYyAI14GQAgcdYOUBo7iNXwj3IoGzaQg6/CDZ2RF6PuNKyKjICExPiIO4BwCkV4jfNO1GpqBhU+nICFHGhwR8EmQIbAyTvBfTDJYmSyVqqErfSXy05F5auLCo5VpRET5U9g93rKJK3iet4S8/fOitCX9F9X4lm0Q/z2bSnZrWEqUAQHg+PcMFh5QDFJOMwHs/DAjIjqk8ByzoSJ+AMJDVMwy4DFgrg7XY9wzpLXR0NpM2Nkkq/Lt4RXxfy+JNAgBHdfW9EXb5l9Kr74XBleJmkhUhACBsx5Ug4V0A6lH8TKA3w4DRNRJw7WiWU/h+2DHspXJAmMm0fZkW/mtUdwBA7D2RN0sx/sjtKUZl6fxYKRi4sHcrftOUo9VlPY9Ro2rySz7MSTCiZHWChFZiGelGEqjZ1BlSGK3cslQPPgR60UpYP6LHm4oxQ/wz+El0x+qgkcopJfxMyXtOMjE6sttHYZR78xI+eMp1/3GxGxkePJkzK338BqyNZKohACB45IG9/NU1L3N5UsAjh4Grkpz4JTU1SX161QgfMuWhsiR9d6rABdKEtisPyFELAKy1W3p+ONqxFPLhd3JngnBW+L1cql1oWfTvn82kZTFqlO24srCWkbbF4ofZNC3hxIdLZJG6scyLcLd/RLhr3iPMGCpmJlbRAwDCdlzJXLg3rN8vBckCkM/kmmstfSOeCXujyM9ju7BPyY5rbdImw7LeUr23KzIAYHRB8cIY+mTUFP7Wa6/iehB+IM3yTB6/ilw6vxW/NNEdvFBS28653CXejMe3B+h7JVnkMWqk1tls7xdjlnrwb7EenylNboqODsIqnoIzsGWQ2lmqcUHyuZUdxuihIGr8CzRgQbFf6onR5PTL8U9qU9gMFGQ2VaLHpG8KA78EIzJjycqFHnp6+YpDD96/Nm+9XeYdhSj4W5ITf6m2xb8IH/zfDXfE3onwrnocSEduaW5XlqlNxZDNpFfZjnttuAg5v0TP6lGe7CILuCOKsfgPSX8WLuLn0FrrmUd28oMsMNtxO/LvFfo9IaNBDwwDjlGwMOw9MrpEAY3sOhkTch0kCLFmAUBr/SpWcC1Rjfd44ynv0nxv7jj6iW/hWyDDtbmVT3Zer543lq6OwuJ/Dan7TDbOPlnCAeGHpVqtAvjumsbZ1xfSuKuzJA2fhgcPUY+AzTW7i6FPwbidhuFekh4AJbAwR66XxJkgzOxgRkScvOMzbmWGG81YW3n0fOyJ9z2P9gYFqbdViH0GP8VEsvNf8HjNOMtm0tLfpZ8EftdTh682neZ7kIz6q6TF/xrZTHp1WAZwR5U/F0l/qq9nM2lZOBbLJ2ETSy7RuijVwV8JA58RaTpqrGTCRPAzm0lL5/7nSnS9NxZYSYT/uViL8w/C3nVV+T1XtJr3+RfTA8772AkIRprp4+XGeWGt17XzxlJkR4YkG2dK59t/ht1qq80qED2UbJz903KdAA0P5npPq9IggCz+b6XhwVidklowmt718kFH3ydIeiRUhpUgPPD8OJpS7hOJotqZM19OBM2FqCgNPqOLWwF6VsK+qekznyz32URBNpP+TzgSV3YhSzU7PM7k+0k+NyOzmfScbCZdsd9XYTPDS8Jd3IockbkJ0ujvzGwmLeMriyZ8D0n2XzGDDKUmAeYfZzPphxBB2Ux6WDiVolJ9DOAHYblBVSpq07tFN1CLlwq66Ev9ltGxDxVEaroe8X38NMqL/zWSjbO+BaJ/bLJZVWX5xAffnpw+s1Rj4TaIRuAwWHgE1eU9MG6kEbiwXCew4FL672rG8cwVce1bpInivDF0RrlPJMpo+qxn2KLvkUzKqA4rAHqY2b8g1TirEt7npoMA3w1nekdmty6CPgk7tn83m0k/gSoQNrwbHQYBytqzqcTkvnhhmAFRdOHoOClDfQPxJ8GiPwUbOhGWzaQHhpMSKs1SAGMAPI4qVvSu99LBvlstvgrGaBB0R2FthDYC/txtMb71/CX0d8REcvrM48B0dycb0sQSAwuY+dc1jbOl628k0DAcET5sVH4mBmEOCJfQiGCXpaxeHkcfzBtLXwMHI8LiSh5Q/zRvDMmoH7UJqWkzGn2fz2ZgbiXv8MkEAgb9IWFhTKrpiUp84CtYNpNens2kZdLRReEiN1YNn0pAdmivk0WaiWZkcZLNpOXvfnY4tq/in4vCRrxSK39nics7JBAn6elx7ksim2fPSqO9bCYtjQejTsbsRTJLoYCmg7cDeDSbSVdz6U5pxt7NOY9WzRtHd5MP2XH6c/ghrnbSZfP6uWPptDnXkYwpjJVk48zvENENxJiHynW/dA5OIinzc6OFIOUYvwu7j1aqeyS9EMOCe0ZkzBuLUVKOEKaQxckrDFw/byyVdsxdzKWaZj8M3zqnfTwSxeGBrbMcME1Odut5EU2bVUkptkWRzaSnhIsfaQJXlDGkMdMSLggvyWbSV2Uz6UrYoe00mXufzaTlfSFTeyqZ7FrLs/y0bCbdVurmiwCmh89m+Zgu/l+U0XfZTNrEZItS9bo4KVyzxN2n4d/j5mwmXbQR3nFR0lF9c8fRggNzfHZLEsMsC2cyYwio6iYFfMrAn9jHtc9fEu/6UmuLrUdj8eJhHnvHg3AqKgb7IJqSIB6HabPfKGXDv46iYcjzg7gItTgMwIkgnIjKIQ8Vd8DHGDokGM0TLUTc7Zd89qoWPE0c1AbHYTf9zyD8a4/d8Y9KLuorltSMGbNWHHzwa6mU9aRFQTbKzqgMb/pMv6ppmlnpixajspm0BL7n2Y77VtjB+5QIjaQqJemJMBnAk9lMWjNH2t8bF9mOuzKsL5bRZZVCFoKPShlMNpMu+hSejWVb2I4rmSZbAcHzT0k2Mg2QgIVkkl2dzaRl1GCsglu2454TLqCPCcdux/FeJdMNfp/NpGXEYNUraQBAPJ0jaXzxz/7j+S2yMBAc1BCVat5kWTHjZiuBWT0I/3xiLEn3z1ijqVMl9etxHjHihbzX+qlF9D0Gy7i62GLgSQv0DytJ99KjsyK9k0FHoIUZ/0YTXgAHN+ZvrzNOJY5k0sED8PA3OiyCi/+1spqke+8+OX7YqsW7xEEn2SjexyQd9SYvgZ8vuAjvzSOKXDArLno+8YQ0ar01P6x+cVg/uF+cRwUycJEPvFLbNFMau6ouyGbSf7Id999hx+wfhcGAanGBZEBkM+m7yn0iEXSFVMACOFiyCBF/snCVTLzHorB4ymbS823HHRt2hz8kBvdhCZ5I2ext2UxaJgrFciKK7bjSA6U57Ici7+24kGfJsWHWivZwKVcAYI3540g2ouYPnMCvMoIZ5zcDFTuHWlKZ76Uknpw7muQhsqLQtGkf8YgRk/J+6+MEOglgWYjGTRuY/s3kj7c4+RI92hSLZj7hOLw3+WFchRo8ED6EysjAuJHrPQWEa9AL/6X94tHfYEGO3q2bxNdIc0AmnEQIGgVmEA13w8e9bYTZL46mj4I2VUVCBKe18sYkrleycdY/W4cOfd+yeEeAY9cPghkvE/G1yW6ZO+mhhyq2r0Epd8cA/MF23AXh/GopGdsOlUsmsUipyL+ymXQ11Lt3aZSa7bjS10kWexIwPD+mu6byPTwrXDzNi9LPW7JwbMeVDUSZzHQcgN6IJi9MoX827BURW9lM+kPbcf8Uds7PATgK0eeEWZqy+I9j2UjlBQDWmDuWgjqYugn8jm+hFh7+CYrsB7mzpFbpSsvCG80XU0VPQaBp06Sr5iM8ZMhCz8LfQcHuQCx2Qwg037fo7KRH7yQbZ8byBk1fDWpRH+BHsBA1+Ct8jANhb8SDpI5eDMJbNAyxq8tqvpikqcysATl+jWuCJlAngHFSue5jzJhtJfBzAp5vHoN3pGRho/+ChSQYNYUUujDwtkexrMnskpoZM6SJ07NtI4YOIY93A7E8FEVdnojGJCx+FJ+uepkaZ8ciyBYX2Uz6Wdtx54c1vv3CRd8+qBw/D1PAn8tm0nLPU5sIAsiYPNtxbwTQGO6alm2McBfIM8UJAD7MZtKvIIKymfQLtuPKQnSqZGdFsDTrjXDxLyUyFREgD3sCzA1LAv4ZNkX9QrnPawPkvfFINpOWHiUqagGANZrH0tPyz7qreD9Oojdz0GTkh4ifVgb+4SdwWSqP5c3jqKqaBNHMme88V1f3YV02O8fzvH1g+dI1eRdE0ycekvWe5y3v0TjjHVQAOhxv8HN4FyvwJHyMgI9fgLA5oukt+DgC3fApDUbsM2Pm5YLsnvf3nsj/qfFwvZ/AViRBMZQsI+A/zDiRkvh4913x0dTjyMPFm/6X2EctAT0KfO23e1RRAGCN1LQZs3jkyGewalWzD/9IJp6I6PGI6FqL/D8i0f09evTRFeU+oUoVNkV7znbcF8JF3zZhCrgspOLIC5sdSoBLnmVkEoKWEXVCNpOWHcinbceVRbQ8D10J4FuINilvWhaHho7ZTPoD23ElxbshnI40ANFwpDRpjvuu/4ZkM+nXbceVPmaPSV19OC0gKmvKxWF2wsLw86fWIyo/rP9pvpReAzMNug5n2ctxUU0KXyfCBADbItpaEoR++RYsSwCt83MkTWCq0n7NzfIQ9B6PGvXhsrff3rdnjx7bJpGXB6IUouH9BCf2RTLZlnz88YrbyQjT59/hxqCR3t+RxLZglL1u738Y7yGNfbEUbXQEpCdIRXlhDMks7E/A/HrdZOzo14KsFdiTreCLMm369Zjwp9YWnL9Zd7Q9MVpGkxF3ajQHSxJMUEvZZQT8J5WoivFXnxOm0b/Io/q9gmXpW3zu9iNmvioC36/LmPmGZB6/Ria9UtP9SyebSct74h3bcd8NNzJ+Ev5TUpb7IPqeAHCafFcCWBX+fVQBspl08L1gO66kI8sGl0yTGBqhJnZy/x4E4HUZlRanQE+4uy7NAYcA6F7mCT1nh2W/S0s8IrHkwvvC27bjjgqf7yXo2b+Mp7Q0zLSRMa0arNyEgh76Sqkhx8lPanGqxcGe1ppgQLIMN0+50bTvdBGWSPf1easxGzmqiPSeYuJBg7rnuyWvIMLP2n8jaNxS7OYtHijYxYAP/vF7fvKvuzbFo77fNH4Sm2M1rglvkNI9IAEq4udHXoGDa7/ms/F1LMHjdFz7z6Na1Z3GKd4V9cxBelrny2QILzPjJ71b8XRTjgrede8/nr9PhNsKOQYBpy1P4y+LzqbOLRSeOy2FJ98p/D24bJWHXFOkMhBWDh+0fQ0n/wDCsPC3pNSiOJ83gk9Anjn42L1hcfIr1NQU51nZFct2XPnOGxf+WvMclizT85jci9fcj+X9MiCbSUcqG8t2XLk2JrKoZFOmNWoLW9txDw/H2gmrRIFDP/y5c9jcT8Y3VkQWpLAdl8IyHCkx7hk+ZxbjWVOuXz78p2R/je/KaETbcTMF/tzl57kiCjXu4ef1+wCk9IXC624V+f4lC/4x2Uxa/tmV90qmwPeHnIMTtXtLxQQA1vXFizjTczNcy4wj1vkSTYcRQMvA4kVSR9zww93+QSfcwy2YND8HW3bajPxlqhAfeGAvv3vtaUwcBAMoKFTmngD3AqirPzu5+X0KyCKEmQmOBdxgbbHNH2jq1KrcnVyfYI3wOLZCAueAg2CA/KYFCr4o5UbY1evfFj5EyrWWz88yECajF6bGpalf2TFT3c1I2i3tP4NsLfyjPoCXK2KA0UgAgLDf3DEk3YHVevBh+/T02rI3hGmSwRUjIMnB/S74vuoM+SzJd9NqAvz2LyGamahpO4semSOjjlRMhA+fUj87KUy7FvJ7Mh65l8GsOXmbrA7fN/L+WfPs8ksAf9Sa/vKzHVd+1vI8+5vwt+Q7oIeBxQnCn/0nawV7mgBcUg0d0W3H7RE2R74g/GylwobjXf1srQqvpXwnvxpOhHkmbou/Et3b9ggbSI5Y676WLSDY0Rru8nvh2uwvUqLUlaCLinEAYAO7ajv7wPHEwUNWuhN/3899cInRxoS/WBbu2m03uEE9rSpqdoBXU3MkLP+09U2DoLV+dnLXpfX8zIKZ1onEtalU93ma7tqJay8p4I+iB2pwDDhI+5RAwHp+BGv+hTBAts5hAPwXhGuxGAvpuOpMB4+bups45S3Dj4iDaH2XWYy65nEko6JUB3BdXQq9u++a93AKEQ3v5AP+ooRl/QEezUFj4wrS0Y6V9tAsAaH9AZwePkCv/dxC6/xa15rNinUDhpKZI7tjEuh7RR+YY/E+6BEGBE5apwR2Y++BNT/7db+fnwx7D3xS6WnpHdid3itoOtweeFtz/dZcS6sD11PS3K/IZtKyAFUdv/Y1YcmLlEPtsNb/tOa6d+S9LJNWZJ7REg24FK5iAgAdkcux1bTOB7zpckkR1538yO9YjxplYfHi9vdrQ4MvP8wNBAFUMa7/FFgYBQr2DWbAp1x1jHyrdPtcxbsmErgaQEGjOzUAoFTx2Y67JkV8Tfnj2s8z/lolim36gFzRJSRr3gOJ9aSjy26opz//Tl1T+RzVrFNW/L/rGYXU+goPyqTWKYNac+1bqzlgVWxVFQBQSin1/wZO4HoAdzKwYwHXZSUsHDTvYnper61SSimlVLRFpfuoUkqpEvMZvQpc/EsYeX6ivV+KUkoppZSKOA0AKKVUAQ7Mca8Dx/PWcbuIdTnuQcBuhR6HgAcTLVhi5qyUUkoppVQxlXtOsVJKxVLdJN7J93BpK6E3EWas1b05HmqwEwg/KrSThu/hxafbO/IqpZRSSqmI0wCAUkp1wn7j+cuehcm+h94gHCiNmBjYcsBkfmreaHouLhfTI2QI+HKhx7ESaMElxRtTqJRSSimlzNEAgFJKdcDASXw6M77vMTYPxnPRZ0YjHggPQwDEIgCw90TezGKcEUx4KAABrzPDNndmSimllFKqmDQAoJRSGzFgAl8BwonsY2sQMsG69/Np8zK7+5IBE/mDeWPor1G/oEkPvWDhxEKPw4ypKcIrZs5KKaWUUkoVmwYAlFJqHftcwz2tPMYQcA4Y3cFhw9SN18tvBsa39p3Azc+Ppcguivtez7VYgd8zo1vBByO89MxYWmrkxJRSSimlVNFpAEAppZjpiz9HOgNs5/m4AG34YXuGe6d9k4CH+17Pby06m1qieGEzq7AFGF81cKg2EPIGjqOUUkoppUpExwAqpape/18h293DY56H/4BxahcX/wECbs6swDf75bgmahd2wGTejvN4x8SxGJji5fGUiWMppZRSSqnS0ACAUqrq0SqkAPQzdiEYt3erxTcachyZLKsBE7gPebiDyMh9ny1G84JL6Q0Dx1JKKaWUUiWiAQClVNXzUlhJwB0GL0SCGbctr8WxUbi4dZM4C8K5TBhs4ngMvAHCWyaOpZRSSimlSkcDAEqpqrfgQlrBSVwH4EODF6M7M/4wYCL/oJwX+MDJvIPv4wwwzgQHmQ4FI+CRVCseN3EspZRSSilVOhoAUEop2bL38TEItxi+GD3B+M2A8Xw+clzy+23/CXxwq4dLAFwEIGvosB8wMO/pHC03dDyllFJKKVUiGgBQSikAzReTDcbdRJht+IJ0B+GKASlMGDie9ynJxc6x1X8CH0OEnwM4ORhRaM6zfgIPGTyeUkoppZQqkcg0qFJKqXLr1g1vtLTgHsBMrfxaeoJwNgODB0zgKdlW/LYpR0UZobfv1XxAIoEzAAxi4AuFTDRYjw/YxyMLxtK7Bo+plFJKKaVKxOSDoVJKxV6/HG9TU4NLCPiJ8YOT9M/DYgALifGXrdO466GzqaXQw44axYk3B2JgnnElgJ0A7AGYqfdfx7QUcPwzY2lpEY6tlFJKKaWKTAMASin1GUz9J+EIMH5BjC8W6c7LYCwLfllYRBau3H1XPDv1OPI6c5j+k/kYywsyC7YH0APAdkUs7XrDIvy4eQw9WqTjK6WUUkqpItMAgFJKraPuNE75O+MKEMYU/SZM8MBYycCakoA2At5g4CMAK8I7dQ8wehOwAwO911rk1wQ9Borfz0UCFrP67oHhnQ1SKKWUUkqp6NAAgFJKrceoKZxYtAg3APhx1d8rCa/OG0PST0AppZRSSsWYTgFQSqn1kJ1uH/gVEMy796v4ItnE+GG5T0IppZRSShVOAwBKKbUBz4+lV9jCn6T+PUiDrz4S+Lh97liaVe4TUUoppZRShdMAgFJKbcT8i+kuEG4B8Em1XSgGHpw3ls4q93kopZRSSikzNACglFKbMG8MTQbhxv815asO97W24thyn4RSSimllDJHAwBKKdUB88bQZQAmgdBW6ReMCXfkCacuzFFruc9FKaWUUkqZowEApZTqoHlj6WryMRrA4gq9aCsB3JRqwYUvjKGqK3lQSimllKp0OgZQKaU6hWngRBzHjFMBHFJBF+8VBv6cSuKPz15EH5b7ZJRSSimllHmaAaCUUp1CvPvuuNeycF5QElAZHiQPZyQs3KiLf6WUUkqpyqUZAEop1RXMtPck9E4CxxNjLAM7xu5CEpYA+INF+O1uzXhv6lTyyn1KSimllFKqeDQAoJRSBeh7Pddu1oat8i24EIQzwUjE4IJ6BMxMJXCSswqfLsyRW+4TUkoppZRSxacBAKWUMmDUFE688gq2SSRwEzNGRrjEakEKGN6jFXZTjvLlPhmllFJKKVU6GgBQSinD6m7ilL8UvwPhaPjoBkKPMgUE8gSsYsBjwm2tLbhYR/sppZRSSlUvDQAopVQRDZjE+8LHrwFsCyAFYDMiZLg4pQKyo28DWA6gjYBn84xJC8biJRBxEV5PKaWUUkrFiAYAlFKqJJjqxmMbtnACMw4hQq/gdznIEMgyo5cF9GCgO4DkBg7iE9DKwCoALihY6NsE+MGxgKUA7k8m8KB281dKKaWUUljH/wHd3u86yeSydQAAAABJRU5ErkJggg==" alt="Google Cloud" style="height: 18px; width: auto; max-width: 140px; object-fit: contain; align-self: flex-start; border: none !important; outline: none !important; background: transparent !important; display: block; margin-bottom: 2px;">
                 <div class="user-info" style="display: flex; flex-direction: column; gap: 2px;">
-                    <span class="user-name" style="font-size: 11px; font-weight: 500; color: var(--text-secondary); line-height: 1.35; white-space: normal;">Google Cloud Security Lead Auditor</span>
+                    <span class="user-name" style="font-size: 11px; font-weight: 500; color: var(--text-secondary); line-height: 1.35; white-space: normal;">Google Cloud Security Readiness Advisor</span>
                     <span class="user-role" style="font-size: 9.5px; color: var(--text-tertiary); line-height: 1.25;">(SPIFFE Assinado)</span>
                 </div>
+            </div>
+
+            <!-- Persistent Readiness Disclaimer Footer -->
+            <div class="sidebar-disclaimer" style="padding: 8px 6px 4px 6px; margin-top: 4px; font-size: 9px; color: var(--text-tertiary); line-height: 1.35; border-top: 1px solid var(--border-subtle);">
+                Avaliação de prontidão automatizada. Não constitui auditoria formal nem certificação ISO/IEC 27001, SOC 2 ou PCI-DSS. A Google não emite certificações de conformidade.
             </div>
         </div>
     </aside>
@@ -5342,7 +5649,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                                 </svg>
                                             </div>
                                             <div>
-                                                <div class="home-module-name" data-i18n="home_mod_chat_name">Agentic GRC Auditor</div>
+                                                <div class="home-module-name" data-i18n="home_mod_chat_name">Agentic Compliance Readiness Accelerator</div>
                                                 <span class="home-module-tag" style="background: rgba(66, 133, 244, 0.12); color: var(--gcp-blue);">Chatbot Auditor</span>
                                             </div>
                                         </div>
@@ -5814,12 +6121,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 </div>
                             </div>
 
-                            <!-- Dynamic & Always-Altering Suggestion Chips (Visible in Agentic GRC Auditor) -->
+                            <!-- Dynamic & Always-Altering Suggestion Chips (Visible in Agentic Compliance Readiness Accelerator) -->
                             <div class="hero-quick-chips" id="heroQuickChips" style="display: none;">
                                 <!-- Populated dynamically by shuffleDynamicSuggestions() when Auditor tab is clicked -->
                             </div>
 
-                            <!-- Agentic GRC Auditor Health Dash (Speedometer & Compliance Status) -->
+                            <!-- Agentic Compliance Readiness Accelerator Health Dash (Speedometer & Compliance Status) -->
                             <div class="auditor-health-dash" id="auditorHealthDash" style="display: none;">
                                 <!-- Minimal Card 1: Velocímetro de Saúde -->
                                 <div class="health-card">
@@ -6017,7 +6324,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                                 </svg>
                             </button>
-                            <textarea id="chatInput" class="chat-textarea" placeholder="Consulte o Agentic GRC Auditor (Google Cloud Security)..." data-i18n-placeholder="chat_input_placeholder" rows="1" onkeydown="handleChatKey(event)" oninput="handleChatInput(this)"></textarea>
+                            <textarea id="chatInput" class="chat-textarea" placeholder="Consulte o Agentic Compliance Readiness Accelerator (Google Cloud Security)..." data-i18n-placeholder="chat_input_placeholder" rows="1" onkeydown="handleChatKey(event)" oninput="handleChatInput(this)"></textarea>
                             <button id="sendBtn" class="btn-send" onclick="sendChatMessage()" title="Enviar mensagem">
                                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
                                     <line x1="12" y1="19" x2="12" y2="5"/>
@@ -6659,7 +6966,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </tr>
                         <tr>
                             <td data-i18n="meta_lead_auditor">Auditor Líder Responsável</td>
-                            <td>Agentic GRC Auditor (Vertex AI Gemini 2.5 Flash Autonomous Lead Auditor)</td>
+                            <td>Agentic Compliance Readiness Accelerator (Vertex AI Gemini 2.5 Flash Autonomous Readiness Advisor)</td>
                         </tr>
                         <tr>
                             <td>Projetos no Escopo</td>
@@ -6887,7 +7194,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </span>
                     </div>
 
-                    <h1 class="cloudstyle-doc-title" data-i18n="tech_doc_title">Relatório Técnico de Auditoria Externa & Statement of Applicability (SoA)</h1>
+                    <h1 class="cloudstyle-doc-title" data-i18n="tech_doc_title">Relatório de Avaliação de Prontidão para Certificação & Statement of Applicability (SoA)</h1>
                     <div class="cloudstyle-doc-subtitle" data-i18n="tech_doc_subtitle">
                         Auditoria Independente de Eficácia Operacional dos 93 Controles ISO/IEC 27001:2022, ISO/IEC 27017 & ISO/IEC 27018 em Google Cloud
                     </div>
@@ -6937,7 +7244,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             "Com base nos testes de desenho e de eficácia operacional contínua executados sobre 100% da infraestrutura em nuvem, certificamos que os controles do SGSI descritos na Declaração de Aplicabilidade (SoA) estão plenamente implementados, operando de forma autônoma e mitigando os riscos cibernéticos em estrita conformidade com os requisitos da norma ISO/IEC 27001:2022. Não foram identificadas Não-Conformidades Maiores ou Menores remanescentes."
                         </div>
                         <div class="cloudstyle-quote-author">
-                            — <strong>Agentic GRC Auditor</strong>, Lead Auditor Virtual Certificado Google Cloud Security PSO & GEAP
+                            — <strong>Agentic Compliance Readiness Accelerator</strong>, Readiness Advisor Virtual Certificado Google Cloud Security PSO & GEAP
                         </div>
                     </div>
 
@@ -7321,8 +7628,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <!-- Bloco Formal de Assinaturas e Atestação -->
                     <div class="tech-signature-grid">
                         <div class="tech-sig-box">
-                            <div class="tech-sig-name">Agentic GRC Auditor</div>
-                            <div class="tech-sig-role" data-i18n="tech_sig_role">Auditor Líder Técnico Virtual (SPIFFE Validated)</div>
+                            <div class="tech-sig-name">Agentic Compliance Readiness Accelerator</div>
+                            <div class="tech-sig-role" data-i18n="tech_sig_role">Consultor de Prontidão Técnico Virtual (SPIFFE Validated)</div>
                             <div class="tech-sig-line"></div>
                             <span class="tech-sig-status" data-i18n="tech_sig_status">✓ Atestação Criptográfica Emitida</span>
                         </div>
@@ -7679,6 +7986,97 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         </div>
     </div>
 
+    <!-- Modal: Confirm Client Workspace Switch -->
+    <div class="modal-overlay" id="clientSwitchConfirmModal">
+        <div class="modal-window" style="max-width: 440px;">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="client_switch_confirm_title" style="display: flex; align-items: center; gap: 8px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-yellow, #fbbc04);">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    <span>Trocar Workspace de Cliente</span>
+                </div>
+                <button class="btn-collapse" onclick="closeClientSwitchModal()">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 4px;">
+                <p id="clientSwitchConfirmText" style="font-size: 14.5px; color: var(--text-primary); line-height: 1.5; font-weight: 500; margin: 0;">
+                    You're about to switch away from Altostrat Ventures — this session will end.
+                </p>
+                <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; margin: 0;" data-i18n="client_switch_confirm_warning">
+                    O histórico de chat ativo, evidências em memória e o token da sessão anterior serão descarregados para garantir isolamento multi-tenant estrito.
+                </p>
+            </div>
+            <div class="modal-actions" style="margin-top: 14px;">
+                <button class="btn-cancel" onclick="closeClientSwitchModal()"><span data-i18n="btn_cancel">Cancelar</span></button>
+                <button class="btn-confirm" id="btnConfirmClientSwitch" style="background: var(--gcp-red, #ea4335); color: #fff;" onclick="executeConfirmedClientSwitch()"><span data-i18n="client_switch_btn_confirm">Encerrar Sessão e Trocar</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Onboard New Client Workspace (Read-Only) -->
+    <div class="modal-overlay" id="onboardClientModal">
+        <div class="modal-window" style="max-width: 560px;">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="onboard_modal_title" style="display: flex; align-items: center; gap: 8px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue);">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="8.5" cy="7" r="4"/>
+                        <line x1="20" y1="8" x2="20" y2="14"/>
+                        <line x1="23" y1="11" x2="17" y2="11"/>
+                    </svg>
+                    <span>Conectar Novo Workspace de Cliente (Read-Only)</span>
+                </div>
+                <button class="btn-collapse" onclick="closeOnboardModal()">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.45;" data-i18n="onboard_modal_desc">
+                Gere o comando para executar no Google Cloud Shell ou Terminal corporativo do cliente. O script cria bindings IAM temporários estritamente restritos a <code>roles/viewer</code> e <code>roles/securityReviewer</code>, sem qualquer privilégio de escrita.
+            </div>
+            <div class="form-group" style="margin-top: 4px;">
+                <label class="form-label" for="onboardClientNameInput" data-i18n="onboard_input_label">Nome da Empresa / Cliente</label>
+                <input type="text" id="onboardClientNameInput" class="form-input" placeholder="ex.: Acme Financial" oninput="updateOnboardCommandPreview()">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="onboardClientProjectsInput" data-i18n="onboard_projects_label">Projetos GCP no Escopo (separados por vírgula)</label>
+                <input type="text" id="onboardClientProjectsInput" class="form-input" placeholder="ex.: acme-prod-01, acme-data-lake" oninput="updateOnboardCommandPreview()">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="onboardClientDaysInput" data-i18n="onboard_days_label">Validade do Acesso Read-Only (dias)</label>
+                <input type="number" id="onboardClientDaysInput" class="form-input" value="14" min="1" max="90" oninput="updateOnboardCommandPreview()">
+            </div>
+            <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label class="form-label" for="onboardCommandPreview" data-i18n="onboard_cmd_label">Comando de Onboarding (GCP Cloud Shell / Terminal)</label>
+                    <button class="btn-cancel" style="padding: 3px 10px; font-size: 11.5px;" onclick="copyOnboardCommand()" id="btnCopyOnboardCmd">
+                        <span data-i18n="onboard_copy_cmd">Copiar Comando</span>
+                    </button>
+                </div>
+                <pre id="onboardCommandPreview" style="background: var(--bg-surface); padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px; color: var(--gcp-blue); overflow-x: auto; border: 1px solid var(--border-subtle); margin: 0; white-space: pre-wrap; word-break: break-all; user-select: all;"></pre>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(52, 168, 83, 0.08); border: 1px solid rgba(52, 168, 83, 0.25); border-radius: 8px; font-size: 11.5px; color: var(--gcp-green);">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <path d="M9 12l2 2 4-4"/>
+                </svg>
+                <span><strong>Segurança Garantida:</strong> Zero permissões de modificação ou exclusão. O acesso expira automaticamente na GCP via IAM Conditions.</span>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeOnboardModal()"><span data-i18n="btn_close">Fechar</span></button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // =========================================================================
         // INTERNATIONALIZATION (i18n) ENGINE - PT, EN, ES
@@ -7720,7 +8118,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 export_md: "Exportar Markdown Técnico",
                 
                 nav_new_chat: "Nova conversa",
-                nav_lead_auditor: "Agentic GRC Auditor",
+                nav_lead_auditor: "Agentic Compliance Readiness Accelerator",
                 nav_phases: "Scan por Fases",
                 nav_matrix: "Matriz ISO 27001 & SoA",
                 nav_connectors: "Conectores & Zero-Copy",
@@ -7845,9 +8243,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 btn_to_exec: "Dossiê Executivo ›",
                 btn_to_tech: "Relatório Técnico ›",
                 
-                chat_input_placeholder: "Consulte o Agentic GRC Auditor (Google Cloud Security)...",
+                chat_input_placeholder: "Consulte o Agentic Compliance Readiness Accelerator (Google Cloud Security)...",
                 chat_disclaimer: "Google Cloud Security • As evidências e pareceres de conformidade são validados no Grafo Criptográfico SHA-256 e protegidos por Model Armor.",
-                bot_evaluating: "Agentic GRC Auditor (Google Cloud Security) avaliando telemetria e grafo de evidências...",
+                bot_evaluating: "Agentic Compliance Readiness Accelerator (Google Cloud Security) avaliando telemetria e grafo de evidências...",
                 finops_kpi_total_cost: "Custo Total de IA Acumulado",
                 finops_kpi_tokens: "Tokens Totais Processados",
                 finops_kpi_caching: "Economia Gemini Context Caching",
@@ -7874,7 +8272,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 finops_th_cost_usd: "Custo Total (USD)",
                 finops_th_cost_brl: "Custo Total (BRL)",
                 
-                tech_doc_title: "Relatório Técnico de Auditoria Externa & Statement of Applicability (SoA)",
+                tech_doc_title: "Relatório de Avaliação de Prontidão para Certificação & Statement of Applicability (SoA)",
                 tech_doc_subtitle: "Auditoria Independente de Eficácia Operacional dos 93 Controles ISO/IEC 27001:2022, ISO/IEC 27017 & ISO/IEC 27018 em Google Cloud",
                 tech_meta_dossier_code: "Código do Dossiê Técnico",
                 tech_meta_criteria: "Normas & Critérios de Auditoria",
@@ -7941,7 +8339,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_kpi_caching: "Economia Context Caching",
                 home_cat_ai_title: "Auditoria & Inteligência Agêntica",
                 home_cat_ai_badge: "3 Módulos Ativos",
-                home_mod_chat_name: "Agentic GRC Auditor",
+                home_mod_chat_name: "Agentic Compliance Readiness Accelerator",
                 home_mod_chat_desc: "Auditoria conversacional com Gemini 2.5 Flash/Pro. Execute inspeções dinâmicas de IAM, KMS e GCS via ferramentas MCP com grounding determinístico e barreira Model Armor.",
                 home_mod_chat_sub: "Interação em Linguagem Natural",
                 home_btn_open_chat: "Abrir Chatbot",
@@ -7982,6 +8380,26 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_action_run_audit: "Auditoria Proativa",
                 home_action_new_chat: "Nova Conversa",
                 home_action_dossier: "Dossiê Executivo",
+                client_workspace_title: "Workspace de Clientes",
+                client_status_active: "Ativo",
+                client_status_expired: "Expirado",
+                client_projects_in_scope: "{n} projetos no escopo",
+                client_expiry_days: "Acesso somente-leitura expira em {n} dias",
+                client_access_expired: "Acesso somente-leitura expirado",
+                client_onboard_new_action: "+ Onboard novo cliente",
+                client_switch_confirm_title: "Trocar Workspace de Cliente",
+                client_switch_confirm_desc: "Você está prestes a sair de {name} — esta sessão será encerrada.",
+                client_switch_confirm_warning: "O histórico de chat ativo, evidências em memória e o token da sessão anterior serão descarregados para garantir isolamento multi-tenant estrito.",
+                client_switch_btn_confirm: "Encerrar Sessão e Trocar",
+                onboard_modal_title: "Conectar Novo Workspace de Cliente (Read-Only)",
+                onboard_modal_desc: "Gere o comando para executar no Google Cloud Shell ou Terminal corporativo do cliente. O script cria bindings IAM temporários estritamente restritos a roles/viewer e roles/securityReviewer, sem qualquer privilégio de escrita.",
+                onboard_input_label: "Nome da Empresa / Cliente",
+                onboard_projects_label: "Projetos GCP no Escopo (separados por vírgula)",
+                onboard_days_label: "Validade do Acesso Read-Only (dias)",
+                onboard_cmd_label: "Comando de Onboarding (GCP Cloud Shell / Terminal)",
+                onboard_copy_cmd: "Copiar Comando",
+                onboard_copied: "Copiado!",
+                btn_close: "Fechar",
             },
             en: {
                 top_title_reports: "Reports & Dossier",
@@ -8019,7 +8437,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 export_md: "Export Technical Markdown",
                 
                 nav_new_chat: "New conversation",
-                nav_lead_auditor: "Agentic GRC Auditor",
+                nav_lead_auditor: "Agentic Compliance Readiness Accelerator",
                 nav_phases: "Phased Scan",
                 nav_matrix: "ISO 27001 Matrix & SoA",
                 nav_connectors: "Connectors & Zero-Copy",
@@ -8144,9 +8562,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 btn_to_exec: "Executive Dossier ›",
                 btn_to_tech: "Technical Report ›",
                 
-                chat_input_placeholder: "Ask Agentic GRC Auditor (Google Cloud Security)...",
+                chat_input_placeholder: "Ask Agentic Compliance Readiness Accelerator (Google Cloud Security)...",
                 chat_disclaimer: "Google Cloud Security • Evidence and audit opinions validated on SHA-256 Cryptographic Graph and protected by Model Armor.",
-                bot_evaluating: "Agentic GRC Auditor (Google Cloud Security) evaluating telemetry and evidence graph...",
+                bot_evaluating: "Agentic Compliance Readiness Accelerator (Google Cloud Security) evaluating telemetry and evidence graph...",
                 finops_kpi_total_cost: "Cumulative Total AI Cost",
                 finops_kpi_tokens: "Total Tokens Processed",
                 finops_kpi_caching: "Gemini Context Caching Savings",
@@ -8173,7 +8591,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 finops_th_cost_usd: "Total Cost (USD)",
                 finops_th_cost_brl: "Total Cost (BRL)",
                 
-                tech_doc_title: "External Audit Technical Report & Statement of Applicability (SoA)",
+                tech_doc_title: "Compliance Readiness Assessment Report & Statement of Applicability (SoA)",
                 tech_doc_subtitle: "Independent Operating Effectiveness Audit of 93 ISO/IEC 27001:2022, ISO/IEC 27017 & ISO/IEC 27018 Controls in Google Cloud",
                 tech_meta_dossier_code: "Technical Dossier Code",
                 tech_meta_criteria: "Audit Standards & Criteria",
@@ -8240,7 +8658,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_kpi_caching: "Context Caching Savings",
                 home_cat_ai_title: "Audit & Agentic Intelligence",
                 home_cat_ai_badge: "3 Active Modules",
-                home_mod_chat_name: "Agentic GRC Auditor",
+                home_mod_chat_name: "Agentic Compliance Readiness Accelerator",
                 home_mod_chat_desc: "Conversational audit powered by Gemini 2.5 Flash/Pro. Execute dynamic IAM, KMS, and GCS telemetry checks via MCP tools with deterministic grounding and Model Armor defenses.",
                 home_mod_chat_sub: "Natural Language Interaction",
                 home_btn_open_chat: "Open Chatbot",
@@ -8281,6 +8699,26 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_action_run_audit: "Proactive Audit",
                 home_action_new_chat: "New Conversation",
                 home_action_dossier: "Executive Dossier",
+                client_workspace_title: "Client Workspace",
+                client_status_active: "Active",
+                client_status_expired: "Expired",
+                client_projects_in_scope: "{n} projects in scope",
+                client_expiry_days: "Read-only access expires in {n} days",
+                client_access_expired: "Read-only access expired",
+                client_onboard_new_action: "+ Onboard new client",
+                client_switch_confirm_title: "Confirm Client Workspace Switch",
+                client_switch_confirm_desc: "You're about to switch away from {name} — this session will end.",
+                client_switch_confirm_warning: "Chat history, unpinned evidence, and the current session token will be closed and cleared for tenant isolation.",
+                client_switch_btn_confirm: "End Session and Switch",
+                onboard_modal_title: "Onboard New Client Workspace (Read-Only)",
+                onboard_modal_desc: "Generate and run this command in Google Cloud Shell or corporate terminal. The script provisions time-boxed IAM bindings strictly limited to roles/viewer and roles/securityReviewer, with zero write permissions.",
+                onboard_input_label: "Company / Client Name",
+                onboard_projects_label: "In-Scope GCP Projects (comma-separated)",
+                onboard_days_label: "Read-Only Access Duration (days)",
+                onboard_cmd_label: "Onboarding Command (GCP Cloud Shell / Terminal)",
+                onboard_copy_cmd: "Copy Command",
+                onboard_copied: "Copied!",
+                btn_close: "Close",
             },
             es: {
                 top_title_reports: "Informes y Dossier",
@@ -8318,7 +8756,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 export_md: "Exportar Markdown Técnico",
                 
                 nav_new_chat: "Nueva conversación",
-                nav_lead_auditor: "Agentic GRC Auditor",
+                nav_lead_auditor: "Agentic Compliance Readiness Accelerator",
                 nav_phases: "Escaneo por Fases",
                 nav_matrix: "Matriz ISO 27001 y SoA",
                 nav_connectors: "Conectores y Zero-Copy",
@@ -8443,9 +8881,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 btn_to_exec: "Dossier Ejecutivo ›",
                 btn_to_tech: "Informe Técnico ›",
                 
-                chat_input_placeholder: "Consulte al Agentic GRC Auditor (Google Cloud Security)...",
+                chat_input_placeholder: "Consulte al Agentic Compliance Readiness Accelerator (Google Cloud Security)...",
                 chat_disclaimer: "Google Cloud Security • Evidencias y dictámenes de auditoría validados en Grafo Criptográfico SHA-256 y protegidos por Model Armor.",
-                bot_evaluating: "Agentic GRC Auditor (Google Cloud Security) evaluando telemetría y grafo de evidencias...",
+                bot_evaluating: "Agentic Compliance Readiness Accelerator (Google Cloud Security) evaluando telemetría y grafo de evidencias...",
                 finops_kpi_total_cost: "Costo Total de IA Acumulado",
                 finops_kpi_tokens: "Tokens Totales Procesados",
                 finops_kpi_caching: "Ahorro Gemini Context Caching",
@@ -8472,7 +8910,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 finops_th_cost_usd: "Costo Total (USD)",
                 finops_th_cost_brl: "Costo Total (BRL)",
                 
-                tech_doc_title: "Informe Técnico de Auditoría Externa y Declaración de Aplicabilidad (SoA)",
+                tech_doc_title: "Informe de Evaluación de Prontitud para Certificación y Declaración de Aplicabilidad (SoA)",
                 tech_doc_subtitle: "Auditoría Independiente de Eficacia Operativa de los 93 Controles ISO/IEC 27001:2022, ISO/IEC 27017 e ISO/IEC 27018 en Google Cloud",
                 tech_meta_dossier_code: "Código del Dossier Técnico",
                 tech_meta_criteria: "Normas y Criterios de Auditoría",
@@ -8539,7 +8977,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_kpi_caching: "Ahorro Context Caching",
                 home_cat_ai_title: "Auditoría e Inteligencia Agéntica",
                 home_cat_ai_badge: "3 Módulos Activos",
-                home_mod_chat_name: "Agentic GRC Auditor",
+                home_mod_chat_name: "Agentic Compliance Readiness Accelerator",
                 home_mod_chat_desc: "Auditoría conversacional con Gemini 2.5 Flash/Pro. Ejecute inspecciones dinámicas de IAM, KMS y GCS mediante herramientas MCP con grounding determinista y barrera Model Armor.",
                 home_mod_chat_sub: "Interacción en Lenguaje Natural",
                 home_btn_open_chat: "Abrir Chatbot",
@@ -8580,6 +9018,26 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_action_run_audit: "Auditoría Proactiva",
                 home_action_new_chat: "Nueva Conversación",
                 home_action_dossier: "Dossier Ejecutivo",
+                client_workspace_title: "Espacio de Clientes",
+                client_status_active: "Activo",
+                client_status_expired: "Expirado",
+                client_projects_in_scope: "{n} proyectos en alcance",
+                client_expiry_days: "Acceso de solo lectura expira en {n} días",
+                client_access_expired: "Acceso de solo lectura expirado",
+                client_onboard_new_action: "+ Conectar nuevo cliente",
+                client_switch_confirm_title: "Cambiar Espacio de Cliente",
+                client_switch_confirm_desc: "Estás a punto de salir de {name} — esta sesión finalizará.",
+                client_switch_confirm_warning: "El historial de chat activo, las evidencias en memoria y el token de sesión se cerrarán para garantizar el aislamiento multi-inquilino.",
+                client_switch_btn_confirm: "Finalizar Sesión y Cambiar",
+                onboard_modal_title: "Conectar Nuevo Espacio de Cliente (Read-Only)",
+                onboard_modal_desc: "Genere y ejecute este comando en Google Cloud Shell o terminal corporativo. El script provisiona asignaciones IAM temporales restringidas estrictamente a roles/viewer y roles/securityReviewer, sin ningún permiso de escritura.",
+                onboard_input_label: "Nombre de la Empresa / Cliente",
+                onboard_projects_label: "Proyectos GCP en Alcance (separados por comas)",
+                onboard_days_label: "Validez del Acceso de Solo Lectura (días)",
+                onboard_cmd_label: "Comando de Onboarding (GCP Cloud Shell / Terminal)",
+                onboard_copy_cmd: "Copiar Comando",
+                onboard_copied: "¡Copiado!",
+                btn_close: "Cerrar",
             }
         };
 window.currentLanguage = 'pt';
@@ -9878,10 +10336,321 @@ Formulário preenchido com o subagente recomendado!`);
             appendLog(`[Auth] Sessão Google Workspace encerrada. Retornando ao modo demonstração/sandbox.`, "info");
         }
 
+        // =========================================================================
+        // CLIENT WORKSPACE MANAGEMENT & MULTI-TENANT ISOLATION
+        // =========================================================================
+        let onboardedClientsList = [];
+        let currentActiveClientId = "altostrat-ventures";
+        let pendingSwitchClientId = null;
+
+        function getOperatorId() {
+            if (window.currentUserEmail && window.currentUserEmail.trim() && window.currentUserEmail !== "auditor@client.corp") {
+                return window.currentUserEmail.trim().toLowerCase();
+            }
+            let stored = localStorage.getItem("grc_operator_id");
+            if (!stored) {
+                stored = "consultant-" + Math.random().toString(36).substring(2, 10);
+                localStorage.setItem("grc_operator_id", stored);
+            }
+            return stored;
+        }
+
+        async function loadOnboardedClients() {
+            try {
+                const opId = getOperatorId();
+                const headers = {};
+                if (opId) headers["X-Operator-Id"] = opId;
+                if (window.currentUserToken) headers["Authorization"] = `Bearer ${window.currentUserToken}`;
+
+                const res = await fetch("/api/clients", { headers });
+                if (res.ok) {
+                    const data = await res.json();
+                    onboardedClientsList = data.clients || [];
+                    currentActiveClientId = data.active_client_id || "altostrat-ventures";
+                    const activeClient = data.active_client || onboardedClientsList.find(c => c.client_id === currentActiveClientId) || onboardedClientsList[0];
+                    if (activeClient) {
+                        renderActiveClientCard(activeClient);
+                    }
+                    renderClientDropdownList(onboardedClientsList, currentActiveClientId);
+                }
+            } catch (err) {
+                console.warn("Failed to load onboarded clients:", err);
+            }
+        }
+
+        function renderActiveClientCard(client) {
+            if (!client) return;
+            const avatarEl = document.getElementById("clientActiveAvatar");
+            const nameEl = document.getElementById("clientActiveName");
+            const statusEl = document.getElementById("clientActiveStatusPill");
+            const countEl = document.getElementById("clientActiveProjectsCount");
+            const expiryWrapEl = document.getElementById("clientActiveExpiry");
+            const expiryTextEl = document.getElementById("clientActiveExpiryText");
+
+            if (avatarEl) avatarEl.innerText = client.avatar || "CL";
+            if (nameEl) nameEl.innerText = client.name || "Client Workspace";
+
+            const isActive = client.status === "active" && (client.read_only_access_days_remaining === undefined || client.read_only_access_days_remaining > 0);
+            if (statusEl) {
+                statusEl.className = `client-status-pill ${isActive ? 'active' : 'expired'}`;
+                const lang = window.currentLanguage || 'pt';
+                const dict = (typeof I18N !== 'undefined' && I18N[lang]) ? I18N[lang] : {};
+                statusEl.innerText = isActive
+                    ? (dict.client_status_active || "Active")
+                    : (dict.client_status_expired || "Expired");
+            }
+
+            const projCount = (client.projects || []).length;
+            if (countEl) {
+                const lang = window.currentLanguage || 'pt';
+                const dict = (typeof I18N !== 'undefined' && I18N[lang]) ? I18N[lang] : {};
+                const tmpl = dict.client_projects_in_scope || "{n} projects in scope";
+                countEl.innerText = tmpl.replace('{n}', projCount);
+            }
+
+            if (expiryWrapEl && expiryTextEl) {
+                const days = client.read_only_access_days_remaining;
+                const lang = window.currentLanguage || 'pt';
+                const dict = (typeof I18N !== 'undefined' && I18N[lang]) ? I18N[lang] : {};
+                if (days !== undefined && days > 0 && client.status === "active") {
+                    expiryWrapEl.classList.remove("expired");
+                    const tmpl = dict.client_expiry_days || "Read-only access expires in {n} days";
+                    expiryTextEl.innerText = tmpl.replace('{n}', days);
+                } else {
+                    expiryWrapEl.classList.add("expired");
+                    expiryTextEl.innerText = dict.client_access_expired || "Read-only access expired";
+                }
+            }
+        }
+
+        function renderClientDropdownList(clients, activeId) {
+            const listEl = document.getElementById("clientDropdownList");
+            if (!listEl) return;
+
+            const otherClients = (clients || []).filter(c => c.client_id !== activeId);
+            if (otherClients.length === 0) {
+                listEl.innerHTML = `<div style="padding: 10px 12px; font-size: 11.5px; color: var(--text-tertiary); text-align: center;">Nenhum outro cliente registrado</div>`;
+                return;
+            }
+
+            listEl.innerHTML = otherClients.map(c => {
+                const isActive = c.status === "active" && (c.read_only_access_days_remaining === undefined || c.read_only_access_days_remaining > 0);
+                const days = c.read_only_access_days_remaining;
+                const expiryLabel = (days !== undefined && days > 0 && c.status === "active")
+                    ? `${days}d left`
+                    : `Expired`;
+                const isExpiredClass = !isActive ? "expired" : "";
+
+                return `
+                    <div class="client-dropdown-item" onclick="switchClientWorkspace('${c.client_id}')">
+                        <div class="client-avatar-small">${escapeHtml(c.avatar || 'CL')}</div>
+                        <div class="client-item-details">
+                            <div class="client-item-name-row">
+                                <span class="client-item-name">${escapeHtml(c.name)}</span>
+                                <span class="client-status-pill ${isActive ? 'active' : 'expired'}" style="font-size: 9px; padding: 1px 5px;">
+                                    ${isActive ? 'Active' : 'Expired'}
+                                </span>
+                            </div>
+                            <div class="client-item-meta">
+                                <span>${(c.projects || []).length} proj</span>
+                                <span>•</span>
+                                <span class="${isExpiredClass}">${expiryLabel}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function toggleClientDropdown(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById("clientDropdownMenu");
+            const chevron = document.getElementById("clientDropdownChevron");
+            if (!menu) return;
+            const isOpen = menu.classList.contains("active");
+            if (isOpen) {
+                menu.classList.remove("active");
+                if (chevron) chevron.style.transform = "rotate(0deg)";
+            } else {
+                menu.classList.add("active");
+                if (chevron) chevron.style.transform = "rotate(180deg)";
+            }
+        }
+
+        // Close client dropdown when clicking outside
+        window.addEventListener("click", (e) => {
+            const wrapper = document.getElementById("clientWorkspaceSelector");
+            const menu = document.getElementById("clientDropdownMenu");
+            const chevron = document.getElementById("clientDropdownChevron");
+            if (wrapper && !wrapper.contains(e.target) && menu && menu.classList.contains("active")) {
+                menu.classList.remove("active");
+                if (chevron) chevron.style.transform = "rotate(0deg)";
+            }
+        });
+
+        function hasActiveSession() {
+            const chatArea = document.getElementById("chatArea");
+            const hasMessagesInDom = chatArea && chatArea.children.length > 0 && chatArea.innerText.trim().length > 0;
+            const hasActiveChatSession = activeChatSessionId && chatSessions && chatSessions.some(s => s.id === activeChatSessionId && s.messages && s.messages.length > 0);
+            return Boolean(hasMessagesInDom || hasActiveChatSession);
+        }
+
+        function switchClientWorkspace(targetClientId) {
+            const menu = document.getElementById("clientDropdownMenu");
+            const chevron = document.getElementById("clientDropdownChevron");
+            if (menu) menu.classList.remove("active");
+            if (chevron) chevron.style.transform = "rotate(0deg)";
+
+            if (targetClientId === currentActiveClientId) return;
+
+            pendingSwitchClientId = targetClientId;
+            const currentClient = onboardedClientsList.find(c => c.client_id === currentActiveClientId);
+            const currentName = currentClient ? currentClient.name : "Active Client";
+
+            if (hasActiveSession()) {
+                const confirmTextEl = document.getElementById("clientSwitchConfirmText");
+                if (confirmTextEl) {
+                    confirmTextEl.innerText = `You're about to switch away from ${currentName} — this session will end.`;
+                }
+                const modal = document.getElementById("clientSwitchConfirmModal");
+                if (modal) modal.classList.add("active");
+            } else {
+                executeConfirmedClientSwitch();
+            }
+        }
+
+        function closeClientSwitchModal() {
+            const modal = document.getElementById("clientSwitchConfirmModal");
+            if (modal) modal.classList.remove("active");
+            pendingSwitchClientId = null;
+        }
+
+        async function executeConfirmedClientSwitch() {
+            const targetId = pendingSwitchClientId;
+            if (!targetId) return;
+
+            const modal = document.getElementById("clientSwitchConfirmModal");
+            if (modal) modal.classList.remove("active");
+
+            try {
+                const opId = getOperatorId();
+                const headers = { "Content-Type": "application/json" };
+                if (opId) headers["X-Operator-Id"] = opId;
+                if (window.currentUserToken) headers["Authorization"] = `Bearer ${window.currentUserToken}`;
+
+                const res = await fetch("/api/clients/active", {
+                    method: "POST",
+                    headers,
+                    body: JSON.stringify({ client_id: targetId })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    currentActiveClientId = data.active_client_id;
+                    const activeClient = data.active_client || onboardedClientsList.find(c => c.client_id === currentActiveClientId);
+
+                    // 1. Invalidate previous client-scoped session state
+                    chatSessions = [];
+                    activeChatSessionId = data.session_id || null;
+                    saveChatSessions();
+                    renderChatSessionsHistory();
+
+                    const chatArea = document.getElementById("chatArea");
+                    if (chatArea) chatArea.innerHTML = "";
+
+                    // 2. Start fresh session UI
+                    startNewConversation();
+
+                    // 3. Update active card & dropdown
+                    if (activeClient) {
+                        renderActiveClientCard(activeClient);
+                        if (activeClient.projects && activeClient.projects.length > 0) {
+                            selectedProjectIds = new Set(activeClient.projects);
+                            activeProjects = activeClient.projects.map(p => ({
+                                project_id: p,
+                                name: p,
+                                status: "ACTIVE",
+                                in_scope: true
+                            }));
+                            renderScopeBox();
+                            renderOrgDropdown();
+                        }
+                    }
+                    renderClientDropdownList(onboardedClientsList, currentActiveClientId);
+
+                    appendLog(`[Workspace] Troca de cliente concluída com sucesso para '${activeClient ? activeClient.name : targetId}'. Sessão anterior invalidada.`, "success");
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    alert("Falha ao trocar workspace de cliente: " + (err.detail || res.statusText));
+                }
+            } catch (err) {
+                console.error("Error switching active client workspace:", err);
+            } finally {
+                pendingSwitchClientId = null;
+            }
+        }
+
+        function openOnboardClientModal() {
+            const menu = document.getElementById("clientDropdownMenu");
+            const chevron = document.getElementById("clientDropdownChevron");
+            if (menu) menu.classList.remove("active");
+            if (chevron) chevron.style.transform = "rotate(0deg)";
+
+            const nameInput = document.getElementById("onboardClientNameInput");
+            const projectsInput = document.getElementById("onboardClientProjectsInput");
+            const daysInput = document.getElementById("onboardClientDaysInput");
+
+            if (nameInput) nameInput.value = "";
+            if (projectsInput) projectsInput.value = "";
+            if (daysInput) daysInput.value = "14";
+
+            updateOnboardCommandPreview();
+
+            const modal = document.getElementById("onboardClientModal");
+            if (modal) modal.classList.add("active");
+        }
+
+        function closeOnboardModal() {
+            const modal = document.getElementById("onboardClientModal");
+            if (modal) modal.classList.remove("active");
+        }
+
+        function updateOnboardCommandPreview() {
+            const name = (document.getElementById("onboardClientNameInput")?.value || "").trim() || "New Client Workspace";
+            const rawProjects = (document.getElementById("onboardClientProjectsInput")?.value || "").trim();
+            const projects = rawProjects || "client-prod-01";
+            const days = parseInt(document.getElementById("onboardClientDaysInput")?.value || "14", 10) || 14;
+
+            const cmd = `bash scripts/onboard_client.sh --client="${name}" --projects="${projects}" --days=${days}`;
+            const previewEl = document.getElementById("onboardCommandPreview");
+            if (previewEl) previewEl.innerText = cmd;
+        }
+
+        function copyOnboardCommand() {
+            const previewEl = document.getElementById("onboardCommandPreview");
+            if (!previewEl) return;
+            const text = previewEl.innerText;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const btn = document.getElementById("btnCopyOnboardCmd");
+                    if (btn) {
+                        const orig = btn.innerHTML;
+                        btn.innerHTML = `<span>✓ Copiado!</span>`;
+                        setTimeout(() => { btn.innerHTML = orig; }, 2500);
+                    }
+                }).catch(() => {
+                    alert("Comando copiado: " + text);
+                });
+            } else {
+                alert("Comando copiado: " + text);
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             initGoogleWorkspaceIdentity();
             const detectedLang = detectUserLanguage();
             setLanguage(detectedLang);
+            loadOnboardedClients();
             loadProjects();
             loadFinOpsMetrics();
             loadIsoMatrix();
@@ -10306,7 +11075,7 @@ Formulário preenchido com o subagente recomendado!`);
 
             document.querySelectorAll(".agent-item").forEach(el => el.classList.remove("active"));
             const topTitle = document.getElementById("topActiveTitle");
-            if (topTitle) topTitle.innerText = "Agentic GRC Auditor";
+            if (topTitle) topTitle.innerText = "Agentic Compliance Readiness Accelerator";
 
             renderChatSessionsHistory();
         }
@@ -10983,7 +11752,7 @@ function openNewsModal(newsKey) {
                     </svg>
                 </div>
                 <div class="msg-content" id="${replyId}">
-                    <span style="color: var(--text-tertiary)">Agentic GRC Auditor (Google Cloud Security) avaliando telemetria e grafo de evidências...</span>
+                    <span style="color: var(--text-tertiary)">Agentic Compliance Readiness Accelerator (Google Cloud Security) avaliando telemetria e grafo de evidências...</span>
                 </div>
             `;
             chatArea.appendChild(botRow);
@@ -11001,6 +11770,10 @@ function openNewsModal(newsKey) {
                 if (window.currentUserIdToken) {
                     chatHeaders["X-Goog-Id-Token"] = window.currentUserIdToken;
                 }
+                const opId = typeof getOperatorId === "function" ? getOperatorId() : null;
+                if (opId) {
+                    chatHeaders["X-Operator-Id"] = opId;
+                }
                 const previousTurns = currentSession && currentSession.messages
                     ? currentSession.messages.slice(0, -1).slice(-6)
                     : [];
@@ -11015,7 +11788,9 @@ function openNewsModal(newsKey) {
                         locale: window.currentLanguage || 'pt',
                         user_token: window.currentUserToken || undefined,
                         id_token: window.currentUserIdToken || undefined,
-                        history: previousTurns
+                        history: previousTurns,
+                        client_id: currentActiveClientId || undefined,
+                        session_id: activeChatSessionId || undefined
                     })
                 });
                 const replyElem = document.getElementById(replyId);
@@ -11070,6 +11845,12 @@ function openNewsModal(newsKey) {
                 }
 
                 const data = await res.json();
+                if (data.session_id) {
+                    activeChatSessionId = data.session_id;
+                    if (currentSession) {
+                        currentSession.id = data.session_id;
+                    }
+                }
                 const defaultEmptyMsg = (window.currentLanguage === 'en')
                     ? "The auditor completed the assessment without additional remarks."
                     : "O auditor concluiu a análise sem observações adicionais.";
@@ -12052,7 +12833,7 @@ function openNewsModal(newsKey) {
                     nonCompliant: "✗ Não Conforme",
                     partial: "⚠ Parcial",
                     notApplicable: "— Não Aplicável",
-                    justLabel: "Parecer do Auditor & Justificativa Técnica",
+                    justLabel: "Avaliação de Prontidão & Justificativa Técnica",
                     justPlaceholder: "Descreva a justificativa do auditor, escopo auditado e parecer...",
                     uriLabel: "URI / Link da Evidência",
                     uriPlaceholder: "gs://bucket/doc.pdf ou URL...",
@@ -12075,7 +12856,7 @@ function openNewsModal(newsKey) {
                     nonCompliant: "✗ Non-Compliant",
                     partial: "⚠ Partial",
                     notApplicable: "— Not Applicable",
-                    justLabel: "Auditor Opinion & Technical Justification",
+                    justLabel: "Readiness Assessment & Technical Justification",
                     justPlaceholder: "Describe the auditor justification, evaluated scope, and rationale...",
                     uriLabel: "Evidence URI / Link",
                     uriPlaceholder: "gs://bucket/doc.pdf or URL...",
@@ -12098,7 +12879,7 @@ function openNewsModal(newsKey) {
                     nonCompliant: "✗ No Conforme",
                     partial: "⚠ Parcial",
                     notApplicable: "— No Aplicable",
-                    justLabel: "Dictamen del Auditor y Justificación Técnica",
+                    justLabel: "Evaluación de Prontitud y Justificación Técnica",
                     justPlaceholder: "Describa la justificación del auditor, alcance evaluado y dictamen...",
                     uriLabel: "URI / Enlace de la Evidencia",
                     uriPlaceholder: "gs://bucket/doc.pdf o URL...",

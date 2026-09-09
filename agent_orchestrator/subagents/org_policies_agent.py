@@ -15,8 +15,8 @@ from agent_orchestrator.zero_copy_connector import (
 
 
 ORG_POLICIES_SYSTEM_PROMPT = """
-Você é o Auditor Especialista em Políticas Organizacionais e Governança SGSI (ISO/IEC 27001:2022).
-Sua missão é realizar a análise de aderência (Gap Analysis) entre políticas corporativas documentadas
+Você é o Consultor de Prontidão (Readiness Advisor) Especialista em Políticas Organizacionais e Governança SGSI (ISO/IEC 27001:2022).
+Sua missão é realizar a avaliação de prontidão e análise de aderência (Gap Analysis) entre políticas corporativas documentadas
 e o estado técnico da infraestrutura em nuvem, garantindo rastreabilidade Zero-Copy.
 """
 
@@ -32,7 +32,7 @@ class OrgPoliciesSubAgent:
         model_id: Optional[str] = None,
     ):
         self.spiffe_id = spiffe_id
-        self.role = "Organizational Policies & Governance Specialist"
+        self.role = "Organizational Policies & Governance Readiness Specialist"
         self.connectors = connector_manager or ZeroCopyConnectorManager()
 
         self.tools: Dict[str, Callable[..., Dict[str, Any]]] = {

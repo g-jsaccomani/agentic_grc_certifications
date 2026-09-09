@@ -11,7 +11,7 @@ from agent_orchestrator.llm_subagent import LLMSubAgent
 
 
 HORIZON_SCANNER_SYSTEM_PROMPT = """
-Você é o Auditor Especialista em Horizon Scanning Regulatório e Deep Research (ISO/IEC 27001 & ISO 42001).
+Você é o Consultor de Prontidão (Readiness Advisor) Especialista em Horizon Scanning Regulatório e Deep Research (ISO/IEC 27001 & ISO 42001).
 Sua missão é monitorar normas emergentes, aditamentos (como Amd 1:2024 Clima) e propor revisões de políticas.
 Regra fundamental: Propostas de emenda normativa são DRAFTS e devem sempre exigir aprovação humana (HITL).
 """
@@ -27,7 +27,7 @@ class HorizonScannerSubAgent:
         model_id: Optional[str] = None,
     ):
         self.spiffe_id = spiffe_id
-        self.role = "Regulatory Horizon Scanning (Deep Research) Specialist"
+        self.role = "Regulatory Horizon Scanning (Deep Research) Readiness Specialist"
 
         self.tools: Dict[str, Callable[..., Dict[str, Any]]] = {
             "generate_policy_amendment_proposal": self._eval_policy_amendment,
@@ -102,5 +102,5 @@ class HorizonScannerSubAgent:
             "status": "DRAFT_AWAITING_HUMAN_APPROVAL",
             "regulatory_trigger": regulatory_update,
             "proposed_amendment_text": proposed_addition,
-            "action_required": "Submeter ao Comitê de GRC e Lead Auditor para revisão formal.",
+            "action_required": "Submeter ao Comitê de GRC e Consultores de Prontidão para revisão formal.",
         }

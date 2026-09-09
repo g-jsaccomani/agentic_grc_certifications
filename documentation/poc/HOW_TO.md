@@ -1,4 +1,4 @@
-# Product Implementation & Live Customer Demonstration Guide: Agentic GRC Auditor
+# Product Implementation & Live Customer Demonstration Guide: Agentic Compliance Readiness Accelerator
 ## Google Cloud Platform (GCP) Deployment, Verification Runbook & Executive FAQ
 
 > **Document Version**: 2.1.0  
@@ -15,7 +15,7 @@
 
 ## 1. Executive Summary & Zero-Touch Client Experience
 
-The deployment of the **Agentic GRC Auditor** platform is entirely automated and transparent. The client does not need to install local tools, configure virtual environments, or run multi-stage command sequences on their laptop.
+The deployment of the **Agentic Compliance Readiness Accelerator** platform is entirely automated and transparent. The client does not need to install local tools, configure virtual environments, or run multi-stage command sequences on their laptop.
 
 ### The Single Client Workflow:
 1. **Open Google Cloud Shell**.
@@ -191,7 +191,7 @@ curl -s "https://mcp-server-grc-938078169010.us-central1.run.app/.well-known/age
 ### Scene 1: Zero-Trust Login & Active Tenant Verification (00:00 - 05:00)
 
 **Presenter Talk Track:**
-> *"Welcome everyone. Today we are demonstrating continuous, autonomous compliance auditing using the Agentic GRC Auditor. Notice our login interface: access is gated by corporate Google Workspace Single Sign-On. We verify corporate domain residency before any auditor capability is exposed."*
+> *"Welcome everyone. Today we are demonstrating continuous, autonomous compliance auditing using the Agentic Compliance Readiness Accelerator. Notice our login interface: access is gated by corporate Google Workspace Single Sign-On. We verify corporate domain residency before any auditor capability is exposed."*
 
 #### Actions:
 1. Open browser to: `https://mcp-server-grc-938078169010.us-central1.run.app/portal`

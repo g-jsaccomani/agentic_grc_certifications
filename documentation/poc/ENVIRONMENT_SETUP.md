@@ -12,7 +12,7 @@
 
 ## 1. Overview & Architecture Workflow
 
-The deployment of the Agentic GRC Auditor follows a strict **Two-Phase Architecture**:
+The deployment of the Agentic Compliance Readiness Accelerator follows a strict **Two-Phase Architecture**:
 
 1. **Phase 1: Infrastructure & Security Identity Bootstrap (Terraform)**:
    - Provisions a dedicated folder (`fldr-agentic-grc`) and host project in your GCP Organization.
@@ -62,7 +62,7 @@ To satisfy strict enterprise security compliance and client zero-trust governanc
 - **Operational Boundary**: This identity is **NEVER** used during live audit execution, compliance scanning, or client environment telemetry gathering.
 
 ### 2.2 Runtime Inspection Path (`mcp_server_grc/cloud_inspector.py`)
-- **Identity**: Executes strictly under the **requesting user's own delegated OAuth 2.0 bearer token** (`ya29...`) or the dedicated read-only auditor service account (`sa-agentic-grc-auditor@<PROJECT_ID>.iam.gserviceaccount.com`).
+- **Identity & Delegation**: The runtime inspection path (`mcp_server_grc/cloud_inspector.py`) uses only the logged-in user's own delegated OAuth token and makes zero write API calls against client resources.
 - **Assigned Roles**: Read-only organization viewer roles (`roles/cloudasset.viewer`, `roles/browser`, `roles/iam.securityReviewer`, `roles/securitycenter.findingsViewer`).
 - **Zero Mutation Guarantee**: Makes **zero write API calls** against client resources. Every live check is strictly a read-only `GET` or read-only `getIamPolicy` `POST`.
 - **Explicit Leadership Mandate**:

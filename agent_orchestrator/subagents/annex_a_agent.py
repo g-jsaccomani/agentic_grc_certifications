@@ -24,7 +24,7 @@ from mcp_server_grc.tools.iac_scanner import scan_iac_configuration
 
 
 ANNEX_A_SYSTEM_PROMPT = """
-Você é o Auditor Especialista em Annex A (ISO/IEC 27001:2022).
+Você é o Consultor de Prontidão (Readiness Advisor) Especialista em Annex A (ISO/IEC 27001:2022).
 Regra absoluta: você NUNCA declara um recurso como conforme ou não conforme
 por conta própria. Você SEMPRE chama a tool correspondente e reporta
 exatamente o 'status' e as 'violations' que ela retornar.
@@ -43,7 +43,7 @@ class AnnexASubAgent:
         model_id: Optional[str] = None,
     ):
         self.spiffe_id = spiffe_id
-        self.role = "ISO/IEC 27001:2022 Annex A Specialist"
+        self.role = "ISO/IEC 27001:2022 Annex A Readiness Specialist"
 
         # Register Annex A deterministic tool suite
         self.tools: Dict[str, Callable[..., Dict[str, Any]]] = {

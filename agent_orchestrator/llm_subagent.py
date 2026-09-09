@@ -567,7 +567,7 @@ class LLMSubAgent:
                 pct = q_res.get("completion_percentage", 0.0)
                 verdict = "COMPLIANT" if pct == 100.0 else "IN_PROGRESS"
                 narrative = (
-                    f"Auditor '{self.name}': Questionnaire completion status evaluated for {q_res.get('framework', 'ISO27001:2022')}. "
+                    f"Readiness Advisor '{self.name}': Questionnaire completion status evaluated for {q_res.get('framework', 'ISO27001:2022')}. "
                     f"Answered: {q_res.get('answered', 0)}/{q_res.get('total_controls', 93)} ({pct}%). "
                     f"Compliant: {q_res.get('compliant', 0)}, Non-Compliant: {q_res.get('non_compliant', 0)}, "
                     f"Pending: {q_res.get('total_controls', 93) - q_res.get('answered', 0)}.{details_text}"
@@ -575,24 +575,24 @@ class LLMSubAgent:
             elif has_violations:
                 verdict = "NON_COMPLIANT"
                 narrative = (
-                    f"Auditor '{self.name}': Non-compliance detected across assessed controls. "
+                    f"Readiness Advisor '{self.name}': Non-compliance detected across assessed controls. "
                     f"Remediations required per ISO/IEC 27001:2022 specifications.{details_text}"
                 )
             elif has_undetermined:
                 verdict = "UNDETERMINED"
                 narrative = (
-                    f"Auditor '{self.name}': Telemetry insufficient to establish definitive compliance. "
+                    f"Readiness Advisor '{self.name}': Telemetry insufficient to establish definitive compliance. "
                     f"Status remains UNDETERMINED.{details_text}"
                 )
             else:
                 verdict = "COMPLIANT"
                 narrative = (
-                    f"Auditor '{self.name}': Technical evidence validates full adherence to assessed ISO 27001 requirements.{details_text}"
+                    f"Readiness Advisor '{self.name}': Technical evidence validates full adherence to assessed ISO 27001 requirements.{details_text}"
                 )
         else:
             verdict = "UNDETERMINED"
             narrative = (
-                f"Auditor '{self.name}': No verified telemetry or configuration provided by caller. "
+                f"Readiness Advisor '{self.name}': No verified telemetry or configuration provided by caller. "
                 "User claims or free-text descriptions cannot be treated as verified audit evidence. "
                 "Status remains UNDETERMINED."
             )

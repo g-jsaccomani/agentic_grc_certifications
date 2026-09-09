@@ -1,4 +1,4 @@
-# Proof of Concept (POC) — Agentic GRC Auditor
+# Proof of Concept (POC) — Agentic Compliance Readiness Accelerator
 ## Google Cloud Security & Autonomous Continuous Compliance for ISO/IEC 27001:2022
 
 > **Document Status**: Production Ready  
@@ -11,7 +11,7 @@
 
 ## 1. Executive Summary
 
-This directory contains the complete, authoritative documentation package for the **Agentic GRC Auditor Proof of Concept (POC)**. 
+This directory contains the complete, authoritative documentation package for the **Agentic Compliance Readiness Accelerator Proof of Concept (POC)**. 
 
 The platform transforms cloud compliance from manual, periodic, spreadsheet-driven questionnaires into **autonomous, real-time, continuous compliance intelligence grounded in verifiable Google Cloud telemetry and cryptographic evidence chains**.
 
