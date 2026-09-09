@@ -8108,6 +8108,10 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <input type="number" id="onboardClientDaysInput" class="form-input" value="14" min="1" max="90" oninput="updateOnboardCommandPreview()">
             </div>
             <div class="form-group">
+                <label class="form-label" for="onboardClientDriveFolderInput" data-i18n="onboard_drive_folder_label">Google Drive Folder ID / URL (Armazenamento de Evidências)</label>
+                <input type="text" id="onboardClientDriveFolderInput" class="form-input" placeholder="ex.: 1A2B3C4D5E6F7G8H9I0J ou https://drive.google.com/drive/folders/..." oninput="updateOnboardCommandPreview()">
+            </div>
+            <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <label class="form-label" for="onboardCommandPreview" data-i18n="onboard_cmd_label">Comando de Onboarding (GCP Cloud Shell / Terminal)</label>
                     <button class="btn-cancel" style="padding: 3px 10px; font-size: 11.5px;" onclick="copyOnboardCommand()" id="btnCopyOnboardCmd">
@@ -8455,6 +8459,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_input_label: "Nome da Empresa / Cliente",
                 onboard_projects_label: "Projetos GCP no Escopo (separados por vírgula)",
                 onboard_days_label: "Validade do Acesso Read-Only (dias)",
+                onboard_drive_folder_label: "Google Drive Folder ID / URL (Armazenamento de Evidências)",
                 onboard_cmd_label: "Comando de Onboarding (GCP Cloud Shell / Terminal)",
                 onboard_copy_cmd: "Copiar Comando",
                 onboard_copied: "Copiado!",
@@ -8776,6 +8781,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_input_label: "Company / Client Name",
                 onboard_projects_label: "In-Scope GCP Projects (comma-separated)",
                 onboard_days_label: "Read-Only Access Duration (days)",
+                onboard_drive_folder_label: "Google Drive Folder ID / URL (Evidence Storage)",
                 onboard_cmd_label: "Onboarding Command (GCP Cloud Shell / Terminal)",
                 onboard_copy_cmd: "Copy Command",
                 onboard_copied: "Copied!",
@@ -9097,6 +9103,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_input_label: "Nombre de la Empresa / Cliente",
                 onboard_projects_label: "Proyectos GCP en Alcance (separados por comas)",
                 onboard_days_label: "Validez del Acceso de Solo Lectura (días)",
+                onboard_drive_folder_label: "Google Drive Folder ID / URL (Almacenamiento de Evidencias)",
                 onboard_cmd_label: "Comando de Onboarding (GCP Cloud Shell / Terminal)",
                 onboard_copy_cmd: "Copiar Comando",
                 onboard_copied: "¡Copiado!",
@@ -10667,10 +10674,12 @@ Formulário preenchido com o subagente recomendado!`);
             const nameInput = document.getElementById("onboardClientNameInput");
             const projectsInput = document.getElementById("onboardClientProjectsInput");
             const daysInput = document.getElementById("onboardClientDaysInput");
+            const driveFolderInput = document.getElementById("onboardClientDriveFolderInput");
 
             if (nameInput) nameInput.value = "";
             if (projectsInput) projectsInput.value = "";
             if (daysInput) daysInput.value = "14";
+            if (driveFolderInput) driveFolderInput.value = "";
 
             updateOnboardCommandPreview();
 
@@ -10688,8 +10697,12 @@ Formulário preenchido com o subagente recomendado!`);
             const rawProjects = (document.getElementById("onboardClientProjectsInput")?.value || "").trim();
             const projects = rawProjects || "client-prod-01";
             const days = parseInt(document.getElementById("onboardClientDaysInput")?.value || "14", 10) || 14;
+            const driveFolder = (document.getElementById("onboardClientDriveFolderInput")?.value || "").trim();
 
-            const cmd = `bash scripts/onboard_client.sh --client="${name}" --projects="${projects}" --days=${days}`;
+            let cmd = `bash scripts/onboard_client.sh --client="${name}" --projects="${projects}" --days=${days}`;
+            if (driveFolder) {
+                cmd += ` --drive-folder="${driveFolder}"`;
+            }
             const previewEl = document.getElementById("onboardCommandPreview");
             if (previewEl) previewEl.innerText = cmd;
         }
@@ -10718,6 +10731,7 @@ Formulário preenchido com o subagente recomendado!`);
             const nameInput = document.getElementById("onboardClientNameInput");
             const projectsInput = document.getElementById("onboardClientProjectsInput");
             const daysInput = document.getElementById("onboardClientDaysInput");
+            const driveFolderInput = document.getElementById("onboardClientDriveFolderInput");
 
             const name = (nameInput?.value || "").trim();
             if (!name) {
@@ -10729,6 +10743,7 @@ Formulário preenchido com o subagente recomendado!`);
             const rawProjects = (projectsInput?.value || "").trim();
             const projects = rawProjects ? rawProjects.split(",").map(p => p.trim()).filter(Boolean) : [];
             const days = parseInt(daysInput?.value || "14", 10) || 14;
+            const driveFolder = (driveFolderInput?.value || "").trim();
 
             const btn = document.getElementById("btnSubmitOnboardClient");
             const originalHtml = btn ? btn.innerHTML : "";
@@ -10749,7 +10764,8 @@ Formulário preenchido com o subagente recomendado!`);
                     body: JSON.stringify({
                         name: name,
                         projects: projects,
-                        days: days
+                        days: days,
+                        drive_folder_id: driveFolder || null
                     })
                 });
 

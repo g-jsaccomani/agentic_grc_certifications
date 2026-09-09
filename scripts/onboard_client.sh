@@ -20,6 +20,7 @@ PROJECTS_ARG=""
 ORG_ID_ARG=""
 EXPIRY_DAYS="14"
 AUDITOR_EMAIL=""
+DRIVE_FOLDER_ARG=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -61,6 +62,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         --email)
             AUDITOR_EMAIL="$2"
+            shift 2
+            ;;
+        --drive-folder=*)
+            DRIVE_FOLDER_ARG="${1#*=}"
+            shift
+            ;;
+        --drive-folder)
+            DRIVE_FOLDER_ARG="$2"
             shift 2
             ;;
         *)
@@ -155,6 +164,7 @@ record = {
     "org_id": "${ORG_ID_ARG}",
     "org_name": f"{client_name} Org",
     "contact_email": "${AUDITOR_EMAIL}",
+    "drive_folder_id": "${DRIVE_FOLDER_ARG}" if "${DRIVE_FOLDER_ARG}" else None,
     "created_at": now_iso,
     "read_only_access_expires_at": "${EXPIRY_ISO}",
     "read_only_access_days_remaining": int("${EXPIRY_DAYS}"),

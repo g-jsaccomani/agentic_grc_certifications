@@ -28,6 +28,11 @@ from pydantic import BaseModel, Field
 from mcp_server_grc.auth import WorkspaceUserContext, get_current_workspace_user, require_authenticated_workspace_user
 from agent_orchestrator.evidence_graph import EvidenceVerificationTier
 from agent_orchestrator.llm_subagent import LLMSubAgent
+from agent_orchestrator.zero_copy_connector import (
+    ZeroCopyConnectorManager,
+    ConnectorSource,
+    ZeroCopyDocument,
+)
 from mcp_server_grc.catalog import ISO_27001_CATALOG
 from mcp_server_grc.questionnaire_catalog import (
     get_localized_catalog,
@@ -46,6 +51,67 @@ CHUNK_SIZE = 64 * 1024           # 64KB chunk streaming
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPLOAD_DIR = os.path.join(BASE_DIR, "data", "evidence_uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# Shared Google Drive zero-copy connector instance
+zero_copy_manager = ZeroCopyConnectorManager()
+
+
+def resolve_active_client_id(
+    request: Optional[Request] = None,
+    x_client_id: Optional[str] = None,
+    x_session_id: Optional[str] = None,
+    x_operator_id: Optional[str] = None,
+    client_id: Optional[str] = None,
+    user_context: Optional[WorkspaceUserContext] = None,
+) -> str:
+    """Resolves active client workspace ID from request headers, query params, session bindings, or operator context."""
+    from mcp_server_grc.portal import (
+        SESSION_CLIENT_BINDINGS,
+        OPERATOR_ACTIVE_CLIENTS,
+        resolve_operator_id,
+        get_operator_active_client,
+        load_onboarded_clients,
+    )
+
+    existing_cids = {c.get("client_id") for c in load_onboarded_clients()}
+
+    if x_client_id and str(x_client_id).strip():
+        cid = str(x_client_id).strip()
+        if cid in existing_cids:
+            return cid
+
+    if client_id and str(client_id).strip():
+        cid = str(client_id).strip()
+        if cid in existing_cids:
+            return cid
+
+    sess_id = x_session_id
+    if not sess_id and request:
+        sess_id = request.headers.get("X-Session-Id") or request.query_params.get("session_id")
+    if sess_id and sess_id in SESSION_CLIENT_BINDINGS:
+        cid = SESSION_CLIENT_BINDINGS[sess_id]
+        if cid in existing_cids:
+            return cid
+
+    if request:
+        req_cid = request.headers.get("X-Client-Id") or request.query_params.get("client_id")
+        if req_cid and req_cid.strip() and req_cid.strip() in existing_cids:
+            return req_cid.strip()
+
+    op_id = resolve_operator_id(user_context=user_context, x_operator_id=x_operator_id)
+    return get_operator_active_client(op_id)
+
+
+def get_client_drive_folder_id(client_id: str) -> Optional[str]:
+    """Returns configured Google Drive folder ID for the given client_id, if configured."""
+    from mcp_server_grc.portal import load_onboarded_clients
+    clients = load_onboarded_clients()
+    for c in clients:
+        if c.get("client_id") == client_id:
+            val = c.get("drive_folder_id")
+            if val and str(val).strip():
+                return str(val).strip()
+    return None
 
 # Disallowed binary signatures: executables, DLLs, ELF, Mach-O, Java class, archives
 DISALLOWED_BINARY_PREFIXES: List[Tuple[bytes, str]] = [
@@ -421,17 +487,28 @@ def get_ci_engine():
     response_model=EvidenceFileUploadResponse,
     summary="Upload evidence file validated by content magic bytes",
 )
+@router.post(
+    "/questionnaire/{control_id}/upload-evidence",
+    response_model=EvidenceFileUploadResponse,
+    summary="Upload evidence file validated by content magic bytes (alias)",
+)
 async def upload_evidence_file(
     control_id: str,
+    request: Request,
     file: UploadFile = File(...),
     content_length: Optional[int] = Header(None),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    x_operator_id: Optional[str] = Header(None),
+    client_id: Optional[str] = Query(default=None),
     user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
     """Uploads and strictly validates evidence files by actual content.
     
-    - Static images (PNG, JPEG, WEBP) & plain text (TXT, CSV, MD) are securely stored.
-    - PDF & Office files (DOCX, XLSX, PPTX) have text extracted and original binaries safely discarded.
-    - Rejects SVG, HTML, archives, executables, scripts, and macro documents.
+    - Resolves the active client workspace bound to the session / operator.
+    - Requires a configured Google Drive folder (drive_folder_id) for the client.
+    - Stores evidence directly in the client's Google Drive folder via ZeroCopyConnectorManager.
+    - Zero local disk writes (prevents ephemeral Cloud Run loss).
     - Enforces 8MB max size streamed without loading whole invalid payload in memory.
     """
     if content_length is not None and content_length > MAX_FILE_SIZE:
@@ -440,7 +517,25 @@ async def upload_evidence_file(
             detail="File size exceeds maximum allowed limit of 8MB.",
         )
 
-    # Stream read with size enforcement
+    # 1. Resolve active client workspace for this session
+    active_client_id = resolve_active_client_id(
+        request=request,
+        x_client_id=x_client_id,
+        x_session_id=x_session_id,
+        x_operator_id=x_operator_id,
+        client_id=client_id,
+        user_context=user_context,
+    )
+
+    # 2. Check if client has drive_folder_id configured
+    drive_folder_id = get_client_drive_folder_id(active_client_id)
+    if not drive_folder_id:
+        raise HTTPException(
+            status_code=400,
+            detail="No evidence storage location configured for this client — set a Drive folder before uploading evidence",
+        )
+
+    # 3. Stream read with size enforcement
     content = bytearray()
     while True:
         chunk = await file.read(CHUNK_SIZE)
@@ -474,10 +569,21 @@ async def upload_evidence_file(
     uploaded_at = time.time()
 
     if action == "STORE_BINARY":
-        # Write to secure directory outside static root
-        file_path = os.path.join(UPLOAD_DIR, f"{file_id}.bin")
-        with open(file_path, "wb") as f:
-            f.write(content_bytes)
+        # Write directly to client's Google Drive folder via ZeroCopyConnectorManager
+        doc = zero_copy_manager.write_evidence_file(
+            client_id=active_client_id,
+            drive_folder_id=drive_folder_id,
+            file_id=file_id,
+            filename=safe_filename,
+            content=content_bytes,
+            mime_type=mime_type,
+            metadata={
+                "control_id": control_id,
+                "stored_as": "binary",
+                "user_email": user_context.email,
+                "original_filename": safe_filename,
+            },
+        )
 
         metadata = {
             "file_id": file_id,
@@ -486,6 +592,10 @@ async def upload_evidence_file(
             "size_bytes": len(content_bytes),
             "stored_as": "binary",
             "control_id": control_id,
+            "client_id": active_client_id,
+            "drive_folder_id": drive_folder_id,
+            "drive_document_id": doc.document_id,
+            "storage_uri": f"gdrive://{drive_folder_id}/{file_id}",
             "user_email": user_context.email,
             "uploaded_at": uploaded_at,
         }
@@ -498,12 +608,27 @@ async def upload_evidence_file(
             size_bytes=len(content_bytes),
             stored_as="binary",
             control_id=control_id,
-            message="Evidence file verified by magic bytes and securely stored.",
+            message="Evidence file verified by magic bytes and securely stored in Google Drive.",
         )
 
     elif action == "EXTRACT_TEXT":
         # Binary discarded immediately. Only extracted text is retained.
         extracted_text = text_or_err or ""
+        doc = zero_copy_manager.write_evidence_file(
+            client_id=active_client_id,
+            drive_folder_id=drive_folder_id,
+            file_id=file_id,
+            filename=f"{safe_filename}.txt",
+            content=extracted_text.encode("utf-8"),
+            mime_type="text/plain",
+            metadata={
+                "control_id": control_id,
+                "stored_as": "text_extracted",
+                "user_email": user_context.email,
+                "original_filename": safe_filename,
+            },
+        )
+
         metadata = {
             "file_id": file_id,
             "original_filename": safe_filename,
@@ -512,6 +637,10 @@ async def upload_evidence_file(
             "stored_as": "text_extracted",
             "extracted_text": extracted_text,
             "control_id": control_id,
+            "client_id": active_client_id,
+            "drive_folder_id": drive_folder_id,
+            "drive_document_id": doc.document_id,
+            "storage_uri": f"gdrive://{drive_folder_id}/{file_id}",
             "user_email": user_context.email,
             "uploaded_at": uploaded_at,
         }
@@ -524,7 +653,7 @@ async def upload_evidence_file(
             size_bytes=len(content_bytes),
             stored_as="text_extracted",
             control_id=control_id,
-            message="Document parsed successfully; text extracted and original binary safely discarded.",
+            message="Document parsed successfully; text extracted and saved to Google Drive, original binary discarded.",
             extracted_text=extracted_text,
         )
 
@@ -538,11 +667,30 @@ async def upload_evidence_file(
 async def get_evidence_file(
     control_id: str,
     file_id: str,
+    request: Request,
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    x_operator_id: Optional[str] = Header(None),
+    client_id: Optional[str] = Query(default=None),
     user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
-    """Serves verified binary evidence files with Content-Disposition: attachment and nosniff."""
+    """Serves verified binary evidence files from the active client's Google Drive folder."""
+    active_client_id = resolve_active_client_id(
+        request=request,
+        x_client_id=x_client_id,
+        x_session_id=x_session_id,
+        x_operator_id=x_operator_id,
+        client_id=client_id,
+        user_context=user_context,
+    )
+
     meta = EVIDENCE_METADATA.get(file_id)
     if not meta or meta.get("control_id") != control_id:
+        raise HTTPException(status_code=404, detail="Evidence file not found.")
+
+    # Cross-tenant isolation: Evidence uploaded for Client A is NEVER reachable when Client B is active
+    file_client_id = meta.get("client_id")
+    if file_client_id and file_client_id != active_client_id:
         raise HTTPException(status_code=404, detail="Evidence file not found.")
 
     if meta.get("stored_as") == "text_extracted":
@@ -551,17 +699,19 @@ async def get_evidence_file(
             detail="Document binary was discarded per security policy. Evidence is stored as extracted text.",
         )
 
-    # Path traversal protection
-    target_path = os.path.abspath(os.path.join(UPLOAD_DIR, f"{file_id}.bin"))
-    if not target_path.startswith(os.path.abspath(UPLOAD_DIR)):
-        raise HTTPException(status_code=403, detail="Access denied: invalid file path.")
+    drive_folder_id = meta.get("drive_folder_id") or get_client_drive_folder_id(active_client_id)
+    if not drive_folder_id:
+        raise HTTPException(status_code=404, detail="Evidence storage folder not found.")
 
-    if not os.path.isfile(target_path):
-        raise HTTPException(status_code=404, detail="Evidence file not found on disk.")
+    file_tuple = zero_copy_manager.get_evidence_file(
+        client_id=active_client_id,
+        drive_folder_id=drive_folder_id,
+        file_id=file_id,
+    )
+    if not file_tuple:
+        raise HTTPException(status_code=404, detail="Evidence file not found in client Drive folder.")
 
-    with open(target_path, "rb") as f:
-        file_bytes = f.read()
-
+    doc, file_bytes = file_tuple
     filename = meta.get("original_filename", f"evidence-{file_id}")
     mime_type = meta.get("content_type", "application/octet-stream")
 

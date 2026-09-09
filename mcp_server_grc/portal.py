@@ -134,6 +134,7 @@ def load_onboarded_clients() -> List[Dict[str, Any]]:
                 "org_id": "108928374619",
                 "org_name": "Altostrat Global Org",
                 "contact_email": "security@altostrat.com",
+                "drive_folder_id": "1A2B3C4D5E6F7G8H9I0J-altostrat-evidence",
                 "created_at": "2026-09-01T12:00:00Z",
                 "read_only_access_expires_at": "2026-09-23T16:00:00Z",
                 "read_only_access_days_remaining": 14,
@@ -173,7 +174,23 @@ def resolve_operator_id(
 
 def get_operator_active_client(operator_id: str) -> str:
     """Returns the active client_id for the given operator, defaulting to altostrat-ventures."""
-    return OPERATOR_ACTIVE_CLIENTS.get(operator_id, "altostrat-ventures")
+    active = OPERATOR_ACTIVE_CLIENTS.get(operator_id, "altostrat-ventures")
+    existing_cids = {c.get("client_id") for c in load_onboarded_clients()}
+    if active not in existing_cids:
+        active = "altostrat-ventures"
+        OPERATOR_ACTIVE_CLIENTS[operator_id] = "altostrat-ventures"
+    return active
+
+
+def get_client_drive_folder_id(client_id: str) -> Optional[str]:
+    """Returns configured Google Drive folder ID for the given client_id, if configured."""
+    clients = load_onboarded_clients()
+    for c in clients:
+        if c.get("client_id") == client_id:
+            val = c.get("drive_folder_id")
+            if val and str(val).strip():
+                return str(val).strip()
+    return None
 
 
 def get_client_ci_engine(client_id: Optional[str] = None) -> ContinuousIntelligenceEngine:
@@ -222,6 +239,7 @@ class OnboardClientRequest(BaseModel):
     org_id: Optional[str] = Field(default=None, description="Optional GCP organization ID")
     org_name: Optional[str] = Field(default=None, description="Optional organization name")
     contact_email: Optional[str] = Field(default=None, description="Auditor/client contact email")
+    drive_folder_id: Optional[str] = Field(default=None, description="Google Drive folder ID or URL for evidence storage")
 
 
 class StorageLinkRequest(BaseModel):
@@ -2559,6 +2577,19 @@ async def onboard_new_client(
     org_id = req.org_id or "108928374619"
     org_name = req.org_name or f"{client_name} Org"
 
+    drive_folder_id = None
+    if req.drive_folder_id and str(req.drive_folder_id).strip():
+        raw_df = str(req.drive_folder_id).strip()
+        m = re.search(r"folders/([a-zA-Z0-9_-]+)", raw_df)
+        if m:
+            drive_folder_id = m.group(1)
+        else:
+            m2 = re.search(r"[?&]id=([a-zA-Z0-9_-]+)", raw_df)
+            if m2:
+                drive_folder_id = m2.group(1)
+            else:
+                drive_folder_id = raw_df
+
     record = {
         "client_id": client_id,
         "name": client_name,
@@ -2567,6 +2598,7 @@ async def onboard_new_client(
         "org_id": org_id,
         "org_name": org_name,
         "contact_email": contact_email,
+        "drive_folder_id": drive_folder_id,
         "created_at": created_iso,
         "read_only_access_expires_at": expiry_iso,
         "read_only_access_days_remaining": days,
@@ -2594,6 +2626,7 @@ async def onboard_new_client(
                 "org_id": "108928374619",
                 "org_name": "Altostrat Global Org",
                 "contact_email": "security@altostrat.com",
+                "drive_folder_id": "1A2B3C4D5E6F7G8H9I0J-altostrat-evidence",
                 "created_at": "2026-09-01T12:00:00Z",
                 "read_only_access_expires_at": "2026-09-23T16:00:00Z",
                 "read_only_access_days_remaining": 14,
@@ -2654,6 +2687,15 @@ async def delete_onboarded_client(
     if len(clients) == initial_len:
         raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found.")
     save_onboarded_clients(clients)
+
+    # Invalidate active operator/session bindings pointing to deleted client
+    for op, bound_cid in list(OPERATOR_ACTIVE_CLIENTS.items()):
+        if bound_cid == client_id:
+            OPERATOR_ACTIVE_CLIENTS[op] = "altostrat-ventures"
+    for sess, bound_cid in list(SESSION_CLIENT_BINDINGS.items()):
+        if bound_cid == client_id:
+            SESSION_CLIENT_BINDINGS.pop(sess, None)
+
     return {"status": "success", "message": f"Client '{client_id}' deleted from data/clients.json."}
 
 

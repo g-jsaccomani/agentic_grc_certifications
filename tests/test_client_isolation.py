@@ -18,7 +18,7 @@ AUTH_HEADER = {"Authorization": "Bearer ya29.valid-auditor-access-token"}
 @pytest.fixture
 def temporary_test_clients():
     """Temporarily registers test clients in data/clients.json for isolation tests and cleans up after."""
-    headers = AUTH_HEADER
+    headers = {**AUTH_HEADER, "X-Operator-Id": "consultant-isolation-fixture"}
     # Onboard client alpha
     client.post(
         "/api/clients/onboard",
@@ -34,6 +34,8 @@ def temporary_test_clients():
     yield "client-alpha", "client-beta"
     client.delete("/api/clients/client-alpha", headers=headers)
     client.delete("/api/clients/client-beta", headers=headers)
+    OPERATOR_ACTIVE_CLIENTS["default_operator"] = "altostrat-ventures"
+    OPERATOR_ACTIVE_CLIENTS.pop("consultant-isolation-fixture", None)
 
 
 def test_client_workspace_ui_elements_served():
@@ -65,6 +67,7 @@ def test_client_workspace_ui_elements_served():
     assert 'id="clientSwitchConfirmModal"' in html
     assert "You're about to switch away from" in html
     assert 'id="onboardClientModal"' in html
+    assert 'id="onboardClientDriveFolderInput"' in html
     assert 'scripts/onboard_client.sh' in html
     assert 'roles/viewer' in html
     assert 'roles/securityReviewer' in html
@@ -286,3 +289,135 @@ def test_isolated_continuous_intelligence_engines():
     # Prove that other client's evidence graph does NOT contain Altostrat evidence
     assert alto_node.node_id not in engine_other.evidence_graph.nodes
     assert alto_node.node_id in engine_alto.evidence_graph.nodes
+
+
+def test_evidence_upload_fails_when_no_drive_folder_configured(temporary_test_clients):
+    """Verify that uploading evidence fails with 400 when no Drive folder is configured for the active client."""
+    client_a, _ = temporary_test_clients
+    op_headers = {**AUTH_HEADER, "X-Operator-Id": "consultant-nodrive"}
+
+    # Switch active client to client_a (which has no drive_folder_id)
+    switch_res = client.post(
+        "/api/clients/active",
+        json={"client_id": client_a},
+        headers=op_headers,
+    )
+    assert switch_res.status_code == 200
+
+    # Attempt evidence upload
+    files = {"file": ("policy.txt", b"A.5.1 Policy Document Content", "text/plain")}
+    res = client.post(
+        "/api/questionnaire/A.5.1/evidence-file",
+        files=files,
+        headers=op_headers,
+    )
+    assert res.status_code == 400
+    assert "No evidence storage location configured for this client — set a Drive folder before uploading evidence" in res.text
+
+
+def test_evidence_cross_client_drive_isolation():
+    """Verify that evidence uploaded while Client A is active is NEVER reachable when Client B is active."""
+    headers = {**AUTH_HEADER, "X-Operator-Id": "consultant-isolation-auditor"}
+
+    # 1. Onboard Client A with Google Drive folder
+    client_a_id = "test-client-drive-a"
+    client.post(
+        "/api/clients/onboard",
+        json={
+            "name": "Drive Client A",
+            "client_id": client_a_id,
+            "projects": ["proj-a"],
+            "days": 14,
+            "drive_folder_id": "1DriveFolderAlpha123456",
+        },
+        headers=headers,
+    )
+
+    # 2. Onboard Client B with separate Google Drive folder
+    client_b_id = "test-client-drive-b"
+    client.post(
+        "/api/clients/onboard",
+        json={
+            "name": "Drive Client B",
+            "client_id": client_b_id,
+            "projects": ["proj-b"],
+            "days": 14,
+            "drive_folder_id": "1DriveFolderBeta789012",
+        },
+        headers=headers,
+    )
+
+    try:
+        # 3. Switch active client to Client A
+        sw_a = client.post(
+            "/api/clients/active",
+            json={"client_id": client_a_id},
+            headers=headers,
+        )
+        assert sw_a.status_code == 200
+        sess_a = sw_a.json()["session_id"]
+        a_headers = {**headers, "X-Session-Id": sess_a}
+
+        # 4. Upload confidential evidence file under Client A
+        files = {"file": ("client_a_secret_policy.txt", b"CONFIDENTIAL CLIENT A SECURITY EVIDENCE", "text/plain")}
+        up_res = client.post(
+            "/api/questionnaire/A.5.1/evidence-file",
+            files=files,
+            headers=a_headers,
+        )
+        assert up_res.status_code == 200
+        up_data = up_res.json()
+        file_id = up_data["file_id"]
+        assert file_id
+
+        # 5. Verify file is reachable while Client A is active
+        dl_a = client.get(
+            f"/api/questionnaire/A.5.1/evidence-file/{file_id}",
+            headers=a_headers,
+        )
+        assert dl_a.status_code == 200
+        assert dl_a.content == b"CONFIDENTIAL CLIENT A SECURITY EVIDENCE"
+
+        # 6. Switch active client to Client B
+        sw_b = client.post(
+            "/api/clients/active",
+            json={"client_id": client_b_id},
+            headers=headers,
+        )
+        assert sw_b.status_code == 200
+        sess_b = sw_b.json()["session_id"]
+        b_headers = {**headers, "X-Session-Id": sess_b}
+
+        # 7. Attempt to access Client A's evidence file while Client B is active -> Must return 404
+        dl_b = client.get(
+            f"/api/questionnaire/A.5.1/evidence-file/{file_id}",
+            headers=b_headers,
+        )
+        assert dl_b.status_code == 404
+        assert "Evidence file not found" in dl_b.text
+
+        # 8. Attempt cross-tenant fetch using explicit X-Client-Id header for Client B
+        cross_header = {**AUTH_HEADER, "X-Client-Id": client_b_id}
+        dl_cross = client.get(
+            f"/api/questionnaire/A.5.1/evidence-file/{file_id}",
+            headers=cross_header,
+        )
+        assert dl_cross.status_code == 404
+
+        # 9. Switch back to Client A -> File is again accessible
+        sw_a2 = client.post(
+            "/api/clients/active",
+            json={"client_id": client_a_id},
+            headers=headers,
+        )
+        sess_a2 = sw_a2.json()["session_id"]
+        dl_back = client.get(
+            f"/api/questionnaire/A.5.1/evidence-file/{file_id}",
+            headers={**headers, "X-Session-Id": sess_a2},
+        )
+        assert dl_back.status_code == 200
+        assert dl_back.content == b"CONFIDENTIAL CLIENT A SECURITY EVIDENCE"
+
+    finally:
+        client.delete(f"/api/clients/{client_a_id}", headers=headers)
+        client.delete(f"/api/clients/{client_b_id}", headers=headers)

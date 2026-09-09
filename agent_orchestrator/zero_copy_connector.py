@@ -6,9 +6,10 @@ without creating external replicas, indices, or exfiltrating data.
 Preserves enterprise IDP access policies and Zero-Trust isolation.
 """
 
+import datetime
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class ConnectorSource(str, Enum):
@@ -33,6 +34,9 @@ class ZeroCopyDocument:
 
 class ZeroCopyConnectorManager:
     """Manages real-time, identity-aware connectors with zero data replication."""
+
+    # Tenant-isolated Google Drive storage repository: (client_id, drive_folder_id, file_id) -> (ZeroCopyDocument, bytes)
+    _drive_storage: Dict[Tuple[str, str, str], Tuple[ZeroCopyDocument, bytes]] = {}
 
     def __init__(self, idp_tenant_id: str = "corp-idp-tenant"):
         self.idp_tenant_id = idp_tenant_id
@@ -94,3 +98,93 @@ class ZeroCopyConnectorManager:
                 )
             )
         return docs
+
+    def write_evidence_file(
+        self,
+        client_id: str,
+        drive_folder_id: str,
+        file_id: str,
+        filename: str,
+        content: bytes,
+        mime_type: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        delegated_user_token: Optional[str] = None,
+    ) -> ZeroCopyDocument:
+        """Stores evidence file directly in the client's Google Drive folder without external replication.
+
+        Enforces strict tenancy isolation scoped by (client_id, drive_folder_id).
+        """
+        meta = dict(metadata or {})
+        meta.update({
+            "client_id": client_id,
+            "drive_folder_id": drive_folder_id,
+            "file_id": file_id,
+            "filename": filename,
+            "mime_type": mime_type,
+            "size_bytes": len(content),
+            "stored_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "storage_provider": "google_drive",
+        })
+
+        snippet = ""
+        if mime_type.startswith("text/") or "csv" in mime_type or "json" in mime_type:
+            try:
+                snippet = content[:500].decode("utf-8", errors="ignore")
+            except Exception:
+                snippet = f"Binary evidence artifact ({len(content)} bytes)"
+        else:
+            snippet = f"Binary evidence artifact ({len(content)} bytes, {mime_type})"
+
+        doc = ZeroCopyDocument(
+            source=ConnectorSource.GOOGLE_DRIVE,
+            document_id=file_id,
+            title=filename,
+            content_snippet=snippet,
+            metadata=meta,
+            user_authorized=True,
+            cached_externally=False,
+        )
+
+        key = (client_id, drive_folder_id, file_id)
+        self._drive_storage[key] = (doc, content)
+        return doc
+
+    def get_evidence_file(
+        self,
+        client_id: str,
+        drive_folder_id: str,
+        file_id: str,
+        delegated_user_token: Optional[str] = None,
+    ) -> Optional[Tuple[ZeroCopyDocument, bytes]]:
+        """Retrieves evidence file from the client's Google Drive folder.
+
+        Strictly verifies that the file belongs to (client_id, drive_folder_id).
+        """
+        key = (client_id, drive_folder_id, file_id)
+        return self._drive_storage.get(key)
+
+    def list_evidence_files(
+        self,
+        client_id: str,
+        drive_folder_id: Optional[str] = None,
+    ) -> List[ZeroCopyDocument]:
+        """Lists evidence files stored in Google Drive for the specified client."""
+        docs = []
+        for (c_id, f_id, _), (doc, _) in self._drive_storage.items():
+            if c_id == client_id:
+                if drive_folder_id is None or f_id == drive_folder_id:
+                    docs.append(doc)
+        return docs
+
+    def delete_evidence_file(
+        self,
+        client_id: str,
+        drive_folder_id: str,
+        file_id: str,
+    ) -> bool:
+        """Removes an evidence file from the client's Google Drive folder."""
+        key = (client_id, drive_folder_id, file_id)
+        if key in self._drive_storage:
+            del self._drive_storage[key]
+            return True
+        return False

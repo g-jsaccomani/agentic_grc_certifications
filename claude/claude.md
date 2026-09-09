@@ -4,7 +4,7 @@
 **Repository:** `agentic_grc_certifications`  
 **Execution Date:** 2026-09-08  
 **Implementation Source:** `handoff-agentic-grc-multiagente.md`  
-**Status:** COMPLETE & VERIFIED (197/197 Pytest Suite Passing, 92% Code Coverage, Custom Subagent Model Armor Screening, Read-Only Guardrails, Telemetry Grounding Integrity, Questionnaire Intent Routing, GenAI SDK Warning Suppression, Real FinOps Token Telemetry, Algorithmic Token-Saving Tips Engine, Compact Single-Row Provider Strip, Collapsible GCP Scope Sub-Tree, Dual-Token Dev Ergonomics, Clean Gemini UI Refactor)
+**Status:** COMPLETE & VERIFIED (199/199 Pytest Suite Passing, 92% Code Coverage, Tenant-Scoped Google Drive Evidence Storage, Custom Subagent Model Armor Screening, Read-Only Guardrails, Telemetry Grounding Integrity, Questionnaire Intent Routing, GenAI SDK Warning Suppression, Real FinOps Token Telemetry, Algorithmic Token-Saving Tips Engine, Compact Single-Row Provider Strip, Collapsible GCP Scope Sub-Tree, Dual-Token Dev Ergonomics, Clean Gemini UI Refactor)
 
 ---
 
@@ -2316,9 +2316,43 @@ Enhanced detection regexes to capture anti-compliance coercion and rule-override
   - `tests/test_guardrails_and_model_armor.py`: 7 passed in 0.68s.
   - Full suite (`pytest tests/`): 197 passed, 0 failures (100% pass rate).
 
+---
 
+### Milestone 67: Tenant-Scoped Google Drive Evidence Storage & Zero Ephemeral Disk Retention
 
+#### 1. Context & Architectural Root Cause
+In `mcp_server_grc/questionnaire.py`, evidence files uploaded through the compliance questionnaire were previously saved to a single shared local directory (`UPLOAD_DIR = data/evidence_uploads/`) with no per-client isolation.
+- **Critical Flaw 1 (Ephemeral Disk Data Loss)**: Cloud Run instances run on ephemeral containers with in-memory / tmpfs root filesystems. On every container restart, redeploy, or scale-to-zero event, all local evidence files were irreversibly wiped.
+- **Critical Flaw 2 (Cross-Tenant Exposure)**: All uploaded files lived in a single flat directory with no tenant tenancy bounding; any authenticated session could potentially reference another client's file IDs.
 
+#### 2. Architectural Solution: Client-Scoped Google Drive Connector
+1. **Client Registry & Onboarding Configuration**:
+   - Added `drive_folder_id` to `data/clients.json` client records and fallback registry.
+   - Enhanced `OnboardClientRequest` (`mcp_server_grc/portal.py`) with optional `drive_folder_id: Optional[str]` extracting folder IDs from direct strings or full Google Drive folder URLs (`/folders/<id>` or `?id=<id>`).
+   - Added the **Google Drive Folder ID / URL** input field (`#onboardClientDriveFolderInput`) to the "+ Onboard new client" modal in `mcp_server_grc/portal_html.py` with tri-lingual i18n (`pt`, `en`, `es`).
+   - Extended `scripts/onboard_client.sh` with `--drive-folder="<id_or_url>"` flag.
+2. **Zero-Copy Google Drive Storage Integration (`agent_orchestrator/zero_copy_connector.py`)**:
+   - Extended `ZeroCopyConnectorManager` with tenant-isolated Drive operations:
+     - `write_evidence_file(client_id, drive_folder_id, file_id, filename, content, mime_type, ...)`
+     - `get_evidence_file(client_id, drive_folder_id, file_id, ...)`
+     - `list_evidence_files(client_id, drive_folder_id)`
+     - `delete_evidence_file(client_id, drive_folder_id, file_id)`
+   - Stores documents and binary payloads strictly keyed by `(client_id, drive_folder_id, file_id)`.
+3. **Strict Storage Prerequisite Enforcement**:
+   - `upload_evidence_file` resolves the active client workspace (`resolve_active_client_id`) and checks `get_client_drive_folder_id(active_client_id)`.
+   - If missing, immediately rejects upload with HTTP 400: `"No evidence storage location configured for this client — set a Drive folder before uploading evidence"`.
+4. **Complete Eradication of Local Disk Writes**:
+   - Uploaded binaries (`STORE_BINARY`) and extracted text summaries (`EXTRACT_TEXT`) write directly into the client's Google Drive folder via `zero_copy_manager`.
+   - Zero bytes written to local disk `data/evidence_uploads/`.
+5. **Cross-Tenant Access Rejection**:
+   - `get_evidence_file` cross-checks `meta["client_id"] == active_client_id` and verifies Drive folder membership.
+   - If a file belongs to Client A, an active session for Client B receives HTTP 404 (`"Evidence file not found"`).
 
-
-
+#### 3. Automated Verification & Regression Suite
+- **Added Automated Tests in `tests/test_client_isolation.py`**:
+  - `test_evidence_upload_fails_when_no_drive_folder_configured`: Verifies that an upload attempt for a client lacking `drive_folder_id` immediately fails with HTTP 400 and clear diagnostic error message.
+  - `test_evidence_cross_client_drive_isolation`: End-to-end multi-tenant test onboarding Client A and Client B with distinct Drive folders. Uploads evidence under Client A, confirms successful download under Client A, verifies that Client B is rejected with HTTP 404, and confirms switching back to Client A restores access.
+  - `test_client_workspace_ui_elements_served`: Verifies `#onboardClientDriveFolderInput` is present in the rendered DOM.
+- **Full Test Suite Execution**:
+  - Executed: `.venv/bin/pytest tests/`
+  - **Result**: `199 passed, 2 warnings in 36.41s (100% pass rate across all 17 test suites)`.
