@@ -4916,7 +4916,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <line x1="12" y1="5" x2="12" y2="19"/>
                             <line x1="5" y1="12" x2="19" y2="12"/>
                         </svg>
-                        <span data-i18n="client_onboard_new_action">+ Onboard new client</span>
+                        <span data-i18n="client_onboard_new_action">Onboard new client</span>
                     </div>
                 </div>
             </div>
@@ -5180,7 +5180,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                     </svg>
                                 </div>
                                 <div class="framework-card-content">
-                                    <div class="framework-card-name" data-i18n="framework_more">+ Mais frameworks</div>
+                                    <div class="framework-card-name" data-i18n="framework_more">Mais frameworks</div>
                                 </div>
                             </div>
                         </div>
@@ -5205,7 +5205,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <line x1="12" y1="5" x2="12" y2="19"/>
                             <line x1="5" y1="12" x2="19" y2="12"/>
                         </svg>
-                        <span>+ Criar Subagente</span>
+                        <span data-i18n="btn_create_subagent">Criar Subagente</span>
                     </button>
                     <div id="sidebarCustomAgentsList" style="margin-top: 4px; display: flex; flex-direction: column; gap: 2px;"></div>
                 </div>
@@ -5273,52 +5273,39 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.5px; margin-bottom: 5px; padding: 0 4px;">
                         Outros Provedores
                     </div>
-                    <div class="client-dropdown-list" style="margin-bottom: 8px;">
+                    <div class="client-dropdown-list" style="margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px;">
                         <!-- 2. AWS (Locked) -->
-                        <div class="provider-dropdown-item provider-card locked" id="provCardAws" onclick="showLockedProviderNotice('AWS')" title="AWS - No roadmap de desenvolvimento" data-i18n-title="provider_tooltip_aws" style="opacity: 0.75;">
-                            <div class="client-avatar-small" style="background: rgba(255,153,0,0.15); color: #ff9900; border-color: rgba(255,153,0,0.3);">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <div class="provider-dropdown-item locked" id="provCardAws" onclick="showLockedProviderNotice('AWS')" title="AWS - No roadmap de desenvolvimento" data-i18n-title="provider_tooltip_aws" style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; background: var(--bg-surface); border: 1px solid var(--border-subtle); cursor: pointer; transition: var(--transition-smooth); opacity: 0.85;">
+                            <div class="client-avatar-small" style="background: rgba(255, 153, 0, 0.12); border: 1px solid rgba(255, 153, 0, 0.3); width: 22px; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <svg viewBox="0 0 128 128" width="14" height="14" style="display: block;">
+                                    <path fill="#ffffff" d="M36.379 53.64c0 1.56.168 2.825.465 3.75.336.926.758 1.938 1.347 3.032.207.336.293.672.293.969 0 .418-.254.84-.8 1.261l-2.653 1.77c-.379.25-.758.379-1.093.379-.422 0-.844-.211-1.266-.59a13.28 13.28 0 0 1-1.516-1.98 34.153 34.153 0 0 1-1.304-2.485c-3.282 3.875-7.41 5.813-12.38 5.813-3.535 0-6.355-1.012-8.421-3.032-2.063-2.023-3.114-4.718-3.114-8.086 0-3.578 1.262-6.484 3.833-8.671 2.566-2.192 5.976-3.286 10.316-3.286 1.43 0 2.902.125 4.46.336 1.56.211 3.161.547 4.845.926v-3.074c0-3.2-.676-5.43-1.98-6.734C26.061 32.633 23.788 32 20.546 32c-1.473 0-2.988.168-4.547.547a33.416 33.416 0 0 0-4.547 1.433c-.676.293-1.18.461-1.473.547-.296.082-.507.125-.675.125-.59 0-.883-.422-.883-1.304v-2.063c0-.676.082-1.18.293-1.476.21-.293.59-.586 1.18-.883 1.472-.758 3.242-1.39 5.304-1.895 2.063-.547 4.254-.8 6.57-.8 5.008 0 8.672 1.136 11.032 3.41 2.316 2.273 3.492 5.726 3.492 10.359v13.64Zm-17.094 6.403c1.387 0 2.82-.254 4.336-.758 1.516-.508 2.863-1.433 4-2.695.672-.8 1.18-1.684 1.43-2.695.254-1.012.422-2.23.422-3.665v-1.765a34.401 34.401 0 0 0-3.871-.719 31.816 31.816 0 0 0-3.961-.25c-2.82 0-4.883.547-6.274 1.684-1.387 1.136-2.062 2.734-2.062 4.84 0 1.98.504 3.453 1.558 4.464 1.012 1.051 2.485 1.559 4.422 1.559Zm33.809 4.547c-.758 0-1.262-.125-1.598-.422-.34-.254-.633-.84-.887-1.64L40.715 29.98c-.25-.843-.38-1.39-.38-1.687 0-.672.337-1.05 1.013-1.05h4.125c.8 0 1.347.124 1.644.421.336.25.59.84.84 1.64l7.074 27.876 6.57-27.875c.208-.84.462-1.39.797-1.64.34-.255.93-.423 1.688-.423h3.367c.8 0 1.348.125 1.684.422.336.25.633.84.8 1.64l6.653 28.212 7.285-28.211c.25-.84.547-1.39.84-1.64.336-.255.887-.423 1.644-.423h3.914c.676 0 1.055.336 1.055 1.051 0 .21-.043.422-.086.676-.043.254-.125.59-.293 1.05L80.801 62.57c-.254.84-.547 1.387-.887 1.64-.336.255-.883.423-1.598.423h-3.62c-.801 0-1.348-.13-1.684-.422-.34-.297-.633-.844-.801-1.684l-6.527-27.16-6.485 27.117c-.21.844-.46 1.391-.8 1.684-.337.297-.926.422-1.684.422Zm54.105 1.137c-2.187 0-4.379-.254-6.484-.758-2.106-.504-3.746-1.055-4.84-1.684-.676-.379-1.137-.8-1.305-1.18a2.919 2.919 0 0 1-.254-1.18v-2.148c0-.882.336-1.304.97-1.304.25 0 .503.043.757.129.25.082.629.25 1.05.418a23.102 23.102 0 0 0 4.634 1.476c1.683.336 3.324.504 5.011.504 2.653 0 4.715-.465 6.145-1.39 1.433-.926 2.191-2.274 2.191-4 0-1.18-.379-2.145-1.136-2.946-.758-.8-2.192-1.516-4.254-2.191l-6.106-1.895c-3.074-.969-5.348-2.398-6.734-4.293-1.39-1.855-2.106-3.918-2.106-6.105 0-1.77.38-3.328 1.137-4.676a10.829 10.829 0 0 1 3.031-3.453c1.262-.965 2.696-1.684 4.38-2.188 1.683-.504 3.452-.715 5.304-.715.926 0 1.894.043 2.82.168.969.125 1.852.293 2.738.461.84.211 1.641.422 2.399.676.758.254 1.348.504 1.77.758.59.336 1.011.672 1.261 1.05.254.34.379.802.379 1.391v1.98c0 .884-.336 1.348-.969 1.348-.336 0-.883-.171-1.597-.507-2.403-1.094-5.098-1.641-8.086-1.641-2.399 0-4.293.379-5.598 1.18-1.309.797-1.98 2.02-1.98 3.746 0 1.18.421 2.191 1.261 2.988.844.8 2.403 1.602 4.633 2.316l5.98 1.895c3.032.969 5.22 2.316 6.524 4.043 1.305 1.727 1.938 3.707 1.938 5.895 0 1.812-.38 3.453-1.094 4.882-.758 1.434-1.77 2.696-3.074 3.707-1.305 1.051-2.864 1.809-4.672 2.36-1.895.586-3.875.883-6.024.883Zm0 0"/>
+                                    <path fill="#FF9900" d="M118 73.348c-4.432.063-9.664 1.052-13.621 3.832-1.223.883-1.012 2.062.336 1.894 4.508-.547 14.44-1.726 16.21.547 1.77 2.23-1.976 11.62-3.663 15.79-.504 1.26.59 1.769 1.726.8 7.41-6.231 9.348-19.242 7.832-21.137-.757-.925-4.388-1.79-8.82-1.726zM1.63 75.859c-.927.116-1.347 1.236-.368 2.121 16.508 14.902 38.359 23.872 62.613 23.872 17.305 0 37.43-5.43 51.281-15.66 2.273-1.688.297-4.254-2.02-3.204-15.534 6.57-32.421 9.77-47.788 9.77-22.778 0-44.8-6.273-62.653-16.633-.39-.231-.755-.304-1.064-.266z"/>
                                 </svg>
                             </div>
-                            <div class="client-item-details">
-                                <div class="client-item-name-row">
-                                    <span class="client-item-name">Amazon Web Services (AWS)</span>
-                                    <span style="font-size: 8px; padding: 1px 4px; border-radius: 3px; background: rgba(255,255,255,0.06); color: var(--text-tertiary);">Roadmap</span>
-                                </div>
-                                <span class="client-item-meta">Conector multi-cloud em desenvolvimento</span>
+                            <div style="display: flex; align-items: center; justify-content: space-between; flex: 1; min-width: 0;">
+                                <span class="client-item-name" style="font-size: 11px; font-weight: 500; color: var(--text-primary);">Amazon Web Services (AWS)</span>
+                                <span style="font-size: 8.5px; padding: 2px 6px; border-radius: 4px; background: rgba(255,153,0,0.12); color: #ff9900; border: 1px solid rgba(255,153,0,0.25); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; margin-left: 8px;">Roadmap</span>
                             </div>
                         </div>
 
                         <!-- 3. Azure (Locked) -->
-                        <div class="provider-dropdown-item provider-card locked" id="provCardAzure" onclick="showLockedProviderNotice('Azure')" title="Azure - No roadmap de desenvolvimento" data-i18n-title="provider_tooltip_azure" style="opacity: 0.75;">
-                            <div class="client-avatar-small" style="background: rgba(0,120,212,0.15); color: #0078d4; border-color: rgba(0,120,212,0.3);">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <div class="provider-dropdown-item locked" id="provCardAzure" onclick="showLockedProviderNotice('Azure')" title="Azure - No roadmap de desenvolvimento" data-i18n-title="provider_tooltip_azure" style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; background: var(--bg-surface); border: 1px solid var(--border-subtle); cursor: pointer; transition: var(--transition-smooth); opacity: 0.85;">
+                            <div class="client-avatar-small" style="background: rgba(0, 120, 212, 0.12); border: 1px solid rgba(0, 120, 212, 0.3); width: 22px; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <svg viewBox="0 0 128 128" width="13" height="13" style="display: block;">
+                                    <defs>
+                                        <linearGradient id="az-grad-a" x1="60.919" y1="9.602" x2="18.667" y2="134.423" gradientUnits="userSpaceOnUse"><stop stop-color="#114A8B"/><stop offset="1" stop-color="#0669BC"/></linearGradient>
+                                        <linearGradient id="az-grad-b" x1="74.117" y1="67.772" x2="64.344" y2="71.076" gradientUnits="userSpaceOnUse"><stop stop-opacity=".3"/><stop offset=".071" stop-opacity=".2"/><stop offset=".321" stop-opacity=".1"/><stop offset=".623" stop-opacity=".05"/><stop offset="1" stop-opacity="0"/></linearGradient>
+                                        <linearGradient id="az-grad-c" x1="68.742" y1="5.961" x2="115.122" y2="129.525" gradientUnits="userSpaceOnUse"><stop stop-color="#3CCBF4"/><stop offset="1" stop-color="#2892DF"/></linearGradient>
+                                    </defs>
+                                    <path d="M46.09.002h40.685L44.541 125.137a6.485 6.485 0 01-6.146 4.413H6.733a6.482 6.482 0 01-5.262-2.699 6.474 6.474 0 01-.876-5.848L39.944 4.414A6.488 6.488 0 0146.09 0z" fill="url(#az-grad-a)" transform="translate(.587 4.468) scale(.91904)"/>
+                                    <path d="M97.28 81.607H37.987a2.743 2.743 0 00-1.874 4.751l38.1 35.562a5.991 5.991 0 004.087 1.61h33.574z" fill="#0078d4"/>
+                                    <path d="M46.09.002A6.434 6.434 0 0039.93 4.5L.644 120.897a6.469 6.469 0 006.106 8.653h32.48a6.942 6.942 0 005.328-4.531l7.834-23.089 27.985 26.101a6.618 6.618 0 004.165 1.519h36.396l-15.963-45.616-46.533.011L86.922.002z" fill="url(#az-grad-b)" transform="translate(.587 4.468) scale(.91904)"/>
+                                    <path d="M98.055 4.408A6.476 6.476 0 0091.917.002H46.575a6.478 6.478 0 016.137 4.406l39.35 116.594a6.476 6.476 0 01-6.137 8.55h45.344a6.48 6.48 0 006.136-8.55z" fill="url(#az-grad-c)" transform="translate(.587 4.468) scale(.91904)"/>
                                 </svg>
                             </div>
-                            <div class="client-item-details">
-                                <div class="client-item-name-row">
-                                    <span class="client-item-name">Microsoft Azure</span>
-                                    <span style="font-size: 8px; padding: 1px 4px; border-radius: 3px; background: rgba(255,255,255,0.06); color: var(--text-tertiary);">Roadmap</span>
-                                </div>
-                                <span class="client-item-meta">Conector multi-cloud em desenvolvimento</span>
-                            </div>
-                        </div>
-
-                        <!-- 4. Oracle Cloud Infrastructure (Locked) -->
-                        <div class="provider-dropdown-item provider-card locked" id="provCardOci" onclick="showLockedProviderNotice('Oracle Cloud Infrastructure')" title="Oracle Cloud Infrastructure - No roadmap de desenvolvimento" data-i18n-title="provider_tooltip_oci" style="opacity: 0.75;">
-                            <div class="client-avatar-small" style="background: rgba(248,0,0,0.15); color: #f80000; border-color: rgba(248,0,0,0.3);">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                                </svg>
-                            </div>
-                            <div class="client-item-details">
-                                <div class="client-item-name-row">
-                                    <span class="client-item-name">Oracle Cloud (OCI)</span>
-                                    <span style="font-size: 8px; padding: 1px 4px; border-radius: 3px; background: rgba(255,255,255,0.06); color: var(--text-tertiary);">Roadmap</span>
-                                </div>
-                                <span class="client-item-meta">Conector multi-cloud em desenvolvimento</span>
+                            <div style="display: flex; align-items: center; justify-content: space-between; flex: 1; min-width: 0;">
+                                <span class="client-item-name" style="font-size: 11px; font-weight: 500; color: var(--text-primary);">Microsoft Azure</span>
+                                <span style="font-size: 8.5px; padding: 2px 6px; border-radius: 4px; background: rgba(0,120,212,0.12); color: #0078d4; border: 1px solid rgba(0,120,212,0.25); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; margin-left: 8px;">Roadmap</span>
                             </div>
                         </div>
                     </div>
@@ -8263,6 +8250,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 connectors_title: "Subagentes Especializados & Conectores Zero-Copy",
                 connectors_subtitle: "Crie, customize e execute subagentes com instruções especializadas e integre repositórios sem replicação de dados.",
                 btn_connect_storage: "Conectar Repositório",
+                btn_create_subagent: "Criar Subagente",
                 subagents_custom_title: "Subagentes Customizados pelo Usuário",
                 subagents_builtin_title: "Subagentes Nativos da Plataforma (Google Cloud Security)",
                 connectors_connected_title: "Conectores Corporativos Zero-Copy Conectados",
@@ -8383,7 +8371,6 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 provider_tooltip_gcp: "Google Cloud - Conector ativo",
                 provider_tooltip_aws: "AWS - No roadmap de desenvolvimento",
                 provider_tooltip_azure: "Azure - No roadmap de desenvolvimento",
-                provider_tooltip_oci: "Oracle Cloud Infrastructure - No roadmap de desenvolvimento",
                 provider_locked_notice: "{name} - No roadmap de desenvolvimento multi-cloud.",
                 home_search_title: "O que você gostaria de verificar hoje?",
                 home_search_subtitle: "Faça perguntas em linguagem natural sobre segurança, acesso e conformidade da sua nuvem.",
@@ -8458,7 +8445,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 client_projects_in_scope: "{n} projetos no escopo",
                 client_expiry_days: "Acesso somente-leitura expira em {n} dias",
                 client_access_expired: "Acesso somente-leitura expirado",
-                client_onboard_new_action: "+ Onboard novo cliente",
+                client_onboard_new_action: "Onboard novo cliente",
                 client_switch_confirm_title: "Trocar Workspace de Cliente",
                 client_switch_confirm_desc: "Você está prestes a sair de {name} — esta sessão será encerrada.",
                 client_switch_confirm_warning: "O histórico de chat ativo, evidências em memória e o token da sessão anterior serão descarregados para garantir isolamento multi-tenant estrito.",
@@ -8584,6 +8571,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 connectors_title: "Specialist Subagents & Zero-Copy Connectors",
                 connectors_subtitle: "Create, customize, and run subagents with specialized instructions and integrate repositories without data replication.",
                 btn_connect_storage: "Connect Repository",
+                btn_create_subagent: "Create Subagent",
                 subagents_custom_title: "User-Customized Subagents",
                 subagents_builtin_title: "Native Platform Subagents (Google Cloud Security)",
                 connectors_connected_title: "Connected Zero-Copy Corporate Connectors",
@@ -8704,7 +8692,6 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 provider_tooltip_gcp: "Google Cloud - Active connector",
                 provider_tooltip_aws: "AWS - On the development roadmap",
                 provider_tooltip_azure: "Azure - On the development roadmap",
-                provider_tooltip_oci: "Oracle Cloud Infrastructure - On the development roadmap",
                 provider_locked_notice: "{name} - On the multi-cloud development roadmap.",
                 home_search_title: "What would you like to check today?",
                 home_search_subtitle: "Ask questions in plain language about your cloud security, access, and compliance.",
@@ -8779,7 +8766,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 client_projects_in_scope: "{n} projects in scope",
                 client_expiry_days: "Read-only access expires in {n} days",
                 client_access_expired: "Read-only access expired",
-                client_onboard_new_action: "+ Onboard new client",
+                client_onboard_new_action: "Onboard new client",
                 client_switch_confirm_title: "Confirm Client Workspace Switch",
                 client_switch_confirm_desc: "You're about to switch away from {name} — this session will end.",
                 client_switch_confirm_warning: "Chat history, unpinned evidence, and the current session token will be closed and cleared for tenant isolation.",
@@ -8905,6 +8892,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 connectors_title: "Subagentes Especializados y Conectores Zero-Copy",
                 connectors_subtitle: "Cree, personalice y ejecute subagentes con instrucciones especializadas e integre repositorios sin replicación de datos.",
                 btn_connect_storage: "Conectar Repositorio",
+                btn_create_subagent: "Crear Subagente",
                 subagents_custom_title: "Subagentes Personalizados por el Usuario",
                 subagents_builtin_title: "Subagentes Nativos de la Plataforma (Google Cloud Security)",
                 connectors_connected_title: "Conectores Corporativos Zero-Copy Conectados",
@@ -9025,7 +9013,6 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 provider_tooltip_gcp: "Google Cloud - Conector activo",
                 provider_tooltip_aws: "AWS - En el roadmap de desarrollo",
                 provider_tooltip_azure: "Azure - En el roadmap de desarrollo",
-                provider_tooltip_oci: "Oracle Cloud Infrastructure - En el roadmap de desarrollo",
                 provider_locked_notice: "{name} - En el roadmap de desarrollo multi-cloud.",
                 home_search_title: "¿Qué te gustaría verificar hoy?",
                 home_search_subtitle: "Haz preguntas en lenguaje sencillo sobre la seguridad, el acceso y el cumplimiento de tu nube.",
@@ -9100,7 +9087,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 client_projects_in_scope: "{n} proyectos en alcance",
                 client_expiry_days: "Acceso de solo lectura expira en {n} días",
                 client_access_expired: "Acceso de solo lectura expirado",
-                client_onboard_new_action: "+ Conectar nuevo cliente",
+                client_onboard_new_action: "Conectar nuevo cliente",
                 client_switch_confirm_title: "Cambiar Espacio de Cliente",
                 client_switch_confirm_desc: "Estás a punto de salir de {name} — esta sesión finalizará.",
                 client_switch_confirm_warning: "El historial de chat activo, las evidencias en memoria y el token de sesión se cerrarán para garantizar el aislamiento multi-inquilino.",
@@ -13581,7 +13568,7 @@ function openNewsModal(newsKey) {
                         </svg>
                     </div>
                     <div class="framework-card-content">
-                        <div class="framework-card-name" data-i18n="framework_more">+ Mais Normas</div>
+                        <div class="framework-card-name" data-i18n="framework_more">Mais Normas</div>
                         <div class="framework-card-sub" style="color: var(--text-tertiary); font-size: 11px;">Roadmap 2026+</div>
                     </div>
                 </div>

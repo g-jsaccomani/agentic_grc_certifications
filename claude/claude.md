@@ -2010,6 +2010,36 @@ Per user directive (PROMPT B), repositioned the platform from an "Auditor / Form
   - Executed: `.venv/bin/pytest`
   - **Result**: `195 passed, 2 warnings in 32.84s (100% pass rate)`.
 
+---
+
+### Milestone 64: UI Polish — Elimination of Duplicate Plus Signs, OCI Removal, and Authentic Multi-Cloud Provider Formatting
+
+#### A. Elimination of Duplicate Plus Signs (`+ +`)
+- **Client Onboard Trigger**:
+  - Fixed `#clientDropdownMenu` trigger where an SVG plus icon was followed by text starting with `+` (`+ Onboard new client`).
+  - Updated HTML line 4919 and i18n dictionaries (`pt`: "Onboard novo cliente", `en`: "Onboard new client", `es`: "Conectar nuevo cliente") removing the redundant leading plus sign.
+- **Custom Subagent Creation Button**:
+  - Fixed `#agentBtnCreate` where the SVG plus icon was paired with `+ Criar Subagente`.
+  - Updated text to clean `Criar Subagente` and wired `data-i18n="btn_create_subagent"` across all locales (`pt`: "Criar Subagente", `en`: "Create Subagent", `es`: "Crear Subagente").
+- **Framework Expansion Cards**:
+  - Cleaned `#fwCardMore` and modal card from `+ Mais frameworks` / `+ Mais Normas` to standard, clean text labels matching the icon.
+
+#### B. Cloud Providers Popup Redesign ("Outros Provedores")
+- **Oracle Cloud (OCI) Removal**:
+  - Completely eliminated `#provCardOci` and its associated tooltip entries across HTML and i18n dictionaries.
+- **Authentic Brand Vector Logos**:
+  - **Amazon Web Services (AWS)**: Integrated official SVG mark (lettermark + smile arrow in AWS orange `#FF9900`) inside a refined badge container.
+  - **Microsoft Azure**: Integrated official Microsoft Azure 3D geometric isometric SVG mark with gradient fills (`#114A8B`, `#0669BC`, `#0078D4`, `#3CCBF4`, `#2892DF`).
+- **Clean Single-Row Layout**:
+  - Removed multi-line text `Conector multi-cloud em desenvolvimento`.
+  - Replaced with sleek horizontal flex row displaying provider name and a distinct, styled `Roadmap` status badge.
+  - Removed conflicting `.provider-card` height restriction from dropdown items for flawless vertical alignment.
+
+#### C. Verification & Deployment
+- **Automated Tests**: `.venv/bin/pytest` ran with 195/195 tests passing (100%).
+- **Git & Cloud Run**: Changes committed to `main`, pushed to GitHub, and deployed to Cloud Run service `mcp-server-grc`.
+
+
 
 
 
