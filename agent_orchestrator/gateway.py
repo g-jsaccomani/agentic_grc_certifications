@@ -52,7 +52,7 @@ class ModelArmorGateway:
                 r"(ignore|disregard|forget|override|bypass|desconsidere|esque[cç]a|ignora|ignorar|desconsiderar|olvida|olvidar)"
                 r"\s+(all\s+|todas?\s+(as\s+|las\s+|os\s+|los\s+)?)?"
                 r"((previous|prior|anterior(es)?|past|pr[eé]vias?)\s+)?"
-                r"(instructions|instru[cç][oõ]es|instrucciones|rules|regras|reglas|guidelines|diretrizes|directrices|prompts?|constraints?|system\s*prompts?|policies|pol[ií]ticas)"
+                r"((iso\s+|soc\s+|pci\s+|cis\s+|audit\s+|compliance\s+|seguran[cç]a\s+)?(instructions|instru[cç][oõ]es|instrucciones|rules|regras|reglas|guidelines|diretrizes|directrices|prompts?|constraints?|system\s*prompts?|policies|pol[ií]ticas|controls?|controles?))"
                 r"(\s+(previous|prior|anterior(es)?|past|pr[eé]vias?))?",
                 re.IGNORECASE,
             ),
@@ -68,8 +68,8 @@ class ModelArmorGateway:
             re.compile(r"\b(system|admin|root|security|seguran[cç]a)\s*(override|bypass|burlar|bypassar)\b", re.IGNORECASE),
             # 5. Security & Safety Protocol Bypass Requests
             re.compile(
-                r"(bypass|disable|desativar|desabilitar|desactivar)\s+(all\s+|todas?\s+as\s+|todos\s+los\s+)?"
-                r"(security|safety|guardrails?|protocolos?|compliance|prote[cç][oõ]es)\s*(protocols?|checks?|filters?|regras|normas)?",
+                r"(bypass|disable|desativar|desabilitar|desactivar|ignore|ignorar|desconsidere|desconsiderar)\s+(all\s+|todas?\s+as\s+|todos\s+los\s+|todas?\s+os\s+)?"
+                r"(security|safety|guardrails?|protocolos?|compliance|conformidade|prote[cç][oõ]es|((iso|soc|pci)\s+)?controls?|((iso|soc|pci)\s+)?controles?)\s*(protocols?|checks?|filters?|regras|normas)?",
                 re.IGNORECASE,
             ),
             # 6. Malicious / Rebellious Roleplay Personas
@@ -90,15 +90,20 @@ class ModelArmorGateway:
             # 8. Semantic Evasion: Bypass specific control or force compliance (e.g., ignore PAP because staging)
             re.compile(
                 r"(ignore|desconsidere|ignora|ignorar|bypass|override)\s+.*"
-                r"(pap|ubla|cmek|mfa|firewall|criptografia|encryption|control|controle)\s+.*"
-                r"(marca|marque|mark|declare|force|considere)\s+.*"
+                r"(pap|ubla|cmek|mfa|firewall|criptografia|encryption|control|controle|controls|controles)\b.*"
+                r"(marca|marque|mark|declare|declarar?|force|for[cç]ar?|considere|considerar?|report|reportar?|say|diga)\s+.*"
                 r"(conforme|compliant|aprovado|approved)",
                 re.IGNORECASE,
             ),
             re.compile(
-                r"(force|for[cç]ar?|mark|marcar?|declare|declarar?)\s+.*"
+                r"(force|for[cç]ar?|mark|marcar?|declare|declarar?|report|reportar?)\s+.*"
                 r"(as\s+|como\s+)?(compliant|conforme|aprovado|approved)\s+.*"
-                r"(because|porque|pois|já\s+que|devido|staging|dev|teste|sandbox)",
+                r"(because|porque|pois|já\s+que|devido|staging|dev|teste|sandbox|regardless|independentemente|sem\s+considerar|sem\s+evid[eê]ncia|without\s+evidence)",
+                re.IGNORECASE,
+            ),
+            # 9. Direct False Compliance Forcing (e.g., always report compliant regardless of evidence)
+            re.compile(
+                r"(always|sempre|siempre)\s+.*(report|reportar?|mark|marcar?|declare|declarar?|consider|considere|considerar?)\s+.*(compliant|conforme|approved|aprovado)\s+.*(regardless|independentemente|sem\s+considerar|sin\s+importar|sem\s+evid[eê]ncia|without\s+evidence)",
                 re.IGNORECASE,
             ),
         ]

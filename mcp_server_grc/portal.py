@@ -3444,16 +3444,41 @@ async def list_subagents():
 
 @router.post("/api/subagents")
 async def create_custom_subagent(req: SubagentCreateRequest):
-    """Creates or updates a custom subagent."""
+    """Creates or updates a custom subagent after screening for prompt injection and security violations."""
+    # Model Armor screening for prompt injection, jailbreak attempts, and security violations
+    fields_to_screen = [
+        ("system_prompt", req.system_prompt),
+        ("role", req.role),
+        ("description", req.description),
+    ]
+    sanitized_values: Dict[str, str] = {}
+    for field_name, field_value in fields_to_screen:
+        if field_value and str(field_value).strip():
+            verdict = model_armor_gateway.inspect_ingress(field_value)
+            if not verdict.allowed:
+                logger.warning(
+                    f"Custom subagent creation rejected by Model Armor for field '{field_name}': {verdict.violations}"
+                )
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Subagent creation rejected by Model Armor: Field '{field_name}' "
+                        f"contains disallowed content or prompt injection ({'; '.join(verdict.violations)})."
+                    ),
+                )
+            sanitized_values[field_name] = verdict.sanitized_prompt
+        else:
+            sanitized_values[field_name] = field_value
+
     custom = load_custom_subagents()
     agent_id = req.id or f"custom-{req.name.lower().replace(' ', '-')[:25]}-{int(datetime.datetime.now().timestamp()) % 10000}"
 
     new_agent = {
         "id": agent_id,
         "name": req.name,
-        "role": req.role,
-        "description": req.description,
-        "system_prompt": req.system_prompt,
+        "role": sanitized_values.get("role", req.role),
+        "description": sanitized_values.get("description", req.description),
+        "system_prompt": sanitized_values.get("system_prompt", req.system_prompt),
         "tools": req.tools,
         "model": req.model,
         "temperature": req.temperature,
