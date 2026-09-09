@@ -1972,6 +1972,45 @@ Per user directive (PROMPT B), repositioned the platform from an "Auditor / Form
 - Executed full test suite: `.venv/bin/pytest tests/`
 - **Result**: `194 passed, 2 warnings in 31.10s (100% pass rate)`.
 
+---
+
+### Milestone 47: Removal of Demo Clients, Fallback Hardening & Persistent Client Onboarding Workflow (2026-09-09)
+
+#### A. Eradication of Simulated/Demo Client Entries
+- **Clean Registry (`data/clients.json`)**:
+  - Completely removed the `cymbal-retail` and simulated demo entries from `data/clients.json`.
+  - Preserved strictly `altostrat-ventures` as the sole real, currently active client workspace in `data/clients.json`.
+- **Hardened Fallback in `mcp_server_grc/portal.py`**:
+  - In `load_onboarded_clients()`, removed `cymbal-retail` and demo entries from the code fallback list.
+  - Fallback list now contains strictly `altostrat-ventures`. Even if `data/clients.json` is deleted or missing, a fresh deployment never reintroduces fake or demo clients by default.
+
+#### B. End-to-End Persistent Client Onboarding Workflow
+- **Frontend Modal Submission**:
+  - Added `#btnSubmitOnboardClient` ("Conectar Cliente") to `#onboardClientModal` in `mcp_server_grc/portal_html.py`.
+  - Implemented `submitOnboardClientModal()` in clientside JavaScript:
+    - Gathers client name, in-scope projects (comma-separated), and time-boxed read-only validity days.
+    - Sends payload to `POST /api/clients/onboard` with active operator credentials.
+    - Closes modal, refreshes client list via `loadOnboardedClients()`, and automatically switches operator workspace to the new client.
+- **Backend Persistence (`mcp_server_grc/portal.py`)**:
+  - Defined `OnboardClientRequest` Pydantic model with validation for `name`, `projects`, `days`, `org_id`, `org_name`, and `contact_email`.
+  - Implemented `save_onboarded_clients(clients)` and `get_clients_file_path()`.
+  - Implemented `@router.post("/api/clients/onboard")` and `@router.post("/api/clients")`:
+    - Generates client ID slug, avatar initials, and ISO-8601 expiry timestamp calculated from requested days.
+    - Reads `data/clients.json`, appends or replaces the client workspace record, and commits the JSON file directly to disk.
+    - Initializes isolated in-memory `ContinuousIntelligenceEngine` for the client.
+    - Binds fresh session ID to operator and client scope.
+  - Added `@router.delete("/api/clients/{client_id}")` with safety guardrail preventing deletion of `altostrat-ventures`.
+
+#### C. Verification & Automated Test Results
+- **Updated `tests/test_client_isolation.py`**:
+  - `test_get_clients_endpoint`: Verifies `GET /api/clients` contains `altostrat-ventures` and explicitly asserts `cymbal-retail` is absent.
+  - `test_onboard_new_client_persists_to_disk`: End-to-end integration test proving that submitting to `/api/clients/onboard` writes directly to `data/clients.json`, appears in `GET /api/clients`, and cleans up on deletion.
+  - `temporary_test_clients`: Pytest fixture dynamically creating temporary client workspaces for multi-tenant isolation tests and ensuring disk state remains pristine with only `altostrat-ventures`.
+- **Full Test Suite Execution**:
+  - Executed: `.venv/bin/pytest`
+  - **Result**: `195 passed, 2 warnings in 32.84s (100% pass rate)`.
+
+
 
 
 

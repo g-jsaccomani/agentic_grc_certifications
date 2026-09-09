@@ -7,6 +7,7 @@ Provides:
 """
 
 import os
+import re
 import json
 import logging
 import datetime
@@ -90,9 +91,30 @@ CLIENT_CI_ENGINES: Dict[str, ContinuousIntelligenceEngine] = {
 SESSION_CLIENT_BINDINGS: Dict[str, str] = {}
 
 
+def get_clients_file_path() -> str:
+    """Returns absolute path to data/clients.json."""
+    p1 = os.path.join(os.getcwd(), "data", "clients.json")
+    if os.path.exists(p1):
+        return p1
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    p2 = os.path.join(repo_root, "data", "clients.json")
+    if os.path.exists(p2):
+        return p2
+    return p1
+
+
+def save_onboarded_clients(clients: List[Dict[str, Any]]) -> str:
+    """Saves onboarded client list directly to data/clients.json."""
+    path = get_clients_file_path()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(clients, f, indent=2, ensure_ascii=False)
+    return path
+
+
 def load_onboarded_clients() -> List[Dict[str, Any]]:
     """Loads onboarded client workspace records, dynamically calculating read-only expiry countdown."""
-    file_path = os.path.join(os.getcwd(), "data", "clients.json")
+    file_path = get_clients_file_path()
     clients = []
     if os.path.exists(file_path):
         try:
@@ -115,32 +137,6 @@ def load_onboarded_clients() -> List[Dict[str, Any]]:
                 "created_at": "2026-09-01T12:00:00Z",
                 "read_only_access_expires_at": "2026-09-23T16:00:00Z",
                 "read_only_access_days_remaining": 14,
-                "status": "active"
-            },
-            {
-                "client_id": "cymbal-retail",
-                "name": "Cymbal Retail",
-                "avatar": "CR",
-                "projects": ["cymbal-prod-4b12", "cymbal-sec-4b12"],
-                "org_id": "554109283120",
-                "org_name": "Cymbal Group Org",
-                "contact_email": "compliance@cymbalretail.com",
-                "created_at": "2026-08-25T08:00:00Z",
-                "read_only_access_expires_at": "2026-09-07T08:00:00Z",
-                "read_only_access_days_remaining": 0,
-                "status": "expired"
-            },
-            {
-                "client_id": "stark-capital",
-                "name": "Stark Capital",
-                "avatar": "SC",
-                "projects": ["stark-core-99a1", "stark-vault-99a1", "stark-data-99a1", "stark-audit-99a1"],
-                "org_id": "881920394812",
-                "org_name": "Stark Financial Org",
-                "contact_email": "grc@starkcapital.com",
-                "created_at": "2026-09-06T14:00:00Z",
-                "read_only_access_expires_at": "2026-10-06T16:00:00Z",
-                "read_only_access_days_remaining": 27,
                 "status": "active"
             }
         ]
@@ -216,6 +212,16 @@ class ChatRequest(BaseModel):
 class ActiveClientSwitchRequest(BaseModel):
     client_id: str
     session_id: Optional[str] = None
+
+
+class OnboardClientRequest(BaseModel):
+    name: str = Field(..., description="Client or company name")
+    projects: Optional[List[str]] = Field(default_factory=list, description="GCP projects in scope")
+    days: Optional[int] = Field(default=14, description="Days of read-only access")
+    client_id: Optional[str] = Field(default=None, description="Optional client_id slug")
+    org_id: Optional[str] = Field(default=None, description="Optional GCP organization ID")
+    org_name: Optional[str] = Field(default=None, description="Optional organization name")
+    contact_email: Optional[str] = Field(default=None, description="Auditor/client contact email")
 
 
 class StorageLinkRequest(BaseModel):
@@ -2378,6 +2384,137 @@ async def switch_active_client(
         "session_id": new_session_id,
         "message": f"Successfully switched to client '{target_client['name']}'. Prior session invalidated.",
     }
+
+
+@router.post("/api/clients/onboard")
+@router.post("/api/clients")
+async def onboard_new_client(
+    req: OnboardClientRequest,
+    x_operator_id: Optional[str] = Header(None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
+    """Onboards a new client workspace, persisting directly to data/clients.json and initializing CI engine."""
+    client_name = req.name.strip()
+    if not client_name:
+        raise HTTPException(status_code=400, detail="Client name cannot be empty.")
+
+    # Generate slugified client_id if not provided
+    if req.client_id and req.client_id.strip():
+        client_id = re.sub(r"[^a-z0-9]+", "-", req.client_id.lower()).strip("-")
+    else:
+        client_id = re.sub(r"[^a-z0-9]+", "-", client_name.lower()).strip("-") or f"client-{uuid.uuid4().hex[:6]}"
+
+    # Initials avatar
+    words = client_name.split()
+    avatar = ("".join(w[0] for w in words[:2])).upper() if words else "CL"
+
+    days = max(1, req.days or 14)
+    now = datetime.datetime.now(datetime.timezone.utc)
+    exp_dt = now + datetime.timedelta(days=days)
+    created_iso = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    expiry_iso = exp_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    projects = [p.strip() for p in req.projects if p.strip()] if req.projects else ["client-prod-01"]
+    contact_email = req.contact_email or (user_context.email if user_context and user_context.email and user_context.email != "auditor@client.corp" else "security@altostrat.com")
+    org_id = req.org_id or "108928374619"
+    org_name = req.org_name or f"{client_name} Org"
+
+    record = {
+        "client_id": client_id,
+        "name": client_name,
+        "avatar": avatar,
+        "projects": projects,
+        "org_id": org_id,
+        "org_name": org_name,
+        "contact_email": contact_email,
+        "created_at": created_iso,
+        "read_only_access_expires_at": expiry_iso,
+        "read_only_access_days_remaining": days,
+        "status": "active",
+    }
+
+    # Load existing clients directly from file or fallback
+    file_path = get_clients_file_path()
+    existing_clients: List[Dict[str, Any]] = []
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                existing_clients = json.load(f)
+        except Exception as e:
+            logger.warning(f"Could not load {file_path} for onboarding write: {e}")
+            existing_clients = []
+
+    if not existing_clients:
+        existing_clients = [
+            {
+                "client_id": "altostrat-ventures",
+                "name": "Altostrat Ventures",
+                "avatar": "AV",
+                "projects": ["agentic-grc-cd06", "fnlab-apps-8fa913", "fnlab-sec-mgmt-8fa913"],
+                "org_id": "108928374619",
+                "org_name": "Altostrat Global Org",
+                "contact_email": "security@altostrat.com",
+                "created_at": "2026-09-01T12:00:00Z",
+                "read_only_access_expires_at": "2026-09-23T16:00:00Z",
+                "read_only_access_days_remaining": 14,
+                "status": "active",
+            }
+        ]
+
+    # Replace if exists, else append
+    replaced = False
+    for idx, c in enumerate(existing_clients):
+        if c.get("client_id") == client_id:
+            existing_clients[idx] = record
+            replaced = True
+            break
+    if not replaced:
+        existing_clients.append(record)
+
+    # Persist to data/clients.json
+    save_onboarded_clients(existing_clients)
+
+    # Initialize CI engine for the new client
+    get_client_ci_engine(client_id)
+
+    # Set as active client for operator if operator is known
+    op_id = resolve_operator_id(user_context, x_operator_id)
+    OPERATOR_ACTIVE_CLIENTS[op_id] = client_id
+    new_session_id = f"sess_{uuid.uuid4().hex[:12]}"
+    OPERATOR_SESSIONS[op_id] = new_session_id
+    SESSION_CLIENT_BINDINGS[new_session_id] = client_id
+
+    return {
+        "status": "success",
+        "client": record,
+        "session_id": new_session_id,
+        "operator_id": op_id,
+        "message": f"Client '{client_name}' successfully onboarded and registered in data/clients.json.",
+    }
+
+
+@router.delete("/api/clients/{client_id}")
+async def delete_onboarded_client(
+    client_id: str,
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
+    """Deletes an onboarded client from data/clients.json (cannot delete altostrat-ventures)."""
+    if client_id == "altostrat-ventures":
+        raise HTTPException(status_code=400, detail="Cannot delete core client 'altostrat-ventures'.")
+    file_path = get_clients_file_path()
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="clients.json not found.")
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            clients = json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed reading clients: {e}")
+    initial_len = len(clients)
+    clients = [c for c in clients if c.get("client_id") != client_id]
+    if len(clients) == initial_len:
+        raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found.")
+    save_onboarded_clients(clients)
+    return {"status": "success", "message": f"Client '{client_id}' deleted from data/clients.json."}
 
 
 @router.post("/api/chat")

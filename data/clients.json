@@ -15,55 +15,5 @@
     "read_only_access_expires_at": "2026-09-23T16:00:00Z",
     "read_only_access_days_remaining": 14,
     "status": "active"
-  },
-  {
-    "client_id": "cymbal-retail",
-    "name": "Cymbal Retail",
-    "avatar": "CR",
-    "projects": [
-      "cymbal-prod-4b12",
-      "cymbal-sec-4b12"
-    ],
-    "org_id": "554109283120",
-    "org_name": "Cymbal Group Org",
-    "contact_email": "compliance@cymbalretail.com",
-    "created_at": "2026-08-25T08:00:00Z",
-    "read_only_access_expires_at": "2026-09-07T08:00:00Z",
-    "read_only_access_days_remaining": 0,
-    "status": "expired"
-  },
-  {
-    "client_id": "stark-capital",
-    "name": "Stark Capital",
-    "avatar": "SC",
-    "projects": [
-      "stark-core-99a1",
-      "stark-vault-99a1",
-      "stark-data-99a1",
-      "stark-audit-99a1"
-    ],
-    "org_id": "881920394812",
-    "org_name": "Stark Financial Org",
-    "contact_email": "grc@starkcapital.com",
-    "created_at": "2026-09-06T14:00:00Z",
-    "read_only_access_expires_at": "2026-10-06T16:00:00Z",
-    "read_only_access_days_remaining": 27,
-    "status": "active"
-  },
-  {
-    "client_id": "acme-test",
-    "name": "Acme Test",
-    "avatar": "AT",
-    "projects": [
-      "acme-p1",
-      "acme-p2"
-    ],
-    "org_id": "31564119954",
-    "org_name": "Acme Test Org",
-    "contact_email": "admin@jsaccomani.altostrat.com",
-    "created_at": "2026-09-09T20:02:02Z",
-    "read_only_access_expires_at": "2026-09-19T20:01:59Z",
-    "read_only_access_days_remaining": 10,
-    "status": "active"
   }
 ]

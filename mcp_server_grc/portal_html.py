@@ -8136,8 +8136,15 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </svg>
                 <span><strong>Segurança Garantida:</strong> Zero permissões de modificação ou exclusão. O acesso expira automaticamente na GCP via IAM Conditions.</span>
             </div>
-            <div class="modal-actions">
+            <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
                 <button class="btn-cancel" onclick="closeOnboardModal()"><span data-i18n="btn_close">Fechar</span></button>
+                <button class="btn-primary" id="btnSubmitOnboardClient" onclick="submitOnboardClientModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: var(--gcp-blue); color: #fff; border: none; border-radius: 6px; font-weight: 500; font-size: 12.5px; cursor: pointer;">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    <span data-i18n="btn_confirm_onboard">Conectar Cliente</span>
+                </button>
             </div>
         </div>
     </div>
@@ -8465,6 +8472,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_copy_cmd: "Copiar Comando",
                 onboard_copied: "Copiado!",
                 btn_close: "Fechar",
+                btn_cancel: "Cancelar",
+                btn_confirm_onboard: "Conectar Cliente",
             },
             en: {
                 top_title_reports: "Reports & Dossier",
@@ -8784,6 +8793,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_copy_cmd: "Copy Command",
                 onboard_copied: "Copied!",
                 btn_close: "Close",
+                btn_cancel: "Cancel",
+                btn_confirm_onboard: "Connect Client",
             },
             es: {
                 top_title_reports: "Informes y Dossier",
@@ -9103,6 +9114,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_copy_cmd: "Copiar Comando",
                 onboard_copied: "¡Copiado!",
                 btn_close: "Cerrar",
+                btn_cancel: "Cancelar",
+                btn_confirm_onboard: "Conectar Cliente",
             }
         };
 window.currentLanguage = 'pt';
@@ -10708,6 +10721,67 @@ Formulário preenchido com o subagente recomendado!`);
                 });
             } else {
                 alert("Comando copiado: " + text);
+            }
+        }
+
+        async function submitOnboardClientModal() {
+            const nameInput = document.getElementById("onboardClientNameInput");
+            const projectsInput = document.getElementById("onboardClientProjectsInput");
+            const daysInput = document.getElementById("onboardClientDaysInput");
+
+            const name = (nameInput?.value || "").trim();
+            if (!name) {
+                alert("Por favor, informe o nome da empresa ou cliente.");
+                if (nameInput) nameInput.focus();
+                return;
+            }
+
+            const rawProjects = (projectsInput?.value || "").trim();
+            const projects = rawProjects ? rawProjects.split(",").map(p => p.trim()).filter(Boolean) : [];
+            const days = parseInt(daysInput?.value || "14", 10) || 14;
+
+            const btn = document.getElementById("btnSubmitOnboardClient");
+            const originalHtml = btn ? btn.innerHTML : "";
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "Conectando...";
+            }
+
+            try {
+                const opId = getOperatorId();
+                const headers = { "Content-Type": "application/json" };
+                if (opId) headers["X-Operator-Id"] = opId;
+                if (window.currentUserToken) headers["Authorization"] = `Bearer ${window.currentUserToken}`;
+
+                const res = await fetch("/api/clients/onboard", {
+                    method: "POST",
+                    headers: headers,
+                    body: JSON.stringify({
+                        name: name,
+                        projects: projects,
+                        days: days
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    closeOnboardModal();
+                    await loadOnboardedClients();
+                    if (data.client && data.client.client_id) {
+                        switchActiveClient(data.client.client_id, false);
+                    }
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    alert("Erro ao conectar cliente: " + (err.detail || "Erro desconhecido"));
+                }
+            } catch (e) {
+                console.error("Error onboarding client:", e);
+                alert("Falha na conexão com o servidor de onboarding.");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml || "Conectar Cliente";
+                }
             }
         }
 
