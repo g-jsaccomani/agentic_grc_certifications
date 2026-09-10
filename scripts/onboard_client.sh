@@ -100,24 +100,6 @@ if [ -z "${CONSULTANT_EMAIL}" ]; then
     CONSULTANT_EMAIL=$(gcloud config get-value account 2>/dev/null || echo "consultant@client.corp")
 fi
 
-# Resolve projects list
-PROJECTS=()
-if [ -n "${PROJECTS_ARG}" ]; then
-    IFS=',' read -ra ADDR <<< "${PROJECTS_ARG}"
-    for p in "${ADDR[@]}"; do
-        trimmed=$(echo "$p" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-        if [ -n "$trimmed" ]; then PROJECTS+=("$trimmed"); fi
-    done
-else
-    # Detect current project or list accessible projects
-    CURR_PROJ=$(gcloud config get-value project 2>/dev/null || true)
-    if [ -n "${CURR_PROJ}" ] && [ "${CURR_PROJ}" != "(unset)" ]; then
-        PROJECTS+=("${CURR_PROJ}")
-    else
-        PROJECTS+=("client-prod-scope")
-    fi
-fi
-
 # Detect organization
 if [ -z "${ORG_ID_ARG}" ]; then
     ORG_ID_ARG=$(gcloud organizations list --format="value(ID)" 2>/dev/null | head -n 1 || true)
@@ -130,6 +112,39 @@ fi
 ORG_NAME=$(gcloud organizations list --format="value(DISPLAY_NAME)" 2>/dev/null | head -n 1 || true)
 if [ -z "${ORG_NAME}" ]; then
     ORG_NAME="${CLIENT_NAME}"
+fi
+
+# Resolve projects list
+PROJECTS=()
+if [ -n "${PROJECTS_ARG}" ]; then
+    IFS=',' read -ra ADDR <<< "${PROJECTS_ARG}"
+    for p in "${ADDR[@]}"; do
+        trimmed=$(echo "$p" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+        if [ -n "$trimmed" ]; then PROJECTS+=("$trimmed"); fi
+    done
+else
+    # Automatically discover active projects across all organization folders
+    DISCOVERED=""
+    if [ -n "${ORG_ID_ARG}" ]; then
+        DISCOVERED=$(gcloud asset search-all-resources --scope="organizations/${ORG_ID_ARG}" --asset-types="cloudresourcemanager.googleapis.com/Project" --query="state:ACTIVE" --format="value(name)" 2>/dev/null | awk -F'/' '{print $NF}' | paste -sd "," - || true)
+    fi
+    if [ -z "${DISCOVERED}" ]; then
+        DISCOVERED=$(gcloud projects list --filter="lifecycleState:ACTIVE" --format="value(projectId)" 2>/dev/null | paste -sd "," - || true)
+    fi
+    if [ -n "${DISCOVERED}" ]; then
+        IFS=',' read -ra ADDR <<< "${DISCOVERED}"
+        for p in "${ADDR[@]}"; do
+            trimmed=$(echo "$p" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            if [ -n "$trimmed" ]; then PROJECTS+=("$trimmed"); fi
+        done
+    else
+        CURR_PROJ=$(gcloud config get-value project 2>/dev/null || true)
+        if [ -n "${CURR_PROJ}" ] && [ "${CURR_PROJ}" != "(unset)" ]; then
+            PROJECTS+=("${CURR_PROJ}")
+        else
+            PROJECTS+=("client-prod-scope")
+        fi
+    fi
 fi
 
 # Compute expiry timestamp using python3

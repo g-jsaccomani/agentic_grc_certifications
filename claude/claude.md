@@ -2894,6 +2894,35 @@ During live QA security testing on the running Cloud Run service, four vulnerabi
 - **Verification:** Verified live HTTP 200 response and verified presence of `#btnExportOnboardPdf`, `#view-onboard-instructions`, and `exportOnboardInstructionsPdf()` with try-catch and safe provider resolution in the served HTML payload.
 
 
+### Milestone 79: English Default Platform Enforcement, Auditor Terminology Elimination, Non-Certification Disclaimers, and Client Workspace Onboarding Hardening
+
+#### 1. Context & Objectives
+- **English Default**: Platform UI, script previews, HTML pages, exports, prompts, and logs default strictly to English (`'en'`).
+- **Elimination of "AUDITOR" Terminology**: Removed all instances of the word "AUDITOR", "auditor", "auditoria", "auditoría" across all user-facing files, themes, subagent names, question titles, and documentation, replacing with `Consultant`, `Advisor`, `Reviewer`, `Assessor`, `Assessment`, `Readiness`, and `Inspection`.
+- **Compliance & Legal Positioning**: Clarified across the UI, reports, and onboarding instructions that Google Cloud does not conduct formal audits or issue compliance certifications. Positioned Agentic GRC as an autonomous advisory and evidence readiness framework for accredited third-party certification preparation.
+- **Client Workspace Onboarding Resolution**:
+  1. Resolved Javascript runtime `ReferenceError: switchActiveClient is not defined` inside `submitOnboardClientModal()` by declaring `switchActiveClient(targetClientId, showPrompt = true)` and aliasing `switchClientWorkspace(targetClientId)`.
+  2. Fixed GCP project discovery in `gcp_onboard_bootstrap.sh` and `scripts/onboard_client.sh`: previously `gcloud projects list --filter="parent.id=${ORG_ID}"` only listed projects whose direct parent was the organization itself (excluding all folder-nested projects). Replaced with hierarchical discovery via `gcloud asset search-all-resources --scope="organizations/${ORG_ID}" --asset-types="cloudresourcemanager.googleapis.com/Project" --query="state:ACTIVE"`, falling back to `gcloud projects list --filter="lifecycleState:ACTIVE"`, correctly discovering all active projects across all organization folders.
+  3. Added Architecture & Hosting Clarification Callout to the onboarding modal explaining that no project creation is required in the client environment (as Agentic GRC runs centrally on Cloud Run with Read-Only IAM delegation), while linking to Terraform (`terraform/first_steps/` and `make journey`) for single-tenant self-hosted customer deployments.
+
+#### 2. Key Changes & Implementation
+- `mcp_server_grc/catalog.py`: English phases, seed project statuses changed to `ASSESSED`, `how_to_check`/`how_to_maintain` cleansed of non-product audit occurrences while preserving `Cloud Audit Logs` and ISO A.8.34 standard title.
+- `mcp_server_grc/questionnaire_catalog.py`: Cleaned up all 229 audit references; questions and guidance retitled to assessment guidance.
+- `mcp_server_grc/portal_html.py`:
+  - Default language set to `'en'` (`window.currentLanguage = 'en'`).
+  - Implemented `async function switchActiveClient(targetClientId, showPrompt = true)` to safely switch active client workspaces without ReferenceErrors.
+  - Enhanced `updateOnboardScriptPreview()` with multi-folder hierarchical project discovery via Cloud Asset Inventory.
+  - Added Architecture & Hosting Clarification Callout in onboarding modal with complete I18N translations for `pt`, `en`, and `es`.
+  - Cleansed subagents ("Compliance & Security Advisor", "Annex A Security Assessor Agent").
+- `mcp_server_grc/portal.py`: Cleaned header exports, retained backwards-compatible aliases (`auditor_identity`, `auditor_responsibility`).
+- `scripts/onboard_client.sh`: Enhanced project discovery across all folders and hierarchy.
+- `README.md`: Updated with 223 passed tests badge, full English text, legal disclaimer, and Section IX on Client Onboarding & Connectivity Architectures.
+
+#### 3. Automated Verification & Quality Assurance
+- Full pytest suite (`uv run pytest`): **223 passed, 0 failures, 2 warnings in 23.18s (100% pass rate)**.
+- Regression testing: `tests/test_client_isolation.py` (11/11 passed), `tests/test_portal.py` (52/52 passed), `tests/test_questionnaire.py` (47/47 passed).
+
+
 
 
 

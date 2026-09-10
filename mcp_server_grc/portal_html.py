@@ -8688,14 +8688,32 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <line x1="12" y1="16" x2="12" y2="12"></line>
                                 <line x1="12" y1="8" x2="12.01" y2="8"></line>
                             </svg>
-                            <span>Fluxo de Execução no Ambiente do Cliente:</span>
+                            <span data-i18n="onboard_exec_flow_title">Fluxo de Execução no Ambiente do Cliente:</span>
                         </div>
                         <ol style="margin: 0; padding-left: 16px; font-size: 11px; color: var(--text-primary);">
-                            <li>Envie este script para o <strong>Administrador da Organização (Org Admin)</strong> do cliente.</li>
-                            <li>O cliente cola e executa o script no <strong>Google Cloud Shell</strong> (console.cloud.google.com).</li>
-                            <li>O script concede permissões de avaliação <strong>estritamente Read-Only</strong> em nível de organização e gera o arquivo <code>grc_onboarding_config.txt</code>.</li>
-                            <li>O cliente salva e envia o arquivo de volta, e você clica em <strong>Load from TXT</strong> acima para concluir o provisionamento.</li>
+                            <li data-i18n="onboard_step_1">Envie este script para o <strong>Administrador da Organização (Org Admin)</strong> do cliente.</li>
+                            <li data-i18n="onboard_step_2">O cliente cola e executa o script no <strong>Google Cloud Shell</strong> (console.cloud.google.com).</li>
+                            <li data-i18n="onboard_step_3">O script varre todas as pastas e projetos da organização, concede permissões de avaliação <strong>estritamente Read-Only</strong> em nível de organização e gera o arquivo <code>grc_onboarding_config.txt</code>.</li>
+                            <li data-i18n="onboard_step_4">O cliente salva e envia o arquivo de volta, e você clica em <strong>Load from TXT</strong> acima para concluir o provisionamento.</li>
                         </ol>
+                    </div>
+
+                    <!-- Architecture & Hosting Clarification Callout -->
+                    <div style="margin-top: 8px; padding: 10px 12px; background: rgba(66, 133, 244, 0.06); border: 1px solid rgba(66, 133, 244, 0.25); border-radius: 8px; font-size: 11.5px; line-height: 1.5; color: var(--text-secondary);">
+                        <div style="font-weight: 600; color: var(--gcp-blue); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <span data-i18n="onboard_architecture_title">Como Funciona: Consultor Central vs. Projeto Dedicado</span>
+                        </div>
+                        <p style="margin: 0 0 4px 0;" data-i18n="onboard_architecture_desc">
+                            <strong>Sem necessidade de criar projeto:</strong> A plataforma Agentic GRC executa centralizada no Google Cloud Run. Este script apenas concede papéis estritamente Read-Only temporários (<code>roles/viewer</code>, <code>roles/iam.securityReviewer</code>) para avaliar os projetos existentes remotamente, sem provisionar servidores ou recursos no ambiente do cliente.
+                        </p>
+                        <p style="margin: 0; font-size: 11px; color: var(--text-tertiary);" data-i18n="onboard_architecture_self_host">
+                            Deseja hospedar o ambiente 100% dedicado na sua própria organização GCP? Utilize os módulos Terraform (<code>terraform/first_steps/</code> e <code>make journey</code>) para criar uma pasta/projeto dedicado e rodar o serviço internamente.
+                        </p>
                     </div>
                 </div>
 
@@ -8705,7 +8723,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                         <path d="M9 12l2 2 4-4"/>
                     </svg>
-                    <span><strong>Segurança Garantida:</strong> Zero permissões de modificação ou exclusão (Least Privilege). Papéis: <code>roles/viewer</code>, <code>roles/iam.securityReviewer</code>, <code>roles/resourcemanager.organizationViewer</code>.</span>
+                    <span data-i18n="onboard_security_guarantee"><strong>Segurança Garantida:</strong> Zero permissões de modificação ou exclusão (Least Privilege). Papéis: <code>roles/viewer</code>, <code>roles/iam.securityReviewer</code>, <code>roles/resourcemanager.organizationViewer</code>.</span>
                 </div>
             </div>
 
@@ -9057,6 +9075,15 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_chip_label: "Guia Operacional • Read-Only",
                 onboard_doc_title: "Instruções de Onboarding — Workspace de Cliente",
                 onboard_doc_subtitle: "Procedimento operacional para concessão de acesso estritamente restrito a roles/viewer e roles/securityReviewer em projetos Google Cloud via IAM Conditions temporárias.",
+                onboard_exec_flow_title: "Fluxo de Execução no Ambiente do Cliente:",
+                onboard_step_1: "Envie este script para o Administrador da Organização (Org Admin) do cliente.",
+                onboard_step_2: "O cliente cola e executa o script no Google Cloud Shell (console.cloud.google.com).",
+                onboard_step_3: "O script varre todas as pastas e projetos da organização, concede permissões estritamente Read-Only em nível de organização e gera o arquivo grc_onboarding_config.txt.",
+                onboard_step_4: "O cliente salva e envia o arquivo de volta, e você clica em Load from TXT acima para concluir o provisionamento.",
+                onboard_architecture_title: "Como Funciona: Consultor Central vs. Projeto Dedicado",
+                onboard_architecture_desc: "Sem necessidade de criar projeto: A plataforma Agentic GRC executa centralizada no Google Cloud Run. Este script apenas concede papéis estritamente Read-Only temporários (roles/viewer, roles/iam.securityReviewer) para avaliar os projetos existentes remotamente, sem provisionar servidores ou recursos no ambiente do cliente.",
+                onboard_architecture_self_host: "Deseja hospedar o ambiente 100% dedicado na sua própria organização GCP? Utilize os módulos Terraform (terraform/first_steps/ e make journey) para criar uma pasta/projeto dedicado e rodar o serviço internamente.",
+                onboard_security_guarantee: "Segurança Garantida: Zero permissões de modificação ou exclusão (Least Privilege). Papéis: roles/viewer, roles/iam.securityReviewer, roles/resourcemanager.organizationViewer.",
                 btn_close: "Fechar",
                 btn_cancel: "Cancelar",
                 btn_confirm_onboard: "Conectar Cliente",
@@ -9394,10 +9421,19 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_chip_label: "Operational Guide • Read-Only",
                 onboard_doc_title: "Client Workspace Onboarding Instructions",
                 onboard_doc_subtitle: "Operational guide for secure read-only connectivity strictly restricted via Google Cloud Shell or corporate terminal.",
+                onboard_exec_flow_title: "Execution Flow in Client Environment:",
+                onboard_step_1: "Send this script to the client's Organization Administrator (Org Admin).",
+                onboard_step_2: "The client pastes and runs the script in Google Cloud Shell (console.cloud.google.com).",
+                onboard_step_3: "The script traverses all folders and projects in the organization, grants strictly Read-Only review permissions at org level, and exports grc_onboarding_config.txt.",
+                onboard_step_4: "The client returns the file, and you click Load from TXT above to finalize workspace onboarding.",
+                onboard_architecture_title: "How It Works: Central Advisor vs. Dedicated Project",
+                onboard_architecture_desc: "No client project creation required: The Agentic GRC portal runs centrally on Google Cloud Run. This bootstrap script grants strictly temporary Read-Only review permissions (roles/viewer, roles/iam.securityReviewer) to assess your existing projects remotely without deploying any servers or resources in your organization.",
+                onboard_architecture_self_host: "Need a dedicated single-tenant deployment inside your own GCP organization? Use our Terraform module (terraform/first_steps/ and make journey) to create a dedicated compliance project and run the MCP service in your own tenant.",
+                onboard_security_guarantee: "Security Guaranteed: Zero modification or delete permissions (Least Privilege). Roles: roles/viewer, roles/iam.securityReviewer, roles/resourcemanager.organizationViewer.",
                 btn_close: "Close",
                 btn_cancel: "Cancel",
                 btn_confirm_onboard: "Connect Client",
-                login_gate_desc: "Enterprise platform for continuous audit and multicloud regulatory readiness with agentic AI.",
+                login_gate_desc: "Enterprise platform for continuous compliance assessment and multicloud regulatory readiness with agentic AI.",
                 login_gate_btn: "Sign in with Google",
                 login_gate_verifying: "Validating corporate credentials...",
                 login_gate_notice: "Corporate access restricted to authorized identities with live GCP delegation.",
@@ -9731,6 +9767,15 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_chip_label: "Guía Operacional • Read-Only",
                 onboard_doc_title: "Instrucciones de Onboarding — Espacio de Cliente",
                 onboard_doc_subtitle: "Procedimiento operacional para conceder acceso estrictamente restringido a roles/viewer y roles/securityReviewer en proyectos Google Cloud.",
+                onboard_exec_flow_title: "Flujo de Ejecución en el Entorno del Cliente:",
+                onboard_step_1: "Envíe este script al Administrador de la Organización (Org Admin) del cliente.",
+                onboard_step_2: "El cliente pega y ejecuta el script en Google Cloud Shell (console.cloud.google.com).",
+                onboard_step_3: "El script recorre todas las carpetas y proyectos de la organización, otorga permisos de evaluación estrictamente de solo lectura a nivel de org y genera grc_onboarding_config.txt.",
+                onboard_step_4: "El cliente guarda y envía el archivo, y usted hace clic en Load from TXT arriba para finalizar el onboarding.",
+                onboard_architecture_title: "Cómo Funciona: Consultor Central vs. Proyecto Dedicado",
+                onboard_architecture_desc: "Sin necesidad de crear proyectos: La plataforma Agentic GRC se ejecuta centralizada en Google Cloud Run. Este script solo otorga permisos temporales estrictamente de solo lectura (roles/viewer, roles/iam.securityReviewer) para evaluar los proyectos existentes de forma remota, sin desplegar servidores en el entorno del cliente.",
+                onboard_architecture_self_host: "¿Desea alojar el entorno 100% dedicado en su propia organización GCP? Utilice los módulos de Terraform (terraform/first_steps/ y make journey) para crear un proyecto dedicado y ejecutar el servicio internamente.",
+                onboard_security_guarantee: "Seguridad Garantizada: Cero permisos de modificación o eliminación (Least Privilege). Roles: roles/viewer, roles/iam.securityReviewer, roles/resourcemanager.organizationViewer.",
                 btn_close: "Cerrar",
                 btn_cancel: "Cancelar",
                 btn_confirm_onboard: "Conectar Cliente",
@@ -11375,19 +11420,20 @@ Formulário preenchido com o subagente recomendado!`);
             return Boolean(hasMessagesInDom || hasActiveChatSession);
         }
 
-        function switchClientWorkspace(targetClientId) {
+        async function switchActiveClient(targetClientId, showPrompt = true) {
             const menu = document.getElementById("clientDropdownMenu");
             const chevron = document.getElementById("clientDropdownChevron");
             if (menu) menu.classList.remove("active");
             if (chevron) chevron.style.transform = "rotate(0deg)";
 
-            if (targetClientId === currentActiveClientId) return;
+            if (!targetClientId) return;
+            if (targetClientId === currentActiveClientId && showPrompt) return;
 
             pendingSwitchClientId = targetClientId;
             const currentClient = onboardedClientsList.find(c => c.client_id === currentActiveClientId);
             const currentName = currentClient ? currentClient.name : "Active Client";
 
-            if (hasActiveSession()) {
+            if (showPrompt && hasActiveSession()) {
                 const confirmTextEl = document.getElementById("clientSwitchConfirmText");
                 if (confirmTextEl) {
                     confirmTextEl.innerText = `You're about to switch away from ${currentName} — this session will end.`;
@@ -11395,8 +11441,12 @@ Formulário preenchido com o subagente recomendado!`);
                 const modal = document.getElementById("clientSwitchConfirmModal");
                 if (modal) modal.classList.add("active");
             } else {
-                executeConfirmedClientSwitch();
+                await executeConfirmedClientSwitch();
             }
+        }
+
+        function switchClientWorkspace(targetClientId) {
+            switchActiveClient(targetClientId, true);
         }
 
         function closeClientSwitchModal() {
@@ -11713,10 +11763,16 @@ if [ -n "\${ORG_ID}" ]; then
 fi
 
 # [3/4] Discover Active Projects in Scope
-echo -e "\\n[3/4] Discovering active projects in scope..."
+echo -e "\n[3/4] Discovering active projects in scope (all folders and hierarchy)..."
 PROJECTS_LIST=""
 if [ -n "\${ORG_ID}" ]; then
-    PROJECTS_LIST="\$(gcloud projects list --filter="parent.id=\${ORG_ID} AND lifecycleState:ACTIVE" --format="value(projectId)" 2>/dev/null | paste -sd "," - || true)"
+    # 1. Search across all folders in organization using Cloud Asset Inventory
+    PROJECTS_LIST="\$(gcloud asset search-all-resources --scope=\"organizations/\${ORG_ID}\" --asset-types=\"cloudresourcemanager.googleapis.com/Project\" --query=\"state:ACTIVE\" --format=\"value(name)\" 2>/dev/null | awk -F'/' '{print \$NF}' | paste -sd \",\" - || true)"
+fi
+
+# 2. If Asset Inventory is unavailable or empty, list all active projects accessible to user
+if [ -z "\${PROJECTS_LIST}" ]; then
+    PROJECTS_LIST="\$(gcloud projects list --filter=\"lifecycleState:ACTIVE\" --format=\"value(projectId)\" 2>/dev/null | paste -sd \",\" - || true)"
 fi
 
 if [ -z "\${PROJECTS_LIST}" ]; then
@@ -12306,15 +12362,21 @@ echo -e "================================================================\\n"`;
                     closeOnboardModal();
                     await loadOnboardedClients();
                     if (data.client && data.client.client_id) {
-                        switchActiveClient(data.client.client_id, false);
+                        await switchActiveClient(data.client.client_id, false);
                     }
                 } else {
                     const err = await res.json().catch(() => ({}));
-                    alert("Erro ao conectar cliente: " + (err.detail || "Erro desconhecido"));
+                    const errMsg = (window.currentLanguage === 'en')
+                        ? ("Error connecting client: " + (err.detail || "Unknown error"))
+                        : ("Erro ao conectar cliente: " + (err.detail || "Erro desconhecido"));
+                    alert(errMsg);
                 }
             } catch (e) {
                 console.error("Error onboarding client:", e);
-                alert("Falha na conexão com o servidor de onboarding.");
+                const failMsg = (window.currentLanguage === 'en')
+                    ? "Failed to connect client workspace."
+                    : "Falha na conexão com o servidor de onboarding.";
+                alert(failMsg);
             } finally {
                 if (btn) {
                     btn.disabled = false;

@@ -86,6 +86,16 @@ Connects directly to enterprise repositories (**Google Drive, Microsoft SharePoi
   - Dynamically localizes sidebar navigation, action buttons, prompt chips, and document viewer toolbars.
   - Propagates target `locale` to Vertex AI Gemini and specialized subagents, formulating technical findings, evidence dossiers, and executive opinions in the selected language.
 
+### IX. Client Onboarding & Connectivity Architectures
+The platform supports two distinct enterprise operational models:
+1. **Central Advisor Hub (Default / Zero-Infrastructure in Client Org)**:
+   - **How it works**: The Agentic GRC portal and orchestrator run centrally on Google Cloud Run. The client does **not** need to create any project, database, or virtual machine in their environment.
+   - **Automated Bootstrap**: The client Org Admin runs `gcp_onboard_bootstrap.sh` in Google Cloud Shell. The script automatically traverses all folders and subfolders using Cloud Asset Inventory, grants strictly **Read-Only** assessment permissions (`roles/viewer`, `roles/iam.securityReviewer`, `roles/resourcemanager.organizationViewer`) to the consultant's identity, and exports `grc_onboarding_config.txt`.
+   - **Workspace Connection**: The consultant loads the `.txt` configuration into the portal and connects the client workspace instantly with full multi-tenant isolation.
+2. **Dedicated Single-Tenant In-Client Deployment (Self-Hosted)**:
+   - **How it works**: For highly regulated enterprises requiring complete isolation within their own cloud perimeter, the entire solution can be deployed directly into the client's GCP organization.
+   - **Infrastructure as Code**: Using Terraform (`terraform/first_steps/`) and the automated deployment pipeline (`make journey`), a dedicated GCP project (e.g., `grc-compliance-core`), service accounts, KMS keys, Firestore database, and Cloud Run service are automatically provisioned within the client's organization.
+
 ---
 
 ## 2. ISO/IEC 27001:2022 Controls Mapping (93 Controls)
