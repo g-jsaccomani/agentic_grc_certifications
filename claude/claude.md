@@ -2843,6 +2843,14 @@ During live QA security testing on the running Cloud Run service, four vulnerabi
   - `tests/test_client_isolation.py`: Verified client workspace isolation and onboarding modal markup checks pass cleanly.
   - Full suite execution: `uv run pytest` -> **223 passed, 0 failures (100% pass rate)**.
 
+#### 4. Cloud Run Production Deployment
+- **Service Name:** `mcp-server-grc`
+- **Revision:** `mcp-server-grc-00085-m4m`
+- **Traffic:** 100% routed
+- **Live URL:** `https://mcp-server-grc-938078169010.us-central1.run.app`
+- **Verification:** Verified live HTTP 200 response and verified presence of `#btnExportOnboardPdf`, `#view-onboard-instructions`, and `exportOnboardInstructionsPdf()` in the served HTML payload.
+
+
 
 
 
