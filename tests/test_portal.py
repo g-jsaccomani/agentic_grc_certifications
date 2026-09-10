@@ -1801,3 +1801,39 @@ def test_upload_compliance_file_xss_filename_sanitized():
     assert "&lt;img" in finding_filename
     assert "&gt;" in finding_filename
 
+
+# ===========================================================================
+# Milestone 78: Client Onboarding Bootstrap & PDF Export Instructions
+# ===========================================================================
+
+def test_client_onboard_modal_pdf_export_elements():
+    """Verify that the Client Onboarding modal contains the PDF export button,
+    the view-onboard-instructions sheet with Cloud Shell execution steps, and
+    necessary IAM least-privilege references."""
+    res = client.get("/")
+    assert res.status_code == 200
+    html = res.text
+
+    # 1. Verify modal button for PDF export
+    assert 'id="btnExportOnboardPdf"' in html
+    assert 'onclick="exportOnboardInstructionsPdf()"' in html
+    assert 'data-i18n="onboard_export_pdf"' in html
+
+    # 2. Verify script preview and copy/download buttons
+    assert 'id="onboardScriptPreview"' in html
+    assert 'id="btnCopyOnboardScript"' in html
+    assert 'id="btnDownloadOnboardScript"' in html
+    assert 'id="onboardConsultantEmailInput"' in html
+
+    # 3. Verify PDF printable document sheet and execution steps
+    assert 'id="view-onboard-instructions"' in html
+    assert 'id="onboardDocCommand"' in html
+    assert 'id="onboardDocConsultantEmail"' in html
+    assert 'id="onboardDocCloudProvider"' in html
+    assert 'Google Cloud Shell' in html
+    assert 'grc_onboarding_config.txt' in html
+    assert 'roles/viewer' in html
+    assert 'roles/iam.securityReviewer' in html
+    assert 'roles/resourcemanager.organizationViewer' in html
+
+

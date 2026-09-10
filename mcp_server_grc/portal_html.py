@@ -4135,6 +4135,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             .view-pane { display: none !important; }
             #view-report-exec.active, #view-report-tech.active, #view-onboard-instructions.active { display: block !important; padding: 0 !important; }
             .report-preview-sheet, #view-onboard-instructions .cloudstyle-doc-sheet { box-shadow: none !important; border-radius: 0 !important; max-width: 100% !important; padding: 0 !important; }
+            #onboardDocCommand { background: #f8f9fa !important; color: #1a73e8 !important; border: 1px solid #dadce0 !important; }
         }
     
         /* =========================================================================
@@ -8269,7 +8270,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <!-- Title & Subtitle in Google Sans -->
                     <h1 class="cloudstyle-doc-title" style="font-family: 'Google Sans', var(--font-sans); font-size: 22px; font-weight: 600; color: #1a73e8; margin: 0 0 6px 0;" data-i18n="onboard_doc_title">Instruções de Onboarding — Workspace de Cliente</h1>
                     <div class="cloudstyle-doc-subtitle" style="font-size: 13px; color: #5f6368; line-height: 1.5; margin-bottom: 24px;" data-i18n="onboard_doc_subtitle">
-                        Procedimento operacional para concessão de acesso estritamente restrito a <code>roles/viewer</code> e <code>roles/securityReviewer</code> em projetos Google Cloud via IAM Conditions temporárias.
+                        Procedimento operacional para concessão de acesso estritamente restrito a <code>roles/viewer</code>, <code>roles/iam.securityReviewer</code> e <code>roles/resourcemanager.organizationViewer</code> em projetos Google Cloud via IAM Conditions temporárias.
                     </div>
 
                     <!-- Document Metadata Box -->
@@ -8278,6 +8279,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <tr style="border-bottom: 1px solid #e8eaed;">
                                 <td style="padding: 10px 12px; font-weight: 600; color: #5f6368; width: 240px;">Cliente / Organização</td>
                                 <td style="padding: 10px 12px; color: #202124;"><strong id="onboardDocClientName">—</strong></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e8eaed;">
+                                <td style="padding: 10px 12px; font-weight: 600; color: #5f6368;">Identidade do Auditor / Consultor</td>
+                                <td style="padding: 10px 12px; color: #202124;"><strong id="onboardDocConsultantEmail" style="font-family: var(--font-mono, monospace); color: #1a73e8;">—</strong></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e8eaed;">
+                                <td style="padding: 10px 12px; font-weight: 600; color: #5f6368;">Provedor & Ambiente de Execução</td>
+                                <td style="padding: 10px 12px; color: #202124;"><span id="onboardDocCloudProvider">Google Cloud (Cloud Shell / Bash)</span></td>
                             </tr>
                             <tr style="border-bottom: 1px solid #e8eaed;">
                                 <td style="padding: 10px 12px; font-weight: 600; color: #5f6368;">Projetos GCP no Escopo</td>
@@ -8298,13 +8307,28 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </tbody>
                     </table>
 
-                    <!-- Onboarding Command Block (Monospace & Copyable) -->
+                    <!-- Step-by-Step Instructions for Cloud Shell -->
+                    <div style="margin-bottom: 24px; padding: 18px 20px; background: #f8f9fa; border: 1px solid #e8eaed; border-radius: 8px;">
+                        <h4 style="font-size: 14px; font-weight: 600; color: #202124; margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px;">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #1a73e8; color: #ffffff; font-size: 12px; font-weight: 700;">✓</span>
+                            <span>Passos para Execução no Google Cloud Shell (Ambiente do Cliente):</span>
+                        </h4>
+                        <ol style="font-size: 12.5px; color: #3c4043; line-height: 1.7; margin: 0; padding-left: 20px;">
+                            <li>Acesse o <strong>Google Cloud Console</strong> (<a href="https://console.cloud.google.com" target="_blank" style="color: #1a73e8; text-decoration: underline;">console.cloud.google.com</a>) autenticado com uma conta com perfil de <strong>Administrador da Organização (Org Admin)</strong> ou Proprietário.</li>
+                            <li>Abra o <strong>Google Cloud Shell</strong> clicando no ícone do terminal (<code>&gt;_</code>) na barra superior direita do Console.</li>
+                            <li>Copie o script de bootstrap completo apresentado na seção abaixo e cole-o diretamente na janela do Cloud Shell. Pressione <strong>Enter</strong> para executar.</li>
+                            <li>O script opera em modo <strong>estritamente Read-Only</strong>: ele detecta a Organização, lista os projetos ativos, vincula os papéis <code>roles/viewer</code>, <code>roles/iam.securityReviewer</code> e <code>roles/resourcemanager.organizationViewer</code> com expiração temporária automática, e gera o arquivo <code>grc_onboarding_config.txt</code>.</li>
+                            <li>Ao término da execução, o terminal confirmará a criação do arquivo. <strong>Baixe o arquivo gerado (<code>grc_onboarding_config.txt</code>) e envie-o de volta ao consultor</strong> para ativação automática do workspace no portal.</li>
+                        </ol>
+                    </div>
+
+                    <!-- Onboarding Script Block (Monospace & Copyable) -->
                     <div style="margin-bottom: 24px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-size: 13.5px; font-weight: 600; color: #202124;">Comando de Onboarding (GCP Cloud Shell / Terminal)</span>
-                            <span style="font-size: 11px; color: #5f6368;">Execute com privilégios de Administrador da Organização ou Proprietário</span>
+                            <span style="font-size: 13.5px; font-weight: 600; color: #202124;">Script de Bootstrap para Execução (Google Cloud Shell / Bash)</span>
+                            <span style="font-size: 11px; color: #5f6368;">Princípio do Menor Privilégio • Somente Leitura</span>
                         </div>
-                        <pre id="onboardDocCommand" style="background: #f8f9fa; color: #1a73e8; border: 1px solid #dadce0; border-radius: 8px; padding: 14px; font-family: var(--font-mono, monospace); font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; margin: 0; user-select: all;"></pre>
+                        <pre id="onboardDocCommand" style="background: #1e1f20; color: #a8c7fa; border: 1px solid #3c4043; border-radius: 8px; padding: 14px; font-family: var(--font-mono, monospace); font-size: 11px; line-height: 1.45; white-space: pre-wrap; word-break: normal; margin: 0; user-select: all;"></pre>
                     </div>
 
                     <!-- Segurança Garantida Box (Exact Same Text as Modal) -->
@@ -8316,17 +8340,6 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <div>
                             <span><strong>Segurança Garantida:</strong> Zero permissões de modificação ou exclusão. O acesso expira automaticamente na GCP via IAM Conditions.</span>
                         </div>
-                    </div>
-
-                    <!-- Step-by-Step Instructions -->
-                    <div style="border-top: 1px solid #e8eaed; padding-top: 18px;">
-                        <h4 style="font-size: 13px; font-weight: 600; color: #202124; margin: 0 0 8px 0;">Instruções Passo a Passo para Execução:</h4>
-                        <ol style="font-size: 12.5px; color: #3c4043; line-height: 1.6; margin: 0; padding-left: 18px;">
-                            <li>Acesse o <strong>Google Cloud Console</strong> (<a href="https://console.cloud.google.com" target="_blank" style="color: #1a73e8;">console.cloud.google.com</a>) com uma conta autorizada.</li>
-                            <li>Abra o <strong>Google Cloud Shell</strong> clicando no ícone do terminal no topo da página.</li>
-                            <li>Copie e cole o comando de onboarding acima no Cloud Shell e tecle <strong>Enter</strong>.</li>
-                            <li>Após a conclusão, confirme a conexão no portal clicando em <strong>Conectar Cliente</strong>.</li>
-                        </ol>
                     </div>
                 </div>
             </section>
@@ -8644,6 +8657,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                     <line x1="12" y1="15" x2="12" y2="3"></line>
                                 </svg>
                                 <span data-i18n="onboard_download_script">Baixar (.sh)</span>
+                            </button>
+                            <button type="button" class="btn-cancel" style="padding: 4px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; color: var(--gcp-blue); border-color: rgba(138, 180, 248, 0.4);" onclick="exportOnboardInstructionsPdf()" id="btnExportOnboardPdf" title="Exportar passos para o cliente rodar no Cloud Shell em PDF">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                                    <rect x="6" y="14" width="12" height="8"></rect>
+                                </svg>
+                                <span data-i18n="onboard_export_pdf">Exportar PDF</span>
                             </button>
                         </div>
                     </div>
@@ -11826,22 +11847,35 @@ echo -e "================================================================\\n"`;
 
         function exportOnboardInstructionsPdf() {
             const nameInput = document.getElementById("onboardClientNameInput");
+            const consultantInput = document.getElementById("onboardConsultantEmailInput");
             const projectsInput = document.getElementById("onboardClientProjectsInput");
             const daysInput = document.getElementById("onboardClientDaysInput");
             const driveFolderInput = document.getElementById("onboardClientDriveFolderInput");
             const previewEl = document.getElementById("onboardScriptPreview");
 
             const name = (nameInput?.value || "").trim() || "New Client Workspace";
+            const consultantEmail = (consultantInput?.value || "").trim() || window.currentUserEmail || "consultant@example.com";
             const rawProjects = (projectsInput?.value || "").trim();
-            const projects = rawProjects || "client-prod-01";
+            const projects = rawProjects || "(Detecção automática de todos os projetos da organização)";
             const days = parseInt(daysInput?.value || "30", 10) || 30;
             const driveFolder = (driveFolderInput?.value || "").trim();
 
             updateOnboardScriptPreview();
-            const cmd = previewEl ? previewEl.innerText : `bash scripts/onboard_client.sh --client="${name}" --projects="${projects}" --days=${days}`;
+            const cmd = previewEl ? previewEl.innerText : `bash scripts/onboard_client.sh --client="${name}" --consultant="${consultantEmail}" --days=${days}`;
 
             const docName = document.getElementById("onboardDocClientName");
             if (docName) docName.innerText = name;
+
+            const docConsultant = document.getElementById("onboardDocConsultantEmail");
+            if (docConsultant) docConsultant.innerText = consultantEmail;
+
+            const docCloud = document.getElementById("onboardDocCloudProvider");
+            if (docCloud) {
+                const provName = currentOnboardCloudProvider === "aws" ? "AWS (CLI / CloudShell)" :
+                                 currentOnboardCloudProvider === "azure" ? "Azure (CLI / Cloud Shell)" :
+                                 "Google Cloud (Cloud Shell / Bash)";
+                docCloud.innerText = provName;
+            }
 
             const docProjects = document.getElementById("onboardDocProjects");
             if (docProjects) docProjects.innerText = projects;
@@ -11868,7 +11902,7 @@ echo -e "================================================================\\n"`;
 
             setTimeout(() => {
                 window.print();
-            }, 250);
+            }, 300);
         }
 
         function printOnboardInstructions() {
