@@ -50,6 +50,7 @@ gcloud services enable \
     cloudbuild.googleapis.com \
     logging.googleapis.com \
     monitoring.googleapis.com \
+    firestore.googleapis.com \
     --project="${PROJECT_ID}" --quiet
 
 echo "[PASS] Cloud APIs enabled."
@@ -100,7 +101,7 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
 
 # Authorize Compute Service Account used by Cloud Build
 COMPUTE_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
-for r in "roles/storage.admin" "roles/logging.logWriter" "roles/artifactregistry.writer" "roles/aiplatform.user"; do
+for r in "roles/storage.admin" "roles/logging.logWriter" "roles/artifactregistry.writer" "roles/aiplatform.user" "roles/datastore.user"; do
     gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
         --member="serviceAccount:${COMPUTE_SA}" \
         --role="${r}" \
