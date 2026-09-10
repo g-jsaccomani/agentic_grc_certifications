@@ -14460,7 +14460,7 @@ function openNewsModal(newsKey) {
                         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-green); flex-shrink: 0;"><polyline points="20 6 9 17 4 12"/></svg>
                         <div>
                             <strong style="color: var(--gcp-green); font-size: 13px;">Ambiente Google Cloud em Plena Conformidade Técnica!</strong>
-                            <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--text-secondary); line-height: 1.45;">Todos os 93 controles da norma ISO/IEC 27001:2022 estão validados com sucesso pelo Scan por Fases e sem desvios ativos.</p>
+                            <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--text-secondary); line-height: 1.45;">Controles técnicos da norma ISO/IEC 27001:2022 avaliados pelo Scan por Fases sem desvios ativos.</p>
                         </div>
                     </div>
                 `;
@@ -14469,15 +14469,15 @@ function openNewsModal(newsKey) {
 
             const ncList = data.non_compliant_controls || [];
             const ncDetails = {
-                "A.5.15": "Conta de serviço 'sa-ai-pipeline-dev' com papel roles/editor; vm-mgmt-bastion operando com conta padrão Compute Engine.",
-                "A.5.17": "Instância vm-legacy-crm armazena credenciais administrativas em texto plano nos metadados da VM.",
-                "A.5.23": "Bucket bkt-iso-noncompliant-legacy com PAP desativado, single-region e sem chave CMEK Cloud KMS.",
-                "A.8.14": "Frota de 5 instâncias Compute Engine alocada em zona única us-central1-a sem proteção contra exclusão.",
-                "A.8.15": "Perímetro VPC Service Controls ausente para isolamento estrito de serviços de armazenamento e big data.",
-                "A.8.16": "Monitoramento de segurança sem exportação contínua de Cloud Audit Logs e trilhas do Cloud Logging.",
-                "A.8.20": "Regra de firewall fw-iso-noncompliant-open-ssh expõe porta 22 (SSH) para a Internet pública (0.0.0.0/0).",
-                "A.8.24": "Discos de boot sem chave de criptografia gerenciada pelo cliente (CMEK Cloud KMS HSM).",
-                "A.8.28": "Vulnerabilidade BOLA (/api/v1/customers/{id}) e endpoint com falha de Prompt Injection na vm-payment-api."
+                "A.5.15": "Identificados papéis IAM com privilégios excessivos (ex.: roles/editor) em contas de serviço.",
+                "A.5.17": "Credenciais estáticas ou informações de autenticação não gerenciadas via Secret Manager.",
+                "A.5.23": "Bucket de armazenamento com Public Access Prevention (PAP) desativado ou sem chave CMEK.",
+                "A.8.14": "Workloads alocados em zona única sem grupo de instâncias regional ou proteção contra exclusão.",
+                "A.8.15": "Logs de auditoria de acesso a dados (Data Access Logs) ausentes para isolamento estrito.",
+                "A.8.16": "Monitoramento de segurança sem exportação contínua de registros para SIEM centralizado.",
+                "A.8.20": "Regra de firewall permite acesso irrestrito (0.0.0.0/0) em portas administrativas.",
+                "A.8.24": "Recursos em nuvem sem chave de criptografia CMEK gerenciada pelo cliente ou rotação ativa.",
+                "A.8.28": "Avaliação de segurança de aplicações pendente de validação de baseline de codificação segura."
             };
 
             let html = `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px;">`;

@@ -1,3 +1,72 @@
+# Engineering Milestone Handoff: Elimination of Fabricated Audit Telemetry & Authentic Evidence Traceability
+
+**Target Audience:** Architecture Reviewers, Security Practice & GRC Operations  
+**Repository:** `agentic_grc_certifications`  
+**Execution Date:** 2026-09-10  
+**Status:** COMPLETE & VERIFIED (227/227 Pytest Suite Passing, 100% Honest Telemetry Grounding)  
+
+---
+
+## 1. Executive Summary: Zero-Hallucination & Honest Cloud Telemetry Coverage
+
+In accordance with strict compliance integrity requirements, the phased audit engine (`/api/audit/run_phases` and `build_scan_results_for_phase()`) has been overhauled to eliminate all fabricated evidence generation, fictional resource identifiers (`vm-legacy-crm`, `vm-payment-api`, synthetic BOLA, Prompt Injection), and synthetic scanner identities (`gcp-telemetry-scanner@client.corp`).
+
+### 1.1 The Honest 5/93 Telemetry Reality
+Out of the 93 controls in the ISO/IEC 27001:2022 standard, only **5 controls (~5.4%)** have live, automated cloud infrastructure telemetry inspection capabilities backed by Google Cloud APIs via `mcp_server_grc/cloud_inspector.py`:
+1. **A.5.15 (Access control)**: Live IAM project policy inspection (`inspect_project_iam_policy`).
+2. **A.5.18 (Access rights)**: Live IAM project policy inspection (`inspect_project_iam_policy`).
+3. **A.5.23 (Information security for use of cloud services)**: Cloud Storage bucket security posture, verifying Public Access Prevention (`PAP`) and Uniform Bucket-Level Access (`UBLA`) (`inspect_cloud_storage_bucket`, `list_cloud_storage_buckets`).
+4. **A.8.20 (Networks security)**: Cloud Run service ingress settings, verifying internal/load-balancer restricted exposure (`inspect_cloud_run_services`).
+5. **A.8.24 (Use of cryptography)**: Cloud KMS cryptographic key rotation and protection level (`inspect_cloud_kms_key`, `list_cloud_kms_keys`).
+
+For all other **88 controls**, the platform generates **NO fabricated scan results**, leaving them unanswered (0% automated completion) until addressed by human respondents through the questionnaire and self-attestation workflow.
+
+---
+
+## 2. Core Architectural Changes
+
+### 2.1 Refactored `build_scan_results_for_phase()`
+- **Authentic Docstring**:
+  > *"Builds scan results ONLY for controls with a real, traceable technical check via cloud_inspector.py — never fabricates coverage for controls with no live inspection capability."*
+- **Complete Elimination of `nc_details`**: Removed the hardcoded dictionary of simulated non-conformities that previously synthesized results across unrelated ISO controls.
+- **Traceable API Calls**: The function now exclusively queries `cloud_inspector.py` functions with valid user credentials or delegated tokens, translating raw GCP API responses into verifiable compliance evaluations.
+
+### 2.2 Phased Audit Grounding (`/api/audit/run_phases`)
+- **Phase 1 (Identity, IAM & Access Control)**: Derives findings and score directly from real project IAM policy checks for controls A.5.15 and A.5.18.
+- **Phase 2 (Cloud Infrastructure & Storage Security)**: Derives findings from live Cloud Storage bucket inspections (A.5.23) and KMS key rotation/protection checks (A.8.24).
+- **Phase 3 (Application & Data Security)**: Explicitly reports as non-automatable via infrastructure APIs:
+  - `status`: `"NOT_AUTOMATABLE"`
+  - `score`: `0.0`
+  - `details`: `"Phase 3 (Application & Data Security) is not yet automatable — requires questionnaire/self-attestation"`
+- **Phase 4 (Network & Workload Security)**: Derives findings from live Cloud Run service ingress configuration checks (A.8.20).
+
+### 2.3 Elimination of Fake Scanner Identity
+- Removed all occurrences of `gcp-telemetry-scanner@client.corp`.
+- Sync operations and telemetry attribution now explicitly use the authentic service identifier `cloud-inspector@gcp.audit` and require traceable caller credentials.
+
+---
+
+## 3. Architectural Design Principle: Technical Telemetry vs. Governance Attestation
+
+A foundational principle of ISO/IEC 27001:2022 compliance architecture is that **cloud telemetry can never cover the entirety of an Information Security Management System (ISMS)**:
+- **Organizational Controls (Clause A.5, 37 controls)**: Policies, management direction, roles, segregated duties, supplier relationships, disciplinary processes, and information classification require documented governance review and management attestation.
+- **People Controls (Clause A.6, 8 controls)**: Background screening, terms of employment, security awareness training, and remote working rules are inherently HR and operational processes.
+- **Physical Controls (Clause A.7, 14 controls)**: Physical security perimeters, entry controls, equipment maintenance, and clear desk policies require facility inspections and physical audits.
+- **Technological Controls (Clause A.8, 34 controls)**: While cloud infrastructure configuration can evaluate network ingress, encryption keys, and bucket policies, controls like secure development lifecycles (A.8.25-A.8.31) and vulnerability management require CI/CD and developer attestation.
+
+Claiming 100% automated coverage for ISO 27001 solely from cloud APIs is deceptive. By reporting only the 5 authentically inspected controls and routing the remaining 88 controls to self-attestation questionnaires, the platform enforces audit integrity and real-world credibility.
+
+---
+
+## 4. Test Verification Matrix
+
+All 227 tests in the platform test suite pass with 100% success rate:
+- `test_phased_audit_syncs_only_automatable_controls_with_seeded_poc_resources`: Asserts that when a phased audit runs with seeded resources, exactly 5 automatable controls are synchronized to the questionnaire (and not 93).
+- `test_no_fabricated_evidence_or_fake_scanner_identity_without_real_api_call`: Asserts that no questionnaire answer contains `gcp-telemetry-scanner@client.corp` or unauthorized "tempo real" claims without a mock-verified live invocation of `cloud_inspector.py`.
+- **Suite Result**: `227 passed, 2 warnings in 104.48s`.
+
+---
+
 # Engineering Milestone Handoff: Client Workspace Disconnect Action & Evidence Preservation
 
 **Target Audience:** Architecture Reviewers, Security Practice & Operations  

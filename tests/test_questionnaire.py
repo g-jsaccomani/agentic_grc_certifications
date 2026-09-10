@@ -4,6 +4,7 @@ import io
 import os
 import zipfile
 import pytest
+from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 
 from mcp_server_grc.server import app
@@ -11,12 +12,27 @@ from mcp_server_grc.auth import create_mock_id_token
 from mcp_server_grc.portal import ci_engine
 from agent_orchestrator.evidence_graph import EvidenceNode, ComplianceLink, EvidenceVerificationTier
 from mcp_server_grc.questionnaire import QuestionnaireAnswer, sniff_and_validate_evidence_file
+from mcp_server_grc.cloud_inspector import reset_session_call_budget
 
 client = TestClient(app)
 
 AUTH_HEADER = {"Authorization": "Bearer ya29.valid-auditor-access-token"}
 MOCK_ID_TOKEN = create_mock_id_token(email="auditor@client.corp")
 ID_TOKEN_HEADER = {"X-Goog-Id-Token": MOCK_ID_TOKEN}
+
+
+@pytest.fixture(autouse=True, scope="module")
+def isolate_questionnaire_module_state():
+    """Preserves and restores QUESTIONNAIRE_ANSWERS and evidence_graph to prevent cross-module test contamination."""
+    from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
+    saved_answers = dict(QUESTIONNAIRE_ANSWERS)
+    saved_nodes = dict(ci_engine.evidence_graph.nodes)
+    saved_links = list(ci_engine.evidence_graph.links)
+    yield
+    QUESTIONNAIRE_ANSWERS.clear()
+    QUESTIONNAIRE_ANSWERS.update(saved_answers)
+    ci_engine.evidence_graph.nodes = saved_nodes
+    ci_engine.evidence_graph.links = saved_links
 
 
 # ---------------------------------------------------------------------------
@@ -559,8 +575,9 @@ def test_get_questionnaire_summary():
 
 
 def test_scan_execution_automatically_answers_questionnaire():
-    """Running a cloud inspection scan automatically answers questionnaire controls with real telemetry."""
+    """Running a cloud inspection scan answers ONLY controls with real telemetry, leaving human controls unanswered."""
     from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
+    reset_session_call_budget()
     saved_answers = dict(QUESTIONNAIRE_ANSWERS)
     try:
         QUESTIONNAIRE_ANSWERS.clear()
@@ -570,40 +587,84 @@ def test_scan_execution_automatically_answers_questionnaire():
         assert res_before.status_code == 200
         assert res_before.json()["answered"] == 0
 
-        # 2. Execute full phased scan
-        res_scan = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"]}, headers=AUTH_HEADER)
-        assert res_scan.status_code == 200
-        data_scan = res_scan.json()
-        assert data_scan.get("questionnaire_controls_synced") == 93
+        mock_iam = {
+            "status": "SUCCESS",
+            "project_id": "agentic-grc-cd06",
+            "total_bindings": 12,
+            "primitive_grants": [{"role": "roles/editor", "users": ["user:dev@test.corp"]}],
+            "compliance": {
+                "status": "NON_COMPLIANT",
+                "control": "ISO/IEC 27001:2022 A.5.15",
+                "violations": ["Papel primitivo 'roles/editor' atribuído diretamente a usuários finais."],
+            },
+        }
+        mock_gcs = {
+            "status": "FOUND",
+            "resource": "agentic-grc-cd06-compliance-artifacts",
+            "compliance": {
+                "status": "COMPLIANT",
+                "control": "ISO/IEC 27001:2022 A.5.23",
+                "violations": [],
+            },
+        }
+        mock_kms = {
+            "status": "FOUND",
+            "key_details": {"rotation_seconds": 5184000, "protectionLevel": "HSM"},
+            "compliance": {
+                "status": "COMPLIANT",
+                "control": "ISO/IEC 27001:2022 A.8.24",
+                "violations": [],
+            },
+        }
+        mock_run = {
+            "status": "SUCCESS",
+            "services": [{"name": "audit-service", "ingress": "INGRESS_TRAFFIC_INTERNAL_ONLY"}],
+            "compliance": {
+                "status": "COMPLIANT",
+                "control": "ISO/IEC 27001:2022 A.8.20",
+                "violations": [],
+            },
+        }
 
-        # 3. After scan: all 93 controls automatically answered
-        res_after = client.get("/api/questionnaire/summary?framework=ISO27001:2022", headers=AUTH_HEADER)
-        assert res_after.status_code == 200
-        data_after = res_after.json()
-        assert data_after["total_controls"] == 93
-        assert data_after["answered"] == 93
-        assert data_after["compliant"] == 84
-        assert data_after["non_compliant"] == 9
-        assert data_after["completion_percentage"] == 100.0
+        with patch("mcp_server_grc.cloud_inspector.inspect_project_iam_policy", return_value=mock_iam), \
+             patch("mcp_server_grc.cloud_inspector.inspect_cloud_storage_bucket", return_value=mock_gcs), \
+             patch("mcp_server_grc.cloud_inspector.inspect_cloud_kms_key", return_value=mock_kms), \
+             patch("mcp_server_grc.cloud_inspector.inspect_cloud_run_services", return_value=mock_run):
 
-        # 4. Check that questionnaire controls list contains detailed telemetry
-        res_q = client.get("/api/questionnaire?framework=ISO27001:2022&lang=pt", headers=AUTH_HEADER)
-        assert res_q.status_code == 200
-        q_data = res_q.json()
-        assert q_data["answered_controls"] == 93
+            # 2. Execute full phased scan
+            res_scan = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"]}, headers=AUTH_HEADER)
+            assert res_scan.status_code == 200
+            data_scan = res_scan.json()
+            # Exactly 5 controls with a real technical check (A.5.15, A.5.18, A.5.23, A.8.20, A.8.24) are synced, NOT 93!
+            assert data_scan.get("questionnaire_controls_synced") == 5
 
-        # Non-compliant control A.5.15 has scanner verdict and finding
-        c_a515 = next(c for c in q_data["controls"] if c["id"] == "A.5.15")
-        assert c_a515["status"] == "NON_COMPLIANT"
-        assert c_a515["answer"]["verification_tier"] == "TELEMETRY"
-        assert "roles/editor" in c_a515["answer"]["justification"]
-        assert c_a515["answer"]["user_email"] == "gcp-telemetry-scanner@client.corp"
+            # 3. After scan: exactly 5 controls answered, 88 controls remain unanswered
+            res_after = client.get("/api/questionnaire/summary?framework=ISO27001:2022", headers=AUTH_HEADER)
+            assert res_after.status_code == 200
+            data_after = res_after.json()
+            assert data_after["total_controls"] == 93
+            assert data_after["answered"] == 5
+            assert data_after["answered"] < 93
+            assert data_after["non_compliant"] == 2  # A.5.15 and A.5.18
+            assert data_after["compliant"] == 3      # A.5.23, A.8.20, A.8.24
 
-        # Compliant control A.5.1 has compliant status and telemetry
-        c_a51 = next(c for c in q_data["controls"] if c["id"] == "A.5.1")
-        assert c_a51["status"] == "COMPLIANT"
-        assert c_a51["answer"]["verification_tier"] == "TELEMETRY"
-        assert "gcp://telemetry/scan/a_5_1" in c_a51["answer"]["evidence_uri"]
+            # 4. Check that questionnaire controls list contains detailed telemetry for answered controls only
+            res_q = client.get("/api/questionnaire?framework=ISO27001:2022&lang=pt", headers=AUTH_HEADER)
+            assert res_q.status_code == 200
+            q_data = res_q.json()
+            assert q_data["answered_controls"] == 5
+
+            # Non-compliant control A.5.15 has scanner verdict and finding
+            c_a515 = next(c for c in q_data["controls"] if c["id"] == "A.5.15")
+            assert c_a515["status"] == "NON_COMPLIANT"
+            assert c_a515["answer"]["verification_tier"] == "TELEMETRY"
+            assert "roles/editor" in c_a515["answer"]["justification"]
+            assert c_a515["answer"]["user_email"] != "gcp-telemetry-scanner@client.corp"
+
+            # Organizational control A.5.1 is NOT answered (requires human questionnaire response)
+            c_a51 = next(c for c in q_data["controls"] if c["id"] == "A.5.1")
+            assert c_a51["status"] in (None, "NOT_ANSWERED", "UNANSWERED", "")
+            assert c_a51["answer"] is None
 
     finally:
         QUESTIONNAIRE_ANSWERS.clear()
@@ -611,22 +672,254 @@ def test_scan_execution_automatically_answers_questionnaire():
 
 
 def test_sync_scan_telemetry_endpoint():
-    """POST /api/questionnaire/sync_scan explicitly synchronizes telemetry on demand."""
+    """POST /api/questionnaire/sync_scan explicitly synchronizes telemetry on demand for automatable controls only."""
     from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
+    reset_session_call_budget()
     saved_answers = dict(QUESTIONNAIRE_ANSWERS)
     try:
         QUESTIONNAIRE_ANSWERS.clear()
-        res = client.post("/api/questionnaire/sync_scan?framework=ISO27001:2022", headers=AUTH_HEADER)
-        assert res.status_code == 200
-        data = res.json()
-        assert data["status"] == "SUCCESS"
-        assert data["synced_controls"] == 93
-        assert data["summary"]["answered"] == 93
-        assert data["summary"]["compliant"] == 84
-        assert data["summary"]["non_compliant"] == 9
+
+        mock_iam = {
+            "status": "SUCCESS",
+            "project_id": "agentic-grc-cd06",
+            "total_bindings": 8,
+            "compliance": {"status": "COMPLIANT", "violations": []},
+        }
+        mock_gcs = {
+            "status": "FOUND",
+            "compliance": {"status": "COMPLIANT", "violations": []},
+        }
+        mock_kms = {
+            "status": "FOUND",
+            "compliance": {"status": "COMPLIANT", "violations": []},
+        }
+        mock_run = {
+            "status": "SUCCESS",
+            "compliance": {"status": "COMPLIANT", "violations": []},
+        }
+
+        with patch("mcp_server_grc.cloud_inspector.inspect_project_iam_policy", return_value=mock_iam), \
+             patch("mcp_server_grc.cloud_inspector.inspect_cloud_storage_bucket", return_value=mock_gcs), \
+             patch("mcp_server_grc.cloud_inspector.inspect_cloud_kms_key", return_value=mock_kms), \
+             patch("mcp_server_grc.cloud_inspector.inspect_cloud_run_services", return_value=mock_run):
+
+            res = client.post("/api/questionnaire/sync_scan?framework=ISO27001:2022", headers=AUTH_HEADER)
+            assert res.status_code == 200
+            data = res.json()
+            assert data["status"] == "SUCCESS"
+            # Exactly 5 controls with real technical checks are synced, NOT 93
+            assert data["synced_controls"] == 5
+            assert data["summary"]["answered"] == 5
+            assert data["summary"]["total_controls"] == 93
+            assert data["summary"]["answered"] < 93
+
     finally:
         QUESTIONNAIRE_ANSWERS.clear()
         QUESTIONNAIRE_ANSWERS.update(saved_answers)
+
+
+def test_phased_audit_syncs_only_automatable_controls_with_seeded_poc_resources():
+    """Verify that running /api/audit/run_phases against seeded POC resources (~30/70 compliant/non-compliant)
+    syncs ONLY the controls with a real cloud_inspector.py mapping (5 controls), NOT 93.
+    """
+    from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
+    reset_session_call_budget()
+    saved_answers = dict(QUESTIONNAIRE_ANSWERS)
+    try:
+        QUESTIONNAIRE_ANSWERS.clear()
+
+        # Seeded POC resources behavior:
+        # fnlab-apps-8fa913: non-compliant KMS (365 days), non-compliant Storage (PAP disabled), non-compliant Cloud Run (public ingress)
+        # fnlab-sec-mgmt-8fa913: compliant KMS (90 days), compliant Storage, compliant IAM
+        # fnlab-ai-data-8fa913: non-compliant IAM (roles/editor on sa-ai-pipeline-dev)
+
+        def mock_iam_side_effect(project_id=None, **kwargs):
+            if project_id == "fnlab-ai-data-8fa913":
+                return {
+                    "status": "SUCCESS",
+                    "project_id": project_id,
+                    "total_bindings": 15,
+                    "primitive_grants": [{"role": "roles/editor", "users": ["user:dev@external-consultancy.com"]}],
+                    "compliance": {
+                        "status": "NON_COMPLIANT",
+                        "control": "ISO/IEC 27001:2022 A.5.15",
+                        "violations": ["Papel primitivo 'roles/editor' atribuído diretamente a usuários finais."],
+                    },
+                }
+            return {
+                "status": "SUCCESS",
+                "project_id": project_id or "fnlab-sec-mgmt-8fa913",
+                "total_bindings": 20,
+                "primitive_grants": [],
+                "compliance": {"status": "COMPLIANT", "violations": []},
+            }
+
+        def mock_storage_side_effect(bucket_name="", project_id=None, **kwargs):
+            if "apps" in str(project_id) or "legacy" in bucket_name:
+                return {
+                    "status": "FOUND",
+                    "resource": bucket_name or "bkt-fnlab-app-backups",
+                    "compliance": {
+                        "status": "NON_COMPLIANT",
+                        "control": "ISO/IEC 27001:2022 A.5.23",
+                        "violations": ["Public Access Prevention (PAP) is not enforced (current: 'inherited')."],
+                    },
+                }
+            return {
+                "status": "FOUND",
+                "resource": bucket_name or "bkt-iso-compliant-records",
+                "compliance": {"status": "COMPLIANT", "violations": []},
+            }
+
+        def mock_kms_side_effect(key_name="", project_id=None, **kwargs):
+            if "apps" in str(project_id) or "insecure" in key_name:
+                return {
+                    "status": "FOUND",
+                    "key_details": {"rotation_seconds": 31536000, "protectionLevel": "SOFTWARE"},
+                    "compliance": {
+                        "status": "NON_COMPLIANT",
+                        "control": "ISO/IEC 27001:2022 A.8.24",
+                        "violations": ["Key rotation period is 365d (> 90 days)."],
+                    },
+                }
+            return {
+                "status": "FOUND",
+                "key_details": {"rotation_seconds": 7776000, "protectionLevel": "SOFTWARE"},
+                "compliance": {"status": "COMPLIANT", "violations": []},
+            }
+
+        def mock_run_side_effect(project_id=None, **kwargs):
+            if "apps" in str(project_id):
+                return {
+                    "status": "SUCCESS",
+                    "services": [{"name": "payment-api", "ingress": "INGRESS_TRAFFIC_ALL"}],
+                    "compliance": {
+                        "status": "NON_COMPLIANT",
+                        "control": "ISO/IEC 27001:2022 A.8.20",
+                        "violations": ["Cloud Run service allows unrestricted public ingress."],
+                    },
+                }
+            return {
+                "status": "SUCCESS",
+                "services": [{"name": "sec-mgmt-svc", "ingress": "INGRESS_TRAFFIC_INTERNAL_ONLY"}],
+                "compliance": {"status": "COMPLIANT", "violations": []},
+            }
+
+        with patch("mcp_server_grc.cloud_inspector.inspect_project_iam_policy", side_effect=mock_iam_side_effect), \
+             patch("mcp_server_grc.cloud_inspector.inspect_cloud_storage_bucket", side_effect=mock_storage_side_effect), \
+             patch("mcp_server_grc.cloud_inspector.inspect_cloud_kms_key", side_effect=mock_kms_side_effect), \
+             patch("mcp_server_grc.cloud_inspector.inspect_cloud_run_services", side_effect=mock_run_side_effect):
+
+            res = client.post(
+                "/api/audit/run_phases",
+                json={"projects": ["fnlab-apps-8fa913", "fnlab-sec-mgmt-8fa913", "fnlab-ai-data-8fa913"]},
+                headers=AUTH_HEADER,
+            )
+            assert res.status_code == 200
+            data = res.json()
+
+            # The answered count is small and matches ONLY the controls with real cloud_inspector mapping — NOT 93!
+            assert data["questionnaire_controls_synced"] == 5
+            assert data["questionnaire_controls_synced"] != 93
+
+            # Check questionnaire summary
+            res_summary = client.get("/api/questionnaire/summary?framework=ISO27001:2022", headers=AUTH_HEADER)
+            assert res_summary.status_code == 200
+            summary = res_summary.json()
+            assert summary["total_controls"] == 93
+            assert summary["answered"] == 5
+            assert summary["answered"] < 93
+            assert summary["total_controls"] - summary["answered"] == 88  # 88 controls remain completely unanswered!
+
+            # Check that seeded non-conformity findings are properly recorded
+            res_q = client.get("/api/questionnaire?framework=ISO27001:2022", headers=AUTH_HEADER)
+            controls = {c["id"]: c for c in res_q.json()["controls"]}
+            assert controls["A.5.15"]["status"] == "NON_COMPLIANT"
+            assert controls["A.5.23"]["status"] == "NON_COMPLIANT"
+            assert controls["A.8.24"]["status"] == "NON_COMPLIANT"
+            assert controls["A.8.20"]["status"] == "NON_COMPLIANT"
+
+            # Organizational / physical controls must be unanswered
+            assert controls["A.5.1"]["status"] in (None, "NOT_ANSWERED", "UNANSWERED", "")
+            assert controls["A.7.1"]["status"] in (None, "NOT_ANSWERED", "UNANSWERED", "")
+
+    finally:
+        QUESTIONNAIRE_ANSWERS.clear()
+        QUESTIONNAIRE_ANSWERS.update(saved_answers)
+
+
+def test_no_fabricated_evidence_or_fake_scanner_identity_without_real_api_call():
+    """Verify that no questionnaire answer ever has user_email='gcp-telemetry-scanner@client.corp'
+    or evidence_text containing 'tempo real' without a corresponding real API call having been made.
+    Asserts cloud_inspector.py was actually invoked for every synced control.
+    """
+    from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
+    reset_session_call_budget()
+    saved_answers = dict(QUESTIONNAIRE_ANSWERS)
+    try:
+        QUESTIONNAIRE_ANSWERS.clear()
+
+        mock_iam = MagicMock(return_value={
+            "status": "SUCCESS",
+            "project_id": "test-proj",
+            "total_bindings": 5,
+            "compliance": {"status": "COMPLIANT", "violations": []},
+        })
+        mock_storage = MagicMock(return_value={
+            "status": "FOUND",
+            "compliance": {"status": "COMPLIANT", "violations": []},
+        })
+        mock_kms = MagicMock(return_value={
+            "status": "FOUND",
+            "compliance": {"status": "COMPLIANT", "violations": []},
+        })
+        mock_run = MagicMock(return_value={
+            "status": "SUCCESS",
+            "compliance": {"status": "COMPLIANT", "violations": []},
+        })
+
+        with patch("mcp_server_grc.cloud_inspector.inspect_project_iam_policy", mock_iam), \
+             patch("mcp_server_grc.cloud_inspector.inspect_cloud_storage_bucket", mock_storage), \
+             patch("mcp_server_grc.cloud_inspector.inspect_cloud_kms_key", mock_kms), \
+             patch("mcp_server_grc.cloud_inspector.inspect_cloud_run_services", mock_run):
+
+            res = client.post(
+                "/api/audit/run_phases",
+                json={"projects": ["test-proj"]},
+                headers=AUTH_HEADER,
+            )
+            assert res.status_code == 200
+
+            # Verify answers in QUESTIONNAIRE_ANSWERS
+            assert len(QUESTIONNAIRE_ANSWERS) > 0
+            for (fw, cid), ans in QUESTIONNAIRE_ANSWERS.items():
+                # 1. No answer ever has the fake scanner identity
+                assert ans.user_email != "gcp-telemetry-scanner@client.corp"
+                # 2. No answer ever has fabricated 'tempo real' placeholder without a real API call
+                assert "tempo real" not in (ans.evidence_text or "").lower()
+                assert "tempo real" not in (ans.justification or "").lower()
+
+                # 3. Assert cloud_inspector.py was actually invoked for every synced control
+                if cid in ("A.5.15", "A.5.18"):
+                    assert mock_iam.called, f"Expected inspect_project_iam_policy to be called for {cid}"
+                elif cid == "A.5.23":
+                    assert mock_storage.called, f"Expected inspect_cloud_storage_bucket to be called for {cid}"
+                elif cid == "A.8.20":
+                    assert mock_run.called, f"Expected inspect_cloud_run_services to be called for {cid}"
+                elif cid == "A.8.24":
+                    assert mock_kms.called, f"Expected inspect_cloud_kms_key to be called for {cid}"
+                else:
+                    pytest.fail(f"Unexpected control {cid} was synced without a known cloud_inspector check!")
+
+            # 4. Assert that uninspected controls (like A.5.1, A.6.1, A.7.1) were never synced
+            uninspected_controls = ["A.5.1", "A.5.2", "A.5.3", "A.6.1", "A.7.1", "A.8.1", "A.8.28"]
+            for u_cid in uninspected_controls:
+                assert ("ISO27001:2022", u_cid) not in QUESTIONNAIRE_ANSWERS
+    finally:
+        QUESTIONNAIRE_ANSWERS.clear()
+        QUESTIONNAIRE_ANSWERS.update(saved_answers)
+
+
 
 
 # ---------------------------------------------------------------------------

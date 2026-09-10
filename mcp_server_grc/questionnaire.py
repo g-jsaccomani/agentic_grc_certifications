@@ -263,7 +263,7 @@ def sync_scan_telemetry_to_questionnaire(
         key = (framework, norm_cid)
         existing = QUESTIONNAIRE_ANSWERS.get(key)
         # Preserve human self-attested answers if already present unless explicitly requested
-        if existing and not overwrite_self_attested and existing.user_email and existing.user_email != "gcp-telemetry-scanner@client.corp":
+        if existing and not overwrite_self_attested and existing.user_email and existing.user_email not in ("gcp-telemetry-scanner@client.corp", "cloud-inspector@gcp.audit"):
             continue
 
         phase = item.get("phase") or "GCP Automated Security Assessment"
@@ -283,7 +283,7 @@ def sync_scan_telemetry_to_questionnaire(
             evidence_text=ev_text,
             evidence_uri=item.get("evidence_uri") or f"gcp://telemetry/scan/{safe_cid}",
             updated_at=now_ts,
-            user_email=item.get("user_email") or "gcp-telemetry-scanner@client.corp",
+            user_email=item.get("user_email") or "cloud-inspector@gcp.audit",
             verification_tier=item.get("verification_tier") or EvidenceVerificationTier.TELEMETRY.value,
             ai_consistency_verdict=status if status in ("COMPLIANT", "NON_COMPLIANT") else "COMPLIANT_WITH_OBSERVATION",
             ai_consistency_reasoning="GCP telemetry evidence verified via real scan and validated by compliance reviewer.",
@@ -303,7 +303,7 @@ def sync_scan_telemetry_to_questionnaire(
                     "justification": justification,
                     "evidence_text": ev_text,
                     "evidence_uri": item.get("evidence_uri") or f"gcp://telemetry/scan/{safe_cid}",
-                    "user_email": item.get("user_email") or "gcp-telemetry-scanner@client.corp",
+                    "user_email": item.get("user_email") or "cloud-inspector@gcp.audit",
                     "verification_tier": EvidenceVerificationTier.TELEMETRY.value,
                     "ai_consistency_verdict": status if status in ("COMPLIANT", "NON_COMPLIANT") else "COMPLIANT_WITH_OBSERVATION",
                     "ai_consistency_reasoning": "GCP telemetry evidence verified via real scan and validated by compliance reviewer.",
@@ -1108,11 +1108,26 @@ async def get_questionnaire_summary(
 async def api_sync_scan_telemetry(
     framework: str = Query("ISO27001:2022", description="Target compliance framework"),
     overwrite_self_attested: bool = Query(False, description="Whether to overwrite human self-attested answers"),
+    authorization: Optional[str] = Header(None),
+    x_operator_id: Optional[str] = Header(None),
+    x_client_id: Optional[str] = Header(None),
     user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
     """Synchronizes verified compliance telemetry from real scan executions into questionnaire answers."""
-    from mcp_server_grc.portal import build_scan_results_for_phase
-    scan_results = build_scan_results_for_phase(target_phase=None, projects=["agentic-grc-cd06"])
+    from mcp_server_grc.portal import build_scan_results_for_phase, resolve_operator_id, get_operator_active_client
+    op_id = resolve_operator_id(user_context, x_operator_id)
+    active_cid = x_client_id or get_operator_active_client(op_id, user_context)
+    user_token = None
+    if authorization and authorization.startswith("Bearer "):
+        user_token = authorization.split("Bearer ", 1)[1].strip()
+
+    scan_results = build_scan_results_for_phase(
+        target_phase=None,
+        projects=["agentic-grc-cd06"],
+        bearer_token=user_token,
+        client_id=active_cid,
+        user_email=op_id,
+    )
     synced = sync_scan_telemetry_to_questionnaire(
         framework=framework,
         overwrite_self_attested=overwrite_self_attested,
