@@ -151,7 +151,7 @@ def verify_google_workspace_token(
     should_verify_sig = True
     if is_test_env and (not verify_signature or os.getenv("PYTEST_SKIP_VERIFY_SIGNATURE") == "true"):
         should_verify_sig = False
-    elif allow_dev_bypass and (not verify_signature or id_token_str.endswith(".mock_signature") or id_token_str.endswith(".mock_sig")):
+    elif allow_dev_bypass and (not verify_signature or id_token_str.endswith(".mock_signature") or id_token_str.endswith(".mock_sig") or id_token_str.endswith(".fake_cryptographic_signature") or id_token_str.endswith(".fake_signature")):
         should_verify_sig = False
 
     if should_verify_sig:

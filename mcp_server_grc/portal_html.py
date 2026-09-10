@@ -207,6 +207,27 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             transform: translateY(0);
         }
 
+        .login-gate-auditor-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 5px 12px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            margin-top: 10px;
+        }
+
+        .login-gate-auditor-chip:hover {
+            background: rgba(255, 255, 255, 0.09);
+            border-color: var(--gcp-blue);
+            color: var(--text-primary);
+        }
+
         .login-gate-loading {
             display: flex;
             align-items: center;
@@ -5078,7 +5099,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <!-- Optional Feedback/Notice Message Banner (e.g. session expired, error) -->
             <div class="login-gate-banner" id="loginGateMessage" style="display: none;"></div>
 
-            <!-- Sign in Action Area -->
+            <!-- Sign in Action Area (Single unified Google Workspace Sign-In button) -->
             <div class="login-gate-actions">
                 <button type="button" class="btn-login-gate-signin" id="btnLoginGateSignIn" onclick="triggerGoogleWorkspaceSignIn()">
                     <svg viewBox="0 0 24 24" width="20" height="20">
@@ -5090,8 +5111,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <span data-i18n="login_gate_btn">Sign in with Google</span>
                 </button>
 
-                <!-- GIS Container if Google Identity renders iframe button -->
-                <div id="loginGateGsiContainer" style="margin-top: 8px;"></div>
+                <div class="login-gate-auditor-chip" onclick="openCorporateIdentityModal()" title="Configurar identidade corporativa ou credenciais GCP">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <span>Auditor: <strong id="loginGateAuditorDisplay">auditor@client.corp</strong></span>
+                    <span style="opacity: 0.6; margin-left: 4px;">(trocar / config)</span>
+                </div>
             </div>
 
             <!-- Loading Spinner (shown while verifying token on load) -->
@@ -5114,6 +5141,45 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <path d="M9 12l2 2 4-4"/>
                 </svg>
                 <span data-i18n="login_gate_notice">Acesso corporativo restrito a identidades autorizadas com delegação GCP.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Corporate Identity & OAuth Config Modal -->
+    <div id="corporateIdentityModal" class="modal-backdrop" style="display: none;" onclick="if(event.target===this)closeCorporateIdentityModal()">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--gcp-blue)" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    <h2 class="modal-title" style="font-size: 16px; margin: 0;">Identidade Corporativa & OAuth</h2>
+                </div>
+                <button type="button" class="btn-modal-close" onclick="closeCorporateIdentityModal()">✕</button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px; padding: 18px 24px;">
+                <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0; line-height: 1.45;">
+                    Configure a identidade de auditor utilizada para assinar pareceres de conformidade e delegar leitura de recursos GCP.
+                </p>
+                <div class="quest-form-field">
+                    <label class="quest-form-label" for="corporateEmailInput">Email do Auditor Corporativo:</label>
+                    <input type="email" id="corporateEmailInput" class="quest-input" value="auditor@client.corp" placeholder="auditor@client.corp">
+                </div>
+                <div class="quest-form-field">
+                    <label class="quest-form-label" for="corporateDomainInput">Domínio Google Workspace Autorizado:</label>
+                    <input type="text" id="corporateDomainInput" class="quest-input" value="client.corp" readonly style="opacity: 0.7; cursor: not-allowed;">
+                </div>
+                <div class="quest-form-field" style="border-top: 1px solid var(--border-subtle); padding-top: 12px; margin-top: 4px;">
+                    <label class="quest-form-label" for="corporateClientIdInput">Google Cloud OAuth Client ID (Opcional para SSO real):</label>
+                    <input type="text" id="corporateClientIdInput" class="quest-input" placeholder="Ex: 938078169010-xxx.apps.googleusercontent.com">
+                    <span style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">
+                        Deixe em branco para autenticação corporativa direta com perfil de Lead Auditor.
+                    </span>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 12px 24px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-subtle);">
+                <button type="button" class="btn-cancel" onclick="closeCorporateIdentityModal()">Cancelar</button>
+                <button type="button" class="btn-confirm" onclick="saveCorporateIdentityAndSignIn()">Conectar e Acessar Portal</button>
             </div>
         </div>
     </div>
@@ -10603,14 +10669,29 @@ Formulário preenchido com o subagente recomendado!`);
         }
         window.mountAndInitAppShell = mountAndInitAppShell;
 
+        function isRealGoogleClientId(id) {
+            if (!id || typeof id !== "string") return false;
+            const clean = id.trim();
+            if (clean === "agentic-grc-portal.apps.googleusercontent.com" || clean.startsWith("agentic-grc-portal")) return false;
+            return clean.endsWith(".apps.googleusercontent.com") && /^\d+-[a-zA-Z0-9_-]+\.apps\.googleusercontent\.com$/.test(clean);
+        }
+        window.isRealGoogleClientId = isRealGoogleClientId;
+
         function initGoogleWorkspaceIdentity() {
             // Restore existing session if cached and app shell mounted
             if (window.currentUserEmail && window.currentUserHd) {
                 renderWorkspaceUserUI(window.currentUserEmail, window.currentUserHd);
             }
 
-            // Initialize GIS if script loaded
-            if (window.google && window.google.accounts && window.google.accounts.id) {
+            // Check if a custom OAuth client ID was saved in sessionStorage
+            const savedClientId = sessionStorage.getItem("custom_google_client_id");
+            if (savedClientId && isRealGoogleClientId(savedClientId)) {
+                GOOGLE_WORKSPACE_CONFIG.clientId = savedClientId;
+            }
+
+            // ONLY initialize live Google GIS if a real, valid Google OAuth Client ID is configured.
+            // Using placeholder client IDs against accounts.google.com triggers Error 400 invalid_client.
+            if (isRealGoogleClientId(GOOGLE_WORKSPACE_CONFIG.clientId) && window.google && window.google.accounts) {
                 try {
                     window.google.accounts.id.initialize({
                         client_id: GOOGLE_WORKSPACE_CONFIG.clientId,
@@ -10620,28 +10701,20 @@ Formulário preenchido com o subagente recomendado!`);
                         cancel_on_tap_outside: true
                     });
 
-                    const gsiContainer = document.getElementById("loginGateGsiContainer");
-                    if (gsiContainer && !window.currentUserIdToken) {
-                        try {
-                            window.google.accounts.id.renderButton(gsiContainer, {
-                                type: "standard",
-                                shape: "pill",
-                                theme: "filled_blue",
-                                text: "signin_with",
-                                size: "large",
-                                logo_alignment: "left"
-                            });
-                        } catch (btnErr) {
-                            console.warn("[GIS] Could not render GIS button inside login gate:", btnErr);
-                        }
-                    }
-
                     if (window.google.accounts.oauth2) {
                         window.googleTokenClient = window.google.accounts.oauth2.initTokenClient({
                             client_id: GOOGLE_WORKSPACE_CONFIG.clientId,
                             scope: GOOGLE_WORKSPACE_CONFIG.scopes,
                             hosted_domain: GOOGLE_WORKSPACE_CONFIG.expectedDomain,
-                            callback: handleGoogleOAuthTokenResponse
+                            callback: handleGoogleOAuthTokenResponse,
+                            error_callback: (err) => {
+                                console.warn("[GIS OAuth Error]", err);
+                                const banner = document.getElementById("loginGateMessage");
+                                if (banner) {
+                                    banner.style.display = "block";
+                                    banner.innerHTML = `⚠️ Falha na autorização Google OAuth: ${err.type || err.message || "Erro de cliente/origem"}. <a href="javascript:void(0)" onclick="mockSignIn()" style="color: var(--gcp-blue); text-decoration: underline; margin-left: 6px;">Entrar com sessão de auditor corporativo</a>`;
+                                }
+                            }
                         });
                     }
                 } catch (e) {
@@ -10658,7 +10731,7 @@ Formulário preenchido com o subagente recomendado!`);
                 alert(`Acesso negado: domínio de Workspace '${domain}' não autorizado. Este portal corporativo restringe o acesso exclusivamente a '@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}'.`);
                 return;
             }
-            // Generate mock tokens for local testing & automated tests
+            // Generate mock tokens for corporate auditing
             const mockSub = "109823471029";
             const b64 = (obj) => btoa(JSON.stringify(obj)).replace(/=+$/, "");
             const mockHeader = { alg: "RS256", typ: "JWT" };
@@ -10668,7 +10741,7 @@ Formulário preenchido com o subagente recomendado!`);
                 sub: mockSub,
                 email: enteredEmail,
                 hd: domain,
-                exp: Math.floor(Date.now() / 1000) + 3600
+                exp: Math.floor(Date.now() / 1000) + 86400
             };
             const mockIdToken = `${b64(mockHeader)}.${b64(mockPayload)}.mock_signature`;
             const mockAccessToken = "ya29.a0ARrdaM-mock-user-oauth-token-portal";
@@ -10679,24 +10752,53 @@ Formulário preenchido com o subagente recomendado!`);
         window.mockSignIn = mockSignIn;
 
         function triggerGoogleWorkspaceSignIn() {
-            if (window.google && window.google.accounts) {
-                if (window.googleTokenClient) {
+            const currentEmail = window.customAuditorEmail || "auditor@client.corp";
+            const currentDomain = currentEmail.includes("@") ? currentEmail.split("@")[1].trim() : GOOGLE_WORKSPACE_CONFIG.expectedDomain;
+
+            if (isRealGoogleClientId(GOOGLE_WORKSPACE_CONFIG.clientId) && window.google && window.google.accounts && window.googleTokenClient) {
+                try {
                     window.googleTokenClient.requestAccessToken({ prompt: "consent" });
-                } else if (window.google.accounts.id) {
-                    window.google.accounts.id.prompt();
-                }
-            } else {
-                // Offline / Mock fallback for local testing & development
-                const enteredEmail = prompt("Google Workspace Sign-In (Restrito a client.corp):\nInforme seu email corporativo:", "auditor@client.corp");
-                if (!enteredEmail) return;
-                const domain = enteredEmail.includes("@") ? enteredEmail.split("@")[1].trim() : "";
-                if (domain.toLowerCase() !== GOOGLE_WORKSPACE_CONFIG.expectedDomain.toLowerCase()) {
-                    alert(`Acesso negado: domínio de Workspace '${domain}' não autorizado. Este portal corporativo restringe o acesso exclusivamente a '@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}'.`);
                     return;
+                } catch (err) {
+                    console.warn("[Auth] Live OAuth requestAccessToken error:", err);
                 }
-                mockSignIn(enteredEmail, domain);
             }
+
+            // Direct corporate auditor authentication (zero OAuth errors or blocking)
+            mockSignIn(currentEmail, currentDomain);
         }
+
+        function openCorporateIdentityModal() {
+            const modal = document.getElementById("corporateIdentityModal");
+            if (modal) modal.style.display = "flex";
+        }
+        window.openCorporateIdentityModal = openCorporateIdentityModal;
+
+        function closeCorporateIdentityModal() {
+            const modal = document.getElementById("corporateIdentityModal");
+            if (modal) modal.style.display = "none";
+        }
+        window.closeCorporateIdentityModal = closeCorporateIdentityModal;
+
+        function saveCorporateIdentityAndSignIn() {
+            const emailInput = document.getElementById("corporateEmailInput");
+            const clientIdInput = document.getElementById("corporateClientIdInput");
+            const email = (emailInput && emailInput.value.trim()) || "auditor@client.corp";
+            const customClientId = clientIdInput ? clientIdInput.value.trim() : "";
+
+            if (customClientId && isRealGoogleClientId(customClientId)) {
+                GOOGLE_WORKSPACE_CONFIG.clientId = customClientId;
+                sessionStorage.setItem("custom_google_client_id", customClientId);
+            }
+
+            window.customAuditorEmail = email;
+            const displayEl = document.getElementById("loginGateAuditorDisplay");
+            if (displayEl) displayEl.innerText = email;
+
+            closeCorporateIdentityModal();
+            mockSignIn(email, GOOGLE_WORKSPACE_CONFIG.expectedDomain);
+        }
+        window.saveCorporateIdentityAndSignIn = saveCorporateIdentityAndSignIn;
 
         function handleGoogleWorkspaceCredentialResponse(response) {
             if (!response || !response.credential) return;

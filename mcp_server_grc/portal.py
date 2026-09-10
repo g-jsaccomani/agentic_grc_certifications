@@ -4030,4 +4030,12 @@ async def approve_remediation(req: RemediationApprovalRequest):
 @router.get("/portal", response_class=HTMLResponse)
 def serve_portal():
     """Serves the interactive GRC Auditor Web Portal."""
-    return HTMLResponse(content=PORTAL_HTML)
+    client_id = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "").strip()
+    workspace_domain = (os.getenv("GOOGLE_WORKSPACE_DOMAIN") or os.getenv("EXPECTED_WORKSPACE_DOMAIN") or "client.corp").strip()
+
+    html = PORTAL_HTML
+    if client_id:
+        html = html.replace('clientId: "agentic-grc-portal.apps.googleusercontent.com"', f'clientId: "{client_id}"')
+    if workspace_domain != "client.corp":
+        html = html.replace('expectedDomain: "client.corp"', f'expectedDomain: "{workspace_domain}"')
+    return HTMLResponse(content=html)
