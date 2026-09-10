@@ -69,16 +69,210 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-    
+
+        /* ------------------------------------------------------------------ */
+        /* Full-screen Login Gate (Shown BEFORE App Shell)                    */
+        /* ------------------------------------------------------------------ */
+        .login-gate-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(ellipse at 50% 35%, #1e2024 0%, #131314 75%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .login-gate-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-focus);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 460px;
+            padding: 38px 32px 28px 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.1);
+            box-sizing: border-box;
+            position: relative;
+            animation: fadeInGate 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeInGate {
+            from { opacity: 0; transform: scale(0.97) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .login-gate-brand-icon {
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-gate-header {
+            margin-bottom: 12px;
+        }
+
+        .login-gate-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.25;
+            margin-bottom: 8px;
+            letter-spacing: -0.2px;
+        }
+
+        .login-gate-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(138, 180, 248, 0.12);
+            border: 1px solid rgba(138, 180, 248, 0.25);
+            color: var(--gcp-blue);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .login-gate-description {
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            line-height: 1.55;
+            margin-bottom: 24px;
+            max-width: 380px;
+        }
+
+        .login-gate-banner {
+            width: 100%;
+            background: rgba(242, 139, 130, 0.12);
+            border: 1px solid rgba(242, 139, 130, 0.3);
+            color: var(--gcp-red);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            line-height: 1.45;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .login-gate-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .btn-login-gate-signin {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: #ffffff;
+            color: #1f1f1f;
+            border: 1px solid #dadce0;
+            border-radius: 24px;
+            padding: 11px 24px;
+            font-size: 14.5px;
+            font-weight: 500;
+            font-family: 'Google Sans', Roboto, sans-serif;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .btn-login-gate-signin:hover {
+            background: #f8f9fa;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-login-gate-signin:active {
+            background: #eeeeee;
+            transform: translateY(0);
+        }
+
+        .login-gate-loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .login-gate-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(138, 180, 248, 0.25);
+            border-top-color: var(--gcp-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .login-gate-lang {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .login-gate-lang .lang-btn {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-tertiary);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .login-gate-lang .lang-btn.active,
+        .login-gate-lang .lang-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--border-focus);
+            background: var(--bg-surface-hover);
+        }
+
+        .login-gate-footer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11.5px;
+            color: var(--text-tertiary);
+            line-height: 1.4;
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 16px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        #appShellContainer {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            flex: 1;
+        }
+
         /* ------------------------------------------------------------------ */
         /* Left Sidebar */
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    
-        /* ------------------------------------------------------------------ */
         .sidebar {
             width: var(--sidebar-width);
             background-color: var(--bg-sidebar);
@@ -4854,6 +5048,82 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 </head>
 <body>
 
+    <!-- Full-screen Dedicated Login Gate (Shown BEFORE App Shell) -->
+    <div class="login-gate-view" id="loginGateView">
+        <div class="login-gate-card">
+            <!-- Brand Cloud Icon -->
+            <div class="login-gate-brand-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 28" width="56" height="45" style="display: block;">
+                    <path fill="#ea4335" d="M21.85,7.41l1,0,2.85-2.85.14-1.21A12.81,12.81,0,0,0,5,9.6a1.55,1.55,0,0,1,1-.06l5.7-.94s.29-.48.44-.45a7.11,7.11,0,0,1,9.73-.74Z"/>
+                    <path fill="#4285f4" d="M29.76,9.6a12.84,12.84,0,0,0-3.87-6.24l-4,4A7.11,7.11,0,0,1,24.5,13v.71a3.56,3.56,0,1,1,0,7.12H17.38l-.71.72v4.27l.71.71H24.5A9.26,9.26,0,0,0,29.76,9.6Z"/>
+                    <path fill="#34a853" d="M10.25,26.49h7.12v-5.7H10.25a3.54,3.54,0,0,1-1.47-.32l-1,.31L4.91,23.63l-.25,1A9.21,9.21,0,0,0,10.25,26.49Z"/>
+                    <path fill="#fbbc05" d="M10.25,8A9.26,9.26,0,0,0,4.66,24.6l4.13-4.13a3.56,3.56,0,1,1,4.71-4.71l4.13-4.13A9.25,9.25,0,0,0,10.25,8Z"/>
+                </svg>
+            </div>
+
+            <!-- Product Title & Badge -->
+            <div class="login-gate-header">
+                <h1 class="login-gate-title">Agentic Compliance Readiness Accelerator</h1>
+                <div class="login-gate-badge">
+                    <span class="status-dot" style="width: 7px; height: 7px;"></span>
+                    <span>Google Cloud Security</span>
+                </div>
+            </div>
+
+            <!-- Short Description -->
+            <p class="login-gate-description" data-i18n="login_gate_desc">
+                Plataforma corporativa de auditoria contínua e prontidão regulatória multicloud com IA agêntica.
+            </p>
+
+            <!-- Optional Feedback/Notice Message Banner (e.g. session expired, error) -->
+            <div class="login-gate-banner" id="loginGateMessage" style="display: none;"></div>
+
+            <!-- Sign in Action Area -->
+            <div class="login-gate-actions">
+                <button type="button" class="btn-login-gate-signin" id="btnLoginGateSignIn" onclick="triggerGoogleWorkspaceSignIn()">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5z"/>
+                        <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/>
+                        <path fill="#FBBC05" d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.7s.2-2 .4-2.7L1.6 6.4C.6 8.4 0 10.6 0 13s.6 4.6 1.6 6.6l3.7-4.9z"/>
+                        <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5.3L1.6 16c1.9 3.8 5.8 7 10.4 7z"/>
+                    </svg>
+                    <span data-i18n="login_gate_btn">Sign in with Google</span>
+                </button>
+
+                <!-- GIS Container if Google Identity renders iframe button -->
+                <div id="loginGateGsiContainer" style="margin-top: 8px;"></div>
+            </div>
+
+            <!-- Loading Spinner (shown while verifying token on load) -->
+            <div class="login-gate-loading" id="loginGateLoading" style="display: none;">
+                <div class="login-gate-spinner"></div>
+                <span class="login-gate-loading-text" data-i18n="login_gate_verifying">Validando credenciais corporativas...</span>
+            </div>
+
+            <!-- Language Selector -->
+            <div class="login-gate-lang">
+                <button type="button" class="lang-btn active" id="loginGateLangPt" onclick="setLanguage('pt')">PT</button>
+                <button type="button" class="lang-btn" id="loginGateLangEn" onclick="setLanguage('en')">EN</button>
+                <button type="button" class="lang-btn" id="loginGateLangEs" onclick="setLanguage('es')">ES</button>
+            </div>
+
+            <!-- Footer Security Notice -->
+            <div class="login-gate-footer">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-green); flex-shrink: 0;">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <path d="M9 12l2 2 4-4"/>
+                </svg>
+                <span data-i18n="login_gate_notice">Acesso corporativo restrito a identidades autorizadas com delegação GCP.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active App Shell Container (populated on authenticated session) -->
+    <div id="appShellContainer" style="display: none;"></div>
+
+    <!-- App Shell Template (Instantiated into #appShellContainer ONLY after authentication) -->
+    <template id="appShellTemplate">
+
     <!-- Left Sidebar -->
     <aside class="sidebar" id="appSidebar">
         <div class="sidebar-top">
@@ -5437,7 +5707,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                 <!-- Google Workspace Identity & Tenant Access -->
                 <div class="workspace-auth-container" id="workspaceAuthContainer">
-                    <button class="btn-workspace-signin" id="btnWorkspaceSignIn" onclick="triggerGoogleWorkspaceSignIn()" title="Sign in with Google Workspace (client.corp)">
+                    <button class="btn-workspace-signin" id="btnWorkspaceSignIn" onclick="triggerGoogleWorkspaceSignIn()" title="Sign in with Google Workspace (client.corp)" style="display: none;">
                         <svg viewBox="0 0 24 24" width="15" height="15">
                             <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5z"/>
                             <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/>
@@ -8139,6 +8409,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             </div>
         </div>
     </div>
+    </template>
 
     <script>
         // =========================================================================
@@ -8466,6 +8737,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 btn_close: "Fechar",
                 btn_cancel: "Cancelar",
                 btn_confirm_onboard: "Conectar Cliente",
+                login_gate_desc: "Plataforma corporativa de auditoria contínua e prontidão regulatória multicloud com IA agêntica.",
+                login_gate_btn: "Sign in with Google",
+                login_gate_verifying: "Validando credenciais corporativas...",
+                login_gate_notice: "Acesso corporativo restrito a identidades autorizadas com delegação GCP.",
+                login_gate_session_expired: "Sua sessão expirou. Por favor, autentique-se novamente no Google Workspace.",
             },
             en: {
                 top_title_reports: "Reports & Dossier",
@@ -8788,6 +9064,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 btn_close: "Close",
                 btn_cancel: "Cancel",
                 btn_confirm_onboard: "Connect Client",
+                login_gate_desc: "Enterprise platform for continuous audit and multicloud regulatory readiness with agentic AI.",
+                login_gate_btn: "Sign in with Google",
+                login_gate_verifying: "Validating corporate credentials...",
+                login_gate_notice: "Corporate access restricted to authorized identities with live GCP delegation.",
+                login_gate_session_expired: "Your session has expired. Please sign in again with Google Workspace.",
             },
             es: {
                 top_title_reports: "Informes y Dossier",
@@ -9110,6 +9391,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 btn_close: "Cerrar",
                 btn_cancel: "Cancelar",
                 btn_confirm_onboard: "Conectar Cliente",
+                login_gate_desc: "Plataforma corporativa de auditoría continua y preparación regulatoria multicloud con IA agéntica.",
+                login_gate_btn: "Iniciar sesión con Google",
+                login_gate_verifying: "Validando credenciales corporativas...",
+                login_gate_notice: "Acceso corporativo restringido a identidades autorizadas con delegación GCP en vivo.",
+                login_gate_session_expired: "Su sesión ha expirado. Por favor, inicie sesión nuevamente con Google Workspace.",
             }
         };
 window.currentLanguage = 'pt';
@@ -9142,6 +9428,10 @@ window.currentLanguage = 'pt';
                 const btn = document.getElementById('langBtn' + l.charAt(0).toUpperCase() + l.slice(1));
                 if (btn) {
                     btn.classList.toggle('active', l === lang);
+                }
+                const gateBtn = document.getElementById('loginGateLang' + l.charAt(0).toUpperCase() + l.slice(1));
+                if (gateBtn) {
+                    gateBtn.classList.toggle('active', l === lang);
                 }
             });
 
@@ -9713,6 +10003,8 @@ window.currentLanguage = 'pt';
                     status: s.status || "completed",
                     messagesHtml: s.messagesHtml ? (s.messagesHtml.length > 250000 ? s.messagesHtml.slice(-250000) : s.messagesHtml) : ""
                 }));
+                const opKey = "grc_chat_sessions_" + getOperatorId();
+                localStorage.setItem(opKey, JSON.stringify(toSave));
                 localStorage.setItem("grc_chat_sessions", JSON.stringify(toSave));
             } catch (e) {
                 console.warn("Could not save chat sessions:", e);
@@ -9721,7 +10013,8 @@ window.currentLanguage = 'pt';
 
         function loadChatSessions() {
             try {
-                const saved = localStorage.getItem("grc_chat_sessions");
+                const opKey = "grc_chat_sessions_" + getOperatorId();
+                const saved = localStorage.getItem(opKey) || localStorage.getItem("grc_chat_sessions");
                 if (saved) {
                     chatSessions = JSON.parse(saved);
                 }
@@ -10272,8 +10565,46 @@ Formulário preenchido com o subagente recomendado!`);
         window.currentUserEmail = sessionStorage.getItem("google_user_email") || null;
         window.currentUserHd = sessionStorage.getItem("google_user_hd") || null;
 
+        function mountAppShell() {
+            const container = document.getElementById("appShellContainer");
+            const template = document.getElementById("appShellTemplate");
+            if (!container || !template) return;
+            if (container.children.length === 0) {
+                container.appendChild(template.content.cloneNode(true));
+            }
+            container.style.display = "flex";
+            const loginGate = document.getElementById("loginGateView");
+            if (loginGate) loginGate.style.display = "none";
+        }
+        window.mountAppShell = mountAppShell;
+
+        function initAppShell() {
+            renderWorkspaceUserUI(window.currentUserEmail, window.currentUserHd);
+            setLanguage(window.currentLanguage || detectUserLanguage());
+            loadOnboardedClients();
+            loadProjects();
+            loadFinOpsMetrics();
+            loadIsoMatrix();
+            loadScorecard();
+            loadSubagents();
+            renderNewsCarousel();
+            initSidebarCategories();
+            loadPinnedItems();
+            loadChatSessions();
+            renderChatSessionsHistory();
+            switchView("view-home");
+            startSuggestionRotation();
+        }
+        window.initAppShell = initAppShell;
+
+        function mountAndInitAppShell() {
+            mountAppShell();
+            initAppShell();
+        }
+        window.mountAndInitAppShell = mountAndInitAppShell;
+
         function initGoogleWorkspaceIdentity() {
-            // Restore existing session if cached
+            // Restore existing session if cached and app shell mounted
             if (window.currentUserEmail && window.currentUserHd) {
                 renderWorkspaceUserUI(window.currentUserEmail, window.currentUserHd);
             }
@@ -10289,6 +10620,22 @@ Formulário preenchido com o subagente recomendado!`);
                         cancel_on_tap_outside: true
                     });
 
+                    const gsiContainer = document.getElementById("loginGateGsiContainer");
+                    if (gsiContainer && !window.currentUserIdToken) {
+                        try {
+                            window.google.accounts.id.renderButton(gsiContainer, {
+                                type: "standard",
+                                shape: "pill",
+                                theme: "filled_blue",
+                                text: "signin_with",
+                                size: "large",
+                                logo_alignment: "left"
+                            });
+                        } catch (btnErr) {
+                            console.warn("[GIS] Could not render GIS button inside login gate:", btnErr);
+                        }
+                    }
+
                     if (window.google.accounts.oauth2) {
                         window.googleTokenClient = window.google.accounts.oauth2.initTokenClient({
                             client_id: GOOGLE_WORKSPACE_CONFIG.clientId,
@@ -10302,6 +10649,34 @@ Formulário preenchido com o subagente recomendado!`);
                 }
             }
         }
+
+        function mockSignIn(enteredEmail = "auditor@client.corp", domain = null) {
+            if (!domain) {
+                domain = enteredEmail.includes("@") ? enteredEmail.split("@")[1].trim() : GOOGLE_WORKSPACE_CONFIG.expectedDomain;
+            }
+            if (domain.toLowerCase() !== GOOGLE_WORKSPACE_CONFIG.expectedDomain.toLowerCase()) {
+                alert(`Acesso negado: domínio de Workspace '${domain}' não autorizado. Este portal corporativo restringe o acesso exclusivamente a '@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}'.`);
+                return;
+            }
+            // Generate mock tokens for local testing & automated tests
+            const mockSub = "109823471029";
+            const b64 = (obj) => btoa(JSON.stringify(obj)).replace(/=+$/, "");
+            const mockHeader = { alg: "RS256", typ: "JWT" };
+            const mockPayload = {
+                iss: "https://accounts.google.com",
+                aud: GOOGLE_WORKSPACE_CONFIG.clientId,
+                sub: mockSub,
+                email: enteredEmail,
+                hd: domain,
+                exp: Math.floor(Date.now() / 1000) + 3600
+            };
+            const mockIdToken = `${b64(mockHeader)}.${b64(mockPayload)}.mock_signature`;
+            const mockAccessToken = "ya29.a0ARrdaM-mock-user-oauth-token-portal";
+
+            handleGoogleWorkspaceCredentialResponse({ credential: mockIdToken });
+            handleGoogleOAuthTokenResponse({ access_token: mockAccessToken });
+        }
+        window.mockSignIn = mockSignIn;
 
         function triggerGoogleWorkspaceSignIn() {
             if (window.google && window.google.accounts) {
@@ -10319,23 +10694,7 @@ Formulário preenchido com o subagente recomendado!`);
                     alert(`Acesso negado: domínio de Workspace '${domain}' não autorizado. Este portal corporativo restringe o acesso exclusivamente a '@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}'.`);
                     return;
                 }
-                // Generate mock tokens for local testing
-                const mockSub = "109823471029";
-                const b64 = (obj) => btoa(JSON.stringify(obj)).replace(/=+$/, "");
-                const mockHeader = { alg: "RS256", typ: "JWT" };
-                const mockPayload = {
-                    iss: "https://accounts.google.com",
-                    aud: GOOGLE_WORKSPACE_CONFIG.clientId,
-                    sub: mockSub,
-                    email: enteredEmail,
-                    hd: domain,
-                    exp: Math.floor(Date.now() / 1000) + 3600
-                };
-                const mockIdToken = `${b64(mockHeader)}.${b64(mockPayload)}.mock_signature`;
-                const mockAccessToken = "ya29.a0ARrdaM-mock-user-oauth-token-portal";
-
-                handleGoogleWorkspaceCredentialResponse({ credential: mockIdToken });
-                handleGoogleOAuthTokenResponse({ access_token: mockAccessToken });
+                mockSignIn(enteredEmail, domain);
             }
         }
 
@@ -10357,7 +10716,7 @@ Formulário preenchido com o subagente recomendado!`);
                 sessionStorage.setItem("google_user_email", window.currentUserEmail);
                 sessionStorage.setItem("google_user_hd", window.currentUserHd);
 
-                renderWorkspaceUserUI(window.currentUserEmail, window.currentUserHd);
+                mountAndInitAppShell();
                 appendLog(`[Auth] Sessão autenticada via Google Workspace: ${window.currentUserEmail} (hd: ${window.currentUserHd})`, "success");
             } catch (e) {
                 console.error("[Auth] Erro ao decodificar ID Token:", e);
@@ -10391,7 +10750,7 @@ Formulário preenchido com o subagente recomendado!`);
             }
         }
 
-        function signOutWorkspaceUser() {
+        function signOutWorkspaceUser(reasonMessage = null) {
             window.currentUserIdToken = null;
             window.currentUserToken = null;
             window.currentUserEmail = null;
@@ -10402,14 +10761,32 @@ Formulário preenchido com o subagente recomendado!`);
             sessionStorage.removeItem("google_user_email");
             sessionStorage.removeItem("google_user_hd");
 
-            const btnSignIn = document.getElementById("btnWorkspaceSignIn");
-            const userChip = document.getElementById("workspaceUserChip");
-            if (btnSignIn && userChip) {
-                btnSignIn.style.display = "inline-flex";
-                userChip.style.display = "none";
+            const container = document.getElementById("appShellContainer");
+            if (container) {
+                container.innerHTML = "";
+                container.style.display = "none";
             }
-            appendLog(`[Auth] Sessão Google Workspace encerrada. Retornando ao modo demonstração/sandbox.`, "info");
+
+            const loginGate = document.getElementById("loginGateView");
+            if (loginGate) {
+                loginGate.style.display = "flex";
+            }
+
+            const msgBanner = document.getElementById("loginGateMessage");
+            if (msgBanner) {
+                if (reasonMessage) {
+                    msgBanner.innerText = reasonMessage;
+                    msgBanner.style.display = "block";
+                } else {
+                    msgBanner.innerText = "";
+                    msgBanner.style.display = "none";
+                }
+            }
+
+            initGoogleWorkspaceIdentity();
+            appendLog(`[Auth] Sessão Google Workspace encerrada.`, "info");
         }
+        window.signOutWorkspaceUser = signOutWorkspaceUser;
 
         // =========================================================================
         // CLIENT WORKSPACE MANAGEMENT & MULTI-TENANT ISOLATION
@@ -10419,7 +10796,7 @@ Formulário preenchido com o subagente recomendado!`);
         let pendingSwitchClientId = null;
 
         function getOperatorId() {
-            if (window.currentUserEmail && window.currentUserEmail.trim() && window.currentUserEmail !== "auditor@client.corp") {
+            if (window.currentUserEmail && window.currentUserEmail.trim()) {
                 return window.currentUserEmail.trim().toLowerCase();
             }
             let stored = localStorage.getItem("grc_operator_id");
@@ -10435,9 +10812,20 @@ Formulário preenchido com o subagente recomendado!`);
                 const opId = getOperatorId();
                 const headers = {};
                 if (opId) headers["X-Operator-Id"] = opId;
-                if (window.currentUserToken) headers["Authorization"] = `Bearer ${window.currentUserToken}`;
+                if (window.currentUserIdToken) headers["X-Goog-Id-Token"] = window.currentUserIdToken;
+                if (window.currentUserToken) {
+                    headers["Authorization"] = `Bearer ${window.currentUserToken}`;
+                } else if (window.currentUserIdToken) {
+                    headers["Authorization"] = `Bearer ${window.currentUserIdToken}`;
+                }
 
                 const res = await fetch("/api/clients", { headers });
+                if (res.status === 401) {
+                    signOutWorkspaceUser((window.currentLanguage === 'en')
+                        ? "Your session has expired. Please sign in again with Google Workspace."
+                        : "Sua sessão expirou. Por favor, autentique-se novamente no Google Workspace.");
+                    return;
+                }
                 if (res.ok) {
                     const data = await res.json();
                     onboardedClientsList = data.clients || [];
@@ -10611,13 +10999,25 @@ Formulário preenchido com o subagente recomendado!`);
                 const opId = getOperatorId();
                 const headers = { "Content-Type": "application/json" };
                 if (opId) headers["X-Operator-Id"] = opId;
-                if (window.currentUserToken) headers["Authorization"] = `Bearer ${window.currentUserToken}`;
+                if (window.currentUserIdToken) headers["X-Goog-Id-Token"] = window.currentUserIdToken;
+                if (window.currentUserToken) {
+                    headers["Authorization"] = `Bearer ${window.currentUserToken}`;
+                } else if (window.currentUserIdToken) {
+                    headers["Authorization"] = `Bearer ${window.currentUserIdToken}`;
+                }
 
                 const res = await fetch("/api/clients/active", {
                     method: "POST",
                     headers,
                     body: JSON.stringify({ client_id: targetId })
                 });
+
+                if (res.status === 401) {
+                    signOutWorkspaceUser((window.currentLanguage === 'en')
+                        ? "Your session has expired. Please sign in again with Google Workspace."
+                        : "Sua sessão expirou. Por favor, autentique-se novamente no Google Workspace.");
+                    return;
+                }
 
                 if (res.ok) {
                     const data = await res.json();
@@ -10756,7 +11156,12 @@ Formulário preenchido com o subagente recomendado!`);
                 const opId = getOperatorId();
                 const headers = { "Content-Type": "application/json" };
                 if (opId) headers["X-Operator-Id"] = opId;
-                if (window.currentUserToken) headers["Authorization"] = `Bearer ${window.currentUserToken}`;
+                if (window.currentUserIdToken) headers["X-Goog-Id-Token"] = window.currentUserIdToken;
+                if (window.currentUserToken) {
+                    headers["Authorization"] = `Bearer ${window.currentUserToken}`;
+                } else if (window.currentUserIdToken) {
+                    headers["Authorization"] = `Bearer ${window.currentUserIdToken}`;
+                }
 
                 const res = await fetch("/api/clients/onboard", {
                     method: "POST",
@@ -10768,6 +11173,13 @@ Formulário preenchido com o subagente recomendado!`);
                         drive_folder_id: driveFolder || null
                     })
                 });
+
+                if (res.status === 401) {
+                    signOutWorkspaceUser((window.currentLanguage === 'en')
+                        ? "Your session has expired. Please sign in again with Google Workspace."
+                        : "Sua sessão expirou. Por favor, autentique-se novamente no Google Workspace.");
+                    return;
+                }
 
                 if (res.ok) {
                     const data = await res.json();
@@ -10791,23 +11203,66 @@ Formulário preenchido com o subagente recomendado!`);
             }
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            initGoogleWorkspaceIdentity();
+        document.addEventListener("DOMContentLoaded", async () => {
             const detectedLang = detectUserLanguage();
             setLanguage(detectedLang);
-            loadOnboardedClients();
-            loadProjects();
-            loadFinOpsMetrics();
-            loadIsoMatrix();
-            loadScorecard();
-            loadSubagents();
-            renderNewsCarousel();
-            initSidebarCategories();
-            loadPinnedItems();
-            loadChatSessions();
-            renderChatSessionsHistory();
-            switchView("view-home");
-            startSuggestionRotation();
+            initGoogleWorkspaceIdentity();
+
+            const storedIdToken = sessionStorage.getItem("google_id_token");
+            const storedAccessToken = sessionStorage.getItem("google_access_token");
+
+            if (!storedIdToken && !storedAccessToken) {
+                // Unauthenticated session: only the login gate is displayed.
+                // App shell is not mounted; no sidebar, no chat, no client selector in active DOM.
+                return;
+            }
+
+            // A token is present: attempt lightweight validation call before mounting app shell
+            const loadingEl = document.getElementById("loginGateLoading");
+            const actionsEl = document.querySelector(".login-gate-actions");
+            if (loadingEl) loadingEl.style.display = "flex";
+            if (actionsEl) actionsEl.style.display = "none";
+
+            try {
+                const valHeaders = {};
+                if (storedIdToken) {
+                    valHeaders["X-Goog-Id-Token"] = storedIdToken;
+                    valHeaders["Authorization"] = `Bearer ${storedIdToken}`;
+                } else if (storedAccessToken) {
+                    valHeaders["Authorization"] = `Bearer ${storedAccessToken}`;
+                }
+
+                const opId = sessionStorage.getItem("google_user_email") || undefined;
+                if (opId) valHeaders["X-Operator-Id"] = opId.trim().toLowerCase();
+
+                const res = await fetch("/api/clients", { headers: valHeaders });
+                if (res.status === 401 || res.status === 403) {
+                    console.warn("[Auth] Sessão expirada ou inválida. Redirecionando para login.");
+                    signOutWorkspaceUser((window.currentLanguage === 'en')
+                        ? "Your session has expired. Please sign in again with Google Workspace."
+                        : "Sua sessão expirou. Por favor, autentique-se novamente no Google Workspace.");
+                    return;
+                }
+
+                // Token is valid!
+                window.currentUserIdToken = storedIdToken || null;
+                window.currentUserToken = storedAccessToken || null;
+                window.currentUserEmail = sessionStorage.getItem("google_user_email") || null;
+                window.currentUserHd = sessionStorage.getItem("google_user_hd") || null;
+
+                mountAndInitAppShell();
+            } catch (err) {
+                console.warn("[Auth] Falha na validação online de credenciais:", err);
+                // Offline fallback if token exists
+                window.currentUserIdToken = storedIdToken || null;
+                window.currentUserToken = storedAccessToken || null;
+                window.currentUserEmail = sessionStorage.getItem("google_user_email") || null;
+                window.currentUserHd = sessionStorage.getItem("google_user_hd") || null;
+                mountAndInitAppShell();
+            } finally {
+                if (loadingEl) loadingEl.style.display = "none";
+                if (actionsEl) actionsEl.style.display = "flex";
+            }
         });
 
         function toggleSidebar() {
@@ -11978,21 +12433,11 @@ function openNewsModal(newsKey) {
 
                     let errorMarkdown = "";
                     if (res.status === 401) {
-                        errorMarkdown = (window.currentLanguage === 'en')
-                            ? `### 🔒 Authentication Required (Google Workspace)\n\n` +
-                              `Access to the Lead Auditor requires an authenticated session with domain **@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}** or a valid GCP delegation token.\n\n` +
-                              `**How to resolve:**\n` +
-                              `1. Click the **"Sign in with Google"** button in the top right corner to authenticate.\n` +
-                              `2. For local testing & development without corporate login, start the server with:\n` +
-                              `   \`\`\`bash\n   export ALLOW_DEV_AUTH_BYPASS="true"\n   make run-portal\n   \`\`\`\n\n` +
-                              `*(Server details: ${errDetail})*`
-                            : `### 🔒 Autenticação Requerida (Google Workspace)\n\n` +
-                              `O acesso ao Auditor de Segurança requer uma sessão autenticada com domínio corporativo **@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}** ou token de delegação GCP válido.\n\n` +
-                              `**Como resolver:**\n` +
-                              `1. Clique no botão **"Sign in with Google"** no topo da página à direita para efetuar login.\n` +
-                              `2. Para desenvolvimento e testes locais sem login corporativo, inicie o servidor com:\n` +
-                              `   \`\`\`bash\n   export ALLOW_DEV_AUTH_BYPASS="true"\n   make run-portal\n   \`\`\`\n\n` +
-                              `*(Detalhes do servidor: ${errDetail})*`;
+                        const expMsg = (window.currentLanguage === 'en')
+                            ? "Your session has expired or authentication is required. Please sign in with Google Workspace."
+                            : "Sua sessão expirou ou autenticação é necessária. Por favor, autentique-se no Google Workspace.";
+                        signOutWorkspaceUser(expMsg);
+                        return;
                     } else if (res.status === 403) {
                         errorMarkdown = (window.currentLanguage === 'en')
                             ? `### ⛔ Access Denied (403 Forbidden)\n\nYour account domain or token lacks permissions for this tenant.\n\n*(Details: ${errDetail})*`

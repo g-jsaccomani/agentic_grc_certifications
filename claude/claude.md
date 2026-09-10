@@ -4,7 +4,7 @@
 **Repository:** `agentic_grc_certifications`  
 **Execution Date:** 2026-09-08  
 **Implementation Source:** `handoff-agentic-grc-multiagente.md`  
-**Status:** COMPLETE & VERIFIED (199/199 Pytest Suite Passing, 92% Code Coverage, Tenant-Scoped Google Drive Evidence Storage, Custom Subagent Model Armor Screening, Read-Only Guardrails, Telemetry Grounding Integrity, Questionnaire Intent Routing, GenAI SDK Warning Suppression, Real FinOps Token Telemetry, Algorithmic Token-Saving Tips Engine, Compact Single-Row Provider Strip, Collapsible GCP Scope Sub-Tree, Dual-Token Dev Ergonomics, Clean Gemini UI Refactor)
+**Status:** COMPLETE & VERIFIED (203/203 Pytest Suite Passing, 92% Code Coverage, Full-Screen Pre-Auth Google Workspace Login Gate & App Shell Isolation, Tenant-Scoped Google Drive Evidence Storage, Custom Subagent Model Armor Screening, Read-Only Guardrails, Telemetry Grounding Integrity, Questionnaire Intent Routing, GenAI SDK Warning Suppression, Real FinOps Token Telemetry, Algorithmic Token-Saving Tips Engine, Compact Single-Row Provider Strip, Collapsible GCP Scope Sub-Tree, Dual-Token Dev Ergonomics, Clean Gemini UI Refactor)
 
 ---
 
@@ -2356,3 +2356,72 @@ In `mcp_server_grc/questionnaire.py`, evidence files uploaded through the compli
 - **Full Test Suite Execution**:
   - Executed: `.venv/bin/pytest tests/`
   - **Result**: `199 passed, 2 warnings in 36.41s (100% pass rate across all 17 test suites)`.
+
+---
+
+### Milestone 68: Full-Screen Google Workspace Login Gate & Pre-Auth DOM Isolation
+
+#### 1. Context & Architectural Motivation
+Prior to this milestone, the web portal (`portal_html.py`) immediately rendered the entire agent user interface (sidebar, client workspace selector, `#view-home`, chat area, and input elements) upon initial page load, relying on a small "Sign in with Google" button embedded in the top right corner of the header. When unauthenticated users attempted to interact with chat, the assistant emitted a chat markdown response instructing the user to "Click the Sign in with Google button in the top right corner".
+
+This pattern introduced two key issues:
+1. **Security & Information Architecture Leakage**: Unauthenticated sessions exposed the entire application layout, tenant selector structure, internal navigation routes, and module metadata before any Google Workspace corporate credentials were provided.
+2. **Suboptimal Operator State Hydration**: Operator-specific preferences (`active_client_id`, persisted chat sessions, and audit history) were initialized using random fallback operator IDs rather than being anchored to the verified corporate identity (`currentUserEmail`).
+
+#### 2. Architectural Solution Implemented
+
+1. **Dedicated Full-Screen Pre-Auth Login Gate (`#loginGateView`)**:
+   - Implemented a clean, high-contrast, modern full-screen login view centered on screen (`#loginGateView`) containing:
+     - The official Gemini Enterprise Agent Platform logo & brand identity.
+     - Product title and tri-lingual description (`login_gate_desc`: "Plataforma corporativa de auditoria contínua e prontidão regulatória multicloud com IA agêntica").
+     - Prominent Google Workspace Sign-In button (`#btnLoginGateSignIn`) with Google "G" SVG icon, styled with subtle borders, elevation, and corporate hover transitions.
+     - Tri-lingual language switcher pill (`PT | EN | ES`) allowing internationalized login flows before authentication.
+     - Interactive session feedback banner (`#loginGateMessage`) and loading verification spinner (`#loginGateLoading`).
+     - Access notice (`login_gate_notice`: "Acesso corporativo restrito a identidades autorizadas com delegação GCP").
+
+2. **Complete DOM Isolation via `<template id="appShellTemplate">`**:
+   - The entire application shell (sidebar `#appSidebar`, `#clientWorkspaceSelector`, top navigation header, `#view-home`, chat containers, and modal dialogs) is encapsulated inside `<template id="appShellTemplate">`.
+   - In unauthenticated sessions, the browser parses the template into inert memory: `document.getElementById("appSidebar")`, `document.getElementById("clientWorkspaceSelector")`, and `document.getElementById("chatArea")` return `null`.
+   - No sidebar, chat input, or workspace controls exist in the active document DOM until authentication is established.
+   - At the same time, because FastAPI serves the raw HTML containing the template strings, existing unit tests asserting on server-rendered string fragments continue to pass seamlessly without disruption.
+
+3. **Session Lifecycle & Lightweight Token Validation (`DOMContentLoaded`)**:
+   - On initial page load (`DOMContentLoaded`), `sessionStorage` is inspected for `google_id_token` (`window.currentUserIdToken`) or `google_access_token`:
+     - **If No Token Present**: Execution stops immediately; only the full-screen login gate (`#loginGateView`) is rendered. The app shell container remains empty and hidden.
+     - **If Token Present**: Before mounting the app shell, the portal performs a lightweight verification call (`GET /api/clients` with `X-Goog-Id-Token` / `Authorization`).
+       - If the endpoint returns `401 Unauthorized` or `403 Forbidden` (expired or revoked session), `sessionStorage` is wiped, and the user is kept at the login gate with an alert: *"Sua sessão expirou. Por favor, autentique-se novamente no Google Workspace."*
+       - If the endpoint succeeds (`200 OK`), `mountAppShell()` clones `<template id="appShellTemplate">` into `<div id="appShellContainer">`, and `initAppShell()` initializes modules and views.
+
+4. **Instant App Entry & Verified Operator State Restoration**:
+   - Upon clicking "Sign in with Google" or entering credentials in development mode (`mockSignIn()`), `handleGoogleWorkspaceCredentialResponse()` directly triggers `mountAndInitAppShell()`.
+   - The app shell mounts smoothly into DOM without requiring page reloads or extra clicks.
+   - `getOperatorId()` resolves `window.currentUserEmail.trim().toLowerCase()`.
+   - As a result, `loadOnboardedClients()` sends `X-Operator-Id: <user_email>`, restoring the user's specific last-used client workspace (`active_client_id`) and scoped chat session history immediately upon login.
+
+5. **Mid-Session 401 Interception & Sign-Out Redirect**:
+   - Completely eliminated the outdated markdown message instructing users to look for a top-right button.
+   - In `/api/chat` response handling, `res.status === 401` immediately invokes `signOutWorkspaceUser(expMsg)`, which:
+     - Clears all cached tokens in `sessionStorage` and `window`.
+     - Clears `<div id="appShellContainer">` (completely unmounting the app shell from DOM).
+     - Reveals `#loginGateView` with the session expiration message banner.
+
+#### 3. Automated Verification & Regression Suite
+- **Added New Automated Tests in `tests/test_portal.py`**:
+  - `test_login_gate_rendered_and_app_shell_contained_in_template`:
+    - Asserts `#loginGateView`, `#btnLoginGateSignIn`, `#appShellContainer`, and `<template id="appShellTemplate">` exist.
+    - Confirms that `#appSidebar`, `#clientWorkspaceSelector`, `#view-home`, `#chatArea`, and `#chatInput` reside inside `<template>`.
+    - Confirms pre-template HTML does not contain any app shell elements.
+    - Asserts presence of all login gate i18n keys across `pt`, `en`, and `es`.
+  - `test_login_gate_dom_isolation_unauthenticated_vs_authenticated`:
+    - Uses custom `OutsideTemplateParser(HTMLParser)` to parse outer document DOM skipping `<template>`.
+    - Proves `appSidebar`, `clientWorkspaceSelector`, `view-home`, `chatArea`, and `chatInput` are completely absent from the unauthenticated DOM.
+  - `test_login_gate_validation_endpoint_behavior`:
+    - Validates that `GET /api/clients` returns 401 when unauthenticated (`ALLOW_DEV_AUTH_BYPASS="false"`).
+    - Validates that `GET /api/clients` returns 200 with client list when presented with valid Google Workspace credentials.
+  - `test_chat_401_triggers_signout_redirect_script`:
+    - Confirms that "Click the Sign in with Google button in the top right corner" has been eradicated.
+    - Verifies that `signOutWorkspaceUser(expMsg)` is called on chat 401 responses.
+- **Full Test Suite Execution**:
+  - Executed: `.venv/bin/pytest tests/`
+  - **Result**: `203 passed, 2 warnings in 36.35s (100% pass rate across all 17 test suites)`.
+

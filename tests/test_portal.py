@@ -1095,3 +1095,145 @@ def test_genai_client_failed_init_warning_suppressed():
         assert "_async_httpx_client" not in err
 
 
+# =========================================================================
+# MILESTONE 68: FULL-SCREEN GOOGLE WORKSPACE LOGIN GATE TESTS
+# =========================================================================
+
+def test_login_gate_rendered_and_app_shell_contained_in_template():
+    """Verify that the full-screen login gate is rendered at the root body level and
+    the application shell is wrapped inside <template id="appShellTemplate">."""
+    res = client.get("/portal")
+    assert res.status_code == 200
+    html = res.text
+
+    # 1. Login Gate exists at root level
+    assert 'id="loginGateView"' in html
+    assert 'class="login-gate-view"' in html
+    assert 'class="login-gate-card"' in html
+    assert 'id="btnLoginGateSignIn"' in html
+    assert 'onclick="triggerGoogleWorkspaceSignIn()"' in html
+    assert 'data-i18n="login_gate_desc"' in html
+    assert 'data-i18n="login_gate_btn"' in html
+    assert 'id="loginGateMessage"' in html
+    assert 'id="loginGateLoading"' in html
+
+    # 2. App shell container and template wrapper exist
+    assert '<div id="appShellContainer"' in html
+    assert '<template id="appShellTemplate">' in html
+    assert '</template>' in html
+
+    # 3. App shell elements are located INSIDE the <template> tags, NOT in the root body
+    tmpl_start = html.find('<template id="appShellTemplate">')
+    tmpl_end = html.find('</template>')
+    assert tmpl_start != -1 and tmpl_end != -1 and tmpl_start < tmpl_end
+
+    template_content = html[tmpl_start:tmpl_end]
+    assert 'id="appSidebar"' in template_content
+    assert 'id="clientWorkspaceSelector"' in template_content
+    assert 'id="view-home"' in template_content
+    assert 'id="chatArea"' in template_content
+    assert 'id="chatInput"' in template_content
+    assert 'id="chatInputHero"' in template_content
+
+    # 4. Outside template content (pre-login view), appSidebar is NOT present
+    pre_template_content = html[:tmpl_start]
+    assert 'id="appSidebar"' not in pre_template_content
+    assert 'id="chatArea"' not in pre_template_content
+    assert 'id="chatInput"' not in pre_template_content
+
+    # 5. Verify i18n keys for login gate in all 3 languages
+    for lang in ['pt:', 'en:', 'es:']:
+        assert 'login_gate_desc:' in html
+        assert 'login_gate_btn:' in html
+        assert 'login_gate_verifying:' in html
+        assert 'login_gate_notice:' in html
+        assert 'login_gate_session_expired:' in html
+
+
+def test_login_gate_dom_isolation_unauthenticated_vs_authenticated():
+    """Verify that in the raw document DOM outside template, shell elements cannot be found,
+    proving unauthenticated sessions have zero access to sidebar, chat, or client selector."""
+    res = client.get("/portal")
+    html = res.text
+
+    # Custom HTML parser that skips contents of <template> elements
+    class OutsideTemplateParser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.in_template = False
+            self.found_ids = []
+
+        def handle_starttag(self, tag, attrs):
+            if tag.lower() == "template":
+                self.in_template = True
+            if not self.in_template:
+                attrs_dict = dict(attrs)
+                if "id" in attrs_dict:
+                    self.found_ids.append(attrs_dict["id"])
+
+        def handle_endtag(self, tag):
+            if tag.lower() == "template":
+                self.in_template = False
+
+    parser = OutsideTemplateParser()
+    parser.feed(html)
+
+    # In the active outer DOM, the login gate is present
+    assert "loginGateView" in parser.found_ids
+    assert "btnLoginGateSignIn" in parser.found_ids
+    assert "appShellContainer" in parser.found_ids
+
+    # Critical security assertion: app components do NOT exist in active outer DOM
+    assert "appSidebar" not in parser.found_ids
+    assert "clientWorkspaceSelector" not in parser.found_ids
+    assert "view-home" not in parser.found_ids
+    assert "chatArea" not in parser.found_ids
+    assert "chatInput" not in parser.found_ids
+
+
+def test_login_gate_validation_endpoint_behavior(monkeypatch):
+    """Verify lightweight validation endpoint behavior (GET /api/clients).
+    Unauthenticated request returns 401; authenticated request returns 200."""
+    monkeypatch.setenv("ALLOW_DEV_AUTH_BYPASS", "false")
+    # Unauthenticated -> 401
+    res_unauth = client.get("/api/clients")
+    assert res_unauth.status_code == 401
+
+    # Authenticated with valid Google Workspace token -> 200
+    auth_headers = {
+        "Authorization": "Bearer ya29.mock_token",
+        "X-Goog-Id-Token": "mock_id_token",
+        "X-Operator-Id": "auditor@client.corp",
+    }
+    with patch("mcp_server_grc.auth.verify_google_workspace_token") as mock_verify:
+        mock_verify.return_value = {
+            "email": "auditor@client.corp",
+            "hd": "client.corp",
+            "sub": "12345",
+        }
+        res_auth = client.get("/api/clients", headers=auth_headers)
+        assert res_auth.status_code == 200
+        data = res_auth.json()
+        assert "clients" in data
+        assert "active_client_id" in data
+
+
+def test_chat_401_triggers_signout_redirect_script():
+    """Verify that mid-session 401 in chat now invokes signOutWorkspaceUser() rather than
+    printing a message telling the user to look for a button in the top right corner."""
+    res = client.get("/portal")
+    html = res.text
+
+    # No instructions to click top right button
+    assert "Click the **\"Sign in with Google\"** button in the top right corner" not in html
+    assert "Clique no botão **\"Sign in with Google\"** no topo da página à direita" not in html
+
+    # signOutWorkspaceUser is invoked on 401 in chat stream handler
+    assert "signOutWorkspaceUser(expMsg)" in html
+    assert "window.signOutWorkspaceUser = signOutWorkspaceUser" in html
+    assert "window.mockSignIn = mockSignIn" in html
+    assert "window.mountAppShell = mountAppShell" in html
+    assert "window.initAppShell = initAppShell" in html
+
+
+
