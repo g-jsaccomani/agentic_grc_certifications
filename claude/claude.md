@@ -2549,6 +2549,40 @@ This pattern introduced two key issues:
   - `test_iap_header_email_mismatch_with_jwt_payload_is_rejected_401`: Proves header spoofing against a valid JWT is rejected with 401.
 - **Results**: **210/210 tests passed** in 10.96s across 16 test files (`tests/test_portal.py`, `tests/test_agent_reliability.py`, `tests/test_cloud_inspector.py`, etc.).
 
+---
+
+### Milestone 73: UX Fix — Elimination of Login Screen & Cache Prevention (Live Cloud Run Verification)
+
+#### 1. Root Cause Analysis
+- **Symptom Reported by User**: *"Rodou no cloud run. Ainda está igual o antigo"* ("Ran on cloud run. It is still the same as the old one").
+- **Root Cause**:
+  1. **Stale Browser Heuristic Caching**: `/portal` was previously served without HTTP `Cache-Control` response headers. Browsers (specifically Chrome) cached the older HTML containing the initial login gate and GIS script on disk.
+  2. **Active Display of Login Gate**: In `portal_html.py`, `DOMContentLoaded` had a fallback that explicitly called `loginGate.style.display = "flex"`, forcing the login card to appear when no session was found in `sessionStorage`.
+- **Resolution**:
+  1. **Added Strict Anti-Cache Headers**:
+     In `mcp_server_grc/portal.py`, `serve_portal()` now returns:
+     ```python
+     headers={
+         "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+         "Pragma": "no-cache",
+         "Expires": "0",
+     }
+     ```
+  2. **Silent Background Auto-Login**:
+     In `portal_html.py`, `DOMContentLoaded` immediately invokes:
+     ```javascript
+     const defaultEmail = window.customAuditorEmail || "auditor@client.corp";
+     mockSignIn(defaultEmail);
+     ```
+     This automatically initializes the auditor session and calls `mountAndInitAppShell()`.
+  3. **Zero Login Gate**:
+     `#loginGateView` remains hidden (`style="display: none;"`). The user opens `https://mcp-server-grc-ekpqijg7oq-uc.a.run.app/portal` and lands directly in the central cockpit (`#view-home`) with zero login gate, zero buttons, and zero OAuth popups.
+  4. **Cloud Run Deployment**:
+     Deployed revision `mcp-server-grc-00075-hdh` in `us-central1` serving 100% of live traffic.
+     Verified live headers: `cache-control: no-cache, no-store, must-revalidate, max-age=0`.
+     Verified automated test suite: 210/210 tests passed.
+
+
 
 
 
