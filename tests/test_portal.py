@@ -540,7 +540,18 @@ def test_finops_and_org_scope_toggle():
         assert "all_org_projects" in data_proj
         assert data_proj["total_org_projects"] >= 10
         assert "org_metadata" in data_proj
-        assert data_proj["org_metadata"]["org_id"] == "108928374619"
+        assert data_proj["org_metadata"]["org_id"] == "31564119954"
+
+    # Test GET /api/projects without delegated session returns configured projects
+    with patch("mcp_server_grc.portal.get_authorized_session", return_value=(None, "agentic-grc-cd06")):
+        res_proj_unauth = client.get("/api/projects", headers=headers)
+        assert res_proj_unauth.status_code == 200
+        data_unauth = res_proj_unauth.json()
+        assert data_unauth["org_id"] == "31564119954"
+        assert "agentic-grc-cd06" in [p["project_id"] for p in data_unauth["projects"]]
+
+    with patch("mcp_server_grc.portal.get_authorized_session", return_value=(mock_session, "agentic-grc-cd06")):
+        headers = {"Authorization": "Bearer ya29.valid-auditor-access-token"}
 
         # Test toggle scope endpoint
         res_toggle = client.post("/api/projects/toggle_scope", json={"project_id": "agentic-grc-ai-workloads", "in_scope": True}, headers=headers)

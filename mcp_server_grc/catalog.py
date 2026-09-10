@@ -13,10 +13,10 @@ Authoritative compliance verdicts are produced exclusively by real cloud inspect
 """
 
 GCP_ORGANIZATION_METADATA = {
-    "org_id": "108928374619",
-    "org_name": "Altostrat Global Enterprise (GCP Org)",
+    "org_id": "31564119954",
+    "org_name": "jsaccomani.altostrat.com (GCP Org)",
     "display_name": "Google Cloud Organization",
-    "total_projects": 10,
+    "total_projects": 7,
 }
 
 ALL_ORG_PROJECTS = [

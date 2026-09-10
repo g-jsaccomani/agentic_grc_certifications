@@ -6,11 +6,15 @@
     "projects": [
       "agentic-grc-cd06",
       "fnlab-apps-8fa913",
-      "fnlab-sec-mgmt-8fa913"
+      "fnlab-sec-mgmt-8fa913",
+      "fnlab-ai-data-8fa913",
+      "cspr-nubank",
+      "cspr-nubank-poc",
+      "cspr-poc-nubank"
     ],
-    "org_id": "108928374619",
-    "org_name": "Altostrat Global Org",
-    "contact_email": "security@altostrat.com",
+    "org_id": "31564119954",
+    "org_name": "jsaccomani.altostrat.com",
+    "contact_email": "jsaccomani@google.com",
     "drive_folder_id": "1A2B3C4D5E6F7G8H9I0J-altostrat-evidence",
     "created_at": "2026-09-01T12:00:00Z",
     "read_only_access_expires_at": "2026-09-23T16:00:00Z",

@@ -5655,12 +5655,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 </svg>
                                 <div style="display: flex; flex-direction: column; min-width: 0;">
                                     <span class="scope-label" style="font-size: 10px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Organização GCP Conectada</span>
-                                    <span id="scopeConnectedOrgName" style="font-size: 11px; font-weight: 600; color: var(--text-primary); line-height: 1.25; word-break: break-word;">Altostrat Global Org <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(108928374619)</span></span>
+                                    <span id="scopeConnectedOrgName" style="font-size: 11px; font-weight: 600; color: var(--text-primary); line-height: 1.25; word-break: break-word;">jsaccomani.altostrat.com <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(31564119954)</span></span>
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; justify-content: flex-start; padding-left: 19px;">
                                 <button class="btn-org-dropdown-toggle" id="btnOrgDropdownToggle" onclick="toggleOrgScopeDropdown()" title="Projetos da Organização GCP" style="background: rgba(138, 180, 248, 0.12); border: 1px solid rgba(138, 180, 248, 0.3); color: var(--gcp-blue); border-radius: 6px; padding: 2px 8px; font-size: 10.5px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: var(--transition-smooth);">
-                                    <span id="orgScopeBadgeText">3/10 ativos</span>
+                                    <span id="orgScopeBadgeText">7/7 ativos</span>
                                     <svg id="orgDropdownChevron" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.2s ease;">
                                         <polyline points="6 9 12 15 18 9"/>
                                     </svg>
@@ -5687,7 +5687,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <!-- Dropdown Retrátil da Organização GCP -->
                         <div class="org-scope-dropdown" id="orgScopeDropdown" style="display: none; background: var(--bg-canvas); border: 1px solid var(--border-focus); border-radius: 8px; padding: 8px; margin-bottom: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
                             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--text-tertiary); margin-bottom: 6px;">
-                                <span>Altostrat Global Org (108928374619)</span>
+                                <span id="orgScopeDropdownOrgTitle">jsaccomani.altostrat.com (31564119954)</span>
                                 <span style="color: var(--gcp-green); font-weight: 600;">Nível Org</span>
                             </div>
                             <input type="text" id="orgSearchInput" placeholder="Filtrar projetos da Org..." aria-label="Filtrar projetos da organização" oninput="filterOrgDropdown(this.value)" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-primary); margin-bottom: 6px; outline: none; box-sizing: border-box;">
@@ -5931,7 +5931,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                     <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
                                     <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                                 </svg>
-                                <span data-i18n="home_meta_org">Organização GCP:</span> <strong>Altostrat Global Org (108928374619)</strong>
+                                <span data-i18n="home_meta_org">Organização GCP:</span> <strong id="homeMetaOrgName">jsaccomani.altostrat.com (31564119954)</strong>
                             </div>
                             <div class="home-hero-meta-item">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--gcp-green)" stroke-width="2">
@@ -12142,7 +12142,7 @@ function openNewsModal(newsKey) {
         // Project Scope Management (GCP Organization Level)
         async function loadProjects() {
             try {
-                const res = await fetch("/api/projects");
+                const res = await fetch("/api/projects", { headers: getAuthHeaders() });
                 if (res.ok) {
                     const data = await res.json();
                     if (data && data.projects && data.projects.length > 0) {
@@ -12151,6 +12151,20 @@ function openNewsModal(newsKey) {
                     }
                     if (data && data.all_org_projects) {
                         allOrgProjects = data.all_org_projects;
+                    }
+                    if (data && data.org_metadata) {
+                        const orgNameEl = document.getElementById("scopeConnectedOrgName");
+                        if (orgNameEl && data.org_metadata.org_name && data.org_metadata.org_id) {
+                            orgNameEl.innerHTML = `${escapeHtml(data.org_metadata.org_name)} <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(${escapeHtml(data.org_metadata.org_id)})</span>`;
+                        }
+                        const orgTitleEl = document.getElementById("orgScopeDropdownOrgTitle");
+                        if (orgTitleEl && data.org_metadata.org_name && data.org_metadata.org_id) {
+                            orgTitleEl.innerText = `${data.org_metadata.org_name} (${data.org_metadata.org_id})`;
+                        }
+                        const homeMetaOrgEl = document.getElementById("homeMetaOrgName");
+                        if (homeMetaOrgEl && data.org_metadata.org_name && data.org_metadata.org_id) {
+                            homeMetaOrgEl.innerText = `${data.org_metadata.org_name} (${data.org_metadata.org_id})`;
+                        }
                     }
                 }
             } catch (e) {
@@ -13430,10 +13444,22 @@ function openNewsModal(newsKey) {
 
         function getAuthHeaders() {
             const headers = {};
-            const token = window.currentGoogleAccessToken || "ya29.valid-auditor-access-token";
-            headers["Authorization"] = "Bearer " + token;
-            if (window.currentGoogleIdToken) {
+            const opId = (typeof getOperatorId === 'function') ? getOperatorId() : localStorage.getItem("grc_operator_id");
+            if (opId) headers["X-Operator-Id"] = opId;
+            if (typeof currentActiveClientId !== 'undefined' && currentActiveClientId) {
+                headers["X-Client-Id"] = currentActiveClientId;
+            }
+            if (typeof activeChatSessionId !== 'undefined' && activeChatSessionId) {
+                headers["X-Session-Id"] = activeChatSessionId;
+            }
+            if (window.currentUserIdToken) {
+                headers["X-Goog-Id-Token"] = window.currentUserIdToken;
+            } else if (window.currentGoogleIdToken) {
                 headers["X-Goog-Id-Token"] = window.currentGoogleIdToken;
+            }
+            const token = window.currentUserToken || window.currentGoogleAccessToken;
+            if (token) {
+                headers["Authorization"] = "Bearer " + token;
             }
             return headers;
         }

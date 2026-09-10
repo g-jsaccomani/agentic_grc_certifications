@@ -111,7 +111,7 @@ fi
 
 # Detect organization
 if [ -z "${ORG_ID_ARG}" ]; then
-    ORG_ID_ARG=$(gcloud organizations list --format="value(name)" 2>/dev/null | head -n 1 | awk -F'/' '{print $NF}' || echo "108928374619")
+    ORG_ID_ARG=$(gcloud organizations list --format="value(name)" 2>/dev/null | head -n 1 | awk -F'/' '{print $NF}' || echo "31564119954")
 fi
 
 # Compute expiry timestamp using python3
