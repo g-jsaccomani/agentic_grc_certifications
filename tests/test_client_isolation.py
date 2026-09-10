@@ -4,6 +4,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 from mcp_server_grc.server import app
+from mcp_server_grc.cloud_inspector import DISCONNECTED_CLIENT_MESSAGE, inspect_cloud_kms_key
 from mcp_server_grc.portal import (
     OPERATOR_ACTIVE_CLIENTS,
     OPERATOR_SESSIONS,
@@ -650,3 +651,169 @@ def test_switching_active_client_changes_projects_and_isolates_org_projects():
     finally:
         client.delete(f"/api/clients/{client_alpha_id}", headers=op_headers)
         client.delete(f"/api/clients/{client_beta_id}", headers=op_headers)
+
+
+def test_client_disconnect_ui_elements():
+    """Verify that Client Workspace disconnect action and confirmation modal are served in HTML."""
+    res = client.get("/")
+    assert res.status_code == 200
+    html = res.text
+
+    # Disconnect confirmation modal and actions
+    assert 'id="clientDisconnectModal"' in html
+    assert 'id="clientDisconnectCommandsPre"' in html
+    assert 'openDisconnectClientModal(' in html
+    assert 'closeDisconnectClientModal()' in html
+    assert 'copyDisconnectRevokeCommands()' in html
+    assert 'downloadDisconnectRevokeScript()' in html
+    assert 'executeConfirmedClientDisconnect()' in html
+    assert 'confirmDeleteClient(' in html
+    assert 'roles/resourcemanager.organizationViewer' in html
+    assert 'remove-iam-policy-binding' in html
+
+
+def test_client_disconnect_workflow_and_data_preservation():
+    """Verify that POST /api/clients/{client_id}/disconnect preserves evidence, clears operator binding,
+    and rejects future live scans while maintaining read access to reports and scorecards."""
+    op_headers = {**AUTH_HEADER, "X-Operator-Id": "operator-disconnect-suite"}
+    test_cid = "client-disconnect-audit-target"
+    test_drive_folder = "1EvidenceDriveFolder-Untouched-2026"
+    test_projects = ["disconnect-prod-01", "disconnect-stage-02"]
+
+    # 1. Onboard client
+    onboard_res = client.post(
+        "/api/clients/onboard",
+        json={
+            "name": "Target Disconnect Inc",
+            "client_id": test_cid,
+            "projects": test_projects,
+            "days": 30,
+            "drive_folder_id": test_drive_folder,
+            "org_id": "999888777",
+            "is_shared": True,
+        },
+        headers=op_headers,
+    )
+    assert onboard_res.status_code == 200
+
+    try:
+        # 2. Switch operator active client to this new client and bind session
+        sw_res = client.post(
+            "/api/clients/active",
+            json={"client_id": test_cid},
+            headers=op_headers,
+        )
+        assert sw_res.status_code == 200
+        assert OPERATOR_ACTIVE_CLIENTS.get("operator-disconnect-suite") == test_cid
+
+        # 3. Disconnecting altostrat-ventures must be rejected with 400
+        core_dis = client.post("/api/clients/altostrat-ventures/disconnect", headers=op_headers)
+        assert core_dis.status_code == 400
+        assert "Cannot disconnect core client" in core_dis.json()["detail"]
+
+        # 4. Disconnect target client
+        dis_res = client.post(f"/api/clients/{test_cid}/disconnect", headers=op_headers)
+        assert dis_res.status_code == 200
+        dis_data = dis_res.json()
+        assert dis_data["status"] == "success"
+        assert dis_data["client"]["status"] == "disconnected"
+
+        # 5. Verify record in data/clients.json preserves drive_folder_id and projects
+        from mcp_server_grc.portal import load_onboarded_clients
+        all_clients = load_onboarded_clients()
+        rec = next((c for c in all_clients if c.get("client_id") == test_cid), None)
+        assert rec is not None
+        assert rec["status"] == "disconnected"
+        assert rec["drive_folder_id"] == test_drive_folder
+        assert rec["projects"] == test_projects
+
+        # 6. Verify operator active binding was cleared and reset to altostrat-ventures
+        assert OPERATOR_ACTIVE_CLIENTS.get("operator-disconnect-suite") == "altostrat-ventures"
+
+        # 7. Verify all live scan attempts are rejected with exact required message
+        # 7a. POST /api/clients/active rejected
+        active_attempt = client.post(
+            "/api/clients/active",
+            json={"client_id": test_cid},
+            headers=op_headers,
+        )
+        assert active_attempt.status_code == 400
+        assert active_attempt.json()["detail"] == DISCONNECTED_CLIENT_MESSAGE
+
+        # 7b. Direct cloud_inspector call rejected
+        with pytest.raises(ValueError) as exc_info:
+            inspect_cloud_kms_key("test-key", client_id=test_cid)
+        assert DISCONNECTED_CLIENT_MESSAGE in str(exc_info.value)
+
+        # 7c. Direct cloud_inspector call by project_id rejected
+        with pytest.raises(ValueError) as exc_info_proj:
+            inspect_cloud_kms_key("test-key", project_id=test_projects[0])
+        assert DISCONNECTED_CLIENT_MESSAGE in str(exc_info_proj.value)
+
+        # 7d. POST /api/chat scoped to disconnected client rejected
+        chat_attempt = client.post(
+            "/api/chat",
+            json={"message": "Audit Cloud KMS keys", "client_id": test_cid},
+            headers=op_headers,
+        )
+        assert chat_attempt.status_code == 400
+        assert chat_attempt.json()["detail"] == DISCONNECTED_CLIENT_MESSAGE
+
+        # 7e. POST /api/audit/run_phases scoped to disconnected client rejected
+        run_audit_attempt = client.post(
+            "/api/audit/run_phases",
+            json={"projects": test_projects},
+            headers={**op_headers, "X-Client-Id": test_cid},
+        )
+        assert run_audit_attempt.status_code == 400
+        assert run_audit_attempt.json()["detail"] == DISCONNECTED_CLIENT_MESSAGE
+
+        # 7f. POST /api/audit/remediate_phase scoped to disconnected client rejected
+        rem_attempt = client.post(
+            "/api/audit/remediate_phase",
+            json={"phase": 1, "project_id": test_projects[0]},
+            headers={**op_headers, "X-Client-Id": test_cid},
+        )
+        assert rem_attempt.status_code == 400
+        assert rem_attempt.json()["detail"] == DISCONNECTED_CLIENT_MESSAGE
+
+        # 7g. POST /api/agent/update_policy_autonomously scoped to disconnected client rejected
+        pol_attempt = client.post(
+            "/api/agent/update_policy_autonomously",
+            json={"control_id": "A.5.15", "project_id": test_projects[0]},
+            headers={**op_headers, "X-Client-Id": test_cid},
+        )
+        assert pol_attempt.status_code == 400
+        assert pol_attempt.json()["detail"] == DISCONNECTED_CLIENT_MESSAGE
+
+        # 8. Verify GET endpoints for existing reports/scorecard continue to succeed normally
+        # 8a. GET /api/scorecard
+        sc_res = client.get(f"/api/scorecard?client_id={test_cid}", headers=op_headers)
+        assert sc_res.status_code == 200
+        assert "overall_score" in sc_res.json()
+
+        # 8b. GET /api/reports/executive
+        exec_res = client.get(f"/api/reports/executive?client_id={test_cid}", headers=op_headers)
+        assert exec_res.status_code == 200
+        assert exec_res.json()["classification"] == "CONFIDENTIAL / EXECUTIVE DOSSIER"
+
+        # 8c. GET /api/reports/technical
+        tech_res = client.get(f"/api/reports/technical?client_id={test_cid}", headers=op_headers)
+        assert tech_res.status_code == 200
+        assert "evidence_chain" in tech_res.json()
+
+        # 8d. GET /api/reports/export
+        export_res = client.get(f"/api/reports/export?client_id={test_cid}", headers=op_headers)
+        assert export_res.status_code == 200
+
+        # 8e. GET /api/clients
+        clients_res = client.get("/api/clients", headers=op_headers)
+        assert clients_res.status_code == 200
+        client_list = clients_res.json()["clients"]
+        dis_in_list = next((c for c in client_list if c["client_id"] == test_cid), None)
+        assert dis_in_list is not None
+        assert dis_in_list["status"] == "disconnected"
+
+    finally:
+        # Cleanup test client
+        client.delete(f"/api/clients/{test_cid}", headers=op_headers)

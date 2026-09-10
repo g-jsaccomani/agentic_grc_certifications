@@ -45,6 +45,7 @@ from mcp_server_grc.tools.threat_intel import correlate_threat_intelligence
 from mcp_server_grc.tools.climate_resilience import audit_climate_resilience
 from mcp_server_grc.tools.iac_scanner import scan_iac_configuration
 from mcp_server_grc.cloud_inspector import (
+    DISCONNECTED_CLIENT_MESSAGE,
     check_and_increment_call_budget,
     get_authorized_session,
     inspect_cloud_kms_key,
@@ -172,7 +173,8 @@ def load_onboarded_clients() -> List[Dict[str, Any]]:
                 diff = (dt - now).total_seconds()
                 days = max(0, int(diff // 86400))
                 c["read_only_access_days_remaining"] = days
-                c["status"] = "active" if days > 0 else "expired"
+                if c.get("status") != "disconnected":
+                    c["status"] = "active" if days > 0 else "expired"
             except Exception:
                 pass
     return clients
@@ -365,6 +367,7 @@ class OnboardClientRequest(BaseModel):
     org_name: Optional[str] = Field(default=None, description="Optional organization name")
     contact_email: Optional[str] = Field(default=None, description="Auditor/client contact email")
     drive_folder_id: Optional[str] = Field(default=None, description="Google Drive folder ID or URL for evidence storage")
+    drive_folder: Optional[str] = Field(default=None, description="Alias for drive_folder_id")
     shared_operators: Optional[List[str]] = Field(default_factory=list, description="Optional list of operator IDs explicitly granted access")
     is_shared: Optional[bool] = Field(default=False, description="Whether this client is explicitly shared globally")
 
@@ -1174,6 +1177,11 @@ async def run_phased_audit(
     op_id, client_rec, target_cid = resolve_client_and_verify_access(
         user_context, x_operator_id, x_client_id, x_session_id
     )
+    if client_rec and client_rec.get("status") == "disconnected":
+        raise HTTPException(
+            status_code=400,
+            detail=DISCONNECTED_CLIENT_MESSAGE,
+        )
     cfg_projects = client_rec.get("projects") or []
     projects = req.projects or cfg_projects or ["agentic-grc-cd06"]
     scoped_engine = get_client_ci_engine(target_cid)
@@ -1322,6 +1330,11 @@ async def remediate_phase(
     op_id, client_rec, target_cid = resolve_client_and_verify_access(
         user_context, x_operator_id, x_client_id, x_session_id
     )
+    if client_rec and client_rec.get("status") == "disconnected":
+        raise HTTPException(
+            status_code=400,
+            detail=DISCONNECTED_CLIENT_MESSAGE,
+        )
     phase_id = req.phase
     cfg_projects = client_rec.get("projects") or []
     project_id = req.project_id or (cfg_projects[0] if cfg_projects else "fnlab-apps-8fa913")
@@ -1668,6 +1681,11 @@ async def update_policy_autonomously(
     op_id, client_rec, target_cid = resolve_client_and_verify_access(
         user_context, x_operator_id, x_client_id, x_session_id
     )
+    if client_rec and client_rec.get("status") == "disconnected":
+        raise HTTPException(
+            status_code=400,
+            detail=DISCONNECTED_CLIENT_MESSAGE,
+        )
     scoped_engine = get_client_ci_engine(target_cid)
     cfg_projects = client_rec.get("projects") or []
     project_id = req.project_id or (cfg_projects[0] if cfg_projects else "fnlab-apps-8fa913")
@@ -2923,6 +2941,12 @@ async def switch_active_client(
     if not target_client:
         raise HTTPException(status_code=404, detail=f"Client '{req.client_id}' not found in onboarded registry.")
 
+    if target_client.get("status") == "disconnected":
+        raise HTTPException(
+            status_code=400,
+            detail=DISCONNECTED_CLIENT_MESSAGE,
+        )
+
     if not is_client_accessible_by_operator(target_client, op_id, user_context):
         raise HTTPException(
             status_code=403,
@@ -2990,8 +3014,9 @@ async def onboard_new_client(
     org_name = req.org_name or f"{client_name} Org"
 
     drive_folder_id = None
-    if req.drive_folder_id and str(req.drive_folder_id).strip():
-        raw_df = str(req.drive_folder_id).strip()
+    df_val = req.drive_folder_id or req.drive_folder
+    if df_val and str(df_val).strip():
+        raw_df = str(df_val).strip()
         m = re.search(r"folders/([a-zA-Z0-9_-]+)", raw_df)
         if m:
             drive_folder_id = m.group(1)
@@ -3232,6 +3257,54 @@ async def parse_onboard_txt_endpoint(
 
 
 
+@router.post("/api/clients/{client_id}/disconnect")
+async def disconnect_onboarded_client(
+    client_id: str,
+    x_operator_id: Optional[str] = Header(None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
+    """Marks an onboarded client workspace as disconnected, disabling live scans while preserving historical data."""
+    if client_id == "altostrat-ventures":
+        raise HTTPException(status_code=400, detail="Cannot disconnect core client 'altostrat-ventures'.")
+    file_path = get_clients_file_path()
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="clients.json not found.")
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            clients = json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed reading clients: {e}")
+
+    target_client = next((c for c in clients if c.get("client_id") == client_id), None)
+    if not target_client:
+        raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found.")
+
+    op_id = resolve_operator_id(user_context, x_operator_id)
+    if not is_client_accessible_by_operator(target_client, op_id, user_context):
+        raise HTTPException(
+            status_code=403,
+            detail=f"Access denied: Client '{client_id}' is owned by another operator and is not shared with '{op_id}'.",
+        )
+
+    # Mark status as disconnected; preserve drive_folder_id, history, and evidence
+    target_client["status"] = "disconnected"
+    save_onboarded_clients(clients)
+
+    # Invalidate active operator/session bindings pointing to disconnected client
+    for op, bound_cid in list(OPERATOR_ACTIVE_CLIENTS.items()):
+        if bound_cid == client_id:
+            OPERATOR_ACTIVE_CLIENTS[op] = "altostrat-ventures"
+    for sess, bound_cid in list(SESSION_CLIENT_BINDINGS.items()):
+        if bound_cid == client_id:
+            SESSION_CLIENT_BINDINGS.pop(sess, None)
+
+    return {
+        "status": "success",
+        "message": f"Client '{client_id}' disconnected. Live scanning revoked, historical evidence preserved.",
+        "client": target_client,
+    }
+
+
 @router.delete("/api/clients/{client_id}")
 async def delete_onboarded_client(
     client_id: str,
@@ -3279,6 +3352,22 @@ async def handle_chat(
     # 0. Resolve operator identity and active client scope
     operator_id = resolve_operator_id(user_context, x_operator_id, authorization)
     active_cid = req.client_id or get_operator_active_client(operator_id)
+
+    all_clients = load_onboarded_clients()
+    client_rec = next((c for c in all_clients if c.get("client_id") == active_cid), None)
+    if client_rec and client_rec.get("status") == "disconnected":
+        raise HTTPException(
+            status_code=400,
+            detail=DISCONNECTED_CLIENT_MESSAGE,
+        )
+    for c in all_clients:
+        if c.get("status") == "disconnected":
+            for p in req.selected_projects or []:
+                if p in (c.get("projects") or []) and p not in ("agentic-grc-cd06", "altostrat-ventures"):
+                    raise HTTPException(
+                        status_code=400,
+                        detail=DISCONNECTED_CLIENT_MESSAGE,
+                    )
 
     # Cross-tenant session validation
     if req.session_id:
@@ -4342,6 +4431,11 @@ async def run_subagent_task(
         x_session_id=x_session_id,
         client_id=client_id,
     )
+    if client_rec and client_rec.get("status") == "disconnected":
+        raise HTTPException(
+            status_code=400,
+            detail=DISCONNECTED_CLIENT_MESSAGE,
+        )
     scoped_ci_engine = get_client_ci_engine(active_cid)
 
     user_token = None

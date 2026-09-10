@@ -1,3 +1,104 @@
+# Engineering Milestone Handoff: Client Workspace Disconnect Action & Evidence Preservation
+
+**Target Audience:** Architecture Reviewers, Security Practice & Operations  
+**Repository:** `agentic_grc_certifications`  
+**Execution Date:** 2026-09-10  
+**Status:** COMPLETE & VERIFIED (225/225 Pytest Suite Passing, 100% Cloud-Native Ready)  
+
+---
+
+## 1. Executive Summary: Client Disconnect Workflow vs. Client Deletion
+
+In enterprise engagements, consulting engagements with clients naturally conclude, or read-only cloud permissions are revoked at the organization level. In such scenarios, consultants and client stakeholders must be able to **disconnect** the client workspace rather than permanently delete it:
+- **Disconnect Action**: Stops all future live scanning and cloud telemetry API calls, while **preserving 100% of historical compliance data** (Google Drive evidence files, generated technical & executive audit dossiers, and the cryptographic evidence graph).
+- **Delete Action**: Permanently purges the client registration from `data/clients.json`.
+
+Core client `altostrat-ventures` is protected and cannot be disconnected or deleted.
+
+---
+
+## 2. Technical Architecture & Endpoints
+
+### 2.1 Backend Endpoint: `POST /api/clients/{client_id}/disconnect`
+- **Authentication & RBAC**: Protected by `require_authenticated_workspace_user` with operator isolation (`is_client_accessible_by_operator`).
+- **Core Client Protection**: Rejects `altostrat-ventures` with `400 Bad Request` ("Cannot disconnect core client 'altostrat-ventures'.").
+- **Registry Update**: Sets `"status": "disconnected"` in `data/clients.json`. Preserves `drive_folder_id`, project lists, contact info, and timestamps.
+- **Session & Operator Invalidation**:
+  - Resets `OPERATOR_ACTIVE_CLIENTS` for any operator bound to this client back to `"altostrat-ventures"`.
+  - Removes all session bindings in `SESSION_CLIENT_BINDINGS` bound to this client.
+
+### 2.2 Live Scan Rejection & Protective Enforcement
+Any subsequent attempt to execute live discovery, telemetry inspection, or active audits against a disconnected client is rejected with HTTP 400 (or `ValueError` in Python tools) and the exact message:
+> `"This client is disconnected — revoke access was requested. Reconnect or re-onboard to resume live scanning."`
+
+Protected surfaces:
+1. **Cloud Inspector Tools (`mcp_server_grc/cloud_inspector.py`)**:
+   - `inspect_cloud_kms_key`
+   - `list_cloud_kms_keys`
+   - `inspect_cloud_storage_bucket`
+   - `list_cloud_storage_buckets`
+   - `inspect_project_iam_policy`
+   - `inspect_cloud_run_services`
+   All call `check_client_disconnection(client_id, project_id)`.
+2. **Workspace Switch (`POST /api/clients/active`)**: Disconnected clients cannot be selected as the active workspace for new scanning sessions.
+3. **Chat Assistant (`POST /api/chat`)**: Chat questions scoped to the disconnected client or targeting projects associated with it are blocked.
+4. **Phased Audit (`POST /api/audit/run_phases`)**: Audit phase execution blocked.
+5. **Phase Remediation (`POST /api/audit/remediate_phase`)**: Blocked.
+6. **Autonomous Policy Generator (`POST /api/agent/update_policy_autonomously`)**: Blocked.
+7. **Subagent Execution (`POST /api/subagents/{subagent_id}/run`)**: Blocked.
+
+### 2.3 Read Access Preservation for Historical Reports & Scorecards
+All existing audit deliverables remain accessible:
+- `GET /api/reports/executive?client_id={id}` -> 200 OK (Full executive dossier)
+- `GET /api/reports/technical?client_id={id}` -> 200 OK (Granular evidence graph and technical findings)
+- `GET /api/reports/export?client_id={id}` -> 200 OK (JSON / Markdown exports)
+- `GET /api/scorecard?client_id={id}` -> 200 OK (ISO 27001 readiness score)
+- `GET /api/clients` -> 200 OK (Client list displays the disconnected client with status `"disconnected"`)
+
+---
+
+## 3. Frontend & UX Architecture (`portal_html.py`)
+
+1. **Client Workspace Selector & Dropdown**:
+   - Each client item displays a distinct status pill (`.client-status-pill.disconnected`) styled in `#5f6368` (gray) with subtle transparency.
+   - Non-core clients display actionable icons:
+     - **Disconnect Button** (`client-action-btn disconnect`): Opens `#clientDisconnectModal`.
+     - **Delete Button** (`client-action-btn delete`): Triggers permanent deletion confirmation.
+   - Disconnected items remain visible in the client list for historical review but are not selectable for live scanning sessions.
+2. **Confirmation Modal (`#clientDisconnectModal`)**:
+   - Explains the disconnection effect: live scanning revoked, Drive evidence & reports preserved.
+   - Displays exact, copy-pasteable `gcloud` revoke commands for client Organization Administrators:
+     ```bash
+     gcloud organizations remove-iam-policy-binding <ORG_ID> \
+         --member='user:<CONSULTANT_EMAIL>' \
+         --role='roles/viewer'
+
+     gcloud organizations remove-iam-policy-binding <ORG_ID> \
+         --member='user:<CONSULTANT_EMAIL>' \
+         --role='roles/iam.securityReviewer'
+
+     gcloud organizations remove-iam-policy-binding <ORG_ID> \
+         --member='user:<CONSULTANT_EMAIL>' \
+         --role='roles/resourcemanager.organizationViewer'
+     ```
+   - Includes **"Copiar Comandos" / "Copy Commands"** button with temporary feedback (`"Copied!"`).
+   - Includes **"Baixar Script" / "Download Revoke Script"** button generating `gcp_revoke_<client_id>.sh`.
+   - **"Confirmar Desconexão" / "Confirm Disconnect"** button triggers backend API call and resets active workspace.
+3. **Tri-lingual I18N**: Complete translations in English (`en`, default), Portuguese (`pt`), and Spanish (`es`).
+
+---
+
+## 4. Test Verification
+
+Automated test suite execution:
+- **Suite**: `uv run pytest`
+- **Total Tests**: **225 passed, 0 failed** (100% pass rate in 21.5s).
+- **Key Tests in `tests/test_client_isolation.py`**:
+  - `test_client_disconnect_ui_elements`: Validates HTML modal, script downloads, and revoke commands.
+  - `test_client_disconnect_workflow_and_data_preservation`: Validates status update, Drive folder preservation, operator binding cleanup, scan rejections across all 7 endpoints, and report GET endpoint availability.
+
+---
+
 # Engineering Milestone Handoff: Global English Localization, Complete Auditor Elimination & Google Cloud Compliance Positioning
 
 **Target Audience:** Engineering & Compliance Architecture Reviewers  

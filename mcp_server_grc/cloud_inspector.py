@@ -31,6 +31,38 @@ LIVE_INSPECTION_TIMEOUT_SECONDS = float(
 # Session tracking registry for live read-only API calls
 _SESSION_CALL_TRACKER: Dict[str, int] = {}
 
+DISCONNECTED_CLIENT_MESSAGE = (
+    "This client is disconnected — revoke access was requested. Reconnect or re-onboard to resume live scanning."
+)
+
+
+def check_client_disconnection(client_id: Optional[str] = None, project_id: Optional[str] = None) -> None:
+    """Verifies that the target client or project is not associated with a disconnected client.
+    
+    Raises:
+        ValueError: If client or project belongs to a disconnected client workspace.
+    """
+    if not client_id and not project_id:
+        return
+    try:
+        from mcp_server_grc.portal import get_clients_file_path
+        f_path = get_clients_file_path()
+        if os.path.exists(f_path):
+            with open(f_path, "r", encoding="utf-8") as f_in:
+                clients_data = json.load(f_in)
+            for c in clients_data:
+                if c.get("status") == "disconnected":
+                    if client_id and c.get("client_id") == client_id:
+                        raise ValueError(DISCONNECTED_CLIENT_MESSAGE)
+                    if project_id and project_id in (c.get("projects") or []):
+                        if project_id not in ("agentic-grc-cd06", "altostrat-ventures"):
+                            raise ValueError(DISCONNECTED_CLIENT_MESSAGE)
+    except ValueError:
+        raise
+    except Exception as exc:
+        logger.debug(f"Client connection check encountered exception: {exc}")
+
+
 
 def get_session_id(session_id: Optional[str] = None, bearer_token: Optional[str] = None) -> str:
     """Derives a stable session identifier from session_id or bearer_token."""
@@ -187,12 +219,14 @@ def inspect_cloud_kms_key(
     project_id: Optional[str] = None,
     bearer_token: Optional[str] = None,
     session_id: Optional[str] = None,
+    client_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Inspects a Cloud KMS key in real time to fetch rotationPeriod and protectionLevel (A.8.24).
     
     Automatically searches across key rings and locations if full path is not provided.
     Enforces per-session call budget and timeout limits.
     """
+    check_client_disconnection(client_id=client_id, project_id=project_id)
     clean_name = key_name.strip().strip("'").strip('"')
     session, proj = get_authorized_session(bearer_token=bearer_token, project_id=project_id)
 
@@ -404,8 +438,10 @@ def list_cloud_kms_keys(
     project_id: Optional[str] = None,
     bearer_token: Optional[str] = None,
     session_id: Optional[str] = None,
+    client_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Lists all KMS key rings and crypto keys in the project across locations."""
+    check_client_disconnection(client_id=client_id, project_id=project_id)
     session, proj = get_authorized_session(bearer_token=bearer_token, project_id=project_id)
     if session is None:
         return {
@@ -473,8 +509,10 @@ def inspect_cloud_storage_bucket(
     project_id: Optional[str] = None,
     bearer_token: Optional[str] = None,
     session_id: Optional[str] = None,
+    client_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Inspects a Cloud Storage bucket in real time for PAP, UBLA, and CMEK (A.5.23)."""
+    check_client_disconnection(client_id=client_id, project_id=project_id)
     clean_bname = bucket_name.strip().replace("gs://", "").strip("/").strip("'").strip('"')
     session, proj = get_authorized_session(bearer_token=bearer_token, project_id=project_id)
 
@@ -589,8 +627,10 @@ def list_cloud_storage_buckets(
     project_id: Optional[str] = None,
     bearer_token: Optional[str] = None,
     session_id: Optional[str] = None,
+    client_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Lists all Cloud Storage buckets in the project with PAP and UBLA posture."""
+    check_client_disconnection(client_id=client_id, project_id=project_id)
     session, proj = get_authorized_session(bearer_token=bearer_token, project_id=project_id)
     if session is None:
         return {
@@ -641,8 +681,10 @@ def inspect_project_iam_policy(
     project_id: Optional[str] = None,
     bearer_token: Optional[str] = None,
     session_id: Optional[str] = None,
+    client_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Inspects project IAM policy for primitive roles and least privilege compliance (A.5.15)."""
+    check_client_disconnection(client_id=client_id, project_id=project_id)
     session, proj = get_authorized_session(bearer_token=bearer_token, project_id=project_id)
     if session is None:
         return {
@@ -730,8 +772,10 @@ def inspect_cloud_run_services(
     project_id: Optional[str] = None,
     bearer_token: Optional[str] = None,
     session_id: Optional[str] = None,
+    client_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Inspects Cloud Run services for deployment status and ingress controls (A.8.20)."""
+    check_client_disconnection(client_id=client_id, project_id=project_id)
     session, proj = get_authorized_session(bearer_token=bearer_token, project_id=project_id)
     loc = location or DEFAULT_LOCATION
 

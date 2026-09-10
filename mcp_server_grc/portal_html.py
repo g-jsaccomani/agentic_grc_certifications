@@ -1264,6 +1264,50 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             border: 1px solid rgba(242, 139, 130, 0.3);
         }
 
+        .client-status-pill.disconnected {
+            background: rgba(95, 99, 104, 0.15);
+            color: #5f6368;
+            border: 1px solid rgba(95, 99, 104, 0.3);
+        }
+
+        .client-action-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            color: var(--text-tertiary);
+            padding: 2px 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+        .client-action-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .client-action-btn.disconnect:hover {
+            color: var(--gcp-yellow, #fbbc04);
+            border-color: rgba(251, 188, 4, 0.3);
+            background: rgba(251, 188, 4, 0.1);
+        }
+        .client-action-btn.delete:hover {
+            color: var(--gcp-red, #ea4335);
+            border-color: rgba(234, 67, 53, 0.3);
+            background: rgba(234, 67, 53, 0.1);
+        }
+        .client-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            margin-left: auto;
+            opacity: 0.7;
+            transition: opacity 0.15s ease;
+        }
+        .client-dropdown-item:hover .client-item-actions {
+            opacity: 1;
+        }
+
         .client-meta-row {
             display: flex;
             align-items: center;
@@ -5238,6 +5282,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <span id="clientActiveExpiryText">Read-only access expires in 14 days</span>
                         </div>
                     </div>
+                    <div id="clientActiveActions" style="display: none; align-items: center; gap: 4px; margin-left: auto;"></div>
                     <svg class="client-dropdown-chevron" id="clientDropdownChevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5">
                         <polyline points="6 9 12 15 18 9"/>
                     </svg>
@@ -8497,6 +8542,64 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         </div>
     </div>
 
+    <!-- Modal: Confirm Client Workspace Disconnect -->
+    <div class="modal-overlay" id="clientDisconnectModal">
+        <div class="modal-window" style="max-width: 580px; max-height: 90vh; display: flex; flex-direction: column; padding: 22px 24px;">
+            <div class="modal-header" style="margin-bottom: 8px;">
+                <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-yellow, #fbbc04);">
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                        <line x1="12" y1="2" x2="12" y2="12"/>
+                    </svg>
+                    <span id="clientDisconnectModalTitle" data-i18n="client_disconnect_modal_title">Desconectar Workspace de Cliente</span>
+                </div>
+                <button class="btn-collapse" onclick="closeDisconnectClientModal()">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div style="overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-top: 4px;">
+                <p id="clientDisconnectConfirmText" style="font-size: 14px; color: var(--text-primary); line-height: 1.5; font-weight: 500; margin: 0;">
+                    Você está prestes a desconectar o workspace do cliente.
+                </p>
+                <div style="background: rgba(251, 188, 4, 0.08); border-left: 3px solid var(--gcp-yellow, #fbbc04); padding: 10px 12px; border-radius: 4px; font-size: 12px; color: var(--text-secondary); line-height: 1.45;" data-i18n="client_disconnect_modal_desc">
+                    Esta ação marca o status do cliente como <strong>Desconectado</strong> e desativa varreduras ativas e telemetria em tempo real. Todos os dados históricos (evidências armazenadas no Google Drive, relatórios técnicos e executivos, e o grafo de conformidade) são <strong>estritamente preservados</strong>.
+                </div>
+                <div>
+                    <div style="font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;" data-i18n="client_disconnect_revoke_title">
+                        Comandos gcloud para revogação de permissões na Organização do cliente:
+                    </div>
+                    <pre id="clientDisconnectCommandsPre" style="background: var(--bg-surface-2, #1e1e24); border: 1px solid var(--border-color, #333); border-radius: 6px; padding: 10px 12px; font-size: 11.5px; font-family: monospace; color: #8ab4f8; overflow-x: auto; white-space: pre-wrap; line-height: 1.45; margin: 0; user-select: all;"></pre>
+                </div>
+            </div>
+            <div class="modal-actions" style="margin-top: 16px; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                <button class="btn-cancel" onclick="closeDisconnectClientModal()">
+                    <span data-i18n="btn_cancel">Cancelar</span>
+                </button>
+                <button type="button" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px;" onclick="downloadDisconnectRevokeScript()">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span data-i18n="client_disconnect_btn_download">Baixar Script</span>
+                </button>
+                <button type="button" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px;" onclick="copyDisconnectRevokeCommands()">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    <span id="btnCopyDisconnectText" data-i18n="client_disconnect_btn_copy">Copiar Comandos</span>
+                </button>
+                <button class="btn-confirm" id="btnConfirmClientDisconnect" style="background: var(--gcp-yellow, #fbbc04); color: #202124; font-weight: 600;" onclick="executeConfirmedClientDisconnect()">
+                    <span data-i18n="client_disconnect_btn_confirm">Confirmar Desconexão</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Confirm Client Workspace Switch -->
     <div class="modal-overlay" id="clientSwitchConfirmModal">
         <div class="modal-window" style="max-width: 440px;">
@@ -9048,6 +9151,16 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 client_workspace_title: "Workspace de Clientes",
                 client_status_active: "Ativo",
                 client_status_expired: "Expirado",
+                client_status_disconnected: "Desconectado",
+                client_action_disconnect: "Desconectar",
+                client_action_delete: "Excluir",
+                client_disconnect_modal_title: "Desconectar Workspace de Cliente",
+                client_disconnect_modal_desc: "Esta ação revoga a varredura ativa de telemetria. Todos os dados históricos (evidências no Google Drive, relatórios técnicos e executivos, grafo de evidências) são estritamente preservados.",
+                client_disconnect_revoke_title: "Comandos gcloud para revogação de permissões na Organização do cliente:",
+                client_disconnect_btn_confirm: "Confirmar Desconexão",
+                client_disconnect_btn_copy: "Copiar Comandos",
+                client_disconnect_btn_download: "Baixar Script",
+                client_disconnected_alert: "Este cliente está desconectado — a revogação de acesso foi solicitada. Reconecte ou faça novo onboarding para retomar o escaneamento em tempo real.",
                 client_projects_in_scope: "{n} projetos no escopo",
                 client_expiry_days: "Acesso somente-leitura expira em {n} dias",
                 client_access_expired: "Acesso somente-leitura expirado",
@@ -9394,6 +9507,16 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 client_workspace_title: "Client Workspace",
                 client_status_active: "Active",
                 client_status_expired: "Expired",
+                client_status_disconnected: "Disconnected",
+                client_action_disconnect: "Disconnect",
+                client_action_delete: "Delete",
+                client_disconnect_modal_title: "Disconnect Client Workspace",
+                client_disconnect_modal_desc: "This action marks the client workspace as Disconnected and stops future live scanning. All historical compliance data (Google Drive evidence, reports, evidence graph) is strictly preserved.",
+                client_disconnect_revoke_title: "gcloud commands to revoke read-only IAM bindings in client organization:",
+                client_disconnect_btn_confirm: "Confirm Disconnection",
+                client_disconnect_btn_copy: "Copy Commands",
+                client_disconnect_btn_download: "Download Revoke Script",
+                client_disconnected_alert: "This client is disconnected — revoke access was requested. Reconnect or re-onboard to resume live scanning.",
                 client_projects_in_scope: "{n} projects in scope",
                 client_expiry_days: "Read-only access expires in {n} days",
                 client_access_expired: "Read-only access expired",
@@ -9740,6 +9863,16 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 client_workspace_title: "Espacio de Clientes",
                 client_status_active: "Activo",
                 client_status_expired: "Expirado",
+                client_status_disconnected: "Desconectado",
+                client_action_disconnect: "Desconectar",
+                client_action_delete: "Eliminar",
+                client_disconnect_modal_title: "Desconectar Workspace de Cliente",
+                client_disconnect_modal_desc: "Esta acción marca el espacio de trabajo como Desconectado y desactiva el escaneo en vivo. Todos los datos históricos (evidencias en Drive, reportes, grafo de evidencias) se conservan estrictamente.",
+                client_disconnect_revoke_title: "Comandos gcloud para revocar permisos en la Organización del cliente:",
+                client_disconnect_btn_confirm: "Confirmar Desconexión",
+                client_disconnect_btn_copy: "Copiar Comandos",
+                client_disconnect_btn_download: "Descargar Script",
+                client_disconnected_alert: "Este cliente está desconectado — se solicitó revocar el acceso. Reconéctelo o vuelva a incorporarlo para reanudar el escaneo en vivo.",
                 client_projects_in_scope: "{n} proyectos en alcance",
                 client_expiry_days: "Acceso de solo lectura expira en {n} días",
                 client_access_expired: "Acceso de solo lectura expirado",
@@ -11311,39 +11444,75 @@ Formulário preenchido com o subagente recomendado!`);
             const countEl = document.getElementById("clientActiveProjectsCount");
             const expiryWrapEl = document.getElementById("clientActiveExpiry");
             const expiryTextEl = document.getElementById("clientActiveExpiryText");
+            const actionsEl = document.getElementById("clientActiveActions");
 
             if (avatarEl) avatarEl.innerText = client.avatar || "CL";
             if (nameEl) nameEl.innerText = client.name || "Client Workspace";
 
-            const isActive = client.status === "active" && (client.read_only_access_days_remaining === undefined || client.read_only_access_days_remaining > 0);
+            const isDisconnected = client.status === "disconnected";
+            const isActive = !isDisconnected && client.status === "active" && (client.read_only_access_days_remaining === undefined || client.read_only_access_days_remaining > 0);
+            
+            const lang = window.currentLanguage || 'en';
+            const dict = (typeof I18N !== 'undefined' && I18N[lang]) ? I18N[lang] : {};
+
             if (statusEl) {
-                statusEl.className = `client-status-pill ${isActive ? 'active' : 'expired'}`;
-                const lang = window.currentLanguage || 'en';
-                const dict = (typeof I18N !== 'undefined' && I18N[lang]) ? I18N[lang] : {};
-                statusEl.innerText = isActive
-                    ? (dict.client_status_active || "Active")
-                    : (dict.client_status_expired || "Expired");
+                if (isDisconnected) {
+                    statusEl.className = "client-status-pill disconnected";
+                    statusEl.innerText = dict.client_status_disconnected || "Disconnected";
+                } else {
+                    statusEl.className = `client-status-pill ${isActive ? 'active' : 'expired'}`;
+                    statusEl.innerText = isActive
+                        ? (dict.client_status_active || "Active")
+                        : (dict.client_status_expired || "Expired");
+                }
             }
 
             const projCount = (client.projects || []).length;
             if (countEl) {
-                const lang = window.currentLanguage || 'en';
-                const dict = (typeof I18N !== 'undefined' && I18N[lang]) ? I18N[lang] : {};
                 const tmpl = dict.client_projects_in_scope || "{n} projects in scope";
                 countEl.innerText = tmpl.replace('{n}', projCount);
             }
 
             if (expiryWrapEl && expiryTextEl) {
-                const days = client.read_only_access_days_remaining;
-                const lang = window.currentLanguage || 'en';
-                const dict = (typeof I18N !== 'undefined' && I18N[lang]) ? I18N[lang] : {};
-                if (days !== undefined && days > 0 && client.status === "active") {
-                    expiryWrapEl.classList.remove("expired");
-                    const tmpl = dict.client_expiry_days || "Read-only access expires in {n} days";
-                    expiryTextEl.innerText = tmpl.replace('{n}', days);
-                } else {
+                if (isDisconnected) {
                     expiryWrapEl.classList.add("expired");
-                    expiryTextEl.innerText = dict.client_access_expired || "Read-only access expired";
+                    expiryTextEl.innerText = dict.client_status_disconnected || "Disconnected — historical reports preserved";
+                } else {
+                    const days = client.read_only_access_days_remaining;
+                    if (days !== undefined && days > 0 && client.status === "active") {
+                        expiryWrapEl.classList.remove("expired");
+                        const tmpl = dict.client_expiry_days || "Read-only access expires in {n} days";
+                        expiryTextEl.innerText = tmpl.replace('{n}', days);
+                    } else {
+                        expiryWrapEl.classList.add("expired");
+                        expiryTextEl.innerText = dict.client_access_expired || "Read-only access expired";
+                    }
+                }
+            }
+
+            if (actionsEl) {
+                if (client.client_id && client.client_id !== "altostrat-ventures") {
+                    actionsEl.style.display = "flex";
+                    const disBtn = !isDisconnected ? `
+                        <button class="client-action-btn disconnect" title="${escapeHtml(dict.client_action_disconnect || 'Disconnect')}" onclick="event.stopPropagation(); openDisconnectClientModal('${escapeJs(client.client_id)}')">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                                <line x1="12" y1="2" x2="12" y2="12"/>
+                            </svg>
+                        </button>
+                    ` : '';
+                    const delBtn = `
+                        <button class="client-action-btn delete" title="${escapeHtml(dict.client_action_delete || 'Delete')}" onclick="event.stopPropagation(); confirmDeleteClient('${escapeJs(client.client_id)}', '${escapeJs(client.name)}')">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                        </button>
+                    `;
+                    actionsEl.innerHTML = `${disBtn}${delBtn}`;
+                } else {
+                    actionsEl.style.display = "none";
+                    actionsEl.innerHTML = "";
                 }
             }
         }
@@ -11358,22 +11527,58 @@ Formulário preenchido com o subagente recomendado!`);
                 return;
             }
 
+            const lang = window.currentLanguage || 'en';
+            const dict = (typeof I18N !== 'undefined' && I18N[lang]) ? I18N[lang] : {};
+
             listEl.innerHTML = otherClients.map(c => {
-                const isActive = c.status === "active" && (c.read_only_access_days_remaining === undefined || c.read_only_access_days_remaining > 0);
+                const isDisconnected = c.status === "disconnected";
+                const isActive = !isDisconnected && c.status === "active" && (c.read_only_access_days_remaining === undefined || c.read_only_access_days_remaining > 0);
                 const days = c.read_only_access_days_remaining;
-                const expiryLabel = (days !== undefined && days > 0 && c.status === "active")
-                    ? `${days}d left`
-                    : `Expired`;
-                const isExpiredClass = !isActive ? "expired" : "";
+                
+                let expiryLabel = isDisconnected
+                    ? (dict.client_status_disconnected || "Disconnected")
+                    : ((days !== undefined && days > 0 && c.status === "active") ? `${days}d left` : `Expired`);
+                
+                const pillClass = isDisconnected ? "disconnected" : (isActive ? "active" : "expired");
+                const pillText = isDisconnected ? (dict.client_status_disconnected || "Disconnected") : (isActive ? (dict.client_status_active || "Active") : (dict.client_status_expired || "Expired"));
+                const isExpiredClass = (!isActive && !isDisconnected) ? "expired" : "";
+
+                const canManage = c.client_id !== "altostrat-ventures";
+                let actionButtonsHtml = "";
+                if (canManage) {
+                    const disconnectBtnHtml = !isDisconnected ? `
+                        <button class="client-action-btn disconnect" title="${escapeHtml(dict.client_action_disconnect || 'Disconnect')}" onclick="event.stopPropagation(); openDisconnectClientModal('${escapeJs(c.client_id)}')">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                                <line x1="12" y1="2" x2="12" y2="12"/>
+                            </svg>
+                        </button>
+                    ` : '';
+                    const deleteBtnHtml = `
+                        <button class="client-action-btn delete" title="${escapeHtml(dict.client_action_delete || 'Delete')}" onclick="event.stopPropagation(); confirmDeleteClient('${escapeJs(c.client_id)}', '${escapeJs(c.name)}')">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                        </button>
+                    `;
+                    actionButtonsHtml = `<div class="client-item-actions">${disconnectBtnHtml}${deleteBtnHtml}</div>`;
+                }
+
+                const clickHandler = isDisconnected 
+                    ? `alert('${escapeJs(dict.client_disconnected_alert || "This client is disconnected — revoke access was requested. Reconnect or re-onboard to resume live scanning.")}')`
+                    : `switchClientWorkspace('${escapeJs(c.client_id)}')`;
+                
+                const itemStyle = isDisconnected ? 'opacity: 0.72; cursor: default;' : '';
 
                 return `
-                    <div class="client-dropdown-item" onclick="switchClientWorkspace('${c.client_id}')">
+                    <div class="client-dropdown-item ${isDisconnected ? 'is-disconnected' : ''}" style="${itemStyle}" onclick="${clickHandler}">
                         <div class="client-avatar-small">${escapeHtml(c.avatar || 'CL')}</div>
                         <div class="client-item-details">
                             <div class="client-item-name-row">
                                 <span class="client-item-name">${escapeHtml(c.name)}</span>
-                                <span class="client-status-pill ${isActive ? 'active' : 'expired'}" style="font-size: 9px; padding: 1px 5px;">
-                                    ${isActive ? 'Active' : 'Expired'}
+                                <span class="client-status-pill ${pillClass}" style="font-size: 9px; padding: 1px 5px;">
+                                    ${pillText}
                                 </span>
                             </div>
                             <div class="client-item-meta">
@@ -11382,6 +11587,7 @@ Formulário preenchido com o subagente recomendado!`);
                                 <span class="${isExpiredClass}">${expiryLabel}</span>
                             </div>
                         </div>
+                        ${actionButtonsHtml}
                     </div>
                 `;
             }).join("");
@@ -11529,6 +11735,180 @@ Formulário preenchido com o subagente recomendado!`);
                 console.error("Error switching active client workspace:", err);
             } finally {
                 pendingSwitchClientId = null;
+            }
+        }
+
+        let pendingDisconnectClientId = null;
+
+        function openDisconnectClientModal(clientId) {
+            const menu = document.getElementById("clientDropdownMenu");
+            const chevron = document.getElementById("clientDropdownChevron");
+            if (menu) menu.classList.remove("active");
+            if (chevron) chevron.style.transform = "rotate(0deg)";
+
+            pendingDisconnectClientId = clientId;
+            const client = (onboardedClientsList || []).find(c => c.client_id === clientId);
+            if (!client) return;
+
+            const modal = document.getElementById("clientDisconnectModal");
+            const textEl = document.getElementById("clientDisconnectConfirmText");
+            const preEl = document.getElementById("clientDisconnectCommandsPre");
+
+            const lang = window.currentLanguage || 'en';
+            if (textEl) {
+                textEl.innerText = (lang === 'en')
+                    ? `Disconnect workspace for "${client.name}" (${client.client_id})?`
+                    : `Desconectar workspace de "${client.name}" (${client.client_id})?`;
+            }
+
+            const orgId = client.org_id || "<ORGANIZATION_ID>";
+            const consultantEmail = client.contact_email || client.consultant_identity || window.currentUserEmail || getOperatorId() || "jsaccomani@google.com";
+            const member = (consultantEmail && consultantEmail.includes("gserviceaccount.com"))
+                ? `serviceAccount:${consultantEmail}`
+                : `user:${consultantEmail}`;
+
+            const commands = [
+                `# Revoke read-only compliance assessment roles from Organization`,
+                `gcloud organizations remove-iam-policy-binding ${orgId} \\`,
+                `    --member='${member}' \\`,
+                `    --role='roles/viewer'`,
+                ``,
+                `gcloud organizations remove-iam-policy-binding ${orgId} \\`,
+                `    --member='${member}' \\`,
+                `    --role='roles/iam.securityReviewer'`,
+                ``,
+                `gcloud organizations remove-iam-policy-binding ${orgId} \\`,
+                `    --member='${member}' \\`,
+                `    --role='roles/resourcemanager.organizationViewer'`
+            ].join("\n");
+
+            if (preEl) {
+                preEl.innerText = commands;
+            }
+
+            if (modal) modal.classList.add("active");
+        }
+
+        function closeDisconnectClientModal() {
+            const modal = document.getElementById("clientDisconnectModal");
+            if (modal) modal.classList.remove("active");
+            pendingDisconnectClientId = null;
+        }
+
+        function copyDisconnectRevokeCommands() {
+            const preEl = document.getElementById("clientDisconnectCommandsPre");
+            if (!preEl) return;
+            navigator.clipboard.writeText(preEl.innerText).then(() => {
+                const btnText = document.getElementById("btnCopyDisconnectText");
+                if (btnText) {
+                    const original = btnText.innerText;
+                    btnText.innerText = (window.currentLanguage === 'en') ? "Copied!" : "Copiado!";
+                    setTimeout(() => { btnText.innerText = original; }, 2000);
+                }
+            }).catch(err => {
+                console.error("Failed to copy revoke commands:", err);
+            });
+        }
+
+        function downloadDisconnectRevokeScript() {
+            const preEl = document.getElementById("clientDisconnectCommandsPre");
+            if (!preEl) return;
+            const client = (onboardedClientsList || []).find(c => c.client_id === pendingDisconnectClientId);
+            const filename = `gcp_revoke_${client ? client.client_id : 'client'}.sh`;
+            const fullScript = `#!/usr/bin/env bash\nset -euo pipefail\n\n${preEl.innerText}\n\necho "[✓] Revoke completed successfully."\n`;
+            const blob = new Blob([fullScript], { type: "text/x-shellscript;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        async function executeConfirmedClientDisconnect() {
+            const clientId = pendingDisconnectClientId;
+            if (!clientId) return;
+
+            try {
+                const headers = { "Content-Type": "application/json" };
+                const opId = (typeof getOperatorId === 'function') ? getOperatorId() : localStorage.getItem("grc_operator_id");
+                if (opId) headers["X-Operator-Id"] = opId;
+                if (window.currentUserIdToken) headers["X-Goog-Id-Token"] = window.currentUserIdToken;
+                const token = window.currentUserToken || window.currentGoogleAccessToken;
+                if (token) {
+                    headers["Authorization"] = `Bearer ${token}`;
+                } else if (window.currentUserIdToken) {
+                    headers["Authorization"] = `Bearer ${window.currentUserIdToken}`;
+                }
+
+                const res = await fetch(`/api/clients/${encodeURIComponent(clientId)}/disconnect`, {
+                    method: "POST",
+                    headers
+                });
+
+                if (res.ok) {
+                    closeDisconnectClientModal();
+                    if (currentActiveClientId === clientId) {
+                        await switchActiveClient("altostrat-ventures", false);
+                    }
+                    await loadOnboardedClients();
+                    if (typeof appendLog === 'function') {
+                        appendLog(`[Workspace Desconectado] Cliente '${clientId}' desconectado com sucesso. Evidências e relatórios preservados.`, "success");
+                    }
+                } else {
+                    const errData = await res.json().catch(() => ({}));
+                    alert(`Falha ao desconectar cliente: ${errData.detail || res.statusText}`);
+                }
+            } catch (err) {
+                console.error("Error disconnecting client:", err);
+                alert(`Erro ao desconectar cliente: ${err.message || err}`);
+            }
+        }
+
+        async function confirmDeleteClient(clientId, clientName) {
+            if (clientId === "altostrat-ventures") {
+                alert("Cannot delete core client 'altostrat-ventures'.");
+                return;
+            }
+            const confirmMsg = (window.currentLanguage === 'en')
+                ? `Are you sure you want to permanently delete client "${clientName || clientId}"?`
+                : `Deseja realmente excluir permanentemente o cliente "${clientName || clientId}"?`;
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                const headers = { "Content-Type": "application/json" };
+                const opId = (typeof getOperatorId === 'function') ? getOperatorId() : localStorage.getItem("grc_operator_id");
+                if (opId) headers["X-Operator-Id"] = opId;
+                if (window.currentUserIdToken) headers["X-Goog-Id-Token"] = window.currentUserIdToken;
+                const token = window.currentUserToken || window.currentGoogleAccessToken;
+                if (token) {
+                    headers["Authorization"] = `Bearer ${token}`;
+                } else if (window.currentUserIdToken) {
+                    headers["Authorization"] = `Bearer ${window.currentUserIdToken}`;
+                }
+
+                const res = await fetch(`/api/clients/${encodeURIComponent(clientId)}`, {
+                    method: "DELETE",
+                    headers
+                });
+
+                if (res.ok) {
+                    if (currentActiveClientId === clientId) {
+                        await switchActiveClient("altostrat-ventures", false);
+                    }
+                    await loadOnboardedClients();
+                    if (typeof appendLog === 'function') {
+                        appendLog(`[Cliente Removido] Cliente '${clientId}' excluído com sucesso.`, "success");
+                    }
+                } else {
+                    const errData = await res.json().catch(() => ({}));
+                    alert(`Falha ao excluir cliente: ${errData.detail || res.statusText}`);
+                }
+            } catch (err) {
+                console.error("Error deleting client:", err);
+                alert(`Erro ao excluir cliente: ${err.message || err}`);
             }
         }
 
