@@ -22,13 +22,13 @@ def temporary_test_clients():
     # Onboard client alpha
     client.post(
         "/api/clients/onboard",
-        json={"name": "Client Alpha Org", "client_id": "client-alpha", "projects": ["alpha-prod"], "days": 14},
+        json={"name": "Client Alpha Org", "client_id": "client-alpha", "projects": ["alpha-prod"], "days": 14, "is_shared": True},
         headers=headers,
     )
     # Onboard client beta
     client.post(
         "/api/clients/onboard",
-        json={"name": "Client Beta Org", "client_id": "client-beta", "projects": ["beta-prod"], "days": 14},
+        json={"name": "Client Beta Org", "client_id": "client-beta", "projects": ["beta-prod"], "days": 14, "is_shared": True},
         headers=headers,
     )
     yield "client-alpha", "client-beta"
@@ -421,3 +421,227 @@ def test_evidence_cross_client_drive_isolation():
     finally:
         client.delete(f"/api/clients/{client_a_id}", headers=headers)
         client.delete(f"/api/clients/{client_b_id}", headers=headers)
+
+
+def test_onboarded_client_scoped_per_operator_isolation():
+    """Verify that clients onboarded by Operator A are strictly scoped to Operator A.
+    
+    Proves:
+    1. Operator A onboards Client X.
+    2. Operator B (a different verified identity) calls GET /api/clients and does NOT see Client X.
+    3. Operator B cannot select Client X as active via POST /api/clients/active (returns 403 Forbidden).
+    """
+    op_a_headers = {**AUTH_HEADER, "X-Operator-Id": "operator-a@security.corp"}
+    op_b_headers = {**AUTH_HEADER, "X-Operator-Id": "operator-b@otherorg.corp"}
+
+    client_x_id = "client-x-confidential"
+    try:
+        # 1. Operator A onboards Client X
+        res_onboard = client.post(
+            "/api/clients/onboard",
+            json={
+                "name": "Confidential Client X",
+                "client_id": client_x_id,
+                "projects": [f"{client_x_id}-prod"],
+                "org_id": "999888777666",
+            },
+            headers=op_a_headers,
+        )
+        assert res_onboard.status_code == 200
+        data_onboard = res_onboard.json()
+        assert data_onboard["client"]["client_id"] == client_x_id
+        assert data_onboard["client"]["owner_operator_id"] == "operator-a@security.corp"
+
+        # 2. Operator A calls GET /api/clients and DOES see Client X
+        res_a = client.get("/api/clients", headers=op_a_headers)
+        assert res_a.status_code == 200
+        a_client_ids = [c["client_id"] for c in res_a.json()["clients"]]
+        assert client_x_id in a_client_ids
+
+        # 3. Operator B (different verified identity) calls GET /api/clients and does NOT see Client X
+        res_b = client.get("/api/clients", headers=op_b_headers)
+        assert res_b.status_code == 200
+        b_client_ids = [c["client_id"] for c in res_b.json()["clients"]]
+        assert client_x_id not in b_client_ids
+
+        # 4. Operator B attempts to select Client X as active -> REJECTED (403 Forbidden)
+        res_switch = client.post(
+            "/api/clients/active",
+            json={"client_id": client_x_id},
+            headers=op_b_headers,
+        )
+        assert res_switch.status_code == 403
+        assert "Access denied" in res_switch.json().get("detail", "")
+
+    finally:
+        # Cleanup
+        client.delete(f"/api/clients/{client_x_id}", headers=op_a_headers)
+
+
+def test_switching_active_client_changes_projects_and_isolates_org_projects():
+    """Verify that /api/projects queries Cloud Resource Manager live per-client,
+    changing returned projects upon active client switch and strictly isolating organizations.
+    
+    Proves:
+    1. Switching active client changes the projects returned by /api/projects.
+    2. Projects belonging to Client Alpha's org never appear when Client Beta is active, and vice versa.
+    3. If the delegated token lacks permission to list the org's projects (e.g. 403), returns a clear
+       error rather than silently falling back to any hardcoded list.
+    """
+    from unittest.mock import MagicMock, patch
+
+    op_headers = {**AUTH_HEADER, "X-Operator-Id": "consultant-projects-test"}
+    client_alpha_id = "client-alpha-org"
+    client_beta_id = "client-beta-org"
+
+    # Onboard two distinct clients with distinct GCP Organization IDs
+    try:
+        client.post(
+            "/api/clients/onboard",
+            json={
+                "name": "Alpha Enterprise",
+                "client_id": client_alpha_id,
+                "org_id": "111000111000",
+                "projects": ["alpha-workload-prod", "alpha-workload-stage"],
+            },
+            headers=op_headers,
+        )
+        client.post(
+            "/api/clients/onboard",
+            json={
+                "name": "Beta Financial",
+                "client_id": client_beta_id,
+                "org_id": "222000222000",
+                "projects": ["beta-banking-prod", "beta-vault"],
+            },
+            headers=op_headers,
+        )
+
+        mock_session = MagicMock()
+
+        def mock_crm_get(url, params=None, timeout=None):
+            resp = MagicMock()
+            filter_param = (params or {}).get("filter", "")
+            if "111000111000" in filter_param:
+                resp.status_code = 200
+                resp.json.return_value = {
+                    "projects": [
+                        {
+                            "projectId": "alpha-workload-prod",
+                            "name": "Alpha Workload Prod",
+                            "projectNumber": "11101",
+                            "lifecycleState": "ACTIVE",
+                            "parent": {"type": "organization", "id": "111000111000"},
+                        },
+                        {
+                            "projectId": "alpha-workload-stage",
+                            "name": "Alpha Workload Stage",
+                            "projectNumber": "11102",
+                            "lifecycleState": "ACTIVE",
+                            "parent": {"type": "organization", "id": "111000111000"},
+                        },
+                        {
+                            "projectId": "alpha-internal-sandbox",
+                            "name": "Alpha Sandbox",
+                            "projectNumber": "11103",
+                            "lifecycleState": "ACTIVE",
+                            "parent": {"type": "organization", "id": "111000111000"},
+                        },
+                    ]
+                }
+            elif "222000222000" in filter_param:
+                resp.status_code = 200
+                resp.json.return_value = {
+                    "projects": [
+                        {
+                            "projectId": "beta-banking-prod",
+                            "name": "Beta Banking Prod",
+                            "projectNumber": "22201",
+                            "lifecycleState": "ACTIVE",
+                            "parent": {"type": "organization", "id": "222000222000"},
+                        },
+                        {
+                            "projectId": "beta-vault",
+                            "name": "Beta Vault",
+                            "projectNumber": "22202",
+                            "lifecycleState": "ACTIVE",
+                            "parent": {"type": "organization", "id": "222000222000"},
+                        },
+                        {
+                            "projectId": "beta-restricted-ledger",
+                            "name": "Beta Restricted Ledger",
+                            "projectNumber": "22203",
+                            "lifecycleState": "ACTIVE",
+                            "parent": {"type": "organization", "id": "222000222000"},
+                        },
+                    ]
+                }
+            else:
+                resp.status_code = 403
+                resp.text = "PermissionDenied: The caller does not have permission on the requested organization"
+            return resp
+
+        mock_session.get.side_effect = mock_crm_get
+
+        with patch("mcp_server_grc.portal.get_authorized_session", return_value=(mock_session, "test-target")):
+            # 1. Switch active client to Alpha
+            sw_a = client.post(
+                "/api/clients/active",
+                json={"client_id": client_alpha_id},
+                headers=op_headers,
+            )
+            assert sw_a.status_code == 200
+
+            # 2. Query /api/projects for active Client Alpha
+            res_alpha_proj = client.get("/api/projects", headers=op_headers)
+            assert res_alpha_proj.status_code == 200
+            data_a = res_alpha_proj.json()
+            assert data_a["client_id"] == client_alpha_id
+            assert data_a["org_id"] == "111000111000"
+            alpha_pids = [p["project_id"] for p in data_a["all_org_projects"]]
+            assert "alpha-workload-prod" in alpha_pids
+            assert "alpha-internal-sandbox" in alpha_pids
+            # Ensure Beta projects NEVER appear under Alpha
+            assert "beta-banking-prod" not in alpha_pids
+            assert "beta-vault" not in alpha_pids
+            assert "beta-restricted-ledger" not in alpha_pids
+
+            # 3. Switch active client to Beta
+            sw_b = client.post(
+                "/api/clients/active",
+                json={"client_id": client_beta_id},
+                headers=op_headers,
+            )
+            assert sw_b.status_code == 200
+
+            # 4. Query /api/projects for active Client Beta -> Must reflect Beta's projects only
+            res_beta_proj = client.get("/api/projects", headers=op_headers)
+            assert res_beta_proj.status_code == 200
+            data_b = res_beta_proj.json()
+            assert data_b["client_id"] == client_beta_id
+            assert data_b["org_id"] == "222000222000"
+            beta_pids = [p["project_id"] for p in data_b["all_org_projects"]]
+            assert "beta-banking-prod" in beta_pids
+            assert "beta-vault" in beta_pids
+            assert "beta-restricted-ledger" in beta_pids
+            # Ensure Alpha projects NEVER appear under Beta
+            assert "alpha-workload-prod" not in beta_pids
+            assert "alpha-workload-stage" not in beta_pids
+            assert "alpha-internal-sandbox" not in beta_pids
+
+        # 5. Verify that if delegated token lacks permission (e.g. 403 Forbidden from CRM),
+        # /api/projects returns a clear error and DOES NOT silently fall back to hardcoded lists
+        perm_denied_session = MagicMock()
+        perm_denied_resp = MagicMock(status_code=403, text="User lacks resourcemanager.projects.list permission")
+        perm_denied_session.get.return_value = perm_denied_resp
+
+        with patch("mcp_server_grc.portal.get_authorized_session", return_value=(perm_denied_session, "test-target")):
+            res_denied = client.get("/api/projects", headers=op_headers)
+            assert res_denied.status_code == 403
+            assert "resourcemanager.projects.list" in res_denied.json().get("detail", "")
+            # Ensure no silent fallback occurred
+            assert "all_org_projects" not in res_denied.json()
+
+    finally:
+        client.delete(f"/api/clients/{client_alpha_id}", headers=op_headers)
+        client.delete(f"/api/clients/{client_beta_id}", headers=op_headers)

@@ -2611,3 +2611,47 @@ This pattern introduced two key issues:
    - Deployed revision `mcp-server-grc-00077-v8h` to Google Cloud Run in `us-central1` serving 100% of live traffic.
    - Verified live curl: `jsaccomani@google.com` and `google.com • GCP Live Delegated` active in HTML.
    - All 210 tests passing across all test suites (`uv run pytest`).
+
+---
+
+### Milestone 75: Resolution of Critical Security & Isolation Blockers (IAP ES256, Per-Operator Client Scoping, Live Cloud Resource Manager Query)
+
+#### 1. Context & Objectives
+Resolved three connected critical issues affecting onboarding completeness and data isolation:
+1. **Broken IAP JWT Signature Verification**: In `mcp_server_grc/auth.py`, replaced introspection of non-existent `signing_key.algorithm_name` with `algorithms=["ES256"]`.
+2. **Per-Operator Client Scoping**: Scoped onboarded clients per-operator rather than globally in `data/clients.json`.
+3. **Per-Client Live Query for `/api/projects`**: Replaced hardcoded constants with real live query to Cloud Resource Manager API using delegated user tokens with strict client/org scoping.
+
+#### 2. Technical Implementation Details
+1. **Fixed Google Cloud IAP JWT Signature Verification (`mcp_server_grc/auth.py`)**:
+   - In `verify_iap_jwt()`, replaced `algorithms=[signing_key.algorithm_name or alg]` with `algorithms=["ES256"]` directly.
+   - Eliminated the `AttributeError: 'PyJWK' object has no attribute 'algorithm_name'` crash.
+   - Re-verified that all 5 IAP test cases pass for the right reasons:
+     - `test_iap_jwt_audience_mismatch_is_rejected_401` -> Rejects mismatched audience with 401.
+     - `test_iap_jwt_issuer_mismatch_is_rejected_401` -> Rejects untrusted issuer with 401.
+     - `test_iap_jwt_expired_is_rejected_401` -> Rejects expired token with 401.
+     - `test_beyondcorp_iap_cryptographic_authentication_and_portal_serving` -> Authenticates valid ES256 token and injects verified identity.
+     - `test_iap_header_email_mismatch_with_jwt_payload_is_rejected_401` -> Rejects spoofed header mismatch with verified JWT payload.
+
+2. **Per-Operator Client Scoping (`mcp_server_grc/portal.py`)**:
+   - Added `owner_operator_id`, `owner_email`, `shared_operators`, and `is_shared` fields to client records and `OnboardClientRequest`.
+   - Created `is_client_accessible_by_operator(client, operator_id, user_context)` access validator.
+   - Filtered `GET /api/clients` to return only clients owned by or explicitly shared with the requesting operator.
+   - Updated `POST /api/clients/active` to verify that the target client is accessible by the requesting operator, returning HTTP 403 Forbidden if not authorized.
+   - Added automated test in `tests/test_client_isolation.py`:
+     - `test_onboarded_client_scoped_per_operator_isolation`: Operator A onboards Client X; Operator B (different verified identity) calls `GET /api/clients` and does NOT see Client X, and cannot select it via `POST /api/clients/active` (returns 403).
+
+3. **Per-Client Live Query to Cloud Resource Manager (`mcp_server_grc/portal.py`)**:
+   - Updated `GET /api/projects` to accept active client context (`x_operator_id`, `x_client_id`, `x_session_id`, `client_id`, `authorization`, `user_context`).
+   - Integrated delegated user session using `get_authorized_session(bearer_token=bearer_token)` from `mcp_server_grc/cloud_inspector.py`.
+   - Query live Cloud Resource Manager endpoint `https://cloudresourcemanager.googleapis.com/v1/projects` filtered by client organization ID (`parent.id:<org_id>`).
+   - Strictly enforces read-only guardrails: never falls back to broader service account.
+   - If delegated token lacks permission (`resourcemanager.projects.list`), returns HTTP 403 with clear error details instead of silently falling back to hardcoded data.
+   - Added automated test in `tests/test_client_isolation.py`:
+     - `test_switching_active_client_changes_projects_and_isolates_org_projects`: Proves switching active client changes projects returned by `/api/projects`, projects belonging to another client's org never appear, and 403 permission denial returns a clear error without fallback.
+
+#### 3. Verification & Test Results
+- Ran full test suite across all 17 test modules (`uv run pytest`):
+  - **212 passed in 20.00s (100% pass rate)**.
+  - Zero test failures, zero regressions.
+

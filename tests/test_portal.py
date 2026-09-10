@@ -2,10 +2,11 @@
 
 import io
 from html.parser import HTMLParser
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 from mcp_server_grc.server import app
 from mcp_server_grc.auth import create_mock_iap_jwt
+from mcp_server_grc.catalog import ALL_ORG_PROJECTS
 
 client = TestClient(app)
 
@@ -521,21 +522,35 @@ def test_cloudstyle_html_report_export():
 
 
 def test_finops_and_org_scope_toggle():
-    # Test GET /api/projects returns organization metadata and all_org_projects
-    res_proj = client.get("/api/projects")
-    assert res_proj.status_code == 200
-    data_proj = res_proj.json()
-    assert "all_org_projects" in data_proj
-    assert data_proj["total_org_projects"] >= 10
-    assert "org_metadata" in data_proj
-    assert data_proj["org_metadata"]["org_id"] == "108928374619"
+    mock_session = MagicMock()
+    mock_resp = MagicMock(status_code=200)
+    mock_resp.json.return_value = {
+        "projects": [
+            {"projectId": p["project_id"], "name": p["project_id"], "projectNumber": f"100{i}", "lifecycleState": "ACTIVE"}
+            for i, p in enumerate(ALL_ORG_PROJECTS)
+        ]
+    }
+    mock_session.get.return_value = mock_resp
+    with patch("mcp_server_grc.portal.get_authorized_session", return_value=(mock_session, "agentic-grc-cd06")):
+        headers = {"Authorization": "Bearer ya29.valid-auditor-access-token"}
+        # Test GET /api/projects returns organization metadata and all_org_projects
+        res_proj = client.get("/api/projects", headers=headers)
+        assert res_proj.status_code == 200
+        data_proj = res_proj.json()
+        assert "all_org_projects" in data_proj
+        assert data_proj["total_org_projects"] >= 10
+        assert "org_metadata" in data_proj
+        assert data_proj["org_metadata"]["org_id"] == "108928374619"
 
-    # Test toggle scope endpoint
-    res_toggle = client.post("/api/projects/toggle_scope", json={"project_id": "agentic-grc-ai-workloads", "in_scope": True})
-    assert res_toggle.status_code == 200
-    toggle_data = res_toggle.json()
-    assert toggle_data["status"] == "ok"
-    assert toggle_data["in_scope"] is True
+        # Test toggle scope endpoint
+        res_toggle = client.post("/api/projects/toggle_scope", json={"project_id": "agentic-grc-ai-workloads", "in_scope": True}, headers=headers)
+        assert res_toggle.status_code == 200
+        toggle_data = res_toggle.json()
+        assert toggle_data["status"] == "ok"
+        assert toggle_data["in_scope"] is True
+
+        # Toggle back to preserve clean disk state
+        client.post("/api/projects/toggle_scope", json={"project_id": "agentic-grc-ai-workloads", "in_scope": False}, headers=headers)
 
     # Test FinOps API
     res_finops = client.get("/api/finops")

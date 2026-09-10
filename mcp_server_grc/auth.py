@@ -287,7 +287,7 @@ def verify_iap_jwt(
         claims = jwt.decode(
             iap_jwt_str,
             signing_key.key,
-            algorithms=[signing_key.algorithm_name or alg],
+            algorithms=["ES256"],
             audience=allowed_audiences,
             issuer=GOOGLE_IAP_ISSUER,
             options={

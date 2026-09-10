@@ -44,6 +44,8 @@ from mcp_server_grc.tools.threat_intel import correlate_threat_intelligence
 from mcp_server_grc.tools.climate_resilience import audit_climate_resilience
 from mcp_server_grc.tools.iac_scanner import scan_iac_configuration
 from mcp_server_grc.cloud_inspector import (
+    check_and_increment_call_budget,
+    get_authorized_session,
     inspect_cloud_kms_key,
     inspect_cloud_storage_bucket,
     inspect_project_iam_policy,
@@ -51,6 +53,7 @@ from mcp_server_grc.cloud_inspector import (
     list_cloud_kms_keys,
     list_cloud_storage_buckets,
     reset_session_call_budget,
+    LIVE_INSPECTION_TIMEOUT_SECONDS,
 )
 from mcp_server_grc.catalog import (
     ACTIVE_PROJECTS,
@@ -143,7 +146,8 @@ def load_onboarded_clients() -> List[Dict[str, Any]]:
                 "created_at": "2026-09-01T12:00:00Z",
                 "read_only_access_expires_at": "2026-09-23T16:00:00Z",
                 "read_only_access_days_remaining": 14,
-                "status": "active"
+                "status": "active",
+                "is_shared": True,
             }
         ]
 
@@ -177,14 +181,57 @@ def resolve_operator_id(
     return "default_operator"
 
 
-def get_operator_active_client(operator_id: str) -> str:
-    """Returns the active client_id for the given operator, defaulting to altostrat-ventures."""
-    active = OPERATOR_ACTIVE_CLIENTS.get(operator_id, "altostrat-ventures")
-    existing_cids = {c.get("client_id") for c in load_onboarded_clients()}
-    if active not in existing_cids:
-        active = "altostrat-ventures"
+def is_client_accessible_by_operator(
+    client: Dict[str, Any],
+    operator_id: str,
+    user_context: Optional[WorkspaceUserContext] = None,
+) -> bool:
+    """Determines whether a client record is accessible by the requesting operator.
+    
+    Access is granted if:
+    1. The operator is the recorded owner (owner_operator_id or owner_email matches).
+    2. The operator is explicitly listed in shared_operators.
+    3. The client is explicitly marked as shared (is_shared=True).
+    4. The client has no owner set (legacy/unowned seed client like altostrat-ventures).
+    """
+    owner_id = client.get("owner_operator_id")
+    owner_email = client.get("owner_email")
+    if owner_id and owner_id == operator_id:
+        return True
+    if user_context and user_context.email and owner_email and user_context.email.lower() == str(owner_email).lower():
+        return True
+    shared_ops = client.get("shared_operators") or []
+    if operator_id in shared_ops:
+        return True
+    if user_context and user_context.email and user_context.email in shared_ops:
+        return True
+    if client.get("is_shared") is True:
+        return True
+    if not owner_id and not owner_email:
+        return True
+    return False
+
+
+def get_operator_active_client(operator_id: str, user_context: Optional[WorkspaceUserContext] = None) -> str:
+    """Returns the active client_id for the given operator, defaulting to first accessible client or altostrat-ventures."""
+    all_clients = load_onboarded_clients()
+    accessible = [c for c in all_clients if is_client_accessible_by_operator(c, operator_id, user_context)]
+    accessible_cids = {c.get("client_id") for c in accessible}
+
+    active = OPERATOR_ACTIVE_CLIENTS.get(operator_id)
+    if active and active in accessible_cids:
+        return active
+
+    if "altostrat-ventures" in accessible_cids:
         OPERATOR_ACTIVE_CLIENTS[operator_id] = "altostrat-ventures"
-    return active
+        return "altostrat-ventures"
+
+    if accessible:
+        first_cid = accessible[0].get("client_id")
+        OPERATOR_ACTIVE_CLIENTS[operator_id] = first_cid
+        return first_cid
+
+    return "altostrat-ventures"
 
 
 def get_client_drive_folder_id(client_id: str) -> Optional[str]:
@@ -245,6 +292,8 @@ class OnboardClientRequest(BaseModel):
     org_name: Optional[str] = Field(default=None, description="Optional organization name")
     contact_email: Optional[str] = Field(default=None, description="Auditor/client contact email")
     drive_folder_id: Optional[str] = Field(default=None, description="Google Drive folder ID or URL for evidence storage")
+    shared_operators: Optional[List[str]] = Field(default_factory=list, description="Optional list of operator IDs explicitly granted access")
+    is_shared: Optional[bool] = Field(default=False, description="Whether this client is explicitly shared globally")
 
 
 class StorageLinkRequest(BaseModel):
@@ -648,53 +697,160 @@ def call_vertex_gemini(user_prompt: str, projects: Optional[List[str]] = None, l
 # ---------------------------------------------------------------------------
 
 @router.get("/api/projects")
-async def get_projects():
-    """Returns list of active monitored GCP projects and organization discovery catalog."""
+async def get_projects(
+    authorization: Optional[str] = Header(None),
+    x_operator_id: Optional[str] = Header(None),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    client_id: Optional[str] = Query(None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
+    """Returns real-time GCP projects for the active client discovered via Cloud Resource Manager API.
+    
+    Scoped strictly per active client workspace and authenticated operator identity.
+    Uses the delegated user token to query Cloud Resource Manager; never falls back
+    to broader service account or hardcoded data.
+    """
+    op_id = resolve_operator_id(user_context, x_operator_id)
+    all_clients = load_onboarded_clients()
+
+    target_cid = client_id or x_client_id
+    if not target_cid and x_session_id and x_session_id in SESSION_CLIENT_BINDINGS:
+        target_cid = SESSION_CLIENT_BINDINGS[x_session_id]
+    if not target_cid:
+        target_cid = get_operator_active_client(op_id, user_context)
+
+    client_rec = next((c for c in all_clients if c.get("client_id") == target_cid), None)
+    if not client_rec:
+        raise HTTPException(status_code=404, detail=f"Client '{target_cid}' not found in onboarded registry.")
+
+    if not is_client_accessible_by_operator(client_rec, op_id, user_context):
+        raise HTTPException(
+            status_code=403,
+            detail=f"Access denied: Client '{target_cid}' is owned by another operator and is not shared with '{op_id}'.",
+        )
+
+    # Extract delegated user bearer token
+    bearer_token = None
+    if authorization and authorization.strip():
+        clean_auth = authorization.strip()
+        bearer_token = clean_auth.split(" ", 1)[1].strip() if clean_auth.startswith("Bearer ") else clean_auth
+    elif user_context and user_context.access_token:
+        bearer_token = user_context.access_token
+
+    # Delegate live query to Cloud Resource Manager API using user token
+    session, _ = get_authorized_session(bearer_token=bearer_token)
+    if session is None:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Delegated user credential required to query Cloud Resource Manager projects. "
+                "Provide a valid delegated Google Workspace / OAuth2 bearer token to inspect projects under your identity."
+            ),
+        )
+
+    org_id = client_rec.get("org_id")
+    crm_url = "https://cloudresourcemanager.googleapis.com/v1/projects"
+    params = {}
+    if org_id and str(org_id).strip():
+        params["filter"] = f"parent.type:organization AND parent.id:{str(org_id).strip()}"
+
+    call_timeout = float(os.getenv("LIVE_INSPECTION_TIMEOUT_SECONDS", str(LIVE_INSPECTION_TIMEOUT_SECONDS)))
+    try:
+        resp = session.get(crm_url, params=params, timeout=call_timeout)
+    except Exception as exc:
+        logger.warning(f"Error querying Cloud Resource Manager API for client '{target_cid}': {exc}")
+        raise HTTPException(
+            status_code=502,
+            detail=f"Cloud Resource Manager API connection failed: {exc}",
+        )
+
+    if resp.status_code == 401:
+        raise HTTPException(
+            status_code=401,
+            detail=f"Delegated user authentication failed for Cloud Resource Manager: {resp.text}",
+        )
+    elif resp.status_code == 403:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Delegated user lacks 'resourcemanager.projects.list' permission for organization "
+                f"'{org_id}' on client '{client_rec.get('name')}': {resp.text}"
+            ),
+        )
+    elif resp.status_code != 200:
+        raise HTTPException(
+            status_code=resp.status_code,
+            detail=f"Cloud Resource Manager API returned error status {resp.status_code}: {resp.text}",
+        )
+
+    data = resp.json() if hasattr(resp, "json") else {}
+    raw_projects = data.get("projects", [])
+
+    configured_projects = set(client_rec.get("projects") or [])
+    live_projects = []
+    for p in raw_projects:
+        pid = p.get("projectId") or p.get("name", "").split("/")[-1]
+        if not pid:
+            continue
+        in_scope = (pid in configured_projects) if configured_projects else True
+        live_projects.append({
+            "project_id": pid,
+            "name": p.get("name", pid),
+            "project_number": p.get("projectNumber", ""),
+            "environment": "ORGANIZATION",
+            "lifecycle_state": p.get("lifecycleState", "ACTIVE"),
+            "parent": p.get("parent", {"type": "organization", "id": org_id}),
+            "in_scope": in_scope,
+            "status": "COMPLIANT",
+            "score": 100.0,
+        })
+
+    active_in_scope = [p for p in live_projects if p.get("in_scope")]
     return {
-        "projects": ACTIVE_PROJECTS,
-        "count": len(ACTIVE_PROJECTS),
-        "all_org_projects": ALL_ORG_PROJECTS,
-        "total_org_projects": len(ALL_ORG_PROJECTS),
-        "org_metadata": GCP_ORGANIZATION_METADATA,
+        "client_id": target_cid,
+        "client_name": client_rec.get("name"),
+        "org_id": org_id,
+        "projects": active_in_scope,
+        "count": len(active_in_scope),
+        "all_org_projects": live_projects,
+        "total_org_projects": len(live_projects),
+        "org_metadata": {
+            "org_id": org_id,
+            "org_name": client_rec.get("org_name", f"{client_rec.get('name')} Org"),
+            "total_projects": len(live_projects),
+        },
     }
 
 
 @router.post("/api/projects/toggle_scope")
-async def toggle_project_scope(req: ProjectToggleScopeRequest):
-    """Toggles inclusion of an Organization-level GCP project in the active audit scope."""
-    pid = req.project_id.strip()
-    target_p = None
-    for p in ALL_ORG_PROJECTS:
-        if p["project_id"] == pid:
-            p["in_scope"] = req.in_scope
-            target_p = p
-            break
-
-    if req.in_scope:
-        if not any(p["project_id"] == pid for p in ACTIVE_PROJECTS):
-            if target_p:
-                ACTIVE_PROJECTS.append(target_p)
-            else:
-                new_p = {
-                    "project_id": pid,
-                    "environment": "ORGANIZATION",
-                    "region": "us-central1",
-                    "status": "COMPLIANT",
-                    "score": 100.0,
-                }
-                ACTIVE_PROJECTS.append(new_p)
-    else:
-        for i, p in enumerate(ACTIVE_PROJECTS):
-            if p["project_id"] == pid:
-                ACTIVE_PROJECTS.pop(i)
-                break
+async def toggle_project_scope(
+    req: ProjectToggleScopeRequest,
+    x_operator_id: Optional[str] = Header(None),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
+    """Toggles inclusion of an Organization-level GCP project in the active client's audit scope."""
+    op_id = resolve_operator_id(user_context, x_operator_id)
+    target_cid = x_client_id or (SESSION_CLIENT_BINDINGS.get(x_session_id) if x_session_id else None) or get_operator_active_client(op_id, user_context)
+    all_clients = load_onboarded_clients()
+    client_rec = next((c for c in all_clients if c.get("client_id") == target_cid), None)
+    if client_rec and is_client_accessible_by_operator(client_rec, op_id, user_context):
+        configured = client_rec.get("projects") or []
+        pid = req.project_id.strip()
+        if req.in_scope and pid not in configured:
+            configured.append(pid)
+        elif not req.in_scope and pid in configured:
+            configured.remove(pid)
+        client_rec["projects"] = configured
+        save_onboarded_clients(all_clients)
 
     return {
         "status": "ok",
-        "project_id": pid,
+        "project_id": req.project_id,
         "in_scope": req.in_scope,
-        "active_count": len(ACTIVE_PROJECTS),
-        "projects": ACTIVE_PROJECTS,
+        "client_id": target_cid,
     }
 
 
@@ -733,18 +889,34 @@ async def simulate_finops_audit():
 
 
 @router.post("/api/projects/add")
-async def add_project(req: ProjectAddRequest):
-    """Registers a new GCP project for continuous multi-project auditing."""
+async def add_project(
+    req: ProjectAddRequest,
+    x_operator_id: Optional[str] = Header(None),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
+    """Registers a new GCP project in the active client's audit scope."""
+    op_id = resolve_operator_id(user_context, x_operator_id)
+    target_cid = x_client_id or (SESSION_CLIENT_BINDINGS.get(x_session_id) if x_session_id else None) or get_operator_active_client(op_id, user_context)
+    all_clients = load_onboarded_clients()
+    client_rec = next((c for c in all_clients if c.get("client_id") == target_cid), None)
+    new_pid = req.project_id.strip()
+    if client_rec and is_client_accessible_by_operator(client_rec, op_id, user_context):
+        configured = client_rec.get("projects") or []
+        if new_pid not in configured:
+            configured.append(new_pid)
+            client_rec["projects"] = configured
+            save_onboarded_clients(all_clients)
+
     new_entry = {
-        "project_id": req.project_id.strip(),
+        "project_id": new_pid,
         "environment": req.environment.upper(),
         "region": req.region.strip(),
         "status": "QUEUED_FOR_AUDIT",
         "score": 100.0,
     }
-    if not any(p["project_id"] == new_entry["project_id"] for p in ACTIVE_PROJECTS):
-        ACTIVE_PROJECTS.append(new_entry)
-    return {"status": "REGISTERED", "project": new_entry, "total_projects": len(ACTIVE_PROJECTS)}
+    return {"status": "REGISTERED", "project": new_entry, "client_id": target_cid}
 
 
 @router.get("/api/iso_matrix")
@@ -2498,8 +2670,9 @@ async def get_clients_list(
 ):
     """Returns list of onboarded client workspaces and active selection for the requesting operator."""
     op_id = resolve_operator_id(user_context, x_operator_id, operator_id)
-    clients = load_onboarded_clients()
-    active_cid = get_operator_active_client(op_id)
+    all_clients = load_onboarded_clients()
+    clients = [c for c in all_clients if is_client_accessible_by_operator(c, op_id, user_context)]
+    active_cid = get_operator_active_client(op_id, user_context)
     active_client = next((c for c in clients if c.get("client_id") == active_cid), clients[0] if clients else None)
     return {
         "clients": clients,
@@ -2517,10 +2690,16 @@ async def switch_active_client(
 ):
     """Switches active client workspace for the requesting operator and invalidates prior session state."""
     op_id = resolve_operator_id(user_context, x_operator_id)
-    clients = load_onboarded_clients()
-    target_client = next((c for c in clients if c.get("client_id") == req.client_id), None)
+    all_clients = load_onboarded_clients()
+    target_client = next((c for c in all_clients if c.get("client_id") == req.client_id), None)
     if not target_client:
         raise HTTPException(status_code=404, detail=f"Client '{req.client_id}' not found in onboarded registry.")
+
+    if not is_client_accessible_by_operator(target_client, op_id, user_context):
+        raise HTTPException(
+            status_code=403,
+            detail=f"Access denied: Client '{req.client_id}' is owned by another operator and is not shared with '{op_id}'.",
+        )
 
     # Invalidate previous session and rate limiter call budget
     old_session_id = OPERATOR_SESSIONS.get(op_id)
@@ -2595,6 +2774,10 @@ async def onboard_new_client(
             else:
                 drive_folder_id = raw_df
 
+    op_id = resolve_operator_id(user_context, x_operator_id)
+    owner_email = user_context.email if (user_context and user_context.email and user_context.email != "auditor@client.corp") else op_id
+    shared_ops = [s.strip() for s in req.shared_operators if s.strip()] if req.shared_operators else []
+
     record = {
         "client_id": client_id,
         "name": client_name,
@@ -2608,6 +2791,10 @@ async def onboard_new_client(
         "read_only_access_expires_at": expiry_iso,
         "read_only_access_days_remaining": days,
         "status": "active",
+        "owner_operator_id": op_id,
+        "owner_email": owner_email,
+        "shared_operators": shared_ops,
+        "is_shared": bool(req.is_shared),
     }
 
     # Load existing clients directly from file or fallback
