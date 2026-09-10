@@ -12,16 +12,27 @@ import time
 import base64
 import json
 import logging
+import urllib.request
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 from fastapi import Depends, Header, HTTPException, Request
 from google.oauth2.credentials import Credentials
 from google.auth import jwt as google_jwt
+import jwt
+from jwt.api_jwk import PyJWKSet
+from cryptography.hazmat.primitives.asymmetric import ec
 
 logger = logging.getLogger("mcp_server_grc.auth")
 
 DEFAULT_CLIENT_ID = "agentic-grc-portal.apps.googleusercontent.com"
 DEFAULT_WORKSPACE_DOMAIN = "client.corp"
+
+GOOGLE_IAP_PUBLIC_KEY_URL = "https://www.gstatic.com/iap/verify/public_key-jwk"
+GOOGLE_IAP_ISSUER = "https://cloud.google.com/iap"
+IAP_CACHE_TTL_SECONDS = 3600  # 1 hour
+
+_iap_keys_cache: Dict[str, Any] = {}
+_iap_keys_last_fetch: float = 0.0
 
 # Explicit OAuth Scopes requested for Google Workspace and live GCP resource inspection
 WORKSPACE_OAUTH_SCOPES: List[str] = [
@@ -74,6 +85,252 @@ def create_mock_id_token(
         return base64.urlsafe_b64encode(json.dumps(d).encode("utf-8")).decode("utf-8").rstrip("=")
 
     return f"{b64(header)}.{b64(payload)}.fake_cryptographic_signature"
+
+
+def get_iap_public_keys(force_refresh: bool = False) -> Dict[str, Any]:
+    """Fetches and caches Google's IAP public keys from https://www.gstatic.com/iap/verify/public_key-jwk.
+    
+    Keys are cached in-memory and refreshed every hour (3600s), or refreshed immediately on force_refresh.
+    """
+    global _iap_keys_cache, _iap_keys_last_fetch
+    now = time.time()
+    if not force_refresh and _iap_keys_cache and (now - _iap_keys_last_fetch < IAP_CACHE_TTL_SECONDS):
+        return _iap_keys_cache
+
+    try:
+        req = urllib.request.Request(
+            GOOGLE_IAP_PUBLIC_KEY_URL,
+            headers={"User-Agent": "mcp-server-grc/1.0 (Google Cloud IAP Key Verifier)"},
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            data = json.loads(response.read().decode("utf-8"))
+            if "keys" in data and isinstance(data["keys"], list):
+                _iap_keys_cache = data
+                _iap_keys_last_fetch = now
+                logger.info(f"Refreshed Google IAP public keys ({len(data['keys'])} keys).")
+                return _iap_keys_cache
+            raise ValueError("Invalid JWK Set: missing 'keys' list.")
+    except Exception as exc:
+        if _iap_keys_cache:
+            logger.warning(f"Failed to refresh Google IAP public keys ({exc}); using stale cached keys.")
+            return _iap_keys_cache
+        logger.error(f"Failed to fetch Google IAP public keys: {exc}")
+        raise HTTPException(
+            status_code=401,
+            detail=f"Failed to retrieve Google IAP verification keys: {exc}",
+        )
+
+
+def set_iap_keys_cache(keys_dict: Dict[str, Any]) -> None:
+    """Injects cached keys into memory (used by automated tests to verify cryptographic signatures without live network calls)."""
+    global _iap_keys_cache, _iap_keys_last_fetch
+    _iap_keys_cache = keys_dict
+    _iap_keys_last_fetch = time.time()
+
+
+def clear_iap_keys_cache() -> None:
+    """Clears the IAP public key cache."""
+    global _iap_keys_cache, _iap_keys_last_fetch
+    _iap_keys_cache = {}
+    _iap_keys_last_fetch = 0.0
+
+
+def create_mock_iap_jwt(
+    email: str = "auditor@client.corp",
+    sub: str = "accounts.google.com:1029384756",
+    aud: Optional[str] = None,
+    iss: str = GOOGLE_IAP_ISSUER,
+    hd: Optional[str] = "client.corp",
+    expires_in: int = 3600,
+    register_in_cache: bool = True,
+    kid: str = "mock-iap-ec-key-1",
+    priv_key: Optional[Any] = None,
+) -> str:
+    """Helper to generate structurally valid and cryptographically signed Google IAP JWTs for testing.
+    
+    Generates a genuine EC P-256 key pair, registers the public JWK in the IAP key cache,
+    and returns a signed JWT assertion with algorithm ES256.
+    """
+    if priv_key is None:
+        priv_key = ec.generate_private_key(ec.SECP256R1())
+    pub_key = priv_key.public_key()
+    pub_numbers = pub_key.public_numbers()
+
+    def to_b64url(n: int, length: int = 32) -> str:
+        b = n.to_bytes(length, byteorder="big")
+        return base64.urlsafe_b64encode(b).decode("utf-8").rstrip("=")
+
+    jwk = {
+        "kty": "EC",
+        "crv": "P-256",
+        "alg": "ES256",
+        "use": "sig",
+        "kid": kid,
+        "x": to_b64url(pub_numbers.x),
+        "y": to_b64url(pub_numbers.y),
+    }
+
+    if register_in_cache:
+        current_keys = _iap_keys_cache.get("keys", [])
+        new_keys = [k for k in current_keys if k.get("kid") != kid]
+        new_keys.append(jwk)
+        set_iap_keys_cache({"keys": new_keys})
+
+    now = time.time()
+    expected_aud = (
+        aud
+        or os.getenv("GOOGLE_IAP_AUDIENCE")
+        or os.getenv("IAP_AUDIENCE")
+        or "/projects/938078169010/global/backendServices/mock-service-id"
+    )
+    payload = {
+        "iss": iss,
+        "aud": expected_aud,
+        "sub": sub,
+        "email": email,
+        "exp": int(now + expires_in),
+        "iat": int(now),
+    }
+    if hd:
+        payload["hd"] = hd
+
+    return jwt.encode(payload, priv_key, algorithm="ES256", headers={"kid": kid, "alg": "ES256"})
+
+
+def verify_iap_jwt(
+    iap_jwt_str: str,
+    expected_audience: Optional[str] = None,
+    verify_signature: bool = True,
+) -> Dict[str, Any]:
+    """Cryptographically verifies a Google Cloud Identity-Aware Proxy (IAP) JWT.
+
+    Validation rules:
+    1. Token must be a non-empty string.
+    2. Reads JWT header to find 'kid' and 'alg' (must be ES256 or RS256).
+    3. Fetches/uses cached Google IAP public JWK keys (refreshed hourly).
+    4. Cryptographically verifies signature against matching key ID.
+    5. Verifies issuer is 'https://cloud.google.com/iap'.
+    6. Verifies audience matches expected IAP backend service / App Engine audience.
+    7. Verifies expiration (exp) and issued-at (iat) timestamps.
+    8. Validates presence of 'email' and 'sub' claims.
+    """
+    if not iap_jwt_str or not isinstance(iap_jwt_str, str):
+        raise HTTPException(
+            status_code=401,
+            detail="Missing X-Goog-Iap-Jwt-Assertion header.",
+        )
+
+    # 1. Decode header to extract kid & alg
+    try:
+        header = jwt.get_unverified_header(iap_jwt_str)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=401,
+            detail=f"Malformed IAP JWT header: {exc}",
+        )
+
+    kid = header.get("kid")
+    alg = header.get("alg")
+    if not kid:
+        raise HTTPException(
+            status_code=401,
+            detail="IAP JWT header missing 'kid' claim.",
+        )
+    if alg not in ("ES256", "RS256"):
+        raise HTTPException(
+            status_code=401,
+            detail=f"Unsupported IAP JWT algorithm '{alg}'. Expected 'ES256' or 'RS256'.",
+        )
+
+    # 2. Determine expected audience
+    expected_aud = (
+        expected_audience
+        or os.getenv("GOOGLE_IAP_AUDIENCE")
+        or os.getenv("IAP_AUDIENCE")
+    )
+    if not expected_aud:
+        logger.error("IAP verification rejected: GOOGLE_IAP_AUDIENCE is not configured on this server.")
+        raise HTTPException(
+            status_code=401,
+            detail="IAP configuration error: Expected IAP audience is not configured (missing GOOGLE_IAP_AUDIENCE).",
+        )
+    allowed_audiences = [a.strip() for a in expected_aud.split(",") if a.strip()]
+
+    # 3. Retrieve JWK keys (cached with 1h TTL)
+    jwks = get_iap_public_keys()
+    jwk_set = PyJWKSet.from_dict(jwks)
+
+    signing_key = None
+    for key in jwk_set.keys:
+        if key.key_id == kid:
+            signing_key = key
+            break
+
+    # If key ID was not found, try force-refreshing once in case Google rotated keys
+    if signing_key is None:
+        logger.info(f"Key ID '{kid}' not in cache, force refreshing IAP public keys...")
+        jwks = get_iap_public_keys(force_refresh=True)
+        jwk_set = PyJWKSet.from_dict(jwks)
+        for key in jwk_set.keys:
+            if key.key_id == kid:
+                signing_key = key
+                break
+
+    if signing_key is None:
+        raise HTTPException(
+            status_code=401,
+            detail=f"IAP signing key '{kid}' not found in Google IAP public JWK set.",
+        )
+
+    # 4. Cryptographic signature and claim verification
+    try:
+        claims = jwt.decode(
+            iap_jwt_str,
+            signing_key.key,
+            algorithms=[signing_key.algorithm_name or alg],
+            audience=allowed_audiences,
+            issuer=GOOGLE_IAP_ISSUER,
+            options={
+                "require": ["exp", "iss", "aud", "sub"],
+                "verify_exp": True,
+                "verify_iss": True,
+                "verify_aud": True,
+            },
+        )
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=401,
+            detail="Google IAP JWT has expired.",
+        )
+    except jwt.InvalidAudienceError:
+        unverified_claims = jwt.decode(iap_jwt_str, options={"verify_signature": False})
+        aud = unverified_claims.get("aud")
+        raise HTTPException(
+            status_code=401,
+            detail=f"Invalid IAP JWT audience '{aud}'. Expected '{expected_aud}'.",
+        )
+    except jwt.InvalidIssuerError:
+        unverified_claims = jwt.decode(iap_jwt_str, options={"verify_signature": False})
+        iss = unverified_claims.get("iss")
+        raise HTTPException(
+            status_code=401,
+            detail=f"Invalid IAP JWT issuer '{iss}'. Expected '{GOOGLE_IAP_ISSUER}'.",
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=401,
+            detail=f"Google IAP JWT cryptographic signature verification failed: {exc}",
+        )
+
+    # 5. Extract and validate email
+    email = claims.get("email")
+    if not email or "@" not in email:
+        raise HTTPException(
+            status_code=401,
+            detail="Verified IAP JWT payload is missing a valid 'email' claim.",
+        )
+
+    return claims
 
 
 def verify_google_workspace_token(
@@ -188,17 +445,44 @@ async def get_current_workspace_user(
     expected_domain = os.getenv("GOOGLE_WORKSPACE_DOMAIN") or os.getenv("EXPECTED_WORKSPACE_DOMAIN") or DEFAULT_WORKSPACE_DOMAIN
 
     # 1. Native BeyondCorp / Google Cloud Identity-Aware Proxy (IAP) support
-    if x_goog_authenticated_user_email:
-        raw_email = str(x_goog_authenticated_user_email).strip()
-        user_email = raw_email.split(":", 1)[-1].strip() if ":" in raw_email else raw_email
-        hd = user_email.split("@")[1].strip() if "@" in user_email else expected_domain
+    # CRITICAL SECURITY FIX: Never trust X-Goog-Authenticated-User-Email or X-Goog-Authenticated-User-Id directly.
+    # Plain HTTP headers can be forged by any client connecting directly to the server.
+    # Any request with IAP headers MUST provide a cryptographically verified X-Goog-Iap-Jwt-Assertion.
+    if x_goog_authenticated_user_email or x_goog_iap_jwt_assertion:
+        if not x_goog_iap_jwt_assertion:
+            logger.warning(
+                f"IAP spoofing attempt rejected: X-Goog-Authenticated-User-Email was provided "
+                f"('{x_goog_authenticated_user_email}') without a valid X-Goog-Iap-Jwt-Assertion."
+            )
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid IAP authentication: Cryptographic X-Goog-Iap-Jwt-Assertion header is required and cannot be omitted.",
+            )
+
+        # Cryptographically verify the IAP JWT assertion against Google public JWKs
+        claims = verify_iap_jwt(x_goog_iap_jwt_assertion)
+        user_email = claims["email"]
+        user_id = str(claims.get("sub") or claims.get("user_id") or "iap-user")
+        token_hd = claims.get("hd") or (user_email.split("@")[1] if "@" in user_email else expected_domain)
         display_name = user_email.split("@")[0].replace(".", " ").title()
+
+        # Enforce consistency: if plain header was also passed by proxy, ensure it matches verified claim
+        if x_goog_authenticated_user_email:
+            raw_email = str(x_goog_authenticated_user_email).strip()
+            header_email = raw_email.split(":", 1)[-1].strip() if ":" in raw_email else raw_email
+            if header_email.lower() != user_email.lower():
+                logger.warning(f"IAP email mismatch: header='{header_email}', verified_jwt='{user_email}'")
+                raise HTTPException(
+                    status_code=401,
+                    detail=f"IAP header email '{header_email}' does not match verified JWT email '{user_email}'.",
+                )
+
         return WorkspaceUserContext(
             email=user_email,
-            hd=hd,
+            hd=token_hd,
             access_token=f"iap-verified-{user_email}",
             id_token=x_goog_iap_jwt_assertion,
-            sub=x_goog_authenticated_user_id or "iap-user",
+            sub=user_id,
             name=display_name,
             is_demo=False,
         )

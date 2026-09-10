@@ -5,6 +5,7 @@ from html.parser import HTMLParser
 from unittest.mock import patch
 from fastapi.testclient import TestClient
 from mcp_server_grc.server import app
+from mcp_server_grc.auth import create_mock_iap_jwt
 
 client = TestClient(app)
 
@@ -1236,15 +1237,128 @@ def test_chat_401_triggers_signout_redirect_script():
     assert "window.initAppShell = initAppShell" in html
 
 
-def test_beyondcorp_iap_authentication_and_portal_serving(monkeypatch):
-    """Verify that Google Cloud BeyondCorp / IAP headers authenticate the session directly."""
+def test_forged_iap_header_without_jwt_assertion_is_rejected_401(monkeypatch):
+    """REGRESSION TEST: Verify that a request with a forged X-Goog-Authenticated-User-Email header
+    and NO valid X-Goog-Iap-Jwt-Assertion is strictly REJECTED (401), not authenticated."""
     monkeypatch.setenv("ALLOW_DEV_AUTH_BYPASS", "false")
+    forged_headers = {
+        "X-Goog-Authenticated-User-Email": "accounts.google.com:attacker@evil.corp",
+        "X-Goog-Authenticated-User-Id": "accounts.google.com:999999999",
+        "X-Operator-Id": "attacker@evil.corp",
+    }
+    # 1. Protected API endpoint rejects plain forged header with 401
+    res_api = client.get("/api/clients", headers=forged_headers)
+    assert res_api.status_code == 401
+    assert "Invalid IAP authentication" in res_api.json().get("detail", "")
+
+    # 2. Portal HTML endpoint rejects plain forged header with 401
+    res_portal = client.get("/portal", headers=forged_headers)
+    assert res_portal.status_code == 401
+    assert "Invalid IAP authentication" in res_portal.json().get("detail", "")
+
+    # 3. Even if ALLOW_DEV_AUTH_BYPASS is true, forged IAP header without assertion is rejected
+    monkeypatch.setenv("ALLOW_DEV_AUTH_BYPASS", "true")
+    res_api_bypass = client.get("/api/clients", headers=forged_headers)
+    assert res_api_bypass.status_code == 401
+
+
+def test_forged_iap_jwt_assertion_invalid_signature_is_rejected_401(monkeypatch):
+    """Verify that an invalid or tampered X-Goog-Iap-Jwt-Assertion is strictly REJECTED (401)."""
+    monkeypatch.setenv("ALLOW_DEV_AUTH_BYPASS", "false")
+    monkeypatch.setenv("GOOGLE_IAP_AUDIENCE", "/projects/938078169010/global/backendServices/mock-service-id")
+    bad_sig_headers = {
+        "X-Goog-Authenticated-User-Email": "accounts.google.com:attacker@evil.corp",
+        "X-Goog-Iap-Jwt-Assertion": "eyJhbGciOiJFUzI1NiIsImtpZCI6InVua25vd24ta2V5In0.eyJpc3MiOiJodHRwczovL2Nsb3VkLmdvb2dsZS5jb20vaWFwIiwiYXVkIjoiL3Byb2plY3RzLzkzODA3ODE2OTAxMC9nbG9iYWwvYmFja2VuZFNlcnZpY2VzL21vY2stc2VydmljZS1pZCIsInN1YiI6IjEiLCJlbWFpbCI6ImF0dGFja2VyQGV2aWwuY29ycCIsImV4cCI6MjAwMDAwMDAwMH0.fake_sig",
+    }
+    res = client.get("/api/clients", headers=bad_sig_headers)
+    assert res.status_code == 401
+
+    res_portal = client.get("/portal", headers=bad_sig_headers)
+    assert res_portal.status_code == 401
+
+
+def test_iap_jwt_audience_mismatch_is_rejected_401(monkeypatch):
+    """Verify that a cryptographically valid IAP token with mismatched audience is REJECTED (401)."""
+    monkeypatch.setenv("ALLOW_DEV_AUTH_BYPASS", "false")
+    monkeypatch.setenv("GOOGLE_IAP_AUDIENCE", "/projects/938078169010/global/backendServices/valid-service-1")
+
+    # Generate validly signed token with a different backend service audience
+    mismatched_aud_token = create_mock_iap_jwt(
+        email="auditor@client.corp",
+        aud="/projects/938078169010/global/backendServices/different-service-2",
+        kid="ec-aud-test-key",
+    )
+    headers = {
+        "X-Goog-Authenticated-User-Email": "accounts.google.com:auditor@client.corp",
+        "X-Goog-Iap-Jwt-Assertion": mismatched_aud_token,
+    }
+    res = client.get("/api/clients", headers=headers)
+    assert res.status_code == 401
+    assert "Invalid IAP JWT audience" in res.json().get("detail", "")
+
+
+def test_iap_jwt_issuer_mismatch_is_rejected_401(monkeypatch):
+    """Verify that an IAP token with untrusted issuer is REJECTED (401)."""
+    monkeypatch.setenv("ALLOW_DEV_AUTH_BYPASS", "false")
+    aud = "/projects/938078169010/global/backendServices/valid-service-1"
+    monkeypatch.setenv("GOOGLE_IAP_AUDIENCE", aud)
+
+    invalid_iss_token = create_mock_iap_jwt(
+        email="auditor@client.corp",
+        aud=aud,
+        iss="https://attacker.corp/iap",
+        kid="ec-iss-test-key",
+    )
+    headers = {
+        "X-Goog-Authenticated-User-Email": "accounts.google.com:auditor@client.corp",
+        "X-Goog-Iap-Jwt-Assertion": invalid_iss_token,
+    }
+    res = client.get("/api/clients", headers=headers)
+    assert res.status_code == 401
+    assert "Invalid IAP JWT issuer" in res.json().get("detail", "")
+
+
+def test_iap_jwt_expired_is_rejected_401(monkeypatch):
+    """Verify that an expired IAP token is REJECTED (401)."""
+    monkeypatch.setenv("ALLOW_DEV_AUTH_BYPASS", "false")
+    aud = "/projects/938078169010/global/backendServices/valid-service-1"
+    monkeypatch.setenv("GOOGLE_IAP_AUDIENCE", aud)
+
+    expired_token = create_mock_iap_jwt(
+        email="auditor@client.corp",
+        aud=aud,
+        expires_in=-300,  # Expired 5 minutes ago
+        kid="ec-expired-test-key",
+    )
+    headers = {
+        "X-Goog-Authenticated-User-Email": "accounts.google.com:auditor@client.corp",
+        "X-Goog-Iap-Jwt-Assertion": expired_token,
+    }
+    res = client.get("/api/clients", headers=headers)
+    assert res.status_code == 401
+    assert "expired" in res.json().get("detail", "").lower()
+
+
+def test_beyondcorp_iap_cryptographic_authentication_and_portal_serving(monkeypatch):
+    """Verify that a genuine cryptographically verified Google IAP token authenticates the session directly."""
+    monkeypatch.setenv("ALLOW_DEV_AUTH_BYPASS", "false")
+    aud = "/projects/938078169010/global/backendServices/grc-backend-service"
+    monkeypatch.setenv("GOOGLE_IAP_AUDIENCE", aud)
+
+    valid_token = create_mock_iap_jwt(
+        email="corp-auditor@client.corp",
+        sub="accounts.google.com:1029384756",
+        aud=aud,
+        hd="client.corp",
+        kid="ec-valid-test-key",
+    )
     iap_headers = {
         "X-Goog-Authenticated-User-Email": "accounts.google.com:corp-auditor@client.corp",
         "X-Goog-Authenticated-User-Id": "accounts.google.com:1029384756",
+        "X-Goog-Iap-Jwt-Assertion": valid_token,
         "X-Operator-Id": "corp-auditor@client.corp",
     }
-    # 1. API validation endpoint recognizes IAP header without ID token
+    # 1. API validation endpoint recognizes cryptographically verified IAP assertion
     res_api = client.get("/api/clients", headers=iap_headers)
     assert res_api.status_code == 200
     data = res_api.json()
@@ -1254,6 +1368,30 @@ def test_beyondcorp_iap_authentication_and_portal_serving(monkeypatch):
     res_portal = client.get("/portal", headers=iap_headers)
     assert res_portal.status_code == 200
     assert 'window.IAP_AUTHENTICATED_USER = "corp-auditor@client.corp";' in res_portal.text
+
+
+def test_iap_header_email_mismatch_with_jwt_payload_is_rejected_401(monkeypatch):
+    """Verify defense-in-depth: if X-Goog-Authenticated-User-Email attempts to spoof a different user
+    than what is cryptographically signed inside the IAP JWT payload, the request is REJECTED (401)."""
+    monkeypatch.setenv("ALLOW_DEV_AUTH_BYPASS", "false")
+    aud = "/projects/938078169010/global/backendServices/grc-backend-service"
+    monkeypatch.setenv("GOOGLE_IAP_AUDIENCE", aud)
+
+    # Token signed for legitimate user
+    valid_token = create_mock_iap_jwt(
+        email="legitimate-auditor@client.corp",
+        aud=aud,
+        kid="ec-mismatch-test-key",
+    )
+    # Attacker tries to impersonate ceo@client.corp via plain header
+    spoofed_headers = {
+        "X-Goog-Authenticated-User-Email": "accounts.google.com:ceo@client.corp",
+        "X-Goog-Iap-Jwt-Assertion": valid_token,
+    }
+    res = client.get("/api/clients", headers=spoofed_headers)
+    assert res.status_code == 401
+    assert "does not match verified JWT email" in res.json().get("detail", "")
+
 
 
 

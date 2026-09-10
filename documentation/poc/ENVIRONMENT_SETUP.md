@@ -274,6 +274,148 @@ make journey
 
 ---
 
+## 7. Enterprise Defense-in-Depth: Cloud Run Ingress Lockdown & BeyondCorp IAP Setup
+
+To guarantee zero-trust enterprise security and prevent authentication bypass, the Cloud Run service must be isolated so that **no traffic can reach it directly via its public `*.run.app` URL**. All requests must flow through an external Application Load Balancer with **Google Cloud Identity-Aware Proxy (IAP) / BeyondCorp** enabled.
+
+```mermaid
+flowchart LR
+    User([Auditor / Corporate User]) -->|HTTPS:443| LB[Google Cloud HTTPS Load Balancer]
+    subgraph GCP ["Google Cloud Perimeter (agentic-grc-cd06)"]
+        LB -->|BeyondCorp Context-Aware Auth| IAP[Identity-Aware Proxy / IAP]
+        IAP -->|Signed X-Goog-Iap-Jwt-Assertion| NEG[Serverless NEG: us-central1]
+        NEG -->|VPC / Internal Ingress Only| CR["Cloud Run (mcp-server-grc)\n--ingress=internal-and-cloud-load-balancing"]
+        Attacker([Direct Caller / Attacker]) -.->|Direct https://*.run.app| Blocked[❌ 403 Forbidden: Ingress Blocked]
+    end
+```
+
+### 7.1 Provisioning the IAP-Enabled HTTPS Load Balancer
+
+Execute the following `gcloud` commands to configure the load balancer and enable IAP in front of `mcp-server-grc`:
+
+#### Step 1: Set Variables
+```bash
+export PROJECT_ID="agentic-grc-cd06"
+export REGION="us-central1"
+export SERVICE_NAME="mcp-server-grc"
+export DOMAIN_NAME="grc.yourdomain.corp" # Your custom domain
+export PROJECT_NUMBER=$(gcloud projects describe ${PROJECT_ID} --format="value(projectNumber)")
+```
+
+#### Step 2: Reserve Global Static IP
+```bash
+gcloud compute addresses create grc-lb-ip \
+    --global \
+    --project=${PROJECT_ID}
+```
+
+#### Step 3: Create Serverless Network Endpoint Group (NEG)
+```bash
+gcloud compute network-endpoint-groups create grc-cloud-run-neg \
+    --region=${REGION} \
+    --network-endpoint-type=SERVERLESS \
+    --cloud-run-service=${SERVICE_NAME} \
+    --project=${PROJECT_ID}
+```
+
+#### Step 4: Create Backend Service
+```bash
+gcloud compute backend-services create grc-backend-service \
+    --global \
+    --load-balancing-scheme=EXTERNAL_MANAGED \
+    --protocol=HTTPS \
+    --project=${PROJECT_ID}
+
+gcloud compute backend-services add-backend grc-backend-service \
+    --global \
+    --network-endpoint-group=grc-cloud-run-neg \
+    --network-endpoint-group-region=${REGION} \
+    --project=${PROJECT_ID}
+```
+
+#### Step 5: Enable IAP on the Backend Service
+> [!IMPORTANT]
+> Obtain the OAuth 2.0 Web Client credentials configured for IAP from **GCP Console > Security > Identity-Aware Proxy**.
+```bash
+export IAP_CLIENT_ID="<YOUR_IAP_OAUTH_CLIENT_ID>"
+export IAP_CLIENT_SECRET="<YOUR_IAP_OAUTH_CLIENT_SECRET>"
+
+gcloud compute backend-services update grc-backend-service \
+    --global \
+    --iap=enabled,oauth2-client-id=${IAP_CLIENT_ID},oauth2-client-secret=${IAP_CLIENT_SECRET} \
+    --project=${PROJECT_ID}
+```
+
+#### Step 6: Determine the Exact Expected IAP Audience
+The IAP audience is cryptographically signed into every `X-Goog-Iap-Jwt-Assertion` token. Obtain the exact backend service ID:
+```bash
+export BACKEND_SERVICE_ID=$(gcloud compute backend-services describe grc-backend-service \
+    --global \
+    --format="value(id)" \
+    --project=${PROJECT_ID})
+
+# Exact IAP Audience string:
+export EXPECTED_IAP_AUDIENCE="/projects/${PROJECT_NUMBER}/global/backendServices/${BACKEND_SERVICE_ID}"
+echo "Calculated Expected IAP Audience: ${EXPECTED_IAP_AUDIENCE}"
+```
+
+#### Step 7: Create URL Map, SSL Certificate, Target HTTPS Proxy & Forwarding Rule
+```bash
+# URL Map
+gcloud compute url-maps create grc-url-map \
+    --default-service=grc-backend-service \
+    --project=${PROJECT_ID}
+
+# Google-managed SSL Certificate
+gcloud compute ssl-certificates create grc-ssl-cert \
+    --domains=${DOMAIN_NAME} \
+    --project=${PROJECT_ID}
+
+# Target HTTPS Proxy
+gcloud compute target-https-proxies create grc-https-proxy \
+    --ssl-certificates=grc-ssl-cert \
+    --url-map=grc-url-map \
+    --project=${PROJECT_ID}
+
+# Global Forwarding Rule (Port 443)
+gcloud compute forwarding-rules create grc-https-forwarding-rule \
+    --load-balancing-scheme=EXTERNAL_MANAGED \
+    --network-tier=PREMIUM \
+    --address=grc-lb-ip \
+    --global \
+    --target-https-proxy=grc-https-proxy \
+    --ports=443 \
+    --project=${PROJECT_ID}
+```
+
+---
+
+### 7.2 Cloud Run Ingress Lockdown (Defense-in-Depth)
+
+Once the HTTPS Load Balancer and IAP are configured, enforce strict Cloud Run ingress lockdown:
+
+```bash
+# 1. Lock down ingress so Cloud Run rejects direct public traffic
+gcloud run services update ${SERVICE_NAME} \
+    --ingress=internal-and-cloud-load-balancing \
+    --region=${REGION} \
+    --project=${PROJECT_ID}
+
+# 2. Inject the verified IAP Audience into Cloud Run environment
+gcloud run services update ${SERVICE_NAME} \
+    --set-env-vars="GOOGLE_IAP_AUDIENCE=${EXPECTED_IAP_AUDIENCE}" \
+    --region=${REGION} \
+    --project=${PROJECT_ID}
+```
+
+#### Verification of Ingress Lockdown:
+1. **Direct Request (`https://<service>-<hash>-uc.a.run.app/portal`)**:
+   Returns `403 Forbidden` (rejected at Google Front End edge because ingress is restricted to load balancing).
+2. **Load Balancer Request (`https://grc.yourdomain.corp/portal`)**:
+   Routes through Google Cloud IAP. Validates BeyondCorp device posture and corporate identity, attaches signed `X-Goog-Iap-Jwt-Assertion`, and the backend cryptographically verifies the token against Google's public JWK set (`https://www.gstatic.com/iap/verify/public_key-jwk`).
+
+---
+
 ## 8. Functional Lab Projects Setup (POC Target Scope)
 
 For POC demonstrations, the system audits multi-project environments. You can connect existing corporate non-prod projects or provision the functional lab projects:

@@ -2507,6 +2507,49 @@ This pattern introduced two key issues:
    - Deployed to Google Cloud Run: Revision `mcp-server-grc-00072-fmw` serving 100% of live traffic.
    - Verified live at `https://mcp-server-grc-ekpqijg7oq-uc.a.run.app/portal`.
 
+---
+
+### Milestone 72: Critical Security Fix — Cryptographic Verification of Google Cloud IAP Assertion (JWT) & Ingress Lockdown
+
+#### 1. Vulnerability Summary & Threat Model
+- **Root Cause**: `get_current_workspace_user()` previously trusted the plain `X-Goog-Authenticated-User-Email` HTTP header directly with zero cryptographic verification. Any request reaching the Cloud Run service directly via its public URL could forge this header to impersonate any user or domain.
+- **Resolution**:
+  1. Plain `X-Goog-Authenticated-User-Email` without a valid `X-Goog-Iap-Jwt-Assertion` header is strictly **rejected with HTTP 401**.
+  2. Public keys are fetched and cached in-memory with a 1-hour TTL from Google's official JWK endpoint: `https://www.gstatic.com/iap/verify/public_key-jwk`.
+  3. `X-Goog-Iap-Jwt-Assertion` is verified against the JWK set using ECDSA P-256 (`ES256`) or `RS256`.
+  4. The `aud` claim is strictly verified against the configured IAP audience (`GOOGLE_IAP_AUDIENCE`).
+     - **Project Number**: `938078169010` (`agentic-grc-cd06`).
+     - **Exact Audience Format**: `/projects/938078169010/global/backendServices/<BACKEND_SERVICE_ID>` (once LB is provisioned) or App Engine format `/projects/938078169010/apps/agentic-grc-cd06`.
+     - Reject with 401 if missing or mismatched (no guessing/unverified placeholders).
+  5. The `iss` claim is strictly verified to equal `"https://cloud.google.com/iap"`.
+  6. Email and user ID are extracted **strictly from the verified JWT payload** (`claims['email']`, `claims['sub']`), never from plain headers.
+  7. Consistency check: if `X-Goog-Authenticated-User-Email` is also provided by the proxy, it must match the verified JWT email or be rejected with HTTP 401.
+
+#### 2. Defense-in-Depth: Cloud Run Ingress Lockdown (`ENVIRONMENT_SETUP.md`)
+- Documented Section 7 in `documentation/poc/ENVIRONMENT_SETUP.md`:
+  - Step-by-step `gcloud` provisioning for Global External HTTPS Load Balancer, Serverless NEG (`us-central1`), Backend Service, and IAP enablement.
+  - Calculation of exact IAP audience via `gcloud compute backend-services describe ... --format="value(id)"`.
+  - Cloud Run ingress lockdown command:
+    ```bash
+    gcloud run services update mcp-server-grc \
+        --ingress=internal-and-cloud-load-balancing \
+        --region=us-central1 \
+        --project=agentic-grc-cd06
+    ```
+  - This guarantees that direct traffic to `https://*.run.app` receives `403 Forbidden` at the Google edge, forcing all traffic through the IAP load balancer.
+
+#### 3. Automated Test Suite & Regression Verification
+- Added comprehensive regression tests in `tests/test_portal.py`:
+  - `test_forged_iap_header_without_jwt_assertion_is_rejected_401`: Verifies that a forged plain `X-Goog-Authenticated-User-Email` header with NO valid `X-Goog-Iap-Jwt-Assertion` is rejected with HTTP 401 on both `/api/clients` and `/portal` (even when dev bypass is enabled).
+  - `test_forged_iap_jwt_assertion_invalid_signature_is_rejected_401`: Rejects malformed or tampered signatures.
+  - `test_iap_jwt_audience_mismatch_is_rejected_401`: Rejects tokens with mismatched audience claims.
+  - `test_iap_jwt_issuer_mismatch_is_rejected_401`: Rejects tokens with non-Google IAP issuers.
+  - `test_iap_jwt_expired_is_rejected_401`: Rejects expired IAP tokens.
+  - `test_beyondcorp_iap_cryptographic_authentication_and_portal_serving`: Confirms valid EC P-256 signed IAP JWT authenticates `/api/clients` and `/portal`.
+  - `test_iap_header_email_mismatch_with_jwt_payload_is_rejected_401`: Proves header spoofing against a valid JWT is rejected with 401.
+- **Results**: **210/210 tests passed** in 10.96s across 16 test files (`tests/test_portal.py`, `tests/test_agent_reliability.py`, `tests/test_cloud_inspector.py`, etc.).
+
+
 
 
 

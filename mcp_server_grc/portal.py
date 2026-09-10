@@ -18,7 +18,12 @@ from fastapi import APIRouter, File, UploadFile, Response, Query, HTTPException,
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 
-from mcp_server_grc.auth import WorkspaceUserContext, get_current_workspace_user, require_authenticated_workspace_user
+from mcp_server_grc.auth import (
+    WorkspaceUserContext,
+    get_current_workspace_user,
+    require_authenticated_workspace_user,
+    verify_iap_jwt,
+)
 from agent_orchestrator.evidence_graph import EvidenceVerificationTier
 from agent_orchestrator.gateway import ModelArmorGateway
 from agent_orchestrator.continuous_intelligence import ContinuousIntelligenceEngine
@@ -4037,16 +4042,36 @@ def health_check():
 @router.get("/portal", response_class=HTMLResponse)
 def serve_portal(
     x_goog_authenticated_user_email: Optional[str] = Header(None, alias="X-Goog-Authenticated-User-Email"),
+    x_goog_iap_jwt_assertion: Optional[str] = Header(None, alias="X-Goog-Iap-Jwt-Assertion"),
 ):
     """Serves the interactive GRC Auditor Web Portal with BeyondCorp IAP support."""
     client_id = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "").strip()
     workspace_domain = (os.getenv("GOOGLE_WORKSPACE_DOMAIN") or os.getenv("EXPECTED_WORKSPACE_DOMAIN") or "client.corp").strip()
 
+    # BeyondCorp IAP identity check: strictly verify cryptographic assertion
+    authenticated_iap_user = None
+    if x_goog_authenticated_user_email or x_goog_iap_jwt_assertion:
+        if not x_goog_iap_jwt_assertion:
+            logger.warning("Unverified X-Goog-Authenticated-User-Email rejected on /portal: missing X-Goog-Iap-Jwt-Assertion")
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid IAP authentication: Cryptographic X-Goog-Iap-Jwt-Assertion header is required and cannot be omitted.",
+            )
+        claims = verify_iap_jwt(x_goog_iap_jwt_assertion)
+        authenticated_iap_user = claims["email"]
+
+        if x_goog_authenticated_user_email:
+            raw_email = str(x_goog_authenticated_user_email).strip()
+            header_email = raw_email.split(":", 1)[-1].strip() if ":" in raw_email else raw_email
+            if header_email.lower() != authenticated_iap_user.lower():
+                raise HTTPException(
+                    status_code=401,
+                    detail=f"IAP header email '{header_email}' does not match verified JWT email '{authenticated_iap_user}'.",
+                )
+
     html = PORTAL_HTML
-    if x_goog_authenticated_user_email:
-        raw_email = str(x_goog_authenticated_user_email).strip()
-        user_email = raw_email.split(":", 1)[-1].strip() if ":" in raw_email else raw_email
-        html = html.replace('window.IAP_AUTHENTICATED_USER = null;', f'window.IAP_AUTHENTICATED_USER = "{user_email}";')
+    if authenticated_iap_user:
+        html = html.replace('window.IAP_AUTHENTICATED_USER = null;', f'window.IAP_AUTHENTICATED_USER = "{authenticated_iap_user}";')
     if client_id:
         html = html.replace('clientId: "agentic-grc-portal.apps.googleusercontent.com"', f'clientId: "{client_id}"')
     if workspace_domain != "client.corp":
