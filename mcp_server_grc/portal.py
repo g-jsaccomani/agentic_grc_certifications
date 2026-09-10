@@ -4026,6 +4026,13 @@ async def approve_remediation(req: RemediationApprovalRequest):
     }
 
 
+@router.get("/health")
+@router.get("/healthz")
+def health_check():
+    """Health check endpoint."""
+    return {"status": "healthy", "service": "mcp-server-grc", "version": "1.0.0"}
+
+
 @router.get("/", response_class=HTMLResponse)
 @router.get("/portal", response_class=HTMLResponse)
 def serve_portal(
