@@ -5161,18 +5161,18 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     Configure a identidade de auditor utilizada para assinar pareceres de conformidade e delegar leitura de recursos GCP.
                 </p>
                 <div class="quest-form-field">
-                    <label class="quest-form-label" for="corporateEmailInput">Email do Auditor Corporativo:</label>
-                    <input type="email" id="corporateEmailInput" class="quest-input" value="auditor@client.corp" placeholder="auditor@client.corp">
+                    <label class="quest-form-label" for="corporateEmailInput">Email do Auditor Corporativo (Google Account):</label>
+                    <input type="email" id="corporateEmailInput" class="quest-input" value="auditor@client.corp" placeholder="ex: usuario@empresa.com" oninput="if(this.value.includes('@')){const d=document.getElementById('corporateDomainInput');if(d)d.value=this.value.split('@')[1].trim();}">
                 </div>
                 <div class="quest-form-field">
-                    <label class="quest-form-label" for="corporateDomainInput">Domínio Google Workspace Autorizado:</label>
-                    <input type="text" id="corporateDomainInput" class="quest-input" value="client.corp" readonly style="opacity: 0.7; cursor: not-allowed;">
+                    <label class="quest-form-label" for="corporateDomainInput">Domínio Corporativo Vinculado:</label>
+                    <input type="text" id="corporateDomainInput" class="quest-input" value="client.corp" readonly style="opacity: 0.85;">
                 </div>
                 <div class="quest-form-field" style="border-top: 1px solid var(--border-subtle); padding-top: 12px; margin-top: 4px;">
-                    <label class="quest-form-label" for="corporateClientIdInput">Google Cloud OAuth Client ID (Opcional para SSO real):</label>
+                    <label class="quest-form-label" for="corporateClientIdInput">Google Cloud OAuth Client ID (Web Application):</label>
                     <input type="text" id="corporateClientIdInput" class="quest-input" placeholder="Ex: 938078169010-xxx.apps.googleusercontent.com">
-                    <span style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">
-                        Deixe em branco para autenticação corporativa direta com perfil de Lead Auditor.
+                    <span style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px; line-height: 1.4; display: block;">
+                        Permite autenticação nativa do Chrome (Google One-Tap) com seu perfil ativo. Deixe em branco para autenticação interna isolada por e-mail.
                     </span>
                 </div>
             </div>
@@ -10070,7 +10070,6 @@ window.currentLanguage = 'pt';
                 }));
                 const opKey = "grc_chat_sessions_" + getOperatorId();
                 localStorage.setItem(opKey, JSON.stringify(toSave));
-                localStorage.setItem("grc_chat_sessions", JSON.stringify(toSave));
             } catch (e) {
                 console.warn("Could not save chat sessions:", e);
             }
@@ -10079,9 +10078,11 @@ window.currentLanguage = 'pt';
         function loadChatSessions() {
             try {
                 const opKey = "grc_chat_sessions_" + getOperatorId();
-                const saved = localStorage.getItem(opKey) || localStorage.getItem("grc_chat_sessions");
+                const saved = localStorage.getItem(opKey);
                 if (saved) {
                     chatSessions = JSON.parse(saved);
+                } else {
+                    chatSessions = [];
                 }
             } catch (e) {
                 chatSessions = [];
@@ -10678,15 +10679,30 @@ Formulário preenchido com o subagente recomendado!`);
         window.isRealGoogleClientId = isRealGoogleClientId;
 
         function initGoogleWorkspaceIdentity() {
+            // Restore custom user identity and OAuth client ID if previously saved on this browser
+            const savedEmail = localStorage.getItem("grc_user_email") || sessionStorage.getItem("google_user_email");
+            if (savedEmail && savedEmail.trim()) {
+                window.customAuditorEmail = savedEmail.trim();
+                const displayEl = document.getElementById("loginGateAuditorDisplay");
+                if (displayEl) displayEl.innerText = savedEmail.trim();
+                const emailInput = document.getElementById("corporateEmailInput");
+                if (emailInput) emailInput.value = savedEmail.trim();
+                if (savedEmail.includes("@")) {
+                    const d = document.getElementById("corporateDomainInput");
+                    if (d) d.value = savedEmail.split("@")[1].trim();
+                }
+            }
+
+            const savedClientId = localStorage.getItem("custom_google_client_id") || sessionStorage.getItem("custom_google_client_id");
+            if (savedClientId && isRealGoogleClientId(savedClientId)) {
+                GOOGLE_WORKSPACE_CONFIG.clientId = savedClientId;
+                const clientIdInput = document.getElementById("corporateClientIdInput");
+                if (clientIdInput) clientIdInput.value = savedClientId;
+            }
+
             // Restore existing session if cached and app shell mounted
             if (window.currentUserEmail && window.currentUserHd) {
                 renderWorkspaceUserUI(window.currentUserEmail, window.currentUserHd);
-            }
-
-            // Check if a custom OAuth client ID was saved in sessionStorage
-            const savedClientId = sessionStorage.getItem("custom_google_client_id");
-            if (savedClientId && isRealGoogleClientId(savedClientId)) {
-                GOOGLE_WORKSPACE_CONFIG.clientId = savedClientId;
             }
 
             // ONLY initialize live Google GIS if a real, valid Google OAuth Client ID is configured.
@@ -10699,6 +10715,13 @@ Formulário preenchido com o subagente recomendado!`);
                         callback: handleGoogleWorkspaceCredentialResponse,
                         auto_select: false,
                         cancel_on_tap_outside: true
+                    });
+
+                    // Trigger Google One-Tap prompt in Chrome
+                    window.google.accounts.id.prompt((notification) => {
+                        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                            console.log("[GIS One-Tap] Notification:", notification.getNotDisplayedReason() || "skipped");
+                        }
                     });
 
                     if (window.google.accounts.oauth2) {
@@ -10723,14 +10746,18 @@ Formulário preenchido com o subagente recomendado!`);
             }
         }
 
-        function mockSignIn(enteredEmail = "auditor@client.corp", domain = null) {
+        function mockSignIn(enteredEmail = null, domain = null) {
+            const email = (enteredEmail || localStorage.getItem("grc_user_email") || window.customAuditorEmail || "auditor@client.corp").trim();
             if (!domain) {
-                domain = enteredEmail.includes("@") ? enteredEmail.split("@")[1].trim() : GOOGLE_WORKSPACE_CONFIG.expectedDomain;
+                domain = email.includes("@") ? email.split("@")[1].trim() : GOOGLE_WORKSPACE_CONFIG.expectedDomain;
             }
             if (domain && domain.toLowerCase() !== GOOGLE_WORKSPACE_CONFIG.expectedDomain.toLowerCase()) {
                 // In internal BeyondCorp environments, adapt the corporate domain
                 GOOGLE_WORKSPACE_CONFIG.expectedDomain = domain.toLowerCase();
             }
+            window.customAuditorEmail = email;
+            localStorage.setItem("grc_user_email", email);
+
             // Generate mock tokens for corporate auditing
             const mockSub = "109823471029";
             const b64 = (obj) => btoa(JSON.stringify(obj)).replace(/=+$/, "");
@@ -10739,7 +10766,7 @@ Formulário preenchido com o subagente recomendado!`);
                 iss: "https://accounts.google.com",
                 aud: GOOGLE_WORKSPACE_CONFIG.clientId,
                 sub: mockSub,
-                email: enteredEmail,
+                email: email,
                 hd: domain,
                 exp: Math.floor(Date.now() / 1000) + 86400
             };
@@ -10752,7 +10779,7 @@ Formulário preenchido com o subagente recomendado!`);
         window.mockSignIn = mockSignIn;
 
         function triggerGoogleWorkspaceSignIn() {
-            const currentEmail = window.customAuditorEmail || "auditor@client.corp";
+            const currentEmail = localStorage.getItem("grc_user_email") || window.customAuditorEmail || "auditor@client.corp";
             const currentDomain = currentEmail.includes("@") ? currentEmail.split("@")[1].trim() : GOOGLE_WORKSPACE_CONFIG.expectedDomain;
 
             if (isRealGoogleClientId(GOOGLE_WORKSPACE_CONFIG.clientId) && window.google && window.google.accounts && window.googleTokenClient) {
@@ -10783,20 +10810,25 @@ Formulário preenchido com o subagente recomendado!`);
         function saveCorporateIdentityAndSignIn() {
             const emailInput = document.getElementById("corporateEmailInput");
             const clientIdInput = document.getElementById("corporateClientIdInput");
-            const email = (emailInput && emailInput.value.trim()) || "auditor@client.corp";
+            const email = (emailInput && emailInput.value.trim()) || localStorage.getItem("grc_user_email") || window.customAuditorEmail || "auditor@client.corp";
             const customClientId = clientIdInput ? clientIdInput.value.trim() : "";
 
             if (customClientId && isRealGoogleClientId(customClientId)) {
                 GOOGLE_WORKSPACE_CONFIG.clientId = customClientId;
                 sessionStorage.setItem("custom_google_client_id", customClientId);
+                localStorage.setItem("custom_google_client_id", customClientId);
             }
 
             window.customAuditorEmail = email;
+            localStorage.setItem("grc_user_email", email);
+            const domain = email.includes("@") ? email.split("@")[1].trim() : GOOGLE_WORKSPACE_CONFIG.expectedDomain;
+            GOOGLE_WORKSPACE_CONFIG.expectedDomain = domain;
+
             const displayEl = document.getElementById("loginGateAuditorDisplay");
             if (displayEl) displayEl.innerText = email;
 
             closeCorporateIdentityModal();
-            mockSignIn(email, GOOGLE_WORKSPACE_CONFIG.expectedDomain);
+            mockSignIn(email, domain);
         }
         window.saveCorporateIdentityAndSignIn = saveCorporateIdentityAndSignIn;
 
@@ -10813,6 +10845,8 @@ Formulário preenchido com o subagente recomendado!`);
                 window.currentUserEmail = payload.email || `auditor@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}`;
                 window.currentUserHd = payload.hd || GOOGLE_WORKSPACE_CONFIG.expectedDomain;
 
+                window.customAuditorEmail = window.currentUserEmail;
+                localStorage.setItem("grc_user_email", window.currentUserEmail);
                 sessionStorage.setItem("google_id_token", window.currentUserIdToken);
                 sessionStorage.setItem("google_user_email", window.currentUserEmail);
                 sessionStorage.setItem("google_user_hd", window.currentUserHd);
@@ -11322,7 +11356,7 @@ Formulário preenchido com o subagente recomendado!`);
             if (!storedIdToken && !storedAccessToken) {
                 // Internal Enterprise Platform: Silent background authentication
                 // Zero login screen friction: automatically authenticates auditor session and mounts app shell
-                const defaultEmail = window.customAuditorEmail || "auditor@client.corp";
+                const defaultEmail = localStorage.getItem("grc_user_email") || window.customAuditorEmail || "auditor@client.corp";
                 mockSignIn(defaultEmail);
                 return;
             }

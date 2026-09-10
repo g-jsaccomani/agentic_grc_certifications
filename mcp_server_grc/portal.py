@@ -4046,7 +4046,16 @@ def serve_portal(
 ):
     """Serves the interactive GRC Auditor Web Portal with BeyondCorp IAP support."""
     client_id = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "").strip()
-    workspace_domain = (os.getenv("GOOGLE_WORKSPACE_DOMAIN") or os.getenv("EXPECTED_WORKSPACE_DOMAIN") or "client.corp").strip()
+    default_auditor_email = (
+        os.getenv("DEFAULT_AUDITOR_EMAIL")
+        or os.getenv("GOOGLE_WORKSPACE_USER")
+        or "auditor@client.corp"
+    ).strip()
+    workspace_domain = (
+        os.getenv("GOOGLE_WORKSPACE_DOMAIN")
+        or os.getenv("EXPECTED_WORKSPACE_DOMAIN")
+        or (default_auditor_email.split("@")[1] if "@" in default_auditor_email else "client.corp")
+    ).strip()
 
     # BeyondCorp IAP identity check: strictly verify cryptographic assertion
     authenticated_iap_user = None
@@ -4074,7 +4083,10 @@ def serve_portal(
         html = html.replace('window.IAP_AUTHENTICATED_USER = null;', f'window.IAP_AUTHENTICATED_USER = "{authenticated_iap_user}";')
     if client_id:
         html = html.replace('clientId: "agentic-grc-portal.apps.googleusercontent.com"', f'clientId: "{client_id}"')
+    if default_auditor_email != "auditor@client.corp":
+        html = html.replace('auditor@client.corp', default_auditor_email)
     if workspace_domain != "client.corp":
+        html = html.replace('client.corp', workspace_domain)
         html = html.replace('expectedDomain: "client.corp"', f'expectedDomain: "{workspace_domain}"')
     return HTMLResponse(
         content=html,
