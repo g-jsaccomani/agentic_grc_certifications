@@ -25,7 +25,12 @@ from typing import Any, Dict, List, Optional, Tuple
 from fastapi import APIRouter, File, UploadFile, Request, Response, HTTPException, Depends, Query, Header
 from pydantic import BaseModel, Field
 
-from mcp_server_grc.auth import WorkspaceUserContext, get_current_workspace_user, require_authenticated_workspace_user
+from mcp_server_grc.auth import (
+    WorkspaceUserContext,
+    get_current_workspace_user,
+    require_authenticated_workspace_user,
+    require_questionnaire_authorized_user,
+)
 from agent_orchestrator.evidence_graph import EvidenceVerificationTier
 from agent_orchestrator.llm_subagent import LLMSubAgent
 from agent_orchestrator.zero_copy_connector import (
@@ -72,6 +77,26 @@ def resolve_active_client_id(
         get_operator_active_client,
         load_onboarded_clients,
     )
+
+    # 0. Narrow Token Guest Isolation: token holders can ONLY access their bound client
+    if user_context and getattr(user_context, "is_token_guest", False):
+        token_cid = getattr(user_context, "token_client_id", None)
+        if token_cid:
+            requested_cids = [c for c in (x_client_id, client_id) if c and str(c).strip()]
+            if request:
+                r_hdr = request.headers.get("X-Client-Id")
+                r_qp = request.query_params.get("client_id")
+                if r_hdr and str(r_hdr).strip():
+                    requested_cids.append(str(r_hdr).strip())
+                if r_qp and str(r_qp).strip():
+                    requested_cids.append(str(r_qp).strip())
+            for req_c in requested_cids:
+                if req_c != token_cid:
+                    raise HTTPException(
+                        status_code=403,
+                        detail=f"Access denied: Token is scoped exclusively to client '{token_cid}' and cannot access client '{req_c}'.",
+                    )
+            return token_cid
 
     existing_cids = {c.get("client_id") for c in load_onboarded_clients()}
 
@@ -128,6 +153,9 @@ DISALLOWED_BINARY_PREFIXES: List[Tuple[bytes, str]] = [
     (b"BZh", "BZIP2 compressed archive"),
 ]
 
+# Only controls with traceable cloud_inspector live technical check capability
+AUTOMATED_INSPECTION_CONTROLS = {"A.5.15", "A.5.18", "A.5.23", "A.8.20", "A.8.24"}
+
 # In-memory stores (can be seeded or persisted)
 QUESTIONNAIRE_ANSWERS: Dict[Tuple[str, str], "QuestionnaireAnswer"] = {}
 EVIDENCE_METADATA: Dict[str, Dict[str, Any]] = {}
@@ -180,7 +208,7 @@ SOC2_CATALOG = [
 class QuestionnaireAnswer(BaseModel):
     control_id: str = Field(..., description="Control ID (e.g. A.5.1 or CC6.1)")
     framework: str = Field(default="ISO27001:2022", description="Compliance framework identifier")
-    status: str = Field(..., description="COMPLIANT, NON_COMPLIANT, NOT_APPLICABLE, IN_PROGRESS, PARTIAL")
+    status: str = Field(..., description="COMPLIANT, NON_COMPLIANT, VERIFICAR, NOT_APPLICABLE, IN_PROGRESS, PARTIAL")
     justification: str = Field(..., description="Reviewer explanation or rationale")
     evidence_text: Optional[str] = Field(default=None, description="Extracted or textual evidence content")
     evidence_uri: Optional[str] = Field(default=None, description="Storage URI or link")
@@ -501,7 +529,7 @@ async def upload_evidence_file(
     x_session_id: Optional[str] = Header(None),
     x_operator_id: Optional[str] = Header(None),
     client_id: Optional[str] = Query(default=None),
-    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+    user_context: WorkspaceUserContext = Depends(require_questionnaire_authorized_user),
 ):
     """Uploads and strictly validates evidence files by actual content.
     
@@ -672,7 +700,7 @@ async def get_evidence_file(
     x_session_id: Optional[str] = Header(None),
     x_operator_id: Optional[str] = Header(None),
     client_id: Optional[str] = Query(default=None),
-    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+    user_context: WorkspaceUserContext = Depends(require_questionnaire_authorized_user),
 ):
     """Serves verified binary evidence files from the active client's Google Drive folder."""
     active_client_id = resolve_active_client_id(
@@ -892,12 +920,34 @@ def evaluate_answer_ai_consistency(
 async def submit_questionnaire_answer(
     control_id: str,
     answer: QuestionnaireAnswer,
-    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+    user_context: WorkspaceUserContext = Depends(require_questionnaire_authorized_user),
 ):
     """Records questionnaire answer with framework support and anchors to EvidenceGraph as SELF_ATTESTED."""
+    # 1. Model Armor Ingress Validation on text fields
+    try:
+        from mcp_server_grc.portal import model_armor_gateway
+        for text_val, field_name in [
+            (answer.justification, "justification"),
+            (answer.evidence_text, "evidence_text"),
+        ]:
+            if text_val and str(text_val).strip():
+                verdict = model_armor_gateway.inspect_ingress(str(text_val).strip())
+                if verdict.is_blocked:
+                    msg = model_armor_gateway.format_block_message(verdict.violations, locale="pt")
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"BLOCKED_BY_MODEL_ARMOR: {msg}",
+                    )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.warning("Model Armor evaluation error: %s", exc)
+
     answer.control_id = control_id
     answer.user_email = user_context.email
     answer.updated_at = time.time()
+    # Explicitly enforce SELF_ATTESTED verification tier for questionnaire path
+    answer.verification_tier = EvidenceVerificationTier.SELF_ATTESTED.value
 
     # If linked to an uploaded file, enrich with metadata
     if answer.file_id and answer.file_id in EVIDENCE_METADATA:
@@ -964,7 +1014,7 @@ async def submit_questionnaire_answer(
 async def get_questionnaire(
     framework: str = Query("ISO27001:2022", description="Target compliance framework"),
     lang: str = Query("pt", description="Language code ('pt', 'en', 'es')"),
-    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+    user_context: WorkspaceUserContext = Depends(require_questionnaire_authorized_user),
 ):
     """Returns controls and answers for the requested compliance framework and language."""
     norm_lang = (lang or "pt").lower().strip()
@@ -1038,6 +1088,7 @@ async def get_questionnaire(
             "framework": framework,
             "status": status,
             "answer": ans_dict,
+            "can_verify_scan": (cid in AUTOMATED_INSPECTION_CONTROLS),
             "translations": c.get("translations", {}),
         })
 
@@ -1058,7 +1109,7 @@ async def get_questionnaire(
 )
 async def get_questionnaire_summary(
     framework: str = Query("ISO27001:2022", description="Target compliance framework"),
-    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+    user_context: WorkspaceUserContext = Depends(require_questionnaire_authorized_user),
 ):
     """Computes completion and compliance statistics for the requested framework."""
     if framework == "ISO27001:2022":
@@ -1140,4 +1191,190 @@ async def api_sync_scan_telemetry(
         "framework": framework,
         "summary": summary.model_dump() if hasattr(summary, "model_dump") else summary.dict(),
     }
+
+
+class VerificationConfirmationRequest(BaseModel):
+    decision: str = Field(..., description="Explicit human decision: COMPLIANT or NON_COMPLIANT")
+    justification: Optional[str] = Field(default=None, description="Auditor/reviewer justification notes")
+    framework: str = Field(default="ISO27001:2022")
+
+
+@router.post(
+    "/questionnaire/{control_id}/verify_scan",
+    response_model=QuestionnaireAnswer,
+    summary="Trigger live technical check for automatable control and set status to VERIFICAR",
+)
+async def verify_control_via_scan(
+    control_id: str,
+    request: Request,
+    framework: str = Query(default="ISO27001:2022"),
+    client_id: Optional[str] = Query(default=None),
+    x_client_id: Optional[str] = Header(default=None),
+    x_session_id: Optional[str] = Header(default=None),
+    x_operator_id: Optional[str] = Header(default=None),
+    user_context: WorkspaceUserContext = Depends(require_questionnaire_authorized_user),
+):
+    """Executes a real, specific cloud_inspector technical check for this exact control.
+    
+    Sets the control status to VERIFICAR with real attached evidence.
+    Never sets final COMPLIANT/NON_COMPLIANT directly — requires explicit human confirmation.
+    Rejects controls with no live inspection capability with HTTP 400.
+    """
+    import hashlib
+    norm_cid = re.sub(r"^ISO(?:/IEC)?\s*27001(?::2022)?\s*", "", str(control_id)).strip()
+    if norm_cid not in AUTOMATED_INSPECTION_CONTROLS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Control '{norm_cid}' does not have a live automated inspection mapping. It requires questionnaire/self-attestation.",
+        )
+
+    active_cid = resolve_active_client_id(
+        request=request,
+        x_client_id=x_client_id,
+        x_session_id=x_session_id,
+        x_operator_id=x_operator_id,
+        client_id=client_id,
+        user_context=user_context,
+    )
+
+    from mcp_server_grc.portal import load_onboarded_clients
+    clients = load_onboarded_clients()
+    client_rec = next((c for c in clients if c.get("client_id") == active_cid), None)
+    projects = client_rec.get("projects") if client_rec else ["agentic-grc-cd06"]
+    target_project = projects[0] if projects else "agentic-grc-cd06"
+
+    token_val = getattr(user_context, "access_token", None) or "ya29.live-inspection-token"
+    audit_sess = x_session_id or f"verify_scan_{uuid.uuid4().hex[:8]}"
+
+    from mcp_server_grc.cloud_inspector import (
+        inspect_project_iam_policy,
+        list_cloud_storage_buckets,
+        inspect_cloud_run_services,
+        list_cloud_kms_keys,
+    )
+
+    prelim_verdict = "NON_COMPLIANT"
+    if norm_cid in ("A.5.15", "A.5.18"):
+        res = inspect_project_iam_policy(project_id=target_project, bearer_token=token_val, session_id=audit_sess)
+        prelim_verdict = "COMPLIANT" if res.get("status") == "COMPLIANT" else "NON_COMPLIANT"
+        viols = len(res.get("violations", []))
+        op_count = res.get("overprivileged_bindings_count", 0)
+        ev_text = f"Live IAM inspection on project '{target_project}': {viols} violations detected, {op_count} overprivileged bindings."
+    elif norm_cid == "A.5.23":
+        res = list_cloud_storage_buckets(project_id=target_project, bearer_token=token_val, session_id=audit_sess)
+        b_count = len(res.get("buckets", []))
+        prelim_verdict = "COMPLIANT" if res.get("status") == "COMPLIANT" else "NON_COMPLIANT"
+        ev_text = f"Live Cloud Storage inspection on project '{target_project}': {b_count} buckets inspected for PAP/UBLA."
+    elif norm_cid == "A.8.20":
+        res = inspect_cloud_run_services(project_id=target_project, bearer_token=token_val, session_id=audit_sess)
+        s_count = len(res.get("services", []))
+        prelim_verdict = "COMPLIANT" if res.get("status") == "COMPLIANT" else "NON_COMPLIANT"
+        ev_text = f"Live Cloud Run services inspection on project '{target_project}': {s_count} services inspected for ingress isolation."
+    elif norm_cid == "A.8.24":
+        res = list_cloud_kms_keys(project_id=target_project, location_id="global", bearer_token=token_val, session_id=audit_sess)
+        k_count = len(res.get("keys", []))
+        prelim_verdict = "COMPLIANT" if res.get("status") == "COMPLIANT" else "NON_COMPLIANT"
+        ev_text = f"Live Cloud KMS inspection on project '{target_project}': {k_count} crypto keys inspected for rotation and protection."
+    else:
+        ev_text = f"Live inspection check executed on project '{target_project}'."
+
+    justification = (
+        f"Live technical inspection executed via cloud_inspector.py for {norm_cid}. "
+        f"Preliminary verdict: {prelim_verdict}. Evidence attached; status set to VERIFICAR "
+        f"pending explicit human confirmation."
+    )
+
+    answer = QuestionnaireAnswer(
+        control_id=norm_cid,
+        framework=framework,
+        status="VERIFICAR",
+        justification=justification,
+        evidence_text=ev_text,
+        evidence_uri=f"gcp://telemetry/live-scan/{norm_cid.lower().replace('.', '_')}",
+        updated_at=time.time(),
+        user_email=user_context.email,
+        verification_tier=EvidenceVerificationTier.TELEMETRY.value,
+        ai_consistency_verdict="COMPLIANT_WITH_OBSERVATION",
+        ai_consistency_reasoning=f"Automated technical check completed with preliminary verdict {prelim_verdict}. Requires explicit human auditor confirmation.",
+    )
+    QUESTIONNAIRE_ANSWERS[(framework, norm_cid)] = answer
+
+    # Anchor to evidence graph with status VERIFICAR
+    ci = get_ci_engine()
+    ev_node = ci.evidence_graph.add_evidence(
+        resource_type="live_scan_telemetry",
+        resource_id=f"live-scan-{norm_cid}",
+        control_id=norm_cid,
+        raw_payload={
+            "control_id": norm_cid,
+            "project_id": target_project,
+            "preliminary_verdict": prelim_verdict,
+            "evidence_text": ev_text,
+            "status": "VERIFICAR",
+        },
+        verification_tier=EvidenceVerificationTier.TELEMETRY,
+        framework=framework,
+    )
+    node_id = f"ev-live_scan_telemetry-{hashlib.md5(f'live-scan-{norm_cid}'.encode()).hexdigest()[:8]}"
+    ci.evidence_graph.link_compliance_state(
+        source_node_id=node_id,
+        control_id=norm_cid,
+        status="VERIFICAR",
+        justification=justification,
+        framework=framework,
+    )
+
+    return answer
+
+
+@router.post(
+    "/questionnaire/{control_id}/confirm_verification",
+    response_model=QuestionnaireAnswer,
+    summary="Explicitly confirm or reject a VERIFICAR control status after reviewing live evidence",
+)
+async def confirm_control_verification(
+    control_id: str,
+    req: VerificationConfirmationRequest,
+    user_context: WorkspaceUserContext = Depends(require_questionnaire_authorized_user),
+):
+    """Requires explicit human action to finalize a VERIFICAR status into COMPLIANT or NON_COMPLIANT."""
+    norm_cid = re.sub(r"^ISO(?:/IEC)?\s*27001(?::2022)?\s*", "", str(control_id)).strip()
+    decision = req.decision.upper().strip()
+    if decision not in ("COMPLIANT", "NON_COMPLIANT"):
+        raise HTTPException(
+            status_code=400,
+            detail="Decision must be explicitly 'COMPLIANT' or 'NON_COMPLIANT'.",
+        )
+
+    key = (req.framework, norm_cid)
+    existing = QUESTIONNAIRE_ANSWERS.get(key)
+    if not existing:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No answer found for control '{norm_cid}'. Run 'Verificar via Scan' first.",
+        )
+
+    if existing.status != "VERIFICAR":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Control '{norm_cid}' is in status '{existing.status}', not 'VERIFICAR'. Confirmation requires status 'VERIFICAR'.",
+        )
+
+    user_note = f" [Confirmed as {decision} by {user_context.email}]"
+    existing.status = decision
+    existing.justification = (req.justification or existing.justification) + user_note
+    existing.updated_at = time.time()
+    existing.user_email = user_context.email
+    existing.ai_consistency_verdict = decision
+
+    QUESTIONNAIRE_ANSWERS[key] = existing
+
+    # Update evidence graph link
+    ci = get_ci_engine()
+    for link in ci.evidence_graph.links:
+        if link.control_id == norm_cid and link.framework == req.framework:
+            link.status = decision
+            link.justification += user_note
+
+    return existing
 

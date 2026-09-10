@@ -3092,7 +3092,78 @@ During live QA security testing on the running Cloud Run service, four vulnerabi
 - Full pytest suite (`uv run pytest`): **223 passed, 0 failures, 2 warnings in 23.18s (100% pass rate)**.
 - Regression testing: `tests/test_client_isolation.py` (11/11 passed), `tests/test_portal.py` (52/52 passed), `tests/test_questionnaire.py` (47/47 passed).
 
+### Milestone 80: Elimination of Fabricated Evidence in Phased Audit & Honest Telemetry Coverage
 
+#### 1. Context & Objectives
+- **Elimination of Fabricated Narratives**: The phased audit endpoint (`/api/audit/run_phases`) and `build_scan_results_for_phase()` previously contained hardcoded narratives (`vm-legacy-crm`, `vm-payment-api`, BOLA, Prompt Injection) and an invented scanner identity (`gcp-telemetry-scanner@client.corp`).
+- **Honest Telemetry Coverage**: ISO/IEC 27001:2022 comprises 93 Annex A controls. Only 5 controls have live technical mappings to Google Cloud APIs via `cloud_inspector.py`:
+  - `A.5.15` (Access control) & `A.5.18` (Access rights) -> IAM policy inspection (`cloudresourcemanager.googleapis.com`)
+  - `A.5.23` (Cloud services security) -> Cloud Storage PAP/UBLA inspection (`storage.googleapis.com`)
+  - `A.8.20` (Networks security) -> Cloud Run ingress settings (`run.googleapis.com`)
+  - `A.8.24` (Use of cryptography) -> Cloud KMS rotation/protection inspection (`cloudkms.googleapis.com`)
+- The remaining 88 controls (organizational governance in A.5, human resources in A.6, physical security in A.7, and operational procedures in A.8) are fundamentally not automatable via cloud APIs by design and strictly require human self-attestation or questionnaire responses.
+- **Architectural Principle**: The platform must never fabricate 93/93 automated answers. Controls without live inspection capabilities must remain unanswered (`NOT_ANSWERED`) until explicitly self-attested by the organization.
 
+#### 2. Key Changes & Implementation
+- `mcp_server_grc/portal.py`:
+  - Completely rewrote `build_scan_results_for_phase()` to invoke live inspection routines and only return results for `A.5.15`, `A.5.18`, `A.5.23`, `A.8.20`, and `A.8.24`.
+  - Removed `nc_details` dictionary entirely and eliminated loops fabricating verdicts across all 93 controls.
+  - Set exact docstring: `"Builds scan results ONLY for controls with a real, traceable technical check via cloud_inspector.py — never fabricates coverage for controls with no live inspection capability."`
+  - Derives Phase 1, Phase 2, and Phase 4 results directly from real live inspection calls; marks Phase 3 (Human and Physical Controls) as `"NOT_AUTOMATABLE"` with finding `"not yet automatable — requires questionnaire/self-attestation"`.
+- `mcp_server_grc/questionnaire.py`:
+  - Replaced legacy scanner default identity `gcp-telemetry-scanner@client.corp` with `cloud-inspector@gcp.audit`.
+  - Propagated authorization and session headers to downstream telemetry syncing.
 
+---
+
+### Milestone 81: Client Questionnaire Link, Question-Driven Live Verification ("VERIFICAR"), Real Health Dashboard, and Firestore Durability Layer
+
+#### 1. Context & Objectives
+- **Guest Client Questionnaire Link**: Allow consultants to generate secure, scoped, time-expiring questionnaire links (`/portal/client_questionnaire?token=qlink_...`) for clients to perform self-attestations without granting access to the internal operator portal, chat, or project selectors.
+- **Question-Driven Live Verification & "VERIFICAR" Status**: Enable on-demand technical verification directly from the questionnaire for supported controls (`can_verify_scan`). Introduce an intermediate `VERIFICAR` status that requires explicit human confirmation (`COMPLIANT` or `NON_COMPLIANT`) before finalization.
+- **Real Health Dashboard & Scorecard Metrics**: Eradicate hardcoded static percentages (`96.4%`, `89 / 93`, `100%`) from the auditor health dashboard (`#auditorHealthDash`), wiring the SVG speedometer gauge and category breakdowns (A.5, A.6, A.7, A.8) directly to live `calculate_scorecard_data()` findings.
+- **Dynamic Suggestion Pool Expansion**: Expand suggestion chips across all 4 Annex A categories and blend in 1-2 real non-compliant controls from the active client's scorecard when available.
+- **Cloud Firestore Durability Layer**: Deliver high-durability cloud storage in Google Cloud Firestore (Native mode) with concurrency protection across multiple container instances and safe, transparent local fallback to `data/clients.json`, `data/questionnaire_answers.json`, and `data/evidence_graph_nodes.json`.
+
+#### 2. Key Changes & Architecture
+- **`mcp_server_grc/firestore_storage.py`**:
+  - Implemented Firestore persistence for Client Registry (`clients`), Questionnaire Tokens (`questionnaire_tokens`), Questionnaire Answers (`questionnaire_answers`), and Evidence Graph Nodes (`evidence_nodes`).
+  - Automatic detection of `google.cloud.firestore.Client` with graceful offline fallback to `data/*.json`.
+  - Provides thread-safe token generation, retrieval, and revocation.
+- **`mcp_server_grc/client_portal_html.py` & `portal.py`**:
+  - Built minimal, self-contained, responsive client-facing questionnaire interface.
+  - Implemented `POST /api/clients/{client_id}/questionnaire_link` generating cryptographically secure scoped guest tokens with configurable validity (default 7 days).
+  - Implemented `GET /portal/client_questionnaire` rendering the scoped questionnaire page.
+  - Strict boundary enforcement: Token holders are restricted exclusively to their client's questionnaire and evidence file uploads; attempts to access operator routes (`/api/chat`, `/api/audit/run_phases`, `/api/clients`) return HTTP 401.
+  - All responses submitted via guest tokens are anchored as `SELF_ATTESTED` in the evidence graph.
+- **`mcp_server_grc/questionnaire.py` (Verification Workflow)**:
+  - Added `can_verify_scan` boolean attribute indicating whether a control has an automated inspection mapping.
+  - Implemented `POST /api/questionnaire/{control_id}/verify_scan`:
+    - Rejects unsupported controls with HTTP 400 (`"Control ... does not have a live automated inspection mapping — requires questionnaire/self-attestation"`).
+    - For supported controls, runs real inspection via `cloud_inspector.py` and records status as `VERIFICAR` with verification tier `TELEMETRY`.
+  - Implemented `POST /api/questionnaire/{control_id}/confirm_verification`:
+    - Requires status to be `VERIFICAR`.
+    - Accepts human decision (`COMPLIANT` or `NON_COMPLIANT`), recording user identity, timestamp, and review notes.
+- **`mcp_server_grc/portal_html.py`**:
+  - **Auditor Health Dashboard**: Wired SVG gauge offset (`strokeDashoffset`) and category breakdowns (`A.5`, `A.6`, `A.7`, `A.8`) to real scorecard telemetry via `updateAuditorHealthDash(data)`. Empty state displays `0.0%` / `AGUARDANDO AVALIAÇÃO` honestly.
+  - **Suggestion Chips**: Expanded pool to 24 diverse items across A.5, A.6, A.7, and A.8 in PT, EN, and ES. Dynamic shuffling blends in 1-2 real non-compliant controls from the active client's scorecard.
+  - **Questionnaire UI**: Added `Verificar via Scan` button for automatable controls and rendered the `VERIFICAR` confirmation panel for human auditor review.
+  - **Client Management**: Added "Gerar Link do Questionário" button to the active client card, copying the scoped URL to clipboard.
+
+#### 3. Automated Verification & Quality Assurance
+- Full pytest test suite (`uv run pytest`): **235 passed, 0 failures, 2 warnings in 96.00s (100% pass rate)**.
+- Dedicated test suite `tests/test_audit_link_and_durability.py` (8/8 passed):
+  - `test_client_questionnaire_link_generation_and_access`: Validates link generation, token creation, and isolated HTML serving.
+  - `test_guest_token_cannot_access_operator_routes`: Validates that guest tokens cannot access operator routes.
+  - `test_expired_questionnaire_link_rejected`: Confirms expired links return HTTP 401.
+  - `test_guest_answer_marked_self_attested`: Verifies guest submissions are tagged `SELF_ATTESTED`.
+  - `test_verify_scan_rejects_unsupported_controls`: Verifies non-automatable controls return HTTP 400.
+  - `test_verify_scan_and_confirmation_workflow`: Tests full `verify_scan` -> `VERIFICAR` -> `confirm_verification` -> `COMPLIANT` cycle.
+  - `test_scorecard_category_breakdown`: Validates live calculation of A.5, A.6, A.7, A.8 breakdown.
+  - `test_firestore_durability_and_local_fallback`: Confirms Firestore persistence and offline JSON fallback.
+- Regression testing:
+  - `tests/test_questionnaire.py`: 49/49 passed.
+  - `tests/test_portal.py`: 52/52 passed.
+  - `tests/test_agent_reliability.py`: 30/30 passed.
+  - `tests/test_client_isolation.py`: 13/13 passed.
 

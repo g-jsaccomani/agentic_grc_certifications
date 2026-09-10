@@ -14,6 +14,7 @@ import datetime
 import hashlib
 import uuid
 import html
+import secrets
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from fastapi import APIRouter, File, UploadFile, Response, Query, HTTPException, Header, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -104,65 +105,27 @@ CLIENT_CI_ENGINES: Dict[str, ContinuousIntelligenceEngine] = {
 SESSION_CLIENT_BINDINGS: Dict[str, str] = {}
 
 
-def get_clients_file_path() -> str:
-    """Returns absolute path to data/clients.json."""
-    p1 = os.path.join(os.getcwd(), "data", "clients.json")
-    if os.path.exists(p1):
-        return p1
-    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    p2 = os.path.join(repo_root, "data", "clients.json")
-    if os.path.exists(p2):
-        return p2
-    return p1
+from mcp_server_grc.firestore_storage import (
+    load_clients_from_store,
+    save_clients_to_store,
+    save_single_client_to_store,
+    delete_client_from_store,
+    save_questionnaire_token,
+    get_questionnaire_token,
+    revoke_questionnaire_token,
+    get_clients_file_path,
+)
 
 
 def save_onboarded_clients(clients: List[Dict[str, Any]]) -> str:
-    """Saves onboarded client list directly to data/clients.json."""
-    path = get_clients_file_path()
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(clients, f, indent=2, ensure_ascii=False)
-    return path
+    """Saves onboarded client list to Firestore with local fallback."""
+    save_clients_to_store(clients)
+    return get_clients_file_path()
 
 
 def load_onboarded_clients() -> List[Dict[str, Any]]:
-    """Loads onboarded client workspace records, dynamically calculating read-only expiry countdown."""
-    file_path = get_clients_file_path()
-    clients = []
-    if os.path.exists(file_path):
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                clients = json.load(f)
-        except Exception as e:
-            logger.warning(f"Failed to read clients.json: {e}")
-            clients = []
-
-    if not clients:
-        clients = [
-            {
-                "client_id": "altostrat-ventures",
-                "name": "Altostrat Ventures",
-                "avatar": "AV",
-                "projects": [
-                    "agentic-grc-cd06",
-                    "fnlab-apps-8fa913",
-                    "fnlab-sec-mgmt-8fa913",
-                    "fnlab-ai-data-8fa913",
-                    "cspr-nubank",
-                    "cspr-nubank-poc",
-                    "cspr-poc-nubank",
-                ],
-                "org_id": "31564119954",
-                "org_name": "jsaccomani.altostrat.com",
-                "contact_email": "jsaccomani@google.com",
-                "drive_folder_id": "1A2B3C4D5E6F7G8H9I0J-altostrat-evidence",
-                "created_at": "2026-09-01T12:00:00Z",
-                "read_only_access_expires_at": "2026-09-23T16:00:00Z",
-                "read_only_access_days_remaining": 14,
-                "status": "active",
-                "is_shared": True,
-            }
-        ]
+    """Loads onboarded client workspace records from Firestore (with local fallback), dynamically calculating read-only expiry countdown."""
+    clients = load_clients_from_store()
 
     now = datetime.datetime.now(datetime.timezone.utc)
     for c in clients:
@@ -2188,6 +2151,37 @@ def calculate_scorecard_data(framework: str = "ISO27001:2022", client_id: Option
             "raw_payload": node.raw_payload,
         })
 
+    # Real per-category breakdown from actual controls
+    cat_counts = {
+        "A.5": {"name": "Organizacional", "prefix": "A.5.", "total": 0, "compliant": 0, "nc": 0},
+        "A.6": {"name": "Pessoas", "prefix": "A.6.", "total": 0, "compliant": 0, "nc": 0},
+        "A.7": {"name": "Físico", "prefix": "A.7.", "total": 0, "compliant": 0, "nc": 0},
+        "A.8": {"name": "Tecnológico", "prefix": "A.8.", "total": 0, "compliant": 0, "nc": 0},
+    }
+    for c in base_controls:
+        cid = c.get("id", "")
+        for k, info in cat_counts.items():
+            if cid.startswith(info["prefix"]):
+                info["total"] += 1
+                if cid in current_nc_set:
+                    info["nc"] += 1
+                else:
+                    info["compliant"] += 1
+                break
+
+    category_breakdown = {}
+    for k, info in cat_counts.items():
+        tot = info["total"]
+        comp = info["compliant"]
+        pct = round((comp / tot * 100.0), 1) if tot > 0 else 0.0
+        category_breakdown[k] = {
+            "name": info["name"],
+            "total": tot,
+            "compliant": comp,
+            "non_compliant": info["nc"],
+            "percentage": pct,
+        }
+
     return {
         "overall_score": overall_score,
         "rating": rating,
@@ -2195,6 +2189,7 @@ def calculate_scorecard_data(framework: str = "ISO27001:2022", client_id: Option
         "compliant_count": compliant_count,
         "non_compliant_count": current_nc_count,
         "non_compliant_controls": sorted(list(current_nc_set)),
+        "category_breakdown": category_breakdown,
         "evidence_graph_summary": {
             "total_evidence_nodes": len(scoped_engine.evidence_graph.nodes),
             "verification_tiers": verification_tiers,
@@ -3593,15 +3588,7 @@ async def disconnect_onboarded_client(
     """Marks an onboarded client workspace as disconnected, disabling live scans while preserving historical data."""
     if client_id == "altostrat-ventures":
         raise HTTPException(status_code=400, detail="Cannot disconnect core client 'altostrat-ventures'.")
-    file_path = get_clients_file_path()
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="clients.json not found.")
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            clients = json.load(f)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed reading clients: {e}")
-
+    clients = load_onboarded_clients()
     target_client = next((c for c in clients if c.get("client_id") == client_id), None)
     if not target_client:
         raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found.")
@@ -3637,22 +3624,15 @@ async def delete_onboarded_client(
     client_id: str,
     user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
-    """Deletes an onboarded client from data/clients.json (cannot delete altostrat-ventures)."""
+    """Deletes an onboarded client from Firestore and data/clients.json (cannot delete altostrat-ventures)."""
     if client_id == "altostrat-ventures":
         raise HTTPException(status_code=400, detail="Cannot delete core client 'altostrat-ventures'.")
-    file_path = get_clients_file_path()
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="clients.json not found.")
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            clients = json.load(f)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed reading clients: {e}")
-    initial_len = len(clients)
-    clients = [c for c in clients if c.get("client_id") != client_id]
-    if len(clients) == initial_len:
+    clients = load_onboarded_clients()
+    target_client = next((c for c in clients if c.get("client_id") == client_id), None)
+    if not target_client:
         raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found.")
-    save_onboarded_clients(clients)
+
+    delete_client_from_store(client_id)
 
     # Invalidate active operator/session bindings pointing to deleted client
     for op, bound_cid in list(OPERATOR_ACTIVE_CLIENTS.items()):
@@ -3663,6 +3643,100 @@ async def delete_onboarded_client(
             SESSION_CLIENT_BINDINGS.pop(sess, None)
 
     return {"status": "success", "message": f"Client '{client_id}' deleted from data/clients.json."}
+
+
+class QuestionnaireLinkCreateRequest(BaseModel):
+    expires_in_days: int = Field(default=7, ge=1, le=90)
+    recipient_email: Optional[str] = Field(default=None)
+    description: Optional[str] = Field(default=None)
+
+
+@router.post(
+    "/api/clients/{client_id}/questionnaire_link",
+    summary="Generates scoped, expiring questionnaire link token for external client self-attestation",
+)
+async def create_client_questionnaire_link(
+    client_id: str,
+    req: QuestionnaireLinkCreateRequest = QuestionnaireLinkCreateRequest(),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
+    """Generates a secure, expiring token allowing guest client to access ONLY their questionnaire."""
+    clients = load_onboarded_clients()
+    client_rec = next((c for c in clients if c.get("client_id") == client_id), None)
+    if not client_rec:
+        raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found.")
+
+    token = f"qlink_{secrets.token_urlsafe(32)}"
+    now = datetime.datetime.now(datetime.timezone.utc)
+    expires_at = (now + datetime.timedelta(days=req.expires_in_days)).isoformat()
+
+    token_record = {
+        "token": token,
+        "client_id": client_id,
+        "created_at": now.isoformat(),
+        "expires_at": expires_at,
+        "expires_in_days": req.expires_in_days,
+        "recipient_email": req.recipient_email or client_rec.get("contact_email") or f"client@{client_id}.corp",
+        "created_by": user_context.email,
+        "description": req.description or f"Questionnaire link for {client_rec.get('name')}",
+        "status": "active",
+    }
+    save_questionnaire_token(token_record)
+
+    link_url = f"/portal/client_questionnaire?token={token}"
+
+    return {
+        "status": "success",
+        "client_id": client_id,
+        "token": token,
+        "link": link_url,
+        "expires_at": expires_at,
+        "expires_in_days": req.expires_in_days,
+        "recipient_email": token_record["recipient_email"],
+    }
+
+
+@router.get("/portal/client_questionnaire", response_class=HTMLResponse)
+async def get_client_questionnaire_page(token: Optional[str] = Query(None)):
+    """Serves the isolated, minimal client-facing questionnaire interface."""
+    if not token:
+        return HTMLResponse(
+            status_code=401,
+            content="""<!DOCTYPE html><html><body style="background:#0e1217;color:#f28b82;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;"><div><h2>Acesso Não Autorizado</h2><p style="color:#9aa0a6;margin-top:8px;">O link de acesso ao questionário requer um token válido.</p></div></body></html>""",
+        )
+    tok_data = get_questionnaire_token(token)
+    if not tok_data or tok_data.get("status") != "active":
+        return HTMLResponse(
+            status_code=401,
+            content="""<!DOCTYPE html><html><body style="background:#0e1217;color:#f28b82;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;"><div><h2>Acesso Não Autorizado</h2><p style="color:#9aa0a6;margin-top:8px;">O link de acesso ao questionário é inválido ou expirou. Solicite um novo link ao seu auditor.</p></div></body></html>""",
+        )
+
+    exp_str = tok_data.get("expires_at")
+    if exp_str:
+        try:
+            exp_dt = datetime.datetime.fromisoformat(exp_str.replace("Z", "+00:00"))
+            if exp_dt < datetime.datetime.now(datetime.timezone.utc):
+                return HTMLResponse(
+                    status_code=401,
+                    content="""<!DOCTYPE html><html><body style="background:#0e1217;color:#f28b82;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;"><div><h2>Link Expirado</h2><p style="color:#9aa0a6;margin-top:8px;">Este link de acesso ao questionário expirou. Solicite a renovação ao seu auditor.</p></div></body></html>""",
+                )
+        except Exception:
+            pass
+
+    client_id = tok_data.get("client_id")
+    clients = load_onboarded_clients()
+    client_rec = next((c for c in clients if c.get("client_id") == client_id), None)
+    client_name = client_rec.get("name") if client_rec else client_id
+
+    from mcp_server_grc.client_portal_html import render_client_questionnaire_html
+    return HTMLResponse(
+        content=render_client_questionnaire_html(
+            client_name=client_name,
+            client_id=client_id,
+            token=token,
+            expires_at=exp_str or "",
+        )
+    )
 
 
 @router.post("/api/chat")

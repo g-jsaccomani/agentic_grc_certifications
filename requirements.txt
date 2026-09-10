@@ -9,6 +9,7 @@ python-multipart>=0.0.9
 # Google Cloud & GenAI SDKs
 google-auth>=2.30.0
 google-genai>=0.1.0
+google-cloud-firestore>=2.16.0
 cryptography>=42.0.0
 pyjwt[crypto]>=2.8.0
 

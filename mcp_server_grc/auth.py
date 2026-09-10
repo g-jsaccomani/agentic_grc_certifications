@@ -56,6 +56,10 @@ class WorkspaceUserContext(BaseModel):
     sub: Optional[str] = Field(default=None, description="Google user unique subject ID")
     name: Optional[str] = Field(default=None, description="User full display name")
     is_demo: bool = Field(default=False, description="Whether this is a local demo/fallback session")
+    is_token_guest: bool = Field(default=False, description="Whether this is a scoped questionnaire link guest")
+    token_client_id: Optional[str] = Field(default=None, description="Client ID strictly bound to the questionnaire token")
+    token_string: Optional[str] = Field(default=None, description="Raw questionnaire token")
+
 
 
 def create_mock_id_token(
@@ -487,6 +491,23 @@ async def get_current_workspace_user(
             is_demo=False,
         )
 
+    # Check if request carries a scoped questionnaire guest token
+    qtoken = request.headers.get("X-Questionnaire-Token") if request else None
+    if not qtoken and authorization and str(authorization).strip().startswith("Bearer qlink_"):
+        qtoken = str(authorization).strip().split(" ", 1)[1].strip()
+    if qtoken:
+        from mcp_server_grc.firestore_storage import get_questionnaire_token
+        tok_data = get_questionnaire_token(qtoken)
+        cid = tok_data.get("client_id") if tok_data else "unknown"
+        return WorkspaceUserContext(
+            email=tok_data.get("recipient_email") or f"client-guest@{cid}.corp" if tok_data else "client-guest@corp",
+            hd="client.corp",
+            is_demo=False,
+            is_token_guest=True,
+            token_client_id=cid,
+            token_string=qtoken,
+        )
+
     id_token_str = x_goog_id_token or x_google_id_token
 
     # Extract OAuth access token from Authorization header
@@ -580,12 +601,84 @@ def require_authenticated_workspace_user(
     
     Rejects unauthenticated or demo user contexts with HTTP 401 when ALLOW_DEV_AUTH_BYPASS is not 'true'.
     """
+    if user_context.is_token_guest:
+        raise HTTPException(
+            status_code=401,
+            detail="Guest questionnaire tokens cannot access operator portal or chat endpoints.",
+        )
     if user_context.is_demo and os.getenv("ALLOW_DEV_AUTH_BYPASS", "false").lower() != "true":
         raise HTTPException(
             status_code=401,
             detail="Authentication required: Valid Google Workspace identity token or OAuth Bearer token required.",
         )
     return user_context
+
+
+async def require_questionnaire_authorized_user(
+    request: Request,
+    x_questionnaire_token: Optional[str] = Header(None, alias="X-Questionnaire-Token"),
+    token: Optional[str] = None,
+    authorization: Optional[str] = Header(None),
+    current_user: WorkspaceUserContext = Depends(get_current_workspace_user),
+) -> WorkspaceUserContext:
+    """Narrow authorization dependency restricting token holders to ONLY their client's questionnaire.
+    
+    Accepts:
+    1. A scoped questionnaire token via header 'X-Questionnaire-Token', query param 'token',
+       or 'Authorization: Bearer qlink_...'
+    2. OR falls back to standard operator authenticated workspace user.
+    """
+    from mcp_server_grc.firestore_storage import get_questionnaire_token
+    import datetime
+
+    # Check for questionnaire token in header, query param, or Authorization header
+    candidate_token = x_questionnaire_token or token
+    if not candidate_token and request:
+        candidate_token = request.query_params.get("token") or request.headers.get("X-Questionnaire-Token")
+
+    if not candidate_token and authorization and authorization.strip().startswith("Bearer qlink_"):
+        candidate_token = authorization.strip().split(" ", 1)[1].strip()
+
+    if candidate_token and str(candidate_token).strip():
+        tok = str(candidate_token).strip()
+        tok_data = get_questionnaire_token(tok)
+        if not tok_data:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid or expired questionnaire access token.",
+            )
+        if tok_data.get("status") != "active":
+            raise HTTPException(
+                status_code=403,
+                detail=f"Questionnaire access token is no longer active (status={tok_data.get('status')}).",
+            )
+        exp_str = tok_data.get("expires_at")
+        if exp_str:
+            try:
+                exp_dt = datetime.datetime.fromisoformat(exp_str.replace("Z", "+00:00"))
+                if exp_dt < datetime.datetime.now(datetime.timezone.utc):
+                    raise HTTPException(
+                        status_code=401,
+                        detail="Questionnaire access token has expired.",
+                    )
+            except Exception as e:
+                if isinstance(e, HTTPException):
+                    raise e
+
+        cid = tok_data.get("client_id")
+        recipient = tok_data.get("recipient_email") or f"client-guest@{cid}.corp"
+        return WorkspaceUserContext(
+            email=recipient,
+            hd="client.corp",
+            is_demo=False,
+            is_token_guest=True,
+            token_client_id=cid,
+            token_string=tok,
+        )
+
+    # If no questionnaire token, fall back to standard authenticated operator
+    return require_authenticated_workspace_user(user_context=current_user)
+
 
 
 def get_user_gcp_credentials(user_access_token: str) -> Credentials:

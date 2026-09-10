@@ -46,6 +46,8 @@ service_account.json
 .env
 *.pem
 
-# Runtime evidence uploads
+# Runtime evidence uploads and local fallbacks
 data/evidence_uploads/
 data/*.bin
+data/evidence_graph_nodes.json
+data/questionnaire_answers.json

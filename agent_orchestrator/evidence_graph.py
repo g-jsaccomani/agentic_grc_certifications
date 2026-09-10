@@ -125,12 +125,14 @@ class EvidenceGraph:
         total_links = len(self.links)
         compliant = sum(1 for l in self.links if l.status == "COMPLIANT")
         non_compliant = sum(1 for l in self.links if l.status == "NON_COMPLIANT")
+        verificar = sum(1 for l in self.links if l.status == "VERIFICAR")
 
         return {
             "total_evidence_nodes": total_nodes,
             "total_compliance_links": total_links,
             "compliant_links": compliant,
             "non_compliant_links": non_compliant,
+            "verificar_links": verificar,
             "verification_tiers": {
                 tier.value: sum(1 for n in self.nodes.values() if n.verification_tier == tier)
                 for tier in EvidenceVerificationTier

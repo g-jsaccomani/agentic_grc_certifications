@@ -6577,9 +6577,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                                 </linearGradient>
                                             </defs>
                                             <path class="gauge-bg" d="M 25 95 A 75 75 0 0 1 175 95" />
-                                            <path class="gauge-meter" d="M 25 95 A 75 75 0 0 1 175 95" style="stroke-dasharray: 236; stroke-dashoffset: 8;" />
-                                            <text x="100" y="80" class="speedo-center-val" text-anchor="middle">96.4%</text>
-                                            <text x="100" y="98" class="speedo-center-lbl" text-anchor="middle">POSTURA RESILIENTE</text>
+                                            <path class="gauge-meter" id="healthDashMeter" d="M 25 95 A 75 75 0 0 1 175 95" style="stroke-dasharray: 236; stroke-dashoffset: 236;" />
+                                            <text x="100" y="80" class="speedo-center-val" id="healthDashScore" text-anchor="middle">0.0%</text>
+                                            <text x="100" y="98" class="speedo-center-lbl" id="healthDashRating" text-anchor="middle">AGUARDANDO AVALIAÇÃO</text>
                                         </svg>
                                     </div>
                                 </div>
@@ -6588,37 +6588,37 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <div class="health-card">
                                     <div class="health-card-header">
                                         <div class="health-card-title">Conformidade ISO/IEC 27001:2022</div>
-                                        <span class="health-card-badge">89 / 93 Controles (95.7%)</span>
+                                        <span class="health-card-badge" id="healthDashBadge">0 / 93 Controles (0.0%)</span>
                                     </div>
 
                                     <div class="compliance-domains-grid">
                                         <div class="domain-item">
                                             <div class="domain-top">
                                                 <span>Organizacional (A.5)</span>
-                                                <span class="domain-pct val-green">100%</span>
+                                                <span class="domain-pct val-green" id="healthDashA5Pct">0%</span>
                                             </div>
-                                            <div class="domain-bar"><div class="domain-fill bg-green" style="width: 100%;"></div></div>
+                                            <div class="domain-bar"><div class="domain-fill bg-green" id="healthDashA5Bar" style="width: 0%;"></div></div>
                                         </div>
                                         <div class="domain-item">
                                             <div class="domain-top">
                                                 <span>Pessoas (A.6)</span>
-                                                <span class="domain-pct val-green">100%</span>
+                                                <span class="domain-pct val-green" id="healthDashA6Pct">0%</span>
                                             </div>
-                                            <div class="domain-bar"><div class="domain-fill bg-green" style="width: 100%;"></div></div>
+                                            <div class="domain-bar"><div class="domain-fill bg-green" id="healthDashA6Bar" style="width: 0%;"></div></div>
                                         </div>
                                         <div class="domain-item">
                                             <div class="domain-top">
                                                 <span>Físico & Clima (A.7)</span>
-                                                <span class="domain-pct val-blue">93%</span>
+                                                <span class="domain-pct val-blue" id="healthDashA7Pct">0%</span>
                                             </div>
-                                            <div class="domain-bar"><div class="domain-fill bg-blue" style="width: 93%;"></div></div>
+                                            <div class="domain-bar"><div class="domain-fill bg-blue" id="healthDashA7Bar" style="width: 0%;"></div></div>
                                         </div>
                                         <div class="domain-item">
                                             <div class="domain-top">
                                                 <span>Tecnológico (A.8)</span>
-                                                <span class="domain-pct val-yellow">91%</span>
+                                                <span class="domain-pct val-yellow" id="healthDashA8Pct">0%</span>
                                             </div>
-                                            <div class="domain-bar"><div class="domain-fill bg-yellow" style="width: 91%;"></div></div>
+                                            <div class="domain-bar"><div class="domain-fill bg-yellow" id="healthDashA8Bar" style="width: 0%;"></div></div>
                                         </div>
                                     </div>
 
@@ -11509,7 +11509,15 @@ Formulário preenchido com o subagente recomendado!`);
                             </svg>
                         </button>
                     `;
-                    actionsEl.innerHTML = `${disBtn}${delBtn}`;
+                    const linkBtn = `
+                        <button class="client-action-btn link" title="Gerar Link do Questionário" onclick="event.stopPropagation(); generateQuestionnaireLinkForClient('${escapeJs(client.client_id)}')">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                            </svg>
+                        </button>
+                    `;
+                    actionsEl.innerHTML = `${linkBtn}${disBtn}${delBtn}`;
                 } else {
                     actionsEl.style.display = "none";
                     actionsEl.innerHTML = "";
@@ -11909,6 +11917,36 @@ Formulário preenchido com o subagente recomendado!`);
             } catch (err) {
                 console.error("Error deleting client:", err);
                 alert(`Erro ao excluir cliente: ${err.message || err}`);
+            }
+        }
+
+                async function generateQuestionnaireLinkForClient(clientId) {
+            try {
+                const headers = { "Content-Type": "application/json" };
+                const opId = (typeof getOperatorId === 'function') ? getOperatorId() : localStorage.getItem("grc_operator_id");
+                if (opId) headers["X-Operator-Id"] = opId;
+                if (window.currentUserIdToken) headers["X-Goog-Id-Token"] = window.currentUserIdToken;
+                const token = window.currentUserToken || window.currentGoogleAccessToken;
+                if (token) headers["Authorization"] = `Bearer ${token}`;
+
+                const res = await fetch(`/api/clients/${encodeURIComponent(clientId)}/questionnaire_link`, {
+                    method: "POST",
+                    headers,
+                    body: JSON.stringify({ expires_in_days: 7 })
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    alert(`Falha ao gerar link: ${err.detail || res.statusText}`);
+                    return;
+                }
+                const data = await res.json();
+                const fullUrl = window.location.origin + data.link;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(fullUrl).catch(() => {});
+                }
+                alert(`Link do Questionário (Válido por ${data.expires_in_days} dias):\n\n${fullUrl}\n\nO link foi copiado para a área de transferência!`);
+            } catch (err) {
+                alert(`Erro ao gerar link do questionário: ${err.message || err}`);
             }
         }
 
@@ -13134,31 +13172,100 @@ echo -e "================================================================\\n"`;
         // =========================================================================
                 const dynamicSuggestionPools = {
             pt: [
-                { label: "Avaliação Completa ISO 27001", prompt: "Executar avaliação técnica completa de todos os 93 controles da ISO/IEC 27001:2022" },
-                { label: "Criptografia Cloud KMS (A.8.24)", prompt: "Avaliar controle A.8.24 de Criptografia Cloud KMS e rotação de chaves HSM" },
-                { label: "Perímetros VPC-SC (A.8.12)", prompt: "Verificar perímetros VPC Service Controls e controle de fuga de dados A.8.12" },
-                { label: "Armazenamento GCS (A.5.23)", prompt: "Avaliar segurança do Cloud Storage e controle A.5.23 para serviços em nuvem" },
-                { label: "IAM & Menor Privilégio", prompt: "Avaliar conformidade de IAM, segregação de funções e ausência de papéis primitivos" },
-                { label: "Logs 365 Dias (A.8.16)", prompt: "Verificar retenção de 365 dias dos Cloud Audit Logs no BigQuery (A.8.16)" },
-                { label: "Amd 1:2024 Clima & DR", prompt: "Avaliar conformidade com a Emenda Climática ISO 27001 Amd 1:2024 e Disaster Recovery" }
+                // Organizacional (A.5)
+                { label: "Políticas de Segurança (A.5.1)", prompt: "Avaliar diretrizes e aprovação das políticas de segurança da informação (A.5.1)" },
+                { label: "Papéis & Funções (A.5.2)", prompt: "Verificar definição de papéis e responsabilidades de segurança da informação (A.5.2)" },
+                { label: "Segregação de Funções (A.5.3)", prompt: "Avaliar segregação de deveres conflitantes e privilégios administrativos (A.5.3)" },
+                { label: "Controle de Acesso IAM (A.5.15)", prompt: "Avaliar políticas de controle de acesso IAM e conformidade do projeto (A.5.15)" },
+                { label: "Segurança de Fornecedores (A.5.19)", prompt: "Avaliar processos de gestão de riscos na cadeia de suprimentos e fornecedores (A.5.19)" },
+                { label: "Serviços em Nuvem GCS (A.5.23)", prompt: "Avaliar conformidade de Cloud Storage, PAP e UBLA conforme A.5.23" },
+                { label: "Continuidade de Negócios (A.5.29)", prompt: "Avaliar prontidão de TIC para continuidade de negócios e planos de contingência (A.5.29)" },
+                { label: "Conformidade Regulatória (A.5.31)", prompt: "Identificar requisitos legais, estatutários e contratuais aplicáveis (A.5.31)" },
+                // Pessoas (A.6)
+                { label: "Seleção & Background (A.6.1)", prompt: "Avaliar procedimentos de verificação de antecedentes de colaboradores (A.6.1)" },
+                { label: "Termos de Contratação (A.6.2)", prompt: "Verificar acordos de confidencialidade e termos de responsabilidade (A.6.2)" },
+                { label: "Treinamento & Conscientização (A.6.3)", prompt: "Avaliar programa de conscientização e capacitação periódica em segurança (A.6.3)" },
+                { label: "Processo Disciplinar (A.6.4)", prompt: "Verificar existência de processo formal de sanções por violação de segurança (A.6.4)" },
+                { label: "Pós-Desligamento (A.6.5)", prompt: "Avaliar revogação de acessos e devolução de ativos no encerramento contratual (A.6.5)" },
+                { label: "Trabalho Remoto Seguro (A.6.7)", prompt: "Avaliar diretrizes de segurança aplicadas ao teletrabalho e home-office (A.6.7)" },
+                // Físico (A.7)
+                { label: "Perímetros de Segurança (A.7.1)", prompt: "Avaliar barreiras físicas e perímetros de proteção das instalações (A.7.1)" },
+                { label: "Controle de Acesso Físico (A.7.2)", prompt: "Verificar crachás, catracas e registros de visitantes em áreas sensíveis (A.7.2)" },
+                { label: "Proteção contra Ameaças Físicas (A.7.3)", prompt: "Avaliar medidas contra incêndio, inundação e desastres ambientais (A.7.3)" },
+                { label: "Descarte de Mídias (A.7.14)", prompt: "Verificar procedimentos de descarte e sanitização segura de mídias de dados (A.7.14)" },
+                // Tecnológico (A.8)
+                { label: "Dispositivos de Usuário (A.8.1)", prompt: "Avaliar controles de proteção para endpoints e dispositivos de usuários (A.8.1)" },
+                { label: "Proteção contra Malware (A.8.7)", prompt: "Verificar mecanismos de detecção e resposta a códigos maliciosos (A.8.7)" },
+                { label: "Prevenção de Vazamento (A.8.12)", prompt: "Verificar perímetros VPC Service Controls e controle de fuga de dados (A.8.12)" },
+                { label: "Retenção de Logs 365d (A.8.16)", prompt: "Verificar retenção e centralização de Cloud Audit Logs no BigQuery (A.8.16)" },
+                { label: "Segurança de Redes (A.8.20)", prompt: "Avaliar firewalls de rede e isolamento de ingress no Cloud Run (A.8.20)" },
+                { label: "Criptografia Cloud KMS (A.8.24)", prompt: "Avaliar proteção Cloud KMS, rotação de chaves e conformidade HSM (A.8.24)" },
+                { label: "DevSecOps & Codificação (A.8.28)", prompt: "Avaliar práticas de desenvolvimento seguro de software e CI/CD (A.8.28)" },
+                { label: "Separação Ambientes (A.8.31)", prompt: "Avaliar isolamento estrito entre ambientes de desenvolvimento, teste e produção (A.8.31)" }
             ],
             en: [
-                { label: "Complete ISO 27001 Assessment", prompt: "Run complete technical assessment of all 93 ISO/IEC 27001:2022 controls" },
-                { label: "Cloud KMS Encryption (A.8.24)", prompt: "Assess control A.8.24 Cloud KMS Encryption and HSM key rotation" },
-                { label: "VPC-SC Perimeters (A.8.12)", prompt: "Verify VPC Service Controls perimeters and data leakage prevention A.8.12" },
-                { label: "GCS Storage (A.5.23)", prompt: "Assess Cloud Storage security and control A.5.23 for cloud services" },
-                { label: "IAM & Least Privilege", prompt: "Assess IAM compliance, segregation of duties and absence of primitive roles" },
-                { label: "365-Day Logs (A.8.16)", prompt: "Verify 365-day Cloud Audit Logs retention in BigQuery sinks (A.8.16)" },
-                { label: "Amd 1:2024 Climate & DR", prompt: "Assess compliance with ISO 27001 Amd 1:2024 Climate Amendment and Disaster Recovery" }
+                // Organizational (A.5)
+                { label: "Security Policies (A.5.1)", prompt: "Assess information security policies approval and management review (A.5.1)" },
+                { label: "Roles & Responsibilities (A.5.2)", prompt: "Verify information security roles and responsibilities assignment (A.5.2)" },
+                { label: "Segregation of Duties (A.5.3)", prompt: "Assess segregation of conflicting duties and administrative roles (A.5.3)" },
+                { label: "IAM Access Control (A.5.15)", prompt: "Assess IAM access control policies and project posture (A.5.15)" },
+                { label: "Supplier Security (A.5.19)", prompt: "Assess supplier relationship risk management processes (A.5.19)" },
+                { label: "Cloud Services Storage (A.5.23)", prompt: "Assess Cloud Storage PAP and UBLA compliance under A.5.23" },
+                { label: "Business Continuity (A.5.29)", prompt: "Assess ICT readiness for business continuity and disaster recovery (A.5.29)" },
+                { label: "Legal Compliance (A.5.31)", prompt: "Identify applicable statutory, regulatory, and contractual requirements (A.5.31)" },
+                // People (A.6)
+                { label: "Screening & Background (A.6.1)", prompt: "Assess candidate background verification procedures (A.6.1)" },
+                { label: "Terms of Employment (A.6.2)", prompt: "Verify employment agreements and confidentiality terms (A.6.2)" },
+                { label: "Security Awareness (A.6.3)", prompt: "Assess continuous information security training and awareness program (A.6.3)" },
+                { label: "Disciplinary Process (A.6.4)", prompt: "Verify formal disciplinary process for security breaches (A.6.4)" },
+                { label: "Offboarding Responsibilities (A.6.5)", prompt: "Assess access revocation and asset return upon termination (A.6.5)" },
+                { label: "Remote Working (A.6.7)", prompt: "Assess remote working security guidelines and telework protections (A.6.7)" },
+                // Physical (A.7)
+                { label: "Security Perimeters (A.7.1)", prompt: "Assess physical security perimeters and barriers (A.7.1)" },
+                { label: "Physical Entry Controls (A.7.2)", prompt: "Verify badge access, turnstiles, and visitor logs for secure zones (A.7.2)" },
+                { label: "Physical Threat Protection (A.7.3)", prompt: "Assess protections against fire, flooding, and environmental threats (A.7.3)" },
+                { label: "Disposal of Media (A.7.14)", prompt: "Verify secure disposal and sanitization procedures for storage media (A.7.14)" },
+                // Technological (A.8)
+                { label: "User Endpoint Devices (A.8.1)", prompt: "Assess security configuration and management of user devices (A.8.1)" },
+                { label: "Protection against Malware (A.8.7)", prompt: "Verify malicious code detection and anti-malware protections (A.8.7)" },
+                { label: "Data Leakage Prevention (A.8.12)", prompt: "Verify VPC Service Controls perimeters and data exfiltration prevention (A.8.12)" },
+                { label: "365-Day Log Retention (A.8.16)", prompt: "Verify Cloud Audit Logs retention and BigQuery sink aggregation (A.8.16)" },
+                { label: "Network Security (A.8.20)", prompt: "Assess network firewalls and Cloud Run ingress isolation (A.8.20)" },
+                { label: "Cloud KMS Encryption (A.8.24)", prompt: "Assess Cloud KMS key rotation, HSM protection, and crypto controls (A.8.24)" },
+                { label: "DevSecOps & Coding (A.8.28)", prompt: "Assess secure software development principles and CI/CD controls (A.8.28)" },
+                { label: "Environment Separation (A.8.31)", prompt: "Assess strict separation between development, test, and production environments (A.8.31)" }
             ],
             es: [
-                { label: "Evaluación Completa ISO 27001", prompt: "Ejecutar evaluación técnica completa de los 93 controles de ISO/IEC 27001:2022" },
-                { label: "Criptografía Cloud KMS (A.8.24)", prompt: "Evaluar control A.8.24 de Criptografía Cloud KMS y rotación de claves HSM" },
-                { label: "Perímetros VPC-SC (A.8.12)", prompt: "Verificar perímetros VPC Service Controls y prevención de fuga de datos A.8.12" },
-                { label: "Almacenamiento GCS (A.5.23)", prompt: "Evaluar seguridad de Cloud Storage y control A.5.23 para servicios cloud" },
-                { label: "IAM y Menor Privilegio", prompt: "Evaluar cumplimiento de IAM, segregación de funciones y ausencia de roles primitivos" },
-                { label: "Logs 365 Días (A.8.16)", prompt: "Verificar retención de 365 días de Cloud Audit Logs en BigQuery (A.8.16)" },
-                { label: "Amd 1:2024 Clima y DR", prompt: "Evaluar cumplimiento de la Enmienda Climática ISO 27001 Amd 1:2024 y Disaster Recovery" }
+                // Organizacional (A.5)
+                { label: "Políticas de Seguridad (A.5.1)", prompt: "Evaluar directrices y aprobación de políticas de seguridad de la información (A.5.1)" },
+                { label: "Roles y Responsabilidades (A.5.2)", prompt: "Verificar asignación de roles y responsabilidades de seguridad (A.5.2)" },
+                { label: "Segregación de Funciones (A.5.3)", prompt: "Evaluar segregación de funciones conflictivas y privilegios (A.5.3)" },
+                { label: "Control de Acceso IAM (A.5.15)", prompt: "Evaluar políticas de control de acceso IAM del proyecto (A.5.15)" },
+                { label: "Seguridad de Proveedores (A.5.19)", prompt: "Evaluar gestión de riesgos en la cadena de proveedores (A.5.19)" },
+                { label: "Servicios Cloud GCS (A.5.23)", prompt: "Evaluar Cloud Storage, PAP y UBLA según el control A.5.23" },
+                { label: "Continuidad de Negocio (A.5.29)", prompt: "Evaluar preparación de TIC para continuidad del negocio y contingencia (A.5.29)" },
+                { label: "Cumplimiento Legal (A.5.31)", prompt: "Identificar requisitos legales, normativos y contractuales aplicables (A.5.31)" },
+                // Personas (A.6)
+                { label: "Selección y Verificación (A.6.1)", prompt: "Evaluar procedimientos de verificación de antecedentes laborales (A.6.1)" },
+                { label: "Términos de Contratación (A.6.2)", prompt: "Verificar acuerdos de confidencialidad y responsabilidades (A.6.2)" },
+                { label: "Capacitación en Seguridad (A.6.3)", prompt: "Evaluar programa de concienciación periódica en seguridad (A.6.3)" },
+                { label: "Proceso Disciplinario (A.6.4)", prompt: "Verificar proceso formal por incumplimiento de seguridad (A.6.4)" },
+                { label: "Desvinculación (A.6.5)", prompt: "Evaluar revocación de accesos y devolución de activos tras baja (A.6.5)" },
+                { label: "Trabajo Remoto (A.6.7)", prompt: "Evaluar directrices de seguridad para teletrabajo (A.6.7)" },
+                // Físico (A.7)
+                { label: "Perímetros de Seguridad (A.7.1)", prompt: "Evaluar barreras físicas y perímetros de protección (A.7.1)" },
+                { label: "Control de Acceso Físico (A.7.2)", prompt: "Verificar credenciales, torniquetes y registro de visitas (A.7.2)" },
+                { label: "Protección contra Amenazas (A.7.3)", prompt: "Evaluar medidas contra incendios, inundaciones y riesgos físicos (A.7.3)" },
+                { label: "Eliminación de Soportes (A.7.14)", prompt: "Verificar procedimientos seguros de destrucción y borrado de medios (A.7.14)" },
+                // Tecnológico (A.8)
+                { label: "Dispositivos de Usuario (A.8.1)", prompt: "Evaluar controles y gestión de dispositivos de usuario (A.8.1)" },
+                { label: "Protección Malware (A.8.7)", prompt: "Verificar mecanismos de detección y prevención de malware (A.8.7)" },
+                { label: "Fuga de Datos VPC-SC (A.8.12)", prompt: "Verificar perímetros VPC Service Controls y prevención de fuga (A.8.12)" },
+                { label: "Retención de Logs 365d (A.8.16)", prompt: "Verificar retención de Cloud Audit Logs en BigQuery (A.8.16)" },
+                { label: "Seguridad de Redes (A.8.20)", prompt: "Evaluar firewalls de red y aislamiento de ingress en Cloud Run (A.8.20)" },
+                { label: "Criptografía Cloud KMS (A.8.24)", prompt: "Evaluar protección Cloud KMS, rotación de claves y HSM (A.8.24)" },
+                { label: "DevSecOps y Código (A.8.28)", prompt: "Evaluar prácticas de desarrollo seguro de software y CI/CD (A.8.28)" },
+                { label: "Separación de Entornos (A.8.31)", prompt: "Evaluar separación estricta entre entornos de desarrollo y producción (A.8.31)" }
             ]
         };
 
@@ -13169,13 +13276,36 @@ echo -e "================================================================\\n"`;
             const container = document.getElementById("heroQuickChips");
             if (!container) return;
 
-            // Pick 5 random items distinct from last selection
-            const pool = dynamicSuggestionPools[window.currentLanguage || 'en'] || dynamicSuggestionPools.en;
+            const lang = window.currentLanguage || 'en';
+            const pool = dynamicSuggestionPools[lang] || dynamicSuggestionPools.en;
+            
+            // Check if active client has real non-compliant findings to blend in
+            let blendedSuggestions = [];
+            const scorecard = window.currentScorecardData;
+            if (scorecard && scorecard.non_compliant_controls && scorecard.non_compliant_controls.length > 0) {
+                const ncs = scorecard.non_compliant_controls.slice();
+                for (let k = ncs.length - 1; k > 0; k--) {
+                    const r = Math.floor(Math.random() * (k + 1));
+                    [ncs[k], ncs[r]] = [ncs[r], ncs[k]];
+                }
+                const pickedNcs = ncs.slice(0, Math.min(2, ncs.length));
+                pickedNcs.forEach(cid => {
+                    const lbl = lang === 'en' ? `Review ${cid}` : (lang === 'es' ? `Revisar ${cid}` : `Revisar ${cid}`);
+                    const prompt = lang === 'en'
+                        ? `Assess non-compliance identified for control ${cid} in the active project scope`
+                        : (lang === 'es'
+                            ? `Evaluar no conformidad identificada en el control ${cid} en el alcance activo`
+                            : `Avaliar não-conformidade identificada no controle ${cid} no escopo do projeto ativo`);
+                    blendedSuggestions.push({ label: lbl, prompt: prompt, isFinding: true });
+                });
+            }
+
+            const neededFromPool = Math.max(1, 5 - blendedSuggestions.length);
             let availableIndices = pool
                 .map((_, i) => i)
                 .filter(i => !lastPickedIndices.includes(i));
             
-            if (availableIndices.length < 5) {
+            if (availableIndices.length < neededFromPool) {
                 availableIndices = pool.map((_, i) => i);
             }
 
@@ -13184,19 +13314,29 @@ echo -e "================================================================\\n"`;
                 [availableIndices[i], availableIndices[j]] = [availableIndices[j], availableIndices[i]];
             }
 
-            const selectedIndices = availableIndices.slice(0, 5);
+            const selectedIndices = availableIndices.slice(0, neededFromPool);
             lastPickedIndices = selectedIndices;
+
+            const finalSuggestions = [
+                ...blendedSuggestions,
+                ...selectedIndices.map(idx => pool[idx])
+            ];
 
             container.style.opacity = "0.2";
             container.style.transition = "opacity 0.2s ease";
 
             setTimeout(() => {
                 container.innerHTML = "";
-                selectedIndices.forEach(idx => {
-                    const item = pool[idx];
+                finalSuggestions.forEach(item => {
                     const btn = document.createElement("button");
                     btn.className = "chip-item";
-                    btn.innerHTML = escapeHtml(item.label);
+                    if (item.isFinding) {
+                        btn.style.borderColor = "rgba(242, 139, 130, 0.4)";
+                        btn.style.color = "var(--gcp-red)";
+                        btn.innerHTML = `⚠️ ${escapeHtml(item.label)}`;
+                    } else {
+                        btn.innerHTML = escapeHtml(item.label);
+                    }
                     btn.onclick = () => promptPreFill(item.prompt);
                     container.appendChild(btn);
                 });
@@ -14390,14 +14530,86 @@ function openNewsModal(newsKey) {
             }
         }
 
+                function updateAuditorHealthDash(data) {
+            const meterEl = document.getElementById("healthDashMeter");
+            const scoreEl = document.getElementById("healthDashScore");
+            const ratingEl = document.getElementById("healthDashRating");
+            const badgeEl = document.getElementById("healthDashBadge");
+            const a5Pct = document.getElementById("healthDashA5Pct");
+            const a5Bar = document.getElementById("healthDashA5Bar");
+            const a6Pct = document.getElementById("healthDashA6Pct");
+            const a6Bar = document.getElementById("healthDashA6Bar");
+            const a7Pct = document.getElementById("healthDashA7Pct");
+            const a7Bar = document.getElementById("healthDashA7Bar");
+            const a8Pct = document.getElementById("healthDashA8Pct");
+            const a8Bar = document.getElementById("healthDashA8Bar");
+
+            if (!data || !data.total_controls_assessed) {
+                if (scoreEl) scoreEl.textContent = "0.0%";
+                if (ratingEl) ratingEl.textContent = "AGUARDANDO AVALIAÇÃO";
+                if (badgeEl) badgeEl.textContent = "0 / 93 Controles (0.0%)";
+                if (meterEl) meterEl.style.strokeDashoffset = "236";
+                [a5Pct, a6Pct, a7Pct, a8Pct].forEach(el => { if (el) el.textContent = "0%"; });
+                [a5Bar, a6Bar, a7Bar, a8Bar].forEach(el => { if (el) el.style.width = "0%"; });
+                return;
+            }
+
+            const score = Number(data.overall_score || 0);
+            if (scoreEl) scoreEl.textContent = `${score.toFixed(1)}%`;
+
+            let ratingLabel = "CRÍTICO";
+            if (score >= 90.0) ratingLabel = "POSTURA RESILIENTE";
+            else if (score >= 75.0) ratingLabel = "QUALIFICADO";
+            else if (score >= 50.0) ratingLabel = "ATENÇÃO NECESSÁRIA";
+            if (ratingEl) ratingEl.textContent = ratingLabel;
+
+            if (meterEl) {
+                const offset = Math.max(0, 236 - (score / 100) * 236);
+                meterEl.style.strokeDashoffset = offset.toFixed(1);
+            }
+
+            const compliant = data.compliant_count || 0;
+            const total = data.total_controls_assessed || 93;
+            const pct = ((compliant / total) * 100).toFixed(1);
+            if (badgeEl) badgeEl.textContent = `${compliant} / ${total} Controles (${pct}%)`;
+
+            const cats = data.category_breakdown || {};
+            if (cats["A.5"]) {
+                const p = cats["A.5"].percentage || 0;
+                if (a5Pct) a5Pct.textContent = `${p.toFixed(0)}%`;
+                if (a5Bar) a5Bar.style.width = `${p}%`;
+            }
+            if (cats["A.6"]) {
+                const p = cats["A.6"].percentage || 0;
+                if (a6Pct) a6Pct.textContent = `${p.toFixed(0)}%`;
+                if (a6Bar) a6Bar.style.width = `${p}%`;
+            }
+            if (cats["A.7"]) {
+                const p = cats["A.7"].percentage || 0;
+                if (a7Pct) a7Pct.textContent = `${p.toFixed(0)}%`;
+                if (a7Bar) a7Bar.style.width = `${p}%`;
+            }
+            if (cats["A.8"]) {
+                const p = cats["A.8"].percentage || 0;
+                if (a8Pct) a8Pct.textContent = `${p.toFixed(0)}%`;
+                if (a8Bar) a8Bar.style.width = `${p}%`;
+            }
+        }
+
         // -------------------------------------------------------------------
         // Dynamic Scorecard & Phased Audit Synchronizer
+        // -------------------------------------------------------------------
         // -------------------------------------------------------------------
         async function loadScorecard() {
             try {
                 const res = await fetch("/api/scorecard", { headers: getAuthHeaders() });
-                if (!res.ok) return;
+                if (!res.ok) {
+                    updateAuditorHealthDash(null);
+                    return;
+                }
                 const data = await res.json();
+                window.currentScorecardData = data;
+                updateAuditorHealthDash(data);
 
                 // 1. Update Score Display
                 const scoreElem = document.getElementById("scoreDisplay");
@@ -15241,6 +15453,18 @@ function openNewsModal(newsKey) {
                             </div>
                         </div>
 
+                        ${currentStatus === 'VERIFICAR' ? `
+                        <div class="quest-verificar-panel" style="background: rgba(253, 214, 99, 0.1); border: 1px solid var(--gcp-yellow); border-radius: 8px; padding: 10px 14px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <strong style="color: var(--gcp-yellow); font-size: 12px;">🔍 Telemetria Live Coletada (Aguardando Confirmação Humana)</strong>
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 3px;">Verificação técnica executada via Cloud Inspector. Valide o parecer:</div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" class="btn-quest-upload" style="background: rgba(129,201,149,0.2); color: var(--gcp-green); border-color: var(--gcp-green);" onclick="confirmControlVerificationAction('${ctrl.id}', 'COMPLIANT')">✓ Confirmar Conforme</button>
+                                <button type="button" class="btn-quest-upload" style="background: rgba(242,139,130,0.2); color: var(--gcp-red); border-color: var(--gcp-red);" onclick="confirmControlVerificationAction('${ctrl.id}', 'NON_COMPLIANT')">✗ Marcar Não Conforme</button>
+                            </div>
+                        </div>` : ''}
+
                         <!-- Form Actions -->
                         <div class="quest-control-form">
                             <div class="quest-form-field">
@@ -15249,6 +15473,7 @@ function openNewsModal(newsKey) {
                                     <option value="NOT_ANSWERED" ${currentStatus === 'NOT_ANSWERED' ? 'selected' : ''}>${lbl.notAnswered}</option>
                                     <option value="COMPLIANT" ${currentStatus === 'COMPLIANT' ? 'selected' : ''}>${lbl.compliant}</option>
                                     <option value="NON_COMPLIANT" ${currentStatus === 'NON_COMPLIANT' ? 'selected' : ''}>${lbl.nonCompliant}</option>
+                                    <option value="VERIFICAR" ${currentStatus === 'VERIFICAR' ? 'selected' : ''}>🔍 Verificar</option>
                                     <option value="PARTIAL" ${currentStatus === 'PARTIAL' ? 'selected' : ''}>${lbl.partial}</option>
                                     <option value="NOT_APPLICABLE" ${currentStatus === 'NOT_APPLICABLE' ? 'selected' : ''}>${lbl.notApplicable}</option>
                                 </select>
@@ -15266,6 +15491,10 @@ function openNewsModal(newsKey) {
                                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                                         <span>${lbl.attachFile}</span>
                                     </button>
+                                    ${ctrl.can_verify_scan ? `
+                                    <button type="button" class="btn-quest-upload" style="background: rgba(197, 138, 249, 0.15); color: var(--gcp-purple); border-color: rgba(197, 138, 249, 0.4);" onclick="triggerControlScanVerify('${ctrl.id}')">
+                                        🔍 <span>Verificar via Scan</span>
+                                    </button>` : ''}
                                     <span id="fileBadge_${ctrl.id}">
                                         ${fileId ? `<a href="/api/questionnaire/${ctrl.id}/evidence-file/${fileId}" target="_blank" class="quest-file-chip" title="Download">📎 ${escapeHtml(fileName || 'evidencia')}</a>` : ''}
                                     </span>
@@ -15286,6 +15515,66 @@ function openNewsModal(newsKey) {
             });
 
             container.innerHTML = htmlBuf;
+        }
+
+                async function triggerControlScanVerify(controlId) {
+            const statusEl = document.getElementById(`saveStatus_${controlId}`);
+            if (statusEl) {
+                statusEl.innerText = "Executando scan...";
+                statusEl.style.color = "var(--gcp-purple)";
+            }
+            try {
+                const res = await fetch(`/api/questionnaire/${encodeURIComponent(controlId)}/verify_scan`, {
+                    method: "POST",
+                    headers: (typeof getAuthHeaders === 'function') ? getAuthHeaders() : { "Content-Type": "application/json" }
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    if (statusEl) {
+                        statusEl.innerText = err.detail || "Scan falhou";
+                        statusEl.style.color = "var(--gcp-red)";
+                    }
+                    return;
+                }
+                const answer = await res.json();
+                const ctrl = rawQuestionnaireControls.find(c => c.id === controlId);
+                if (ctrl) {
+                    ctrl.status = "VERIFICAR";
+                    ctrl.answer = answer;
+                }
+                renderQuestionnaireAccordion();
+                if (typeof loadScorecard === 'function') loadScorecard();
+            } catch (err) {
+                if (statusEl) {
+                    statusEl.innerText = "Erro ao executar scan";
+                    statusEl.style.color = "var(--gcp-red)";
+                }
+            }
+        }
+
+        async function confirmControlVerificationAction(controlId, decision) {
+            try {
+                const res = await fetch(`/api/questionnaire/${encodeURIComponent(controlId)}/confirm_verification`, {
+                    method: "POST",
+                    headers: (typeof getAuthHeaders === 'function') ? getAuthHeaders() : { "Content-Type": "application/json" },
+                    body: JSON.stringify({ decision: decision })
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    alert(`Falha ao confirmar: ${err.detail || res.statusText}`);
+                    return;
+                }
+                const answer = await res.json();
+                const ctrl = rawQuestionnaireControls.find(c => c.id === controlId);
+                if (ctrl) {
+                    ctrl.status = decision;
+                    ctrl.answer = answer;
+                }
+                renderQuestionnaireAccordion();
+                if (typeof loadScorecard === 'function') loadScorecard();
+            } catch (err) {
+                alert(`Erro ao confirmar verificação: ${err.message || err}`);
+            }
         }
 
         function toggleQuestAccordion(themeKey) {
