@@ -1236,4 +1236,24 @@ def test_chat_401_triggers_signout_redirect_script():
     assert "window.initAppShell = initAppShell" in html
 
 
+def test_beyondcorp_iap_authentication_and_portal_serving(monkeypatch):
+    """Verify that Google Cloud BeyondCorp / IAP headers authenticate the session directly."""
+    monkeypatch.setenv("ALLOW_DEV_AUTH_BYPASS", "false")
+    iap_headers = {
+        "X-Goog-Authenticated-User-Email": "accounts.google.com:corp-auditor@client.corp",
+        "X-Goog-Authenticated-User-Id": "accounts.google.com:1029384756",
+        "X-Operator-Id": "corp-auditor@client.corp",
+    }
+    # 1. API validation endpoint recognizes IAP header without ID token
+    res_api = client.get("/api/clients", headers=iap_headers)
+    assert res_api.status_code == 200
+    data = res_api.json()
+    assert "clients" in data
+
+    # 2. Portal endpoint injects window.IAP_AUTHENTICATED_USER for zero-click login in Chrome
+    res_portal = client.get("/portal", headers=iap_headers)
+    assert res_portal.status_code == 200
+    assert 'window.IAP_AUTHENTICATED_USER = "corp-auditor@client.corp";' in res_portal.text
+
+
 

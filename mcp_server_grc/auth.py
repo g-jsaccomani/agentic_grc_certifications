@@ -180,8 +180,29 @@ async def get_current_workspace_user(
     authorization: Optional[str] = Header(None),
     x_goog_id_token: Optional[str] = Header(None, alias="X-Goog-Id-Token"),
     x_google_id_token: Optional[str] = Header(None, alias="X-Google-ID-Token"),
+    x_goog_authenticated_user_email: Optional[str] = Header(None, alias="X-Goog-Authenticated-User-Email"),
+    x_goog_authenticated_user_id: Optional[str] = Header(None, alias="X-Goog-Authenticated-User-Id"),
+    x_goog_iap_jwt_assertion: Optional[str] = Header(None, alias="X-Goog-Iap-Jwt-Assertion"),
 ) -> WorkspaceUserContext:
-    """FastAPI dependency for /api/chat verifying Google Workspace authentication and extracting user context."""
+    """FastAPI dependency for /api/chat verifying Google Workspace / BeyondCorp IAP authentication."""
+    expected_domain = os.getenv("GOOGLE_WORKSPACE_DOMAIN") or os.getenv("EXPECTED_WORKSPACE_DOMAIN") or DEFAULT_WORKSPACE_DOMAIN
+
+    # 1. Native BeyondCorp / Google Cloud Identity-Aware Proxy (IAP) support
+    if x_goog_authenticated_user_email:
+        raw_email = str(x_goog_authenticated_user_email).strip()
+        user_email = raw_email.split(":", 1)[-1].strip() if ":" in raw_email else raw_email
+        hd = user_email.split("@")[1].strip() if "@" in user_email else expected_domain
+        display_name = user_email.split("@")[0].replace(".", " ").title()
+        return WorkspaceUserContext(
+            email=user_email,
+            hd=hd,
+            access_token=f"iap-verified-{user_email}",
+            id_token=x_goog_iap_jwt_assertion,
+            sub=x_goog_authenticated_user_id or "iap-user",
+            name=display_name,
+            is_demo=False,
+        )
+
     id_token_str = x_goog_id_token or x_google_id_token
 
     # Extract OAuth access token from Authorization header

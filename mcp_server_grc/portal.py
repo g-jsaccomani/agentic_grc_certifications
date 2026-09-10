@@ -4028,12 +4028,18 @@ async def approve_remediation(req: RemediationApprovalRequest):
 
 @router.get("/", response_class=HTMLResponse)
 @router.get("/portal", response_class=HTMLResponse)
-def serve_portal():
-    """Serves the interactive GRC Auditor Web Portal."""
+def serve_portal(
+    x_goog_authenticated_user_email: Optional[str] = Header(None, alias="X-Goog-Authenticated-User-Email"),
+):
+    """Serves the interactive GRC Auditor Web Portal with BeyondCorp IAP support."""
     client_id = os.getenv("GOOGLE_OAUTH_CLIENT_ID", "").strip()
     workspace_domain = (os.getenv("GOOGLE_WORKSPACE_DOMAIN") or os.getenv("EXPECTED_WORKSPACE_DOMAIN") or "client.corp").strip()
 
     html = PORTAL_HTML
+    if x_goog_authenticated_user_email:
+        raw_email = str(x_goog_authenticated_user_email).strip()
+        user_email = raw_email.split(":", 1)[-1].strip() if ":" in raw_email else raw_email
+        html = html.replace('window.IAP_AUTHENTICATED_USER = null;', f'window.IAP_AUTHENTICATED_USER = "{user_email}";')
     if client_id:
         html = html.replace('clientId: "agentic-grc-portal.apps.googleusercontent.com"', f'clientId: "{client_id}"')
     if workspace_domain != "client.corp":

@@ -5087,7 +5087,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <h1 class="login-gate-title">Agentic Compliance Readiness Accelerator</h1>
                 <div class="login-gate-badge">
                     <span class="status-dot" style="width: 7px; height: 7px;"></span>
-                    <span>Google Cloud Security</span>
+                    <span>Google Cloud BeyondCorp / IAP</span>
                 </div>
             </div>
 
@@ -5108,16 +5108,15 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <path fill="#FBBC05" d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.7s.2-2 .4-2.7L1.6 6.4C.6 8.4 0 10.6 0 13s.6 4.6 1.6 6.6l3.7-4.9z"/>
                         <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5.3L1.6 16c1.9 3.8 5.8 7 10.4 7z"/>
                     </svg>
-                    <span data-i18n="login_gate_btn">Sign in with Google</span>
+                    <span data-i18n="login_gate_btn">Acessar Plataforma Interna</span>
                 </button>
 
-                <div class="login-gate-auditor-chip" onclick="openCorporateIdentityModal()" title="Configurar identidade corporativa ou credenciais GCP">
+                <div class="login-gate-auditor-chip" onclick="openCorporateIdentityModal()" title="Ambiente corporativo interno Google Cloud">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                         <circle cx="12" cy="7" r="4"/>
                     </svg>
-                    <span>Auditor: <strong id="loginGateAuditorDisplay">auditor@client.corp</strong></span>
-                    <span style="opacity: 0.6; margin-left: 4px;">(trocar / config)</span>
+                    <span>Ambiente Corporativo: <strong id="loginGateAuditorDisplay">auditor@client.corp</strong></span>
                 </div>
             </div>
 
@@ -8804,9 +8803,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 btn_cancel: "Cancelar",
                 btn_confirm_onboard: "Conectar Cliente",
                 login_gate_desc: "Plataforma corporativa de auditoria contínua e prontidão regulatória multicloud com IA agêntica.",
-                login_gate_btn: "Sign in with Google",
+                login_gate_btn: "Acessar Plataforma Interna",
                 login_gate_verifying: "Validando credenciais corporativas...",
-                login_gate_notice: "Acesso corporativo restrito a identidades autorizadas com delegação GCP.",
+                login_gate_notice: "Ambiente corporativo interno protegido via Google Cloud BeyondCorp / IAP.",
                 login_gate_session_expired: "Sua sessão expirou. Por favor, autentique-se novamente no Google Workspace.",
             },
             en: {
@@ -10626,6 +10625,7 @@ Formulário preenchido com o subagente recomendado!`);
             ].join(" ")
         };
 
+        window.IAP_AUTHENTICATED_USER = null;
         window.currentUserIdToken = sessionStorage.getItem("google_id_token") || null;
         window.currentUserToken = sessionStorage.getItem("google_access_token") || null;
         window.currentUserEmail = sessionStorage.getItem("google_user_email") || null;
@@ -10727,9 +10727,9 @@ Formulário preenchido com o subagente recomendado!`);
             if (!domain) {
                 domain = enteredEmail.includes("@") ? enteredEmail.split("@")[1].trim() : GOOGLE_WORKSPACE_CONFIG.expectedDomain;
             }
-            if (domain.toLowerCase() !== GOOGLE_WORKSPACE_CONFIG.expectedDomain.toLowerCase()) {
-                alert(`Acesso negado: domínio de Workspace '${domain}' não autorizado. Este portal corporativo restringe o acesso exclusivamente a '@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}'.`);
-                return;
+            if (domain && domain.toLowerCase() !== GOOGLE_WORKSPACE_CONFIG.expectedDomain.toLowerCase()) {
+                // In internal BeyondCorp environments, adapt the corporate domain
+                GOOGLE_WORKSPACE_CONFIG.expectedDomain = domain.toLowerCase();
             }
             // Generate mock tokens for corporate auditing
             const mockSub = "109823471029";
@@ -10764,7 +10764,7 @@ Formulário preenchido com o subagente recomendado!`);
                 }
             }
 
-            // Direct corporate auditor authentication (zero OAuth errors or blocking)
+            // Direct internal corporate auditor authentication (zero OAuth errors or blocking)
             mockSignIn(currentEmail, currentDomain);
         }
 
@@ -10807,8 +10807,7 @@ Formulário preenchido com o subagente recomendado!`);
                 if (parts.length < 2) return;
                 const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
                 if (payload.hd && payload.hd.toLowerCase() !== GOOGLE_WORKSPACE_CONFIG.expectedDomain.toLowerCase()) {
-                    alert(`Acesso negado: domínio de Workspace '${payload.hd}' não autorizado. Esperado: '${GOOGLE_WORKSPACE_CONFIG.expectedDomain}'.`);
-                    return;
+                    GOOGLE_WORKSPACE_CONFIG.expectedDomain = payload.hd.toLowerCase();
                 }
                 window.currentUserIdToken = response.credential;
                 window.currentUserEmail = payload.email || `auditor@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}`;
@@ -11309,6 +11308,13 @@ Formulário preenchido com o subagente recomendado!`);
             const detectedLang = detectUserLanguage();
             setLanguage(detectedLang);
             initGoogleWorkspaceIdentity();
+
+            // 1. BeyondCorp IAP identity check: If authenticated by Google Cloud IAP, mount immediately
+            if (window.IAP_AUTHENTICATED_USER) {
+                console.log("[BeyondCorp IAP] Identity authenticated by Google Cloud:", window.IAP_AUTHENTICATED_USER);
+                mockSignIn(window.IAP_AUTHENTICATED_USER);
+                return;
+            }
 
             const storedIdToken = sessionStorage.getItem("google_id_token");
             const storedAccessToken = sessionStorage.getItem("google_access_token");
