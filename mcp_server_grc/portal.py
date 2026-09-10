@@ -2914,6 +2914,132 @@ async def onboard_new_client(
     }
 
 
+def parse_onboard_txt_content(content: bytes, filename: str = "config.txt") -> Tuple[bool, Optional[Dict[str, Any]], Optional[str]]:
+    """Strictly validates and parses flat key=value pairs from a plain-text .txt onboarding config file.
+    
+    Enforces:
+      - Max size limit of 10 KB (10240 bytes).
+      - Strict .txt extension requirement.
+      - Content-sniffing against binary executables, archives, media (PNG, JPEG, WEBP, PDF, ZIP),
+        NULL bytes, invalid UTF-8 encoding, shebang #!, HTML active content, and SVG tags.
+      - Supported keys: client_name, projects, access_days, drive_folder.
+      - Flat line-by-line parsing splitting only on first '='. Never executes or parses code.
+    
+    Returns:
+      (success: bool, parsed_dict_or_none: Optional[dict], error_message_or_none: Optional[str])
+    """
+    if len(content) > 10240:
+        return False, None, f"File size ({len(content)} bytes) exceeds maximum allowed limit of 10 KB (10240 bytes)."
+
+    if len(content) == 0:
+        return False, None, "Empty file uploaded."
+
+    clean_filename = filename.lower()
+    if not clean_filename.endswith(".txt"):
+        return False, None, "Invalid file format: only plain text .txt files are allowed."
+
+    # Check binary executable / archive signatures (MZ, ELF, Mach-O, Java class, Rar, 7z, GZIP, BZIP2)
+    from mcp_server_grc.questionnaire import DISALLOWED_BINARY_PREFIXES
+    for prefix, desc in DISALLOWED_BINARY_PREFIXES:
+        if content.startswith(prefix):
+            return False, None, f"Disallowed binary format: {desc}."
+
+    # Check TAR format (magic 'ustar' at offset 257)
+    if len(content) > 262 and content[257:262] == b"ustar":
+        return False, None, "Disallowed archive format: TAR archive."
+
+    # Check PNG: 8-byte magic header 89 50 4E 47 0D 0A 1A 0A
+    if content.startswith(b"\x89PNG\r\n\x1a\n"):
+        return False, None, "Disallowed binary format: PNG image."
+
+    # Check JPEG: starts with FF D8 FF
+    if content.startswith(b"\xff\xd8\xff"):
+        return False, None, "Disallowed binary format: JPEG image."
+
+    # Check WEBP: starts with RIFF....WEBP
+    if len(content) >= 12 and content.startswith(b"RIFF") and content[8:12] == b"WEBP":
+        return False, None, "Disallowed binary format: WEBP image."
+
+    # Check PDF: starts with %PDF-
+    if content.startswith(b"%PDF-"):
+        return False, None, "Disallowed binary format: PDF document."
+
+    # Check ZIP / Office: starts with PK\x03\x04
+    if content.startswith(b"PK\x03\x04"):
+        return False, None, "Disallowed binary format: ZIP archive or Office document."
+
+    # Check for NULL bytes
+    if b"\x00" in content:
+        return False, None, "Binary file containing NULL bytes is not allowed."
+
+    # Check UTF-8 validity
+    try:
+        text_str = content.decode("utf-8")
+    except UnicodeDecodeError:
+        return False, None, "File is not valid UTF-8 plain text."
+
+    # Check for script shebang
+    if text_str.startswith("#!"):
+        return False, None, "Executable scripts (shebang #!) are strictly prohibited."
+
+    # Check for SVG tags / xmlns
+    lower_text = text_str.lower()
+    if "<svg" in lower_text or 'xmlns="http://www.w3.org/2000/svg"' in lower_text or "xmlns='http://www.w3.org/2000/svg'" in lower_text:
+        return False, None, "SVG files/content are strictly prohibited."
+
+    # Check for HTML tags
+    html_markers = ["<!doctype html", "<html", "<script", "<body", "<head", "<iframe", "<object", "<embed", "<applet"]
+    for marker in html_markers:
+        if marker in lower_text:
+            return False, None, f"HTML active content ({marker}) is strictly prohibited."
+
+    # Flat line-by-line parsing splitting only on first '='
+    lines = text_str.splitlines()
+    parsed: Dict[str, Any] = {}
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if "=" not in stripped:
+            continue
+        k, v = stripped.split("=", 1)
+        key = k.strip().lower()
+        val = v.strip()
+        if key == "client_name":
+            parsed["client_name"] = val
+        elif key == "projects":
+            parsed["projects"] = val
+        elif key == "access_days":
+            try:
+                days_int = int(val)
+                if days_int > 0:
+                    parsed["access_days"] = days_int
+            except ValueError:
+                pass
+        elif key == "drive_folder":
+            parsed["drive_folder"] = val
+
+    if not parsed:
+        return False, None, "No recognizable keys found in file. Supported keys are: client_name, projects, access_days, drive_folder."
+
+    return True, parsed, None
+
+
+@router.post("/api/clients/onboard/parse_txt")
+async def parse_onboard_txt_endpoint(
+    file: UploadFile = File(...),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
+    """Validates and parses a .txt configuration file for the client onboarding modal."""
+    content = await file.read()
+    filename = file.filename or "config.txt"
+    success, data, err = parse_onboard_txt_content(content, filename)
+    if not success:
+        raise HTTPException(status_code=400, detail=err or "Invalid .txt file.")
+    return {"status": "success", "data": data}
+
+
+
 @router.delete("/api/clients/{client_id}")
 async def delete_onboarded_client(
     client_id: str,

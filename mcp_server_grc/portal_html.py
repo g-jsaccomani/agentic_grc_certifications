@@ -4127,14 +4127,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
 
         @media print {
-            body { background: #ffffff !important; color: #000000 !important; overflow: visible !important; }
-            .sidebar, .top-navbar, .chat-input-wrapper, .modal-overlay, .matrix-toolbar, .btn-confirm, .btn-action-primary, .framework-selector-bar { display: none !important; }
+            .sidebar, .top-navbar, .chat-input-wrapper, .modal-overlay, .matrix-toolbar, .btn-confirm, .btn-action-primary, .doc-viewer-actions-bar { display: none !important; }
+            .framework-selector-bar { display: none !important; }
             #view-home { display: none !important; }
             .main-container { height: auto !important; }
             .views-viewport { overflow: visible !important; }
             .view-pane { display: none !important; }
-            #view-report-exec.active, #view-report-tech.active { display: block !important; padding: 0 !important; }
-            .report-preview-sheet { box-shadow: none !important; border-radius: 0 !important; max-width: 100% !important; padding: 0 !important; }
+            #view-report-exec.active, #view-report-tech.active, #view-onboard-instructions.active { display: block !important; padding: 0 !important; }
+            .report-preview-sheet, #view-onboard-instructions .cloudstyle-doc-sheet { box-shadow: none !important; border-radius: 0 !important; max-width: 100% !important; padding: 0 !important; }
         }
     
         /* =========================================================================
@@ -8202,7 +8202,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <div class="card-desc">Preços por milhão de tokens utilizados na apuração de custos em conformidade com as tabelas oficiais do Google Cloud.</div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-top: 12px;">
                         <div style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px;">
-                            <div style="font-weight: 600; color: var(--gcp-blue);">Gemini 2.5 Pro</div>
+<div style="font-weight: 600; color: var(--gcp-blue);">Gemini 2.5 Pro</div>
                             <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Prompt: $1.25 / 1M • Output: $5.00 / 1M</div>
                             <div style="font-size: 11px; color: var(--gcp-green); margin-top: 2px;">Context Caching: $0.3125 / 1M (75% desconto)</div>
                         </div>
@@ -8216,6 +8216,117 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Prompt: $0.025 / 1M • Output: $0.00</div>
                             <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Vetorização semântica e busca RAG</div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- View: Onboard Instructions Document (Print & Export) -->
+            <section class="view-pane" id="view-onboard-instructions" style="background: var(--bg-canvas); overflow-y: auto; padding: 20px 16px;">
+                <!-- Floating Action Bar above Document Paper -->
+                <div class="doc-viewer-actions-bar">
+                    <div class="doc-viewer-actions-left">
+                        <span class="doc-viewer-chip blue" data-i18n="onboard_chip_label">Guia Operacional • Read-Only</span>
+                        <span class="doc-viewer-title" data-i18n="onboard_doc_title">Instruções de Onboarding — Workspace de Cliente</span>
+                    </div>
+                    <div class="doc-viewer-actions-right">
+                        <button class="btn-doc-action" onclick="closeOnboardInstructionsView()" title="Voltar ao Portal">
+                            <span>‹ Voltar</span>
+                        </button>
+                        <button class="btn-doc-action primary" onclick="printOnboardInstructions()" title="Imprimir ou Salvar em PDF">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                                <rect x="6" y="14" width="12" height="8"></rect>
+                            </svg>
+                            <span>Imprimir / PDF</span>
+                        </button>
+                        <button class="btn-doc-action" onclick="copyOnboardDocCommand()" id="btnCopyOnboardDocCmd" title="Copiar Comando">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span>Copiar Comando</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Document Paper -->
+                <div class="cloudstyle-doc-sheet" style="max-width: 900px; margin: 0 auto; background: #ffffff; color: #202124; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                    <!-- Header with Google Cloud Title & Confidentiality Badge -->
+                    <div class="cloudstyle-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
+                                <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#4285F4"/>
+                            </svg>
+                            <span style="font-family: 'Google Sans', var(--font-sans); font-size: 17px; font-weight: 600; color: #202124;">Google Cloud Security Practice</span>
+                        </div>
+                        <span class="doc-viewer-chip blue">DOCUMENTO OPERACIONAL DE INTEGRAÇÃO</span>
+                    </div>
+
+                    <!-- Iconic Google 4-Color Accent Stripe -->
+                    <div class="google-color-stripe-bar" style="height: 4px; background: linear-gradient(to right, #4285F4 25%, #EA4335 25% 50%, #FBBC04 50% 75%, #34A853 75%); border-radius: 2px; margin-bottom: 24px;"></div>
+
+                    <!-- Title & Subtitle in Google Sans -->
+                    <h1 class="cloudstyle-doc-title" style="font-family: 'Google Sans', var(--font-sans); font-size: 22px; font-weight: 600; color: #1a73e8; margin: 0 0 6px 0;" data-i18n="onboard_doc_title">Instruções de Onboarding — Workspace de Cliente</h1>
+                    <div class="cloudstyle-doc-subtitle" style="font-size: 13px; color: #5f6368; line-height: 1.5; margin-bottom: 24px;" data-i18n="onboard_doc_subtitle">
+                        Procedimento operacional para concessão de acesso estritamente restrito a <code>roles/viewer</code> e <code>roles/securityReviewer</code> em projetos Google Cloud via IAM Conditions temporárias.
+                    </div>
+
+                    <!-- Document Metadata Box -->
+                    <table class="cloudstyle-meta-box" style="width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 13px;">
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #e8eaed;">
+                                <td style="padding: 10px 12px; font-weight: 600; color: #5f6368; width: 240px;">Cliente / Organização</td>
+                                <td style="padding: 10px 12px; color: #202124;"><strong id="onboardDocClientName">—</strong></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e8eaed;">
+                                <td style="padding: 10px 12px; font-weight: 600; color: #5f6368;">Projetos GCP no Escopo</td>
+                                <td style="padding: 10px 12px; color: #202124;"><span id="onboardDocProjects" style="font-family: var(--font-mono, monospace); color: #1a73e8;">—</span></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e8eaed;">
+                                <td style="padding: 10px 12px; font-weight: 600; color: #5f6368;">Período de Validade do Acesso</td>
+                                <td style="padding: 10px 12px; color: #202124;"><span id="onboardDocValidity">—</span></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #e8eaed;">
+                                <td style="padding: 10px 12px; font-weight: 600; color: #5f6368;">Pasta de Evidências (Google Drive)</td>
+                                <td style="padding: 10px 12px; color: #202124;"><span id="onboardDocDriveFolder">—</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px 12px; font-weight: 600; color: #5f6368;">Data de Emissão das Instruções</td>
+                                <td style="padding: 10px 12px; color: #202124;"><span id="onboardDocGeneratedAt">—</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Onboarding Command Block (Monospace & Copyable) -->
+                    <div style="margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 13.5px; font-weight: 600; color: #202124;">Comando de Onboarding (GCP Cloud Shell / Terminal)</span>
+                            <span style="font-size: 11px; color: #5f6368;">Execute com privilégios de Administrador da Organização ou Proprietário</span>
+                        </div>
+                        <pre id="onboardDocCommand" style="background: #f8f9fa; color: #1a73e8; border: 1px solid #dadce0; border-radius: 8px; padding: 14px; font-family: var(--font-mono, monospace); font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; margin: 0; user-select: all;"></pre>
+                    </div>
+
+                    <!-- Segurança Garantida Box (Exact Same Text as Modal) -->
+                    <div style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: rgba(52, 168, 83, 0.08); border: 1px solid rgba(52, 168, 83, 0.3); border-radius: 8px; font-size: 12.5px; color: #137333; margin-bottom: 24px;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#137333" stroke-width="2" style="flex-shrink: 0; margin-top: 1px;">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <path d="M9 12l2 2 4-4"/>
+                        </svg>
+                        <div>
+                            <span><strong>Segurança Garantida:</strong> Zero permissões de modificação ou exclusão. O acesso expira automaticamente na GCP via IAM Conditions.</span>
+                        </div>
+                    </div>
+
+                    <!-- Step-by-Step Instructions -->
+                    <div style="border-top: 1px solid #e8eaed; padding-top: 18px;">
+                        <h4 style="font-size: 13px; font-weight: 600; color: #202124; margin: 0 0 8px 0;">Instruções Passo a Passo para Execução:</h4>
+                        <ol style="font-size: 12.5px; color: #3c4043; line-height: 1.6; margin: 0; padding-left: 18px;">
+                            <li>Acesse o <strong>Google Cloud Console</strong> (<a href="https://console.cloud.google.com" target="_blank" style="color: #1a73e8;">console.cloud.google.com</a>) com uma conta autorizada.</li>
+                            <li>Abra o <strong>Google Cloud Shell</strong> clicando no ícone do terminal no topo da página.</li>
+                            <li>Copie e cole o comando de onboarding acima no Cloud Shell e tecle <strong>Enter</strong>.</li>
+                            <li>Após a conclusão, confirme a conexão no portal clicando em <strong>Conectar Cliente</strong>.</li>
+                        </ol>
                     </div>
                 </div>
             </section>
@@ -8430,6 +8541,25 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.45;" data-i18n="onboard_modal_desc">
                 Gere o comando para executar no Google Cloud Shell ou Terminal corporativo do cliente. O script cria bindings IAM temporários estritamente restritos a <code>roles/viewer</code> e <code>roles/securityReviewer</code>, sem qualquer privilégio de escrita.
             </div>
+            <div class="form-group" style="margin-top: 8px; padding: 9px 12px; background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                    <label class="form-label" for="onboardTxtFileInput" style="margin-bottom: 0; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500;">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue);">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                        <span data-i18n="onboard_upload_txt_label">Carregar de arquivo .txt (Auto-preenchimento)</span>
+                    </label>
+                    <input type="file" id="onboardTxtFileInput" accept=".txt" style="display: none;" onchange="handleOnboardTxtFileUpload(this)">
+                    <button type="button" class="btn-cancel" style="padding: 3px 10px; font-size: 11.5px;" onclick="document.getElementById('onboardTxtFileInput').click()">
+                        <span data-i18n="onboard_choose_file">Selecionar .txt</span>
+                    </button>
+                </div>
+                <div id="onboardTxtFileStatus" style="display: none; margin-top: 6px; font-size: 11.5px; line-height: 1.4;"></div>
+            </div>
             <div class="form-group" style="margin-top: 4px;">
                 <label class="form-label" for="onboardClientNameInput" data-i18n="onboard_input_label">Nome da Empresa / Cliente</label>
                 <input type="text" id="onboardClientNameInput" class="form-input" placeholder="ex.: Acme Financial" oninput="updateOnboardCommandPreview()">
@@ -8448,10 +8578,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             </div>
             <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label class="form-label" for="onboardCommandPreview" data-i18n="onboard_cmd_label">Comando de Onboarding (GCP Cloud Shell / Terminal)</label>
-                    <button class="btn-cancel" style="padding: 3px 10px; font-size: 11.5px;" onclick="copyOnboardCommand()" id="btnCopyOnboardCmd">
-                        <span data-i18n="onboard_copy_cmd">Copiar Comando</span>
-                    </button>
+                    <label class="form-label" for="onboardCommandPreview" data-i18n="onboard_cmd_label" style="margin-bottom: 0;">Comando de Onboarding (GCP Cloud Shell / Terminal)</label>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <button class="btn-cancel" style="padding: 3px 10px; font-size: 11.5px;" onclick="copyOnboardCommand()" id="btnCopyOnboardCmd">
+                            <span data-i18n="onboard_copy_cmd">Copiar Comando</span>
+                        </button>
+                        <button class="btn-cancel" style="padding: 3px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;" onclick="exportOnboardInstructionsPdf()" id="btnExportOnboardPdf" title="Exportar Instruções em PDF">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                                <rect x="6" y="14" width="12" height="8"></rect>
+                            </svg>
+                            <span data-i18n="onboard_export_pdf">Exportar PDF de Instruções</span>
+                        </button>
+                    </div>
                 </div>
                 <pre id="onboardCommandPreview" style="background: var(--bg-surface); padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px; color: var(--gcp-blue); overflow-x: auto; border: 1px solid var(--border-subtle); margin: 0; white-space: pre-wrap; word-break: break-all; user-select: all;"></pre>
             </div>
@@ -8799,6 +8939,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_cmd_label: "Comando de Onboarding (GCP Cloud Shell / Terminal)",
                 onboard_copy_cmd: "Copiar Comando",
                 onboard_copied: "Copiado!",
+                onboard_upload_txt_label: "Carregar de arquivo .txt (Auto-preenchimento)",
+                onboard_choose_file: "Selecionar .txt",
+                onboard_export_pdf: "Exportar PDF de Instruções",
+                onboard_chip_label: "Guia Operacional • Read-Only",
+                onboard_doc_title: "Instruções de Onboarding — Workspace de Cliente",
+                onboard_doc_subtitle: "Procedimento operacional para concessão de acesso estritamente restrito a roles/viewer e roles/securityReviewer em projetos Google Cloud via IAM Conditions temporárias.",
                 btn_close: "Fechar",
                 btn_cancel: "Cancelar",
                 btn_confirm_onboard: "Conectar Cliente",
@@ -9126,6 +9272,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_cmd_label: "Onboarding Command (GCP Cloud Shell / Terminal)",
                 onboard_copy_cmd: "Copy Command",
                 onboard_copied: "Copied!",
+                onboard_upload_txt_label: "Load from .txt file (Auto-fill)",
+                onboard_choose_file: "Select .txt",
+                onboard_export_pdf: "Export Instructions PDF",
+                onboard_chip_label: "Operational Guide • Read-Only",
+                onboard_doc_title: "Client Workspace Onboarding Instructions",
+                onboard_doc_subtitle: "Operational guide for secure read-only connectivity strictly restricted via Google Cloud Shell or corporate terminal.",
                 btn_close: "Close",
                 btn_cancel: "Cancel",
                 btn_confirm_onboard: "Connect Client",
@@ -9453,6 +9605,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_cmd_label: "Comando de Onboarding (GCP Cloud Shell / Terminal)",
                 onboard_copy_cmd: "Copiar Comando",
                 onboard_copied: "¡Copiado!",
+                onboard_upload_txt_label: "Cargar desde archivo .txt (Auto-llenado)",
+                onboard_choose_file: "Seleccionar .txt",
+                onboard_export_pdf: "Exportar PDF de Instrucciones",
+                onboard_chip_label: "Guía Operacional • Read-Only",
+                onboard_doc_title: "Instrucciones de Onboarding — Espacio de Cliente",
+                onboard_doc_subtitle: "Procedimiento operacional para conceder acceso estrictamente restringido a roles/viewer y roles/securityReviewer en proyectos Google Cloud.",
                 btn_close: "Cerrar",
                 btn_cancel: "Cancelar",
                 btn_confirm_onboard: "Conectar Cliente",
@@ -11216,6 +11374,14 @@ Formulário preenchido com o subagente recomendado!`);
             if (daysInput) daysInput.value = "14";
             if (driveFolderInput) driveFolderInput.value = "";
 
+            const txtFileInput = document.getElementById("onboardTxtFileInput");
+            if (txtFileInput) txtFileInput.value = "";
+            const txtStatus = document.getElementById("onboardTxtFileStatus");
+            if (txtStatus) {
+                txtStatus.style.display = "none";
+                txtStatus.innerHTML = "";
+            }
+
             updateOnboardCommandPreview();
 
             const modal = document.getElementById("onboardClientModal");
@@ -11260,6 +11426,321 @@ Formulário preenchido com o subagente recomendado!`);
             } else {
                 alert("Comando copiado: " + text);
             }
+        }
+
+        let previousActiveViewId = "view-home";
+
+        function exportOnboardInstructionsPdf() {
+            const nameInput = document.getElementById("onboardClientNameInput");
+            const projectsInput = document.getElementById("onboardClientProjectsInput");
+            const daysInput = document.getElementById("onboardClientDaysInput");
+            const driveFolderInput = document.getElementById("onboardClientDriveFolderInput");
+            const previewEl = document.getElementById("onboardCommandPreview");
+
+            const name = (nameInput?.value || "").trim() || "New Client Workspace";
+            const rawProjects = (projectsInput?.value || "").trim();
+            const projects = rawProjects || "client-prod-01";
+            const days = parseInt(daysInput?.value || "14", 10) || 14;
+            const driveFolder = (driveFolderInput?.value || "").trim();
+
+            updateOnboardCommandPreview();
+            const cmd = previewEl ? previewEl.innerText : `bash scripts/onboard_client.sh --client="${name}" --projects="${projects}" --days=${days}`;
+
+            const docName = document.getElementById("onboardDocClientName");
+            if (docName) docName.innerText = name;
+
+            const docProjects = document.getElementById("onboardDocProjects");
+            if (docProjects) docProjects.innerText = projects;
+
+            const docValidity = document.getElementById("onboardDocValidity");
+            if (docValidity) docValidity.innerText = `${days} dias (expiração compulsória via IAM Conditions)`;
+
+            const docDrive = document.getElementById("onboardDocDriveFolder");
+            if (docDrive) docDrive.innerText = driveFolder || "Não especificado (armazém padrão local)";
+
+            const docDate = document.getElementById("onboardDocGeneratedAt");
+            if (docDate) docDate.innerText = new Date().toLocaleString();
+
+            const docCmd = document.getElementById("onboardDocCommand");
+            if (docCmd) docCmd.innerText = cmd;
+
+            const currentActivePane = document.querySelector(".view-pane.active");
+            if (currentActivePane && currentActivePane.id && currentActivePane.id !== "view-onboard-instructions") {
+                previousActiveViewId = currentActivePane.id;
+            }
+
+            closeOnboardModal();
+            switchView("view-onboard-instructions");
+
+            setTimeout(() => {
+                window.print();
+            }, 250);
+        }
+
+        function printOnboardInstructions() {
+            window.print();
+        }
+
+        function closeOnboardInstructionsView() {
+            switchView(previousActiveViewId || "view-home");
+        }
+
+        function copyOnboardDocCommand() {
+            const docCmd = document.getElementById("onboardDocCommand");
+            if (!docCmd) return;
+            const text = docCmd.innerText;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const btn = document.getElementById("btnCopyOnboardDocCmd");
+                    if (btn) {
+                        const orig = btn.innerHTML;
+                        btn.innerHTML = `<span>✓ Copiado!</span>`;
+                        setTimeout(() => { btn.innerHTML = orig; }, 2500);
+                    }
+                }).catch(() => {
+                    alert("Comando copiado: " + text);
+                });
+            } else {
+                alert("Comando copiado: " + text);
+            }
+        }
+
+        function handleOnboardTxtFileUpload(inputEl) {
+            const file = inputEl.files && inputEl.files[0];
+            if (!file) return;
+
+            const statusEl = document.getElementById("onboardTxtFileStatus");
+            const showStatus = (msg, isError) => {
+                if (!statusEl) return;
+                statusEl.style.display = "block";
+                statusEl.style.color = isError ? "var(--gcp-red, #d93025)" : "var(--gcp-green, #137333)";
+                statusEl.innerHTML = (isError ? "✕ " : "✓ ") + msg;
+            };
+
+            if (!file.name.toLowerCase().endsWith(".txt")) {
+                showStatus((window.currentLanguage === 'en')
+                    ? "Invalid file format. Only plain text .txt files are accepted."
+                    : "Formato de arquivo inválido. Apenas arquivos de texto puro .txt são aceitos.", true);
+                inputEl.value = "";
+                return;
+            }
+
+            if (file.size > 10240) {
+                showStatus((window.currentLanguage === 'en')
+                    ? `File size (${file.size} bytes) exceeds maximum allowed limit of 10 KB (10240 bytes).`
+                    : `Arquivo muito grande (${file.size} bytes). O limite máximo permitido é 10 KB (10240 bytes).`, true);
+                inputEl.value = "";
+                return;
+            }
+
+            if (file.size === 0) {
+                showStatus((window.currentLanguage === 'en')
+                    ? "File is empty."
+                    : "O arquivo selecionado está vazio.", true);
+                inputEl.value = "";
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const buffer = e.target.result;
+                    const bytes = new Uint8Array(buffer);
+
+                    // Magic byte sniffing against binary formats
+                    if (bytes.length >= 2 && bytes[0] === 0x4D && bytes[1] === 0x5A) {
+                        showStatus("Disallowed binary format: Windows PE/DLL executable.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+                    if (bytes.length >= 4 && bytes[0] === 0x7F && bytes[1] === 0x45 && bytes[2] === 0x4C && bytes[3] === 0x46) {
+                        showStatus("Disallowed binary format: Linux ELF binary executable.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+                    if (bytes.length >= 4) {
+                        if ((bytes[0] === 0xFE && bytes[1] === 0xED && bytes[2] === 0xFA && (bytes[3] === 0xCE || bytes[3] === 0xCF)) ||
+                            ((bytes[0] === 0xCE || bytes[0] === 0xCF) && bytes[1] === 0xFA && bytes[2] === 0xED && bytes[3] === 0xFE) ||
+                            (bytes[0] === 0xCA && bytes[1] === 0xFE && bytes[2] === 0xBA && bytes[3] === 0xBE)) {
+                            showStatus("Disallowed binary format: Mach-O binary executable or Java Class.", true);
+                            inputEl.value = "";
+                            return;
+                        }
+                    }
+                    if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+                        showStatus("Disallowed binary format: PNG image.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+                    if (bytes.length >= 3 && bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
+                        showStatus("Disallowed binary format: JPEG image.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+                    if (bytes.length >= 12 && bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+                        bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) {
+                        showStatus("Disallowed binary format: WEBP image.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+                    if (bytes.length >= 5 && bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46 && bytes[4] === 0x2D) {
+                        showStatus("Disallowed binary format: PDF document.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+                    if (bytes.length >= 4 && bytes[0] === 0x50 && bytes[1] === 0x4B && bytes[2] === 0x03 && bytes[3] === 0x04) {
+                        showStatus("Disallowed binary format: ZIP archive or Office document.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+                    if (bytes.length >= 6 && bytes[0] === 0x52 && bytes[1] === 0x61 && bytes[2] === 0x72 && bytes[3] === 0x21 && bytes[4] === 0x1A && bytes[5] === 0x07) {
+                        showStatus("Disallowed binary format: RAR archive.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+                    if (bytes.length >= 6 && bytes[0] === 0x37 && bytes[1] === 0x7A && bytes[2] === 0xBC && bytes[3] === 0xAF && bytes[4] === 0x27 && bytes[5] === 0x1C) {
+                        showStatus("Disallowed binary format: 7-Zip archive.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+                    if (bytes.length >= 2 && bytes[0] === 0x1F && bytes[1] === 0x8B) {
+                        showStatus("Disallowed binary format: GZIP archive.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+                    if (bytes.length >= 3 && bytes[0] === 0x42 && bytes[1] === 0x5A && bytes[2] === 0x68) {
+                        showStatus("Disallowed binary format: BZIP2 archive.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+                    if (bytes.length > 262 && bytes[257] === 0x75 && bytes[258] === 0x73 && bytes[259] === 0x74 && bytes[260] === 0x61 && bytes[261] === 0x72) {
+                        showStatus("Disallowed binary format: TAR archive.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+
+                    // NULL byte check
+                    for (let i = 0; i < bytes.length; i++) {
+                        if (bytes[i] === 0) {
+                            showStatus((window.currentLanguage === 'en')
+                                ? "Binary file containing NULL bytes is not allowed."
+                                : "Arquivo binário contendo bytes NUL não é permitido.", true);
+                            inputEl.value = "";
+                            return;
+                        }
+                    }
+
+                    // UTF-8 decode
+                    const decoder = new TextDecoder("utf-8", { fatal: true });
+                    let text;
+                    try {
+                        text = decoder.decode(bytes);
+                    } catch (err) {
+                        showStatus((window.currentLanguage === 'en')
+                            ? "File is not valid UTF-8 plain text."
+                            : "O arquivo não possui codificação UTF-8 válida.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+
+                    // Shebang check
+                    if (text.startsWith("#!")) {
+                        showStatus((window.currentLanguage === 'en')
+                            ? "Executable scripts (shebang #!) are strictly prohibited."
+                            : "Scripts executáveis (shebang #!) são estritamente proibidos.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+
+                    // Active content / SVG check
+                    const lower = text.toLowerCase();
+                    if (lower.includes("<svg") || lower.includes('xmlns="http://www.w3.org/2000/svg"') || lower.includes("xmlns='http://www.w3.org/2000/svg'")) {
+                        showStatus((window.currentLanguage === 'en')
+                            ? "SVG content is strictly prohibited."
+                            : "Conteúdo SVG é estritamente proibido.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+
+                    const htmlMarkers = ["<!doctype html", "<html", "<script", "<body", "<head", "<iframe", "<object", "<embed", "<applet"];
+                    for (const marker of htmlMarkers) {
+                        if (lower.includes(marker)) {
+                            showStatus((window.currentLanguage === 'en')
+                                ? `HTML active content (${marker}) is strictly prohibited.`
+                                : `Conteúdo HTML ativo (${marker}) é estritamente proibido.`, true);
+                            inputEl.value = "";
+                            return;
+                        }
+                    }
+
+                    // Flat key=value parsing
+                    const lines = text.split(/\r?\n/);
+                    const parsed = {};
+                    let recognizedCount = 0;
+
+                    for (let line of lines) {
+                        line = line.trim();
+                        if (!line || line.startsWith("#")) continue;
+                        const eqIdx = line.indexOf("=");
+                        if (eqIdx === -1) continue;
+                        const k = line.substring(0, eqIdx).trim().toLowerCase();
+                        const v = line.substring(eqIdx + 1).trim();
+                        if (k === "client_name") {
+                            parsed.client_name = v;
+                            recognizedCount++;
+                        } else if (k === "projects") {
+                            parsed.projects = v;
+                            recognizedCount++;
+                        } else if (k === "access_days") {
+                            const daysVal = parseInt(v, 10);
+                            if (!isNaN(daysVal) && daysVal > 0) {
+                                parsed.access_days = daysVal;
+                                recognizedCount++;
+                            }
+                        } else if (k === "drive_folder") {
+                            parsed.drive_folder = v;
+                            recognizedCount++;
+                        }
+                    }
+
+                    if (recognizedCount === 0) {
+                        showStatus((window.currentLanguage === 'en')
+                            ? "No recognizable keys found in .txt file (supported keys: client_name, projects, access_days, drive_folder)."
+                            : "Nenhuma chave reconhecida no arquivo .txt (chaves suportadas: client_name, projects, access_days, drive_folder).", true);
+                        inputEl.value = "";
+                        return;
+                    }
+
+                    // Populate corresponding inputs
+                    if (parsed.client_name !== undefined) {
+                        const el = document.getElementById("onboardClientNameInput");
+                        if (el) el.value = parsed.client_name;
+                    }
+                    if (parsed.projects !== undefined) {
+                        const el = document.getElementById("onboardClientProjectsInput");
+                        if (el) el.value = parsed.projects;
+                    }
+                    if (parsed.access_days !== undefined) {
+                        const el = document.getElementById("onboardClientDaysInput");
+                        if (el) el.value = parsed.access_days;
+                    }
+                    if (parsed.drive_folder !== undefined) {
+                        const el = document.getElementById("onboardClientDriveFolderInput");
+                        if (el) el.value = parsed.drive_folder;
+                    }
+
+                    updateOnboardCommandPreview();
+                    showStatus((window.currentLanguage === 'en')
+                        ? `Configuration loaded successfully (${recognizedCount} keys configured).`
+                        : `Configuração carregada com sucesso (${recognizedCount} chaves preenchidas).`, false);
+                } catch (err) {
+                    showStatus("Error reading file: " + (err.message || "Unknown error"), true);
+                }
+            };
+            reader.onerror = function() {
+                showStatus("Failed to read file.", true);
+            };
+            reader.readAsArrayBuffer(file);
         }
 
         async function submitOnboardClientModal() {

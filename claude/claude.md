@@ -2655,3 +2655,53 @@ Resolved three connected critical issues affecting onboarding completeness and d
   - **212 passed in 20.00s (100% pass rate)**.
   - Zero test failures, zero regressions.
 
+---
+
+### Milestone 76: Client Onboarding Enhancements (Export Instructions as PDF & Auto-Fill from .txt File Upload)
+
+#### 1. Context & Objectives
+Enhanced the "Conectar Novo Workspace de Cliente (Read-Only)" / "Onboard New Client Workspace" modal (`#onboardClientModal`) in `mcp_server_grc/portal_html.py` with two production capabilities requested by leadership:
+1. **Export Instructions as PDF**:
+   - Added button next to "Copiar Comando", labeled "Exportar PDF de Instruções" / "Export Instructions PDF".
+   - Opens a clean, print-friendly view (`#view-onboard-instructions`) reusing the exact `.cloudstyle-doc-sheet` and `window.print()` pattern already used elsewhere in the portal for audit reports without introducing any new PDF libraries.
+   - Contains: Client name, list of scoped projects, access validity period, Google Drive evidence storage folder, full copyable onboarding command in a monospace block, step-by-step instructions, and the exact "Segurança Garantida" security guarantee callout text.
+   - Triggers `window.print()` so the operator can save as PDF via the browser's print dialog directly from the data entered in the modal, with zero round-trip to a backend PDF generation service.
+2. **Auto-Fill from a Plain-Text File Upload (`.txt`)**:
+   - Added file upload component directly above form fields in `#onboardClientModal`.
+   - Accepts ONLY `.txt` files; validates content via strict content-sniffing matching `sniff_and_validate_evidence_file` from `mcp_server_grc/questionnaire.py`:
+     - Disallowed binary executable and archive prefixes (MZ, ELF, Mach-O, Java class, RAR, 7z, GZIP, BZIP2, TAR).
+     - Disallowed media formats (PNG, JPEG, WEBP, PDF, ZIP/Office).
+     - Strict rejection of NULL bytes (`\x00`).
+     - Strict UTF-8 decoding validation.
+     - Rejection of active executable scripts (shebang `#!`).
+     - Rejection of active SVG tags and HTML markers (`<!doctype html`, `<html`, `<script`, `<body`, `<head`, `<iframe`, `<object`, `<embed`, `<applet`).
+     - Enforced strict max file size of 10 KB (`10240` bytes).
+   - Parses flat, line-by-line `key=value` pairs splitting strictly on the first `=` character (ignoring comments starting with `#`, empty lines, and malformed lines).
+   - Supported keys: `client_name`, `projects` (comma-separated), `access_days` (positive integer), `drive_folder` (folder ID or URL).
+   - Automatically populates the 4 modal form fields, calls `updateOnboardCommandPreview()` to update the command in real time, and displays a clean inline success/error message in the modal without closing it.
+   - Implemented both client-side in Javascript (`handleOnboardTxtFileUpload`) and backend in Python (`parse_onboard_txt_content` and `POST /api/clients/onboard/parse_txt`).
+
+#### 2. Example of Parsed `.txt` File Format
+```txt
+# =====================================================================
+# Client Workspace Onboarding Configuration
+# Lines beginning with '#' and blank lines are ignored automatically.
+# Supported keys: client_name, projects, access_days, drive_folder
+# =====================================================================
+
+client_name=Acme Financial Services
+projects=acme-prod-01, acme-data-lake, acme-security
+access_days=30
+drive_folder=1A2B3C4D5E6F7G8H9I0J-evidence
+```
+
+#### 3. Automated Tests & Quality Verification
+- Added 4 unit and integration test suites in `tests/test_portal.py`:
+  - `test_parse_onboard_txt_content_valid_four_fields`: Verifies all 4 fields parse accurately, comments and empty lines are skipped, and unrecognized keys are safely ignored.
+  - `test_parse_onboard_txt_content_disguised_non_text_rejected`: Verifies content-sniffing rejection of Windows PE binaries, Linux ELF binaries, PNG, JPEG, PDF, ZIP containers, NULL bytes, shebang scripts, active HTML script tags, SVG tags, and invalid UTF-8 bytes.
+  - `test_parse_onboard_txt_content_oversized_and_empty_and_extension_rejected`: Verifies rejection of files exceeding 10KB (`10240` bytes), empty files, non-`.txt` extensions, and files with no recognized keys.
+  - `test_parse_onboard_txt_endpoint_via_client`: Verifies end-to-end authenticated API endpoint `POST /api/clients/onboard/parse_txt`.
+- Ran full regression test suite across all 17 test modules (`uv run pytest`):
+  - **216 passed in 19.30s (100% pass rate)**.
+
+

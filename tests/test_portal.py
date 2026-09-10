@@ -1419,5 +1419,151 @@ def test_iap_header_email_mismatch_with_jwt_payload_is_rejected_401(monkeypatch)
     assert "does not match verified JWT email" in res.json().get("detail", "")
 
 
+def test_parse_onboard_txt_content_valid_four_fields():
+    """Verify that a valid .txt file with all 4 supported fields parses accurately."""
+    from mcp_server_grc.portal import parse_onboard_txt_content
 
+    valid_txt = b"""# Workspace Onboarding Configuration
+client_name = Acme Financial Services
+projects = acme-prod-01, acme-data-lake, acme-security
+access_days = 30
+drive_folder = 1A2B3C4D5E6F7G8H9I0J-evidence
+
+# Additional unrecognized metadata should be ignored
+unsupported_key = should_be_ignored
+"""
+    success, data, err = parse_onboard_txt_content(valid_txt, "onboard.txt")
+    assert success is True
+    assert err is None
+    assert data == {
+        "client_name": "Acme Financial Services",
+        "projects": "acme-prod-01, acme-data-lake, acme-security",
+        "access_days": 30,
+        "drive_folder": "1A2B3C4D5E6F7G8H9I0J-evidence",
+    }
+
+
+def test_parse_onboard_txt_content_disguised_non_text_rejected():
+    """Verify that disguised binary formats, archives, scripts, and active HTML/SVG content are rejected via content sniffing."""
+    from mcp_server_grc.portal import parse_onboard_txt_content
+
+    # 1. Windows PE executable (magic MZ)
+    mz_content = b"MZ\x90\x00\x03\x00\x00\x00client_name=DisguisedExe"
+    success, _, err = parse_onboard_txt_content(mz_content, "fake.txt")
+    assert success is False
+    assert "Disallowed binary format: Windows PE" in err
+
+    # 2. Linux ELF binary
+    elf_content = b"\x7fELF\x02\x01\x01\x00client_name=DisguisedElf"
+    success, _, err = parse_onboard_txt_content(elf_content, "fake.txt")
+    assert success is False
+    assert "Disallowed binary format: Linux ELF" in err
+
+    # 3. PNG image
+    png_content = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDRclient_name=DisguisedPng"
+    success, _, err = parse_onboard_txt_content(png_content, "fake.txt")
+    assert success is False
+    assert "Disallowed binary format: PNG image" in err
+
+    # 4. JPEG image
+    jpeg_content = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00client_name=DisguisedJpeg"
+    success, _, err = parse_onboard_txt_content(jpeg_content, "fake.txt")
+    assert success is False
+    assert "Disallowed binary format: JPEG image" in err
+
+    # 5. PDF document
+    pdf_content = b"%PDF-1.4\n1 0 obj\nclient_name=DisguisedPdf"
+    success, _, err = parse_onboard_txt_content(pdf_content, "fake.txt")
+    assert success is False
+    assert "Disallowed binary format: PDF document" in err
+
+    # 6. ZIP / Office container
+    zip_content = b"PK\x03\x04\x14\x00\x00\x00client_name=DisguisedZip"
+    success, _, err = parse_onboard_txt_content(zip_content, "fake.txt")
+    assert success is False
+    assert "Disallowed binary format: ZIP archive" in err
+
+    # 7. File containing NULL bytes
+    null_content = b"client_name=Acme\x00Financial\nprojects=p1"
+    success, _, err = parse_onboard_txt_content(null_content, "fake.txt")
+    assert success is False
+    assert "NULL bytes is not allowed" in err
+
+    # 8. Executable script with shebang
+    shebang_content = b"#!/bin/bash\nclient_name=HackedCorp\nprojects=p1"
+    success, _, err = parse_onboard_txt_content(shebang_content, "fake.txt")
+    assert success is False
+    assert "shebang" in err
+
+    # 9. Active HTML script tag
+    html_content = b"<script>alert('xss')</script>\nclient_name=Acme"
+    success, _, err = parse_onboard_txt_content(html_content, "fake.txt")
+    assert success is False
+    assert "HTML active content" in err
+
+    # 10. Active SVG tag
+    svg_content = b"<svg xmlns='http://www.w3.org/2000/svg'><circle/></svg>\nclient_name=Acme"
+    success, _, err = parse_onboard_txt_content(svg_content, "fake.txt")
+    assert success is False
+    assert "SVG" in err
+
+    # 11. Invalid UTF-8
+    bad_utf8 = b"client_name=\xff\xfe\xfd\nprojects=bad"
+    success, _, err = parse_onboard_txt_content(bad_utf8, "fake.txt")
+    assert success is False
+    assert "not valid UTF-8" in err
+
+
+def test_parse_onboard_txt_content_oversized_and_empty_and_extension_rejected():
+    """Verify strict rejection of oversized files (>10KB), empty files, wrong extensions, and files with no keys."""
+    from mcp_server_grc.portal import parse_onboard_txt_content
+
+    # 1. Oversized file (> 10240 bytes)
+    oversized = b"client_name=BigCorp\n" + (b"projects=proj-" * 1000)  # > 14 KB
+    assert len(oversized) > 10240
+    success, _, err = parse_onboard_txt_content(oversized, "large.txt")
+    assert success is False
+    assert "exceeds maximum allowed limit of 10 KB" in err
+
+    # 2. Empty file
+    success, _, err = parse_onboard_txt_content(b"", "empty.txt")
+    assert success is False
+    assert "Empty file" in err
+
+    # 3. Wrong file extension
+    success, _, err = parse_onboard_txt_content(b"client_name=Acme", "config.json")
+    assert success is False
+    assert "only plain text .txt files are allowed" in err
+
+    # 4. No recognizable keys
+    no_keys = b"# Just comments and invalid entries\nfoo=bar\nhello=world\n"
+    success, _, err = parse_onboard_txt_content(no_keys, "nokeys.txt")
+    assert success is False
+    assert "No recognizable keys found" in err
+
+
+def test_parse_onboard_txt_endpoint_via_client():
+    """Verify the REST API endpoint /api/clients/onboard/parse_txt end-to-end."""
+    with patch("mcp_server_grc.auth.verify_google_workspace_token") as mock_verify:
+        mock_verify.return_value = {
+            "email": "auditor@client.corp",
+            "hd": "client.corp",
+            "sub": "12345",
+        }
+        headers = {"Authorization": "Bearer ya29.test-token"}
+        valid_content = b"client_name=Globex Corp\nprojects=globex-main\naccess_days=15\n"
+        files = {"file": ("globex.txt", valid_content, "text/plain")}
+        res = client.post("/api/clients/onboard/parse_txt", files=files, headers=headers)
+        assert res.status_code == 200
+        data = res.json()
+        assert data["status"] == "success"
+        assert data["data"]["client_name"] == "Globex Corp"
+        assert data["data"]["projects"] == "globex-main"
+        assert data["data"]["access_days"] == 15
+
+        # Rejected file through endpoint returns 400
+        bad_files = {"file": ("malicious.txt", b"MZ\x00\x00client_name=Bad", "text/plain")}
+        res_bad = client.post("/api/clients/onboard/parse_txt", files=bad_files, headers=headers)
+        assert res_bad.status_code == 400
+        assert "Disallowed binary format" in res_bad.json()["detail"]
 
