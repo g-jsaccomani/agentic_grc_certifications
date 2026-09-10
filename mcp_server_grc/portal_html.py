@@ -8222,7 +8222,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             </section>
 
             <!-- View: Onboard Instructions Document (Print & Export) -->
-            <section class="view-pane" id="view-onboard-instructions" style="background: var(--bg-canvas); overflow-y: auto; padding: 20px 16px;">
+            <section class="view-pane" id="view-onboard-instructions" style="background: var(--bg-canvas); overflow-y: auto; padding: 20px 16px; flex-direction: column; width: 100%;">
                 <!-- Floating Action Bar above Document Paper -->
                 <div class="doc-viewer-actions-bar">
                     <div class="doc-viewer-actions-left">
@@ -11846,63 +11846,79 @@ echo -e "================================================================\\n"`;
         let previousActiveViewId = "view-home";
 
         function exportOnboardInstructionsPdf() {
-            const nameInput = document.getElementById("onboardClientNameInput");
-            const consultantInput = document.getElementById("onboardConsultantEmailInput");
-            const projectsInput = document.getElementById("onboardClientProjectsInput");
-            const daysInput = document.getElementById("onboardClientDaysInput");
-            const driveFolderInput = document.getElementById("onboardClientDriveFolderInput");
-            const previewEl = document.getElementById("onboardScriptPreview");
+            try {
+                const nameInput = document.getElementById("onboardClientNameInput");
+                const consultantInput = document.getElementById("onboardConsultantEmailInput");
+                const projectsInput = document.getElementById("onboardClientProjectsInput");
+                const daysInput = document.getElementById("onboardClientDaysInput");
+                const driveFolderInput = document.getElementById("onboardClientDriveFolderInput");
+                const previewEl = document.getElementById("onboardScriptPreview");
 
-            const name = (nameInput?.value || "").trim() || "New Client Workspace";
-            const consultantEmail = (consultantInput?.value || "").trim() || window.currentUserEmail || "consultant@example.com";
-            const rawProjects = (projectsInput?.value || "").trim();
-            const projects = rawProjects || "(Detecção automática de todos os projetos da organização)";
-            const days = parseInt(daysInput?.value || "30", 10) || 30;
-            const driveFolder = (driveFolderInput?.value || "").trim();
+                const name = (nameInput?.value || "").trim() || "New Client Workspace";
+                const consultantEmail = (consultantInput?.value || "").trim() || window.currentUserEmail || "consultant@example.com";
+                const rawProjects = (projectsInput?.value || "").trim();
+                const projects = rawProjects || "(Detecção automática de todos os projetos da organização)";
+                const days = parseInt(daysInput?.value || "30", 10) || 30;
+                const driveFolder = (driveFolderInput?.value || "").trim();
 
-            updateOnboardScriptPreview();
-            const cmd = previewEl ? previewEl.innerText : `bash scripts/onboard_client.sh --client="${name}" --consultant="${consultantEmail}" --days=${days}`;
+                if (typeof updateOnboardScriptPreview === 'function') {
+                    updateOnboardScriptPreview();
+                }
+                const cmd = previewEl ? previewEl.innerText : `bash scripts/onboard_client.sh --client="${name}" --consultant="${consultantEmail}" --days=${days}`;
 
-            const docName = document.getElementById("onboardDocClientName");
-            if (docName) docName.innerText = name;
+                const docName = document.getElementById("onboardDocClientName");
+                if (docName) docName.innerText = name;
 
-            const docConsultant = document.getElementById("onboardDocConsultantEmail");
-            if (docConsultant) docConsultant.innerText = consultantEmail;
+                const docConsultant = document.getElementById("onboardDocConsultantEmail");
+                if (docConsultant) docConsultant.innerText = consultantEmail;
 
-            const docCloud = document.getElementById("onboardDocCloudProvider");
-            if (docCloud) {
-                const provName = currentOnboardCloudProvider === "aws" ? "AWS (CLI / CloudShell)" :
-                                 currentOnboardCloudProvider === "azure" ? "Azure (CLI / Cloud Shell)" :
-                                 "Google Cloud (Cloud Shell / Bash)";
-                docCloud.innerText = provName;
+                const docCloud = document.getElementById("onboardDocCloudProvider");
+                if (docCloud) {
+                    const currentCloud = (typeof window !== 'undefined' && window.currentOnboardCloud) ? window.currentOnboardCloud : "gcp";
+                    const provName = currentCloud === "aws" ? "AWS (CLI / CloudShell)" :
+                                     currentCloud === "azure" ? "Azure (CLI / Cloud Shell)" :
+                                     "Google Cloud (Cloud Shell / Bash)";
+                    docCloud.innerText = provName;
+                }
+
+                const docProjects = document.getElementById("onboardDocProjects");
+                if (docProjects) docProjects.innerText = projects;
+
+                const docValidity = document.getElementById("onboardDocValidity");
+                if (docValidity) docValidity.innerText = `${days} dias (expiração compulsória via IAM Conditions)`;
+
+                const docDrive = document.getElementById("onboardDocDriveFolder");
+                if (docDrive) docDrive.innerText = driveFolder || "Não especificado (armazém padrão local)";
+
+                const docDate = document.getElementById("onboardDocGeneratedAt");
+                if (docDate) docDate.innerText = new Date().toLocaleString();
+
+                const docCmd = document.getElementById("onboardDocCommand");
+                if (docCmd) docCmd.innerText = cmd;
+
+                const currentActivePane = document.querySelector(".view-pane.active");
+                if (currentActivePane && currentActivePane.id && currentActivePane.id !== "view-onboard-instructions") {
+                    previousActiveViewId = currentActivePane.id;
+                }
+
+                if (typeof closeOnboardModal === 'function') {
+                    closeOnboardModal();
+                }
+                if (typeof switchView === 'function') {
+                    switchView("view-onboard-instructions");
+                }
+
+                setTimeout(() => {
+                    try {
+                        window.print();
+                    } catch (e) {
+                        console.warn("window.print call failed or was blocked:", e);
+                    }
+                }, 350);
+            } catch (err) {
+                console.error("Error in exportOnboardInstructionsPdf:", err);
+                alert("Erro ao abrir instruções para exportação em PDF: " + (err.message || err));
             }
-
-            const docProjects = document.getElementById("onboardDocProjects");
-            if (docProjects) docProjects.innerText = projects;
-
-            const docValidity = document.getElementById("onboardDocValidity");
-            if (docValidity) docValidity.innerText = `${days} dias (expiração compulsória via IAM Conditions)`;
-
-            const docDrive = document.getElementById("onboardDocDriveFolder");
-            if (docDrive) docDrive.innerText = driveFolder || "Não especificado (armazém padrão local)";
-
-            const docDate = document.getElementById("onboardDocGeneratedAt");
-            if (docDate) docDate.innerText = new Date().toLocaleString();
-
-            const docCmd = document.getElementById("onboardDocCommand");
-            if (docCmd) docCmd.innerText = cmd;
-
-            const currentActivePane = document.querySelector(".view-pane.active");
-            if (currentActivePane && currentActivePane.id && currentActivePane.id !== "view-onboard-instructions") {
-                previousActiveViewId = currentActivePane.id;
-            }
-
-            closeOnboardModal();
-            switchView("view-onboard-instructions");
-
-            setTimeout(() => {
-                window.print();
-            }, 300);
         }
 
         function printOnboardInstructions() {
