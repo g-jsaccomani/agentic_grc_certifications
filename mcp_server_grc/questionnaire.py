@@ -957,7 +957,6 @@ async def submit_questionnaire_answer(
     return answer
 
 
-
 @router.get(
     "/questionnaire",
     summary="List controls and answers for a specific compliance framework and language",
@@ -965,6 +964,7 @@ async def submit_questionnaire_answer(
 async def get_questionnaire(
     framework: str = Query("ISO27001:2022", description="Target compliance framework"),
     lang: str = Query("pt", description="Language code ('pt', 'en', 'es')"),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
     """Returns controls and answers for the requested compliance framework and language."""
     norm_lang = (lang or "pt").lower().strip()
@@ -1058,6 +1058,7 @@ async def get_questionnaire(
 )
 async def get_questionnaire_summary(
     framework: str = Query("ISO27001:2022", description="Target compliance framework"),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
     """Computes completion and compliance statistics for the requested framework."""
     if framework == "ISO27001:2022":
@@ -1107,6 +1108,7 @@ async def get_questionnaire_summary(
 async def api_sync_scan_telemetry(
     framework: str = Query("ISO27001:2022", description="Target compliance framework"),
     overwrite_self_attested: bool = Query(False, description="Whether to overwrite human self-attested answers"),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
     """Synchronizes verified compliance telemetry from real scan executions into questionnaire answers."""
     from mcp_server_grc.portal import build_scan_results_for_phase
@@ -1116,7 +1118,7 @@ async def api_sync_scan_telemetry(
         overwrite_self_attested=overwrite_self_attested,
         scan_results=scan_results,
     )
-    summary = await get_questionnaire_summary(framework=framework)
+    summary = await get_questionnaire_summary(framework=framework, user_context=user_context)
     return {
         "status": "SUCCESS",
         "synced_controls": synced,

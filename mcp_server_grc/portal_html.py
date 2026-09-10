@@ -9924,7 +9924,7 @@ window.currentLanguage = 'pt';
 
         async function loadSubagents() {
             try {
-                const res = await fetch("/api/subagents");
+                const res = await fetch("/api/subagents", { headers: getAuthHeaders() });
                 const data = await res.json();
                 const container = document.getElementById("customSubagentsGrid");
                 const countDisplay = document.getElementById("customCountDisplay");
@@ -9998,7 +9998,10 @@ window.currentLanguage = 'pt';
         async function deleteCustomSubagent(agentId) {
             if (!confirm(`Deseja realmente remover o subagente customizado '${agentId}'?`)) return;
             try {
-                const res = await fetch(`/api/subagents/${encodeURIComponent(agentId)}`, { method: "DELETE" });
+                const res = await fetch(`/api/subagents/${encodeURIComponent(agentId)}`, {
+                    method: "DELETE",
+                    headers: getAuthHeaders()
+                });
                 const data = await res.json();
                 loadSubagents();
                 appendLog(`[Subagente Removido] Subagente '${agentId}' excluído com sucesso.`, "success");
@@ -10417,7 +10420,8 @@ window.currentLanguage = 'pt';
 
             try {
                 const res = await fetch(`/api/subagents/${encodeURIComponent(agentId)}/run?project_id=${encodeURIComponent(project)}`, {
-                    method: "POST"
+                    method: "POST",
+                    headers: getAuthHeaders()
                 });
                 const data = await res.json();
 
@@ -10544,7 +10548,7 @@ window.currentLanguage = 'pt';
             try {
                 const res = await fetch("/api/subagents", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
@@ -13208,7 +13212,7 @@ function openNewsModal(newsKey) {
             if (status && status !== "ALL") url += `&status=${encodeURIComponent(status)}`;
 
             try {
-                const res = await fetch(url);
+                const res = await fetch(url, { headers: getAuthHeaders() });
                 const data = await res.json();
                 matrixControls = data.controls || [];
                 renderMatrixTable(matrixControls);
@@ -13449,7 +13453,7 @@ function openNewsModal(newsKey) {
         // -------------------------------------------------------------------
         async function loadScorecard() {
             try {
-                const res = await fetch("/api/scorecard");
+                const res = await fetch("/api/scorecard", { headers: getAuthHeaders() });
                 if (!res.ok) return;
                 const data = await res.json();
 
@@ -13580,7 +13584,7 @@ function openNewsModal(newsKey) {
             try {
                 const res = await fetch("/api/storage/link", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
                     body: JSON.stringify({ source: source, uri: uri, user_token: "delegated-spiffe-token" })
                 });
                 const data = await res.json();
@@ -13602,7 +13606,11 @@ function openNewsModal(newsKey) {
             formData.append("file", fileInput.files[0]);
 
             try {
-                const res = await fetch("/api/upload", { method: "POST", body: formData });
+                const res = await fetch("/api/upload", {
+                    method: "POST",
+                    headers: getAuthHeaders(),
+                    body: formData
+                });
                 const data = await res.json();
                 closeUploadModal();
                 switchView("view-chat");
@@ -13637,7 +13645,7 @@ function openNewsModal(newsKey) {
             try {
                 const res = await fetch("/api/remediation/approve", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
                     body: JSON.stringify({ remediation_id: remId })
                 });
                 const data = await res.json();
@@ -13692,7 +13700,7 @@ function openNewsModal(newsKey) {
         // -------------------------------------------------------------------
         async function loadFinOpsMetrics() {
             try {
-                const res = await fetch("/api/finops");
+                const res = await fetch("/api/finops", { headers: getAuthHeaders() });
                 if (res.ok) {
                     finopsData = await res.json();
                     renderFinOpsDashboard(finopsData);
@@ -13866,7 +13874,7 @@ function openNewsModal(newsKey) {
 
         async function loadFinOpsTips() {
             try {
-                const res = await fetch("/api/finops/tips");
+                const res = await fetch("/api/finops/tips", { headers: getAuthHeaders() });
                 if (res.ok) {
                     const data = await res.json();
                     renderFinOpsTips(data.tips || []);
@@ -13892,7 +13900,10 @@ function openNewsModal(newsKey) {
 
         async function simulateFinOpsRun() {
             try {
-                const res = await fetch("/api/finops/simulate", { method: "POST" });
+                const res = await fetch("/api/finops/simulate", {
+                    method: "POST",
+                    headers: getAuthHeaders()
+                });
                 if (res.ok) {
                     finopsData = await res.json();
                     renderFinOpsDashboard(finopsData);

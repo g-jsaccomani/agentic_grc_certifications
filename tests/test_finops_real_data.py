@@ -266,7 +266,7 @@ def test_finops_algorithmic_token_saving_tips():
 
 def test_api_finops_tips_endpoint():
     """Verify GET /api/finops/tips returns computed tips from tracker."""
-    res = client.get("/api/finops/tips")
+    res = client.get("/api/finops/tips", headers={"Authorization": "Bearer ya29.valid-token"})
     assert res.status_code == 200
     data = res.json()
     assert "tips" in data

@@ -452,7 +452,7 @@ def test_multi_framework_soc2_answer():
 
 def test_get_questionnaire_iso27001():
     """GET /api/questionnaire returns ISO27001:2022 controls and answered status."""
-    res = client.get("/api/questionnaire?framework=ISO27001:2022")
+    res = client.get("/api/questionnaire?framework=ISO27001:2022", headers=AUTH_HEADER)
     assert res.status_code == 200
     data = res.json()
     assert data["framework"] == "ISO27001:2022"
@@ -468,7 +468,7 @@ def test_get_questionnaire_iso27001():
 
 def test_get_questionnaire_soc2():
     """GET /api/questionnaire returns SOC2 controls."""
-    res = client.get("/api/questionnaire?framework=SOC2")
+    res = client.get("/api/questionnaire?framework=SOC2", headers=AUTH_HEADER)
     assert res.status_code == 200
     data = res.json()
     assert data["framework"] == "SOC2"
@@ -484,7 +484,7 @@ def test_get_questionnaire_soc2():
 def test_get_questionnaire_multilingual_pt_en_es():
     """GET /api/questionnaire returns localized titles, questions, evidence, and themes."""
     # 1. Portuguese (default)
-    res_pt = client.get("/api/questionnaire?framework=ISO27001:2022&lang=pt")
+    res_pt = client.get("/api/questionnaire?framework=ISO27001:2022&lang=pt", headers=AUTH_HEADER)
     assert res_pt.status_code == 200
     data_pt = res_pt.json()
     assert data_pt["lang"] == "pt"
@@ -497,7 +497,7 @@ def test_get_questionnaire_multilingual_pt_en_es():
     assert "pt" in c_a51_pt["translations"] and "en" in c_a51_pt["translations"]
 
     # 2. English
-    res_en = client.get("/api/questionnaire?framework=ISO27001:2022&lang=en")
+    res_en = client.get("/api/questionnaire?framework=ISO27001:2022&lang=en", headers=AUTH_HEADER)
     assert res_en.status_code == 200
     data_en = res_en.json()
     assert data_en["lang"] == "en"
@@ -507,7 +507,7 @@ def test_get_questionnaire_multilingual_pt_en_es():
     assert "Information Security Policy" in c_a51_en["recommended_evidence"]
 
     # 3. Spanish
-    res_es = client.get("/api/questionnaire?framework=ISO27001:2022&lang=es")
+    res_es = client.get("/api/questionnaire?framework=ISO27001:2022&lang=es", headers=AUTH_HEADER)
     assert res_es.status_code == 200
     data_es = res_es.json()
     assert data_es["lang"] == "es"
@@ -524,7 +524,7 @@ def test_questionnaire_summary_clean_in_memory_state():
     saved_answers = dict(QUESTIONNAIRE_ANSWERS)
     try:
         QUESTIONNAIRE_ANSWERS.clear()
-        res = client.get("/api/questionnaire/summary?framework=ISO27001:2022")
+        res = client.get("/api/questionnaire/summary?framework=ISO27001:2022", headers=AUTH_HEADER)
         assert res.status_code == 200
         data = res.json()
         assert data["framework"] == "ISO27001:2022"
@@ -540,7 +540,7 @@ def test_questionnaire_summary_clean_in_memory_state():
 
 def test_get_questionnaire_summary():
     """GET /api/questionnaire/summary computes accurate counts and completion percentage."""
-    res = client.get("/api/questionnaire/summary?framework=ISO27001:2022")
+    res = client.get("/api/questionnaire/summary?framework=ISO27001:2022", headers=AUTH_HEADER)
     assert res.status_code == 200
     data = res.json()
     assert data["framework"] == "ISO27001:2022"
@@ -549,7 +549,7 @@ def test_get_questionnaire_summary():
     assert data["compliant"] >= 1
     assert data["completion_percentage"] > 0.0
 
-    res_soc2 = client.get("/api/questionnaire/summary?framework=SOC2")
+    res_soc2 = client.get("/api/questionnaire/summary?framework=SOC2", headers=AUTH_HEADER)
     assert res_soc2.status_code == 200
     data_soc2 = res_soc2.json()
     assert data_soc2["framework"] == "SOC2"
@@ -566,18 +566,18 @@ def test_scan_execution_automatically_answers_questionnaire():
         QUESTIONNAIRE_ANSWERS.clear()
 
         # 1. Before scan: 0 answered
-        res_before = client.get("/api/questionnaire/summary?framework=ISO27001:2022")
+        res_before = client.get("/api/questionnaire/summary?framework=ISO27001:2022", headers=AUTH_HEADER)
         assert res_before.status_code == 200
         assert res_before.json()["answered"] == 0
 
         # 2. Execute full phased scan
-        res_scan = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"]})
+        res_scan = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"]}, headers=AUTH_HEADER)
         assert res_scan.status_code == 200
         data_scan = res_scan.json()
         assert data_scan.get("questionnaire_controls_synced") == 93
 
         # 3. After scan: all 93 controls automatically answered
-        res_after = client.get("/api/questionnaire/summary?framework=ISO27001:2022")
+        res_after = client.get("/api/questionnaire/summary?framework=ISO27001:2022", headers=AUTH_HEADER)
         assert res_after.status_code == 200
         data_after = res_after.json()
         assert data_after["total_controls"] == 93
@@ -587,7 +587,7 @@ def test_scan_execution_automatically_answers_questionnaire():
         assert data_after["completion_percentage"] == 100.0
 
         # 4. Check that questionnaire controls list contains detailed telemetry
-        res_q = client.get("/api/questionnaire?framework=ISO27001:2022&lang=pt")
+        res_q = client.get("/api/questionnaire?framework=ISO27001:2022&lang=pt", headers=AUTH_HEADER)
         assert res_q.status_code == 200
         q_data = res_q.json()
         assert q_data["answered_controls"] == 93
@@ -616,7 +616,7 @@ def test_sync_scan_telemetry_endpoint():
     saved_answers = dict(QUESTIONNAIRE_ANSWERS)
     try:
         QUESTIONNAIRE_ANSWERS.clear()
-        res = client.post("/api/questionnaire/sync_scan?framework=ISO27001:2022")
+        res = client.post("/api/questionnaire/sync_scan?framework=ISO27001:2022", headers=AUTH_HEADER)
         assert res.status_code == 200
         data = res.json()
         assert data["status"] == "SUCCESS"
@@ -718,7 +718,7 @@ def test_custom_framework_and_non_compliant_na_statuses():
     assert res_na.status_code == 200
 
     # Query custom framework
-    q_res = client.get("/api/questionnaire?framework=NIST_CSF")
+    q_res = client.get("/api/questionnaire?framework=NIST_CSF", headers=AUTH_HEADER)
     assert q_res.status_code == 200
     q_data = q_res.json()
     assert q_data["framework"] == "NIST_CSF"
@@ -726,7 +726,7 @@ def test_custom_framework_and_non_compliant_na_statuses():
     assert q_data["answered_controls"] == 2
 
     # Query custom framework summary
-    s_res = client.get("/api/questionnaire/summary?framework=NIST_CSF")
+    s_res = client.get("/api/questionnaire/summary?framework=NIST_CSF", headers=AUTH_HEADER)
     assert s_res.status_code == 200
     s_data = s_res.json()
     assert s_data["framework"] == "NIST_CSF"

@@ -2704,4 +2704,77 @@ drive_folder=1A2B3C4D5E6F7G8H9I0J-evidence
 - Ran full regression test suite across all 17 test modules (`uv run pytest`):
   - **216 passed in 19.30s (100% pass rate)**.
 
+---
+
+### Milestone 77: Security Hardening Against Confirmed QA Vulnerabilities (Operator Impersonation, Route Authentication, Unauthenticated File Uploads, Reflected XSS)
+
+#### 1. Context & Objectives
+During live QA security testing on the running Cloud Run service, four vulnerabilities were confirmed and reproduced via live exploitation:
+1. **CRITICAL — `resolve_operator_id()` Operator Impersonation**: A request authenticated as `joabson@google.com` with header `X-Operator-Id: vitima@google.com` resolved to `vitima@google.com`, nullifying all Identity-Aware Proxy (IAP) verification work.
+2. **CRITICAL — 26 of 36 Portal Endpoints Required No Authentication**: Sensitive operational endpoints (executing subagents, approving remediations, running audit phases, simulating FinOps, retrieving scorecards and dossiers) could be accessed unauthenticated by anyone on the network.
+3. **CRITICAL — `/api/upload` Accepted Any File Unauthenticated with No Limits**: Accepted arbitrary binary payloads, archives, HTML, and SVG files of any size without authentication.
+4. **HIGH — Reflected XSS via Filename in `/api/upload`**: The uploaded filename was reflected unescaped in the JSON response and audit findings, creating a reflected cross-site scripting vulnerability.
+
+#### 2. Comprehensive Security Fixes
+
+##### A. Fix 1: Hardened `resolve_operator_id()` & Strict Identity Binding (`mcp_server_grc/portal.py`)
+- When `user_context` has a cryptographically verified identity (`user_context.id_token` present from BeyondCorp IAP JWT or Google ID Token, non-demo), the server ALWAYS returns `user_context.email.strip().lower()`.
+- Request headers (`X-Operator-Id`) and query parameters (`operator_id`) are NEVER permitted to override a cryptographically verified identity.
+- Fallback to `X-Operator-Id` or `operator_id` is ONLY allowed when `ALLOW_DEV_AUTH_BYPASS` is explicitly enabled for local development or multi-operator isolation tests.
+- Regression test added in `tests/test_portal.py`: `test_resolve_operator_id_never_overridden_by_header` asserts that a request authenticated via IAP JWT as `joabson@google.com` with header `X-Operator-Id: vitima@google.com` resolves strictly to `joabson@google.com`, completely ignoring the header.
+
+##### B. Fix 2: Applied Authentication & Client Scoping Across All Portal Endpoints (`mcp_server_grc/portal.py`, `mcp_server_grc/questionnaire.py`)
+- Applied `user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user)` to all previously unprotected endpoints:
+  - `/api/projects`, `/api/projects/toggle_scope`, `/api/projects/add`
+  - `/api/finops`, `/api/finops/tips`, `/api/finops/simulate`
+  - `/api/iso_matrix`
+  - `/api/audit/run_phases`, `/api/audit/remediate_phase`
+  - `/api/agent/recommend_subagent`, `/api/agent/autonomous_monitor`, `/api/agent/update_policy_autonomously`
+  - `/api/scorecard`
+  - `/api/reports/executive`, `/api/reports/technical`, `/api/reports/export`
+  - `/api/guardrails/inspect`
+  - `/api/upload`, `/api/storage/link`
+  - `/api/subagents` (GET, POST), `/api/subagents/{agent_id}` (DELETE), `/api/subagents/{agent_id}/run` (POST), `/api/subagents/trigger` (POST)
+  - `/api/dashboard` (GET)
+  - `/api/remediation/approve` (POST)
+  - `/api/questionnaire` (GET), `/api/questionnaire/summary` (GET), `/api/questionnaire/sync_scan` (POST)
+- Allowlisted ONLY the 4 public routes:
+  - `/health`
+  - `/healthz`
+  - `/portal`
+  - `/`
+- Implemented `resolve_client_and_verify_access` on client-scoped data endpoints (`dashboard`, `scorecard`, `reports`, `audit`, etc.) to resolve per-session client isolation using `get_client_ci_engine(client_id)`.
+- Updated frontend fetch calls in `mcp_server_grc/portal_html.py` to pass `headers: getAuthHeaders()`.
+- Regression test added in `tests/test_portal.py`: `test_all_portal_routes_require_auth_except_allowlist` iterates all registered routes on the portal router and asserts that each returns HTTP 401 without auth, except the 4 allowlisted routes.
+
+##### C. Fix 3: Hardened `/api/upload` (File Extension, Magic Bytes Sniffing, 10MB Limit) (`mcp_server_grc/portal.py`)
+- Enforces authentication requirement via `require_authenticated_workspace_user`.
+- Enforces 10MB maximum file size limit: pre-checks `Content-Length` header if supplied, and reads up to 10MB + 1 byte in chunks, rejecting with HTTP 400/413 if the payload exceeds 10MB (`10485760` bytes).
+- Enforces strict file extension allowlist: only `.tf`, `.yaml`, `.yml`, `.json`, and `.txt` are permitted.
+- Integrates `sniff_and_validate_evidence_file` from `mcp_server_grc/questionnaire.py` to perform deep magic-bytes analysis:
+  - Disallows binary executable and archive headers (MZ, ELF, Mach-O, Java class, RAR, 7z, GZIP, BZIP2, TAR, ZIP).
+  - Disallows media/image formats (PNG, JPEG, WEBP, PDF).
+  - Rejects NULL bytes (`\x00`).
+  - Rejects HTML/SVG content (`<script`, `<svg`, `<!doctype html`, `<html`, `<body`, `<head`, `<iframe`).
+  - Enforces valid UTF-8 text decoding.
+- Regression tests added in `tests/test_portal.py`:
+  - `test_upload_compliance_file_payload_rejections`: Asserts rejection of 5 attack payloads (ELF binary disguised as `.png` or `.tf`, SVG with `<script>`, HTML with `<script>`, ZIP archive, and file exceeding 10MB).
+  - `test_upload_compliance_file_valid_tf_accepted`: Asserts acceptance of valid Terraform compliance configuration files.
+
+##### D. Fix 4: Sanitization of Reflected Filename Against XSS (`mcp_server_grc/portal.py`, `mcp_server_grc/portal_html.py`)
+- Applied `html.escape(os.path.basename(raw_filename).replace("\x00", ""))` to the uploaded filename before returning it in the API response or persisting in audit findings.
+- Strips directory traversal paths via `os.path.basename` and neutralizes HTML/XSS injection tags via `html.escape`.
+- Verified that all portal frontend render paths in `mcp_server_grc/portal_html.py` escape the filename before rendering in chat and logs (`escapeHtml(data.filename)`).
+- Regression test added in `tests/test_portal.py`: `test_upload_compliance_file_xss_filename_sanitized` asserts that XSS payloads in filenames (e.g. `<img src=x onerror=alert(1)>.tf`) are safely escaped (`&lt;img ... &gt;`) and raw tag delimiters are never reflected.
+
+##### E. Preservation of Model Armor Protections
+- Model Armor screening (`model_armor_gateway.inspect_ingress` on `system_prompt`, `role`, `description`) in `/api/subagents` (POST) was strictly preserved.
+- Model Armor prompt injection defenses held against all adversarial test variants with zero regressions.
+
+#### 3. Automated Tests & Quality Verification
+- Total tests executed across the complete test suite (`uv run pytest`):
+  - **221 passed in 19.18s (100% pass rate)**.
+  - Zero test failures, zero regressions.
+
+
 

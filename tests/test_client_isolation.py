@@ -15,6 +15,11 @@ client = TestClient(app)
 AUTH_HEADER = {"Authorization": "Bearer ya29.valid-auditor-access-token"}
 
 
+@pytest.fixture(autouse=True)
+def enable_dev_auth_bypass_for_isolation(monkeypatch):
+    monkeypatch.setenv("ALLOW_DEV_AUTH_BYPASS", "true")
+
+
 @pytest.fixture
 def temporary_test_clients():
     """Temporarily registers test clients in data/clients.json for isolation tests and cleans up after."""

@@ -13,6 +13,7 @@ import logging
 import datetime
 import hashlib
 import uuid
+import html
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from fastapi import APIRouter, File, UploadFile, Response, Query, HTTPException, Header, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -71,7 +72,10 @@ from mcp_server_grc.assets_b64 import (
     GOOGLE_CLOUD_DARK_WORDMARK_URI,
 )
 
-from mcp_server_grc.questionnaire import router as questionnaire_router
+from mcp_server_grc.questionnaire import (
+    router as questionnaire_router,
+    sniff_and_validate_evidence_file,
+)
 
 logger = logging.getLogger("portal")
 router = APIRouter()
@@ -176,16 +180,39 @@ def load_onboarded_clients() -> List[Dict[str, Any]]:
 
 def resolve_operator_id(
     user_context: Optional[WorkspaceUserContext] = None,
-    x_operator_id: Optional[str] = None,
-    operator_id: Optional[str] = None,
+    x_operator_id: Optional[str] = Header(None),
+    operator_id: Optional[str] = Query(None),
 ) -> str:
-    """Resolves stable operator identity per logged-in consultant."""
-    if x_operator_id and str(x_operator_id).strip():
-        return str(x_operator_id).strip()
-    if operator_id and str(operator_id).strip():
-        return str(operator_id).strip()
-    if user_context and user_context.email and user_context.email != "auditor@client.corp":
+    """Resolves stable operator identity per logged-in consultant.
+    
+    When user_context has a verified identity (non-demo), ALWAYS use it —
+    never let a request header or query param override a cryptographically verified identity.
+    Only fall back to X-Operator-Id or operator_id query param when ALLOW_DEV_AUTH_BYPASS
+    is explicitly enabled for local testing.
+    """
+    # 1. Cryptographically verified identity (BeyondCorp IAP JWT assertion or Google ID Token)
+    # ALWAYS takes absolute precedence. Never let request headers override it.
+    is_cryptographically_verified = bool(
+        user_context
+        and user_context.email
+        and getattr(user_context, "id_token", None)
+        and not getattr(user_context, "is_demo", False)
+    )
+    if is_cryptographically_verified:
         return user_context.email.strip().lower()
+
+    # 2. In local dev mode only (when ALLOW_DEV_AUTH_BYPASS is true), allow request headers/params fallback
+    allow_dev_bypass = os.getenv("ALLOW_DEV_AUTH_BYPASS", "false").lower() == "true"
+    if allow_dev_bypass:
+        if x_operator_id and str(x_operator_id).strip():
+            return str(x_operator_id).strip().lower()
+        if operator_id and str(operator_id).strip():
+            return str(operator_id).strip().lower()
+
+    # 3. Otherwise, use user_context email if non-demo, or fallback to default
+    if user_context and user_context.email and not getattr(user_context, "is_demo", False):
+        return user_context.email.strip().lower()
+
     return "default_operator"
 
 
@@ -261,6 +288,44 @@ def get_client_ci_engine(client_id: Optional[str] = None) -> ContinuousIntellige
         c_name = next((c["name"] for c in clients if c.get("client_id") == cid), cid)
         CLIENT_CI_ENGINES[cid] = ContinuousIntelligenceEngine(organization_name=f"{c_name}-Environment")
     return CLIENT_CI_ENGINES[cid]
+
+
+def resolve_client_and_verify_access(
+    user_context: Optional[WorkspaceUserContext] = None,
+    x_operator_id: Optional[str] = None,
+    x_client_id: Optional[str] = None,
+    x_session_id: Optional[str] = None,
+    client_id: Optional[str] = None,
+) -> Tuple[str, Dict[str, Any], str]:
+    """Resolves operator and client, verifies operator access to client, and returns (operator_id, client_record, client_id).
+    
+    Raises HTTPException(404) if client is not found.
+    Raises HTTPException(403) if client is not accessible by the requesting operator.
+    Raises HTTPException(403) if session binding contradicts the requested client.
+    """
+    op_id = resolve_operator_id(user_context, x_operator_id)
+    all_clients = load_onboarded_clients()
+
+    bound_cid = SESSION_CLIENT_BINDINGS.get(x_session_id) if x_session_id else None
+    target_cid = client_id or x_client_id or bound_cid or get_operator_active_client(op_id, user_context)
+
+    if bound_cid and target_cid != bound_cid and (client_id or x_client_id):
+        raise HTTPException(
+            status_code=403,
+            detail=f"Cross-tenant session access denied: session '{x_session_id}' is bound to client '{bound_cid}', not '{target_cid}'.",
+        )
+
+    client_rec = next((c for c in all_clients if c.get("client_id") == target_cid), None)
+    if not client_rec:
+        raise HTTPException(status_code=404, detail=f"Client '{target_cid}' not found in onboarded registry.")
+
+    if not is_client_accessible_by_operator(client_rec, op_id, user_context):
+        raise HTTPException(
+            status_code=403,
+            detail=f"Access denied: Client '{target_cid}' is owned by another operator and is not shared with '{op_id}'.",
+        )
+
+    return op_id, client_rec, target_cid
 
 
 # ---------------------------------------------------------------------------
@@ -903,19 +968,25 @@ async def toggle_project_scope(
 
 
 @router.get("/api/finops")
-async def get_finops_metrics():
+async def get_finops_metrics(
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Returns real-time FinOps token metering, cost breakdown, and Context Caching ROI."""
     return finops_tracker.get_summary()
 
 
 @router.get("/api/finops/tips")
-async def get_finops_token_saving_tips():
+async def get_finops_token_saving_tips(
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Computes and returns algorithmic token-saving tips based on empirical recorded usage."""
     return {"tips": finops_tracker.get_token_saving_tips()}
 
 
 @router.post("/api/finops/simulate")
-async def simulate_finops_audit():
+async def simulate_finops_audit(
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Runs real subagent audit passes and records empirical usage telemetry."""
     for ag_id, model_name in [("lead-auditor", "gemini-2.5-pro"), ("subagent-a8", "gemini-2.5-flash"), ("gcp-telemetry", "gemini-2.5-flash")]:
         sub = LLMSubAgent(
@@ -972,6 +1043,7 @@ async def get_iso_matrix(
     theme: Optional[str] = None,
     search: Optional[str] = None,
     status: Optional[str] = None,
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
     """Returns scalable full ISO/IEC 27001:2022 matrix with filtering capabilities."""
     from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
@@ -1086,9 +1158,20 @@ def build_scan_results_for_phase(target_phase: Optional[int] = None, projects: O
 
 
 @router.post("/api/audit/run_phases")
-async def run_phased_audit(req: PhasedAuditRequest):
+async def run_phased_audit(
+    req: PhasedAuditRequest,
+    x_operator_id: Optional[str] = Header(None),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Executes full multi-project audit broken down into 4 structured phases."""
-    projects = req.projects or ["agentic-grc-cd06"]
+    op_id, client_rec, target_cid = resolve_client_and_verify_access(
+        user_context, x_operator_id, x_client_id, x_session_id
+    )
+    cfg_projects = client_rec.get("projects") or []
+    projects = req.projects or cfg_projects or ["agentic-grc-cd06"]
+    scoped_engine = get_client_ci_engine(target_cid)
     timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
     # Phase 1: Asset Discovery & IAM
@@ -1132,7 +1215,7 @@ async def run_phased_audit(req: PhasedAuditRequest):
             "verification_tier": "VERIFIED",
         }
     ]
-    ci_res = ci_engine.execute_proactive_audit_cycle(f"phased-cycle-{int(datetime.datetime.now().timestamp())}", sample_assets)
+    ci_res = scoped_engine.execute_proactive_audit_cycle(f"phased-cycle-{int(datetime.datetime.now().timestamp())}", sample_assets)
 
     phase2_results = {
         "phase": "Fase 2: Auditoria Técnica Profunda & IaC",
@@ -1203,7 +1286,7 @@ async def run_phased_audit(req: PhasedAuditRequest):
         scan_results=scan_results,
         overwrite_self_attested=False,
     )
-    scorecard_data = calculate_scorecard_data("ISO27001:2022")
+    scorecard_data = calculate_scorecard_data("ISO27001:2022", client_id=target_cid)
 
     return {
         "execution_id": f"EXEC-PHASED-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}",
@@ -1223,10 +1306,20 @@ async def run_phased_audit(req: PhasedAuditRequest):
 
 
 @router.post("/api/audit/remediate_phase")
-async def remediate_phase(req: PhaseRemediationRequest):
+async def remediate_phase(
+    req: PhaseRemediationRequest,
+    x_operator_id: Optional[str] = Header(None),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Generates prescriptive remediation recommendations with exact gcloud commands and policy proposals for a specific phase (strictly read-only)."""
+    op_id, client_rec, target_cid = resolve_client_and_verify_access(
+        user_context, x_operator_id, x_client_id, x_session_id
+    )
     phase_id = req.phase
-    project_id = req.project_id
+    cfg_projects = client_rec.get("projects") or []
+    project_id = req.project_id or (cfg_projects[0] if cfg_projects else "fnlab-apps-8fa913")
 
     if phase_id == 1:
         remediation_details = {
@@ -1329,7 +1422,7 @@ async def remediate_phase(req: PhaseRemediationRequest):
                 ai_consistency_verdict="IN_PROGRESS",
                 ai_consistency_reasoning=f"Recomendações prescritivas para o controle {cid} registradas. Execução manual ou via pipeline requerida.",
             )
-    scorecard_data = calculate_scorecard_data("ISO27001:2022")
+    scorecard_data = calculate_scorecard_data("ISO27001:2022", client_id=target_cid)
     remediation_details["current_score"] = scorecard_data.get("overall_score", 0.0)
     remediation_details["scorecard"] = scorecard_data
 
@@ -1343,7 +1436,10 @@ async def remediate_phase(req: PhaseRemediationRequest):
 
 
 @router.post("/api/agent/recommend_subagent")
-async def recommend_subagent(req: AgentRecommendationRequest):
+async def recommend_subagent(
+    req: AgentRecommendationRequest,
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Proactively analyzes project telemetry and company context to recommend a tailored custom subagent."""
     project_id = req.project_id
     industry = (req.industry or "FINANCIAL_SERVICES").upper()
@@ -1420,7 +1516,10 @@ async def recommend_subagent(req: AgentRecommendationRequest):
 
 
 @router.post("/api/agent/autonomous_monitor")
-async def autonomous_monitor(req: AutonomousMonitorRequest):
+async def autonomous_monitor(
+    req: AutonomousMonitorRequest,
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Autonomous monitoring engine: evaluates GCP posture via read-only inspection, detects deviations, and issues prescriptive recommendations."""
     project_id = req.project_id
     target_control = req.target_control or "A.8.24"
@@ -1553,9 +1652,20 @@ async def autonomous_monitor(req: AutonomousMonitorRequest):
 
 
 @router.post("/api/agent/update_policy_autonomously")
-async def update_policy_autonomously(req: PolicyUpdateRequest):
+async def update_policy_autonomously(
+    req: PolicyUpdateRequest,
+    x_operator_id: Optional[str] = Header(None),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Generates a prescriptive security policy recommendation for human review and approval; strictly read-only with zero infrastructure mutation."""
-    project_id = req.project_id
+    op_id, client_rec, target_cid = resolve_client_and_verify_access(
+        user_context, x_operator_id, x_client_id, x_session_id
+    )
+    scoped_engine = get_client_ci_engine(target_cid)
+    cfg_projects = client_rec.get("projects") or []
+    project_id = req.project_id or (cfg_projects[0] if cfg_projects else "fnlab-apps-8fa913")
     control_id = req.control_id
     timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
     safe_cid = control_id.replace('.', '_')
@@ -1601,9 +1711,9 @@ Em conformidade com a fronteira de escopo da plataforma (somente-leitura, sem mu
         },
         "verification_tier": "SELF_ATTESTED",
     }
-    ci_engine.execute_proactive_audit_cycle(f"prop-policy-{int(datetime.datetime.now().timestamp())}", [evidence_payload])
+    scoped_engine.execute_proactive_audit_cycle(f"prop-policy-{int(datetime.datetime.now().timestamp())}", [evidence_payload])
 
-    scorecard_data = calculate_scorecard_data("ISO27001:2022")
+    scorecard_data = calculate_scorecard_data("ISO27001:2022", client_id=target_cid)
     current_score = scorecard_data.get("overall_score", 0.0)
 
     recommended_actions = [
@@ -1633,13 +1743,15 @@ Em conformidade com a fronteira de escopo da plataforma (somente-leitura, sem mu
     }
 
 
-def calculate_scorecard_data(framework: str = "ISO27001:2022") -> Dict[str, Any]:
+def calculate_scorecard_data(framework: str = "ISO27001:2022", client_id: Optional[str] = None) -> Dict[str, Any]:
     """Dynamically calculates compliance scorecard, control statuses, and evidence tier breakdown.
     
     Reflects live questionnaire submissions and machine telemetry without conflating tiers.
+    Scoped to the isolated client CI engine when client_id is provided.
     """
     from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
 
+    scoped_engine = get_client_ci_engine(client_id)
     base_controls = [c for c in ISO_27001_CATALOG]
     total_controls = len(base_controls)  # 93 ISO controls
     base_nc_ids = {"A.5.15", "A.5.17", "A.5.23", "A.8.14", "A.8.15", "A.8.16", "A.8.20", "A.8.24", "A.8.28"}
@@ -1655,7 +1767,7 @@ def calculate_scorecard_data(framework: str = "ISO27001:2022") -> Dict[str, Any]
                 current_nc_set.add(cid)
 
     # 2. Update with evidence graph links if any
-    for link in ci_engine.evidence_graph.links:
+    for link in scoped_engine.evidence_graph.links:
         if link.framework == framework:
             if link.status == "COMPLIANT":
                 current_nc_set.discard(link.control_id)
@@ -1666,7 +1778,7 @@ def calculate_scorecard_data(framework: str = "ISO27001:2022") -> Dict[str, Any]
     compliant_count = total_controls - current_nc_count
 
     # Baseline 78.5% with 9 NCs; cascades dynamically as answers are submitted
-    if current_nc_count == 9 and not QUESTIONNAIRE_ANSWERS and not ci_engine.evidence_graph.links:
+    if current_nc_count == 9 and not QUESTIONNAIRE_ANSWERS and not scoped_engine.evidence_graph.links:
         overall_score = 78.5
     else:
         overall_score = round(100.0 - (current_nc_count / 9.0) * 21.5, 1) if current_nc_count <= 9 else round((compliant_count / total_controls) * 100.0, 1)
@@ -1683,17 +1795,17 @@ def calculate_scorecard_data(framework: str = "ISO27001:2022") -> Dict[str, Any]
         rating = "CRITICAL_NON_COMPLIANCE"
 
     # Evidence graph breakdown
-    summary = ci_engine.evidence_graph.get_summary()
+    summary = scoped_engine.evidence_graph.get_summary()
     verification_tiers = summary.get("verification_tiers", {})
     for tier in EvidenceVerificationTier:
         if tier.value not in verification_tiers:
-            verification_tiers[tier.value] = sum(1 for n in ci_engine.evidence_graph.nodes.values() if n.verification_tier == tier)
+            verification_tiers[tier.value] = sum(1 for n in scoped_engine.evidence_graph.nodes.values() if n.verification_tier == tier)
 
     verified_count = verification_tiers.get(EvidenceVerificationTier.VERIFIED.value, 0) + verification_tiers.get(EvidenceVerificationTier.TELEMETRY.value, 0)
     self_attested_count = verification_tiers.get(EvidenceVerificationTier.SELF_ATTESTED.value, 0)
 
     nodes_detail = []
-    for node in ci_engine.evidence_graph.nodes.values():
+    for node in scoped_engine.evidence_graph.nodes.values():
         is_self_attested = (node.verification_tier == EvidenceVerificationTier.SELF_ATTESTED)
         user_email = node.raw_payload.get("user_email") or "auditor"
         date_str = (
@@ -1734,7 +1846,7 @@ def calculate_scorecard_data(framework: str = "ISO27001:2022") -> Dict[str, Any]
         "non_compliant_count": current_nc_count,
         "non_compliant_controls": sorted(list(current_nc_set)),
         "evidence_graph_summary": {
-            "total_evidence_nodes": len(ci_engine.evidence_graph.nodes),
+            "total_evidence_nodes": len(scoped_engine.evidence_graph.nodes),
             "verification_tiers": verification_tiers,
             "verified_telemetry_count": verified_count,
             "self_attested_count": self_attested_count,
@@ -1744,12 +1856,23 @@ def calculate_scorecard_data(framework: str = "ISO27001:2022") -> Dict[str, Any]
 
 
 @router.get("/api/scorecard", summary="Get compliance scorecard with dynamic recalculation and evidence tier breakdown")
-async def get_scorecard(framework: str = Query(default="ISO27001:2022")):
+async def get_scorecard(
+    framework: str = Query(default="ISO27001:2022"),
+    client_id: Optional[str] = Query(default=None),
+    x_client_id: Optional[str] = Header(default=None),
+    x_session_id: Optional[str] = Header(default=None),
+    x_operator_id: Optional[str] = Header(default=None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Returns dynamic compliance scorecard and evidence graph summary.
     
     Distinguishes machine-verified telemetry from self-attested questionnaire answers.
+    Scoped strictly per active client workspace and verified operator session.
     """
-    return calculate_scorecard_data(framework=framework)
+    op_id, client_rec, target_cid = resolve_client_and_verify_access(
+        user_context, x_operator_id, x_client_id, x_session_id, client_id
+    )
+    return calculate_scorecard_data(framework=framework, client_id=target_cid)
 
 
 # ---------------------------------------------------------------------------
@@ -1854,11 +1977,20 @@ def get_audited_period(now_dt: Optional[datetime.datetime] = None) -> Dict[str, 
 @router.get("/api/reports/executive", summary="Get Executive Compliance Dossier")
 async def get_executive_dossier(
     format: str = Query(default="json", description="json, html, or markdown"),
-    projects: Optional[str] = Query(default="agentic-grc-cd06"),
+    projects: Optional[str] = Query(default=None),
+    client_id: Optional[str] = Query(default=None),
+    x_client_id: Optional[str] = Header(default=None),
+    x_session_id: Optional[str] = Header(default=None),
+    x_operator_id: Optional[str] = Header(default=None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
     """Returns Executive Compliance Dossier reflecting dynamic scorecard and explicit evidence tiers."""
-    project_list = [p.strip() for p in projects.split(",") if p.strip()]
-    scorecard = calculate_scorecard_data()
+    op_id, client_rec, target_cid = resolve_client_and_verify_access(
+        user_context, x_operator_id, x_client_id, x_session_id, client_id
+    )
+    cfg_projects = client_rec.get("projects") or ["agentic-grc-cd06"]
+    project_list = [p.strip() for p in projects.split(",") if p.strip()] if projects else cfg_projects
+    scorecard = calculate_scorecard_data(client_id=target_cid)
     now_utc = datetime.datetime.now(datetime.timezone.utc)
     timestamp = now_utc.strftime("%Y-%m-%d %H:%M:%S UTC")
     report_id = f"GCS-EXEC-ISO27001-{now_utc.strftime('%Y%m%d-%H%M%S')}"
@@ -1897,18 +2029,35 @@ async def get_executive_dossier(
             ),
         }
     elif format.lower() in ("html", "markdown"):
-        return await export_report(format=format.lower(), projects=projects)
+        return await export_report(
+            format=format.lower(),
+            projects=projects,
+            client_id=target_cid,
+            x_client_id=x_client_id,
+            x_session_id=x_session_id,
+            x_operator_id=x_operator_id,
+            user_context=user_context,
+        )
     return scorecard
 
 
 @router.get("/api/reports/technical", summary="Get Technical Audit Report for External Auditors")
 async def get_technical_report_api(
     format: str = Query(default="json", description="json, html, or markdown"),
-    projects: Optional[str] = Query(default="agentic-grc-cd06"),
+    projects: Optional[str] = Query(default=None),
+    client_id: Optional[str] = Query(default=None),
+    x_client_id: Optional[str] = Header(default=None),
+    x_session_id: Optional[str] = Header(default=None),
+    x_operator_id: Optional[str] = Header(default=None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
     """Returns granular Technical Audit Report with complete evidence chain and provenance."""
-    project_list = [p.strip() for p in projects.split(",") if p.strip()]
-    scorecard = calculate_scorecard_data()
+    op_id, client_rec, target_cid = resolve_client_and_verify_access(
+        user_context, x_operator_id, x_client_id, x_session_id, client_id
+    )
+    cfg_projects = client_rec.get("projects") or ["agentic-grc-cd06"]
+    project_list = [p.strip() for p in projects.split(",") if p.strip()] if projects else cfg_projects
+    scorecard = calculate_scorecard_data(client_id=target_cid)
     now_utc = datetime.datetime.now(datetime.timezone.utc)
     timestamp = now_utc.strftime("%Y-%m-%d %H:%M:%S UTC")
     report_id = f"GCS-TECH-ISO27001-{now_utc.strftime('%Y%m%d-%H%M%S')}"
@@ -1951,18 +2100,35 @@ async def get_technical_report_api(
             "non_compliant_controls": scorecard["non_compliant_controls"],
         }
     elif format.lower() in ("html", "markdown"):
-        return await export_report(format=format.lower(), projects=projects)
+        return await export_report(
+            format=format.lower(),
+            projects=projects,
+            client_id=target_cid,
+            x_client_id=x_client_id,
+            x_session_id=x_session_id,
+            x_operator_id=x_operator_id,
+            user_context=user_context,
+        )
     return scorecard
 
 
 @router.get("/api/reports/export")
 async def export_report(
     format: str = Query(default="json", description="json, markdown, or summary"),
-    projects: Optional[str] = Query(default="agentic-grc-cd06"),
+    projects: Optional[str] = Query(default=None),
+    client_id: Optional[str] = Query(default=None),
+    x_client_id: Optional[str] = Header(default=None),
+    x_session_id: Optional[str] = Header(default=None),
+    x_operator_id: Optional[str] = Header(default=None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
     """Exports comprehensive audit dossier in JSON, Markdown, or Executive Summary format."""
-    project_list = [p.strip() for p in projects.split(",") if p.strip()]
-    scorecard = calculate_scorecard_data()
+    op_id, client_rec, target_cid = resolve_client_and_verify_access(
+        user_context, x_operator_id, x_client_id, x_session_id, client_id
+    )
+    cfg_projects = client_rec.get("projects") or ["agentic-grc-cd06"]
+    project_list = [p.strip() for p in projects.split(",") if p.strip()] if projects else cfg_projects
+    scorecard = calculate_scorecard_data(client_id=target_cid)
     now_utc = datetime.datetime.now(datetime.timezone.utc)
     timestamp = now_utc.strftime("%Y-%m-%d %H:%M:%S UTC")
     report_id = f"GRC-AUDIT-ISO27001-{now_utc.strftime('%Y%m%d-%H%M%S')}"
@@ -3638,7 +3804,10 @@ async def handle_chat(
 
 
 @router.post("/api/guardrails/inspect")
-async def inspect_guardrails(req: GuardrailsInspectRequest):
+async def inspect_guardrails(
+    req: GuardrailsInspectRequest,
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Allows automated testing agents to inspect inputs and outputs against Model Armor guardrails."""
     direction = req.direction.lower().strip()
     if direction == "egress":
@@ -3675,25 +3844,95 @@ async def inspect_guardrails(req: GuardrailsInspectRequest):
         }
 
 
-@router.post("/api/upload")
-async def upload_compliance_file(file: UploadFile = File(...)):
-    """Accepts IaC templates (.tf, .yaml) or policies for automated continuous compliance inspection."""
-    content_bytes = await file.read()
-    filename = file.filename or "unknown_artifact"
-    content_str = content_bytes.decode("utf-8", errors="replace")
+ALLOWED_IAC_EXTENSIONS = {".tf", ".yaml", ".yml", ".json", ".txt"}
+MAX_IAC_UPLOAD_SIZE = 10 * 1024 * 1024  # 10 MB
 
-    iac_type = "terraform" if filename.endswith(".tf") else "ansible"
-    finding = scan_iac_configuration(iac_type=iac_type, content=content_str, filename=filename)
+
+@router.post("/api/upload")
+async def upload_compliance_file(
+    file: UploadFile = File(...),
+    content_length: Optional[int] = Header(None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
+    """Accepts IaC templates (.tf, .yaml, .yml, .json, .txt) or policies for automated continuous compliance inspection.
+    
+    - Requires authenticated Google Workspace user.
+    - Validates file size <= 10MB (both Content-Length header and bytes length).
+    - Sanitizes and HTML-escapes filename to prevent Reflected XSS.
+    - Restricts extensions strictly to ALLOWED_IAC_EXTENSIONS.
+    - Sniffs magic bytes via sniff_and_validate_evidence_file to reject executables, archives, HTML, and SVG.
+    """
+    if content_length is not None and content_length > MAX_IAC_UPLOAD_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File size exceeds maximum allowed limit of 10MB ({content_length} bytes).",
+        )
+
+    content_bytes = await file.read()
+    if len(content_bytes) > MAX_IAC_UPLOAD_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File size exceeds maximum allowed limit of 10MB ({len(content_bytes)} bytes).",
+        )
+    if len(content_bytes) == 0:
+        raise HTTPException(status_code=400, detail="Empty file uploaded.")
+
+    # Sanitize and HTML-escape filename
+    raw_filename = os.path.basename(file.filename or "unknown_artifact")
+    safe_filename = html.escape(raw_filename)
+
+    # Validate extension against whitelist
+    _, ext = os.path.splitext(raw_filename.lower())
+    if ext not in ALLOWED_IAC_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File extension '{ext}' is not permitted. Only IaC and policy formats ({', '.join(sorted(ALLOWED_IAC_EXTENSIONS))}) are accepted.",
+        )
+
+    # Sniff and validate file content via magic bytes
+    action, mime_type, err_msg = sniff_and_validate_evidence_file(content_bytes, safe_filename)
+    if action == "REJECT":
+        raise HTTPException(
+            status_code=400,
+            detail=f"File rejected: {err_msg or 'Disallowed file format or content signature.'}",
+        )
+
+    # IaC must be plain text
+    if action != "STORE_BINARY" or mime_type.startswith("image/") or mime_type == "application/pdf" or mime_type.startswith("application/vnd.openxmlformats"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"File rejected: Expected plain text IaC or policy document, got '{mime_type}'.",
+        )
+
+    # Reject null bytes
+    if b"\x00" in content_bytes:
+        raise HTTPException(status_code=400, detail="File rejected: Binary file containing NULL bytes is not allowed.")
+
+    # Reject HTML or SVG content
+    lower_content = content_bytes.lower()
+    if b"<svg" in lower_content or b"<script" in lower_content or b"<html" in lower_content or b"<!doctype html" in lower_content:
+        raise HTTPException(status_code=400, detail="File rejected: HTML/SVG script execution content is strictly prohibited.")
+
+    try:
+        content_str = content_bytes.decode("utf-8")
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=400, detail="File rejected: File is not valid UTF-8 plain text.")
+
+    iac_type = "terraform" if ext == ".tf" else "ansible"
+    finding = scan_iac_configuration(iac_type=iac_type, content=content_str, filename=safe_filename)
 
     return {
         "status": "SUCCESS",
-        "filename": filename,
+        "filename": safe_filename,
         "audit_finding": finding,
     }
 
 
 @router.post("/api/storage/link")
-async def link_storage(req: StorageLinkRequest):
+async def link_storage(
+    req: StorageLinkRequest,
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Integrates remote data repositories via Zero-Copy Connector."""
     try:
         source_enum = ConnectorSource(req.source)
@@ -3796,7 +4035,9 @@ def save_custom_subagents(agents: List[dict]):
 
 
 @router.get("/api/subagents")
-async def list_subagents():
+async def list_subagents(
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Returns specialized sub-agents (built-in and custom) and their operational status."""
     built_in = [
         {
@@ -3859,7 +4100,10 @@ async def list_subagents():
 
 
 @router.post("/api/subagents")
-async def create_custom_subagent(req: SubagentCreateRequest):
+async def create_custom_subagent(
+    req: SubagentCreateRequest,
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Creates or updates a custom subagent after screening for prompt injection and security violations."""
     # Model Armor screening for prompt injection, jailbreak attempts, and security violations
     fields_to_screen = [
@@ -3914,7 +4158,10 @@ async def create_custom_subagent(req: SubagentCreateRequest):
 
 
 @router.delete("/api/subagents/{agent_id}")
-async def delete_custom_subagent(agent_id: str):
+async def delete_custom_subagent(
+    agent_id: str,
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Deletes a custom subagent."""
     custom = load_custom_subagents()
     initial_len = len(custom)
@@ -4053,15 +4300,30 @@ def resolve_subagent_spec(
 @router.post("/api/subagents/{agent_id}/run")
 async def run_subagent_task(
     agent_id: str,
-    project_id: Optional[str] = Query(default="agentic-grc-cd06"),
+    project_id: Optional[str] = Query(default=None),
     authorization: Optional[str] = Header(None),
+    x_operator_id: Optional[str] = Header(None),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    client_id: Optional[str] = Query(None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
     """Executes a specific subagent on demand using real LLMSubAgent.arun() and deterministic tools."""
+    op_id, client_rec, active_cid = resolve_client_and_verify_access(
+        user_context=user_context,
+        x_operator_id=x_operator_id,
+        x_client_id=x_client_id,
+        x_session_id=x_session_id,
+        client_id=client_id,
+    )
+    scoped_ci_engine = get_client_ci_engine(active_cid)
+
     user_token = None
     if authorization and authorization.startswith("Bearer "):
         user_token = authorization.split("Bearer ", 1)[1].strip()
 
-    target_project = project_id or "agentic-grc-cd06"
+    default_proj = (client_rec.get("projects") or ["agentic-grc-cd06"])[0]
+    target_project = project_id or default_proj
     timestamp_str = datetime.datetime.now(datetime.timezone.utc).isoformat()
     evidence_hash = hashlib.sha256(f"{agent_id}-{target_project}-{timestamp_str}".encode()).hexdigest()
 
@@ -4249,7 +4511,7 @@ async def run_subagent_task(
 - **Auditoria Agêntica:** Execução fundamentada em chamadas determinísticas de ferramentas MCP.
 """
 
-    ci_engine.evidence_graph.add_evidence(
+    scoped_ci_engine.evidence_graph.add_evidence(
         resource_id=f"projects/{target_project}/subagents/{agent_id}",
         resource_type="subagent_execution",
         control_id=target_controls[0] if target_controls else "A.5.1",
@@ -4279,7 +4541,7 @@ async def run_subagent_task(
         "compliance_score": compliance_score,
         "findings": findings,
         "evidence_hash": evidence_hash,
-        "evidence_nodes": len(ci_engine.evidence_graph.nodes),
+        "evidence_nodes": len(scoped_ci_engine.evidence_graph.nodes),
         "markdown_report": markdown_report,
         "timestamp": timestamp_str,
         "tool_evidence": tool_evidence,
@@ -4288,7 +4550,10 @@ async def run_subagent_task(
 
 
 @router.post("/api/subagents/trigger")
-async def trigger_subagent(req: SubagentTriggerRequest):
+async def trigger_subagent(
+    req: SubagentTriggerRequest,
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Triggers an individual sub-agent on demand."""
     if req.subagent == "annex_a":
         res = annex_a_subagent.audit_cryptography_a824(
@@ -4320,9 +4585,23 @@ async def trigger_subagent(req: SubagentTriggerRequest):
 
 
 @router.get("/api/dashboard")
-async def get_dashboard():
+async def get_dashboard(
+    authorization: Optional[str] = Header(None),
+    x_operator_id: Optional[str] = Header(None),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    client_id: Optional[str] = Query(None),
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Returns dashboard metrics, scorecards, and pending HITL approvals reflecting realistic audited non-conformities."""
-    scorecard = calculate_scorecard_data()
+    op_id, client_rec, active_cid = resolve_client_and_verify_access(
+        user_context=user_context,
+        x_operator_id=x_operator_id,
+        x_client_id=x_client_id,
+        x_session_id=x_session_id,
+        client_id=client_id,
+    )
+    scorecard = calculate_scorecard_data(client_id=active_cid)
 
     return {
         "overall_score": scorecard["overall_score"],
@@ -4386,17 +4665,25 @@ async def get_dashboard():
 
 
 @router.post("/api/remediation/approve")
-async def approve_remediation(req: RemediationApprovalRequest):
+async def approve_remediation(
+    req: RemediationApprovalRequest,
+    user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
+):
     """Records Human-in-the-Loop approval for a prescriptive remediation recommendation only, with zero auto-execution."""
+    approver = (
+        user_context.email
+        if user_context and user_context.email and not getattr(user_context, "is_demo", False)
+        else req.approver
+    )
     return {
         "status": "APPROVED",
         "decision": "RECOMMENDATION_APPROVED_FOR_EXECUTION",
         "remediation_id": req.remediation_id,
-        "approver": req.approver,
+        "approver": approver,
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "auto_executed": False,
         "execution_mode": "MANUAL_OR_PIPELINE",
-        "message": f"Recomendação prescritiva {req.remediation_id} aprovada pelo operador {req.approver}. Autorizada para aplicação manual ou pipeline CI/CD sem execução autônoma pelo portal.",
+        "message": f"Recomendação prescritiva {req.remediation_id} aprovada pelo operador {approver}. Autorizada para aplicação manual ou pipeline CI/CD sem execução autônoma pelo portal.",
     }
 
 

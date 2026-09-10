@@ -9,6 +9,7 @@ from mcp_server_grc.auth import create_mock_iap_jwt
 from mcp_server_grc.catalog import ALL_ORG_PROJECTS
 
 client = TestClient(app)
+AUTH_HEADER = {"Authorization": "Bearer ya29.valid-auditor-access-token"}
 
 
 def test_portal_html_serving():
@@ -226,7 +227,8 @@ def test_portal_upload_file():
     file_bytes = io.BytesIO(tf_content.encode("utf-8"))
     res = client.post(
         "/api/upload",
-        files={"file": ("main.tf", file_bytes, "text/plain")}
+        files={"file": ("main.tf", file_bytes, "text/plain")},
+        headers=AUTH_HEADER,
     )
     assert res.status_code == 200
     data = res.json()
@@ -238,7 +240,8 @@ def test_portal_upload_file():
 def test_portal_storage_link():
     res = client.post(
         "/api/storage/link",
-        json={"source": "google_drive", "uri": "drive-folder-123", "user_token": "valid-token"}
+        json={"source": "google_drive", "uri": "drive-folder-123", "user_token": "valid-token"},
+        headers=AUTH_HEADER,
     )
     assert res.status_code == 200
     data = res.json()
@@ -249,7 +252,7 @@ def test_portal_storage_link():
 
 def test_portal_subagents_and_dashboard():
     # Subagents listing
-    res_sub = client.get("/api/subagents")
+    res_sub = client.get("/api/subagents", headers=AUTH_HEADER)
     assert res_sub.status_code == 200
     subagents = res_sub.json()["subagents"]
     assert len(subagents) >= 4
@@ -257,12 +260,13 @@ def test_portal_subagents_and_dashboard():
     # Trigger subagent
     res_trigger = client.post(
         "/api/subagents/trigger",
-        json={"subagent": "annex_a", "target": "kms"}
+        json={"subagent": "annex_a", "target": "kms"},
+        headers=AUTH_HEADER,
     )
     assert res_trigger.status_code == 200
 
     # Dashboard
-    res_dash = client.get("/api/dashboard")
+    res_dash = client.get("/api/dashboard", headers=AUTH_HEADER)
     assert res_dash.status_code == 200
     dash_data = res_dash.json()
     assert dash_data["overall_score"] == 78.5
@@ -272,7 +276,8 @@ def test_portal_subagents_and_dashboard():
     # Remediation approval
     res_app = client.post(
         "/api/remediation/approve",
-        json={"remediation_id": "HITL-AMENDMENT-001"}
+        json={"remediation_id": "HITL-AMENDMENT-001"},
+        headers=AUTH_HEADER,
     )
     assert res_app.status_code == 200
     assert res_app.json()["status"] == "APPROVED"
@@ -283,20 +288,20 @@ def test_portal_subagents_and_dashboard():
 
 def test_individual_phases_and_remediation():
     # 1. Run single phase 1
-    res_p1 = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"], "phase": 1})
+    res_p1 = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"], "phase": 1}, headers=AUTH_HEADER)
     assert res_p1.status_code == 200
     data_p1 = res_p1.json()
     assert len(data_p1["phases"]) == 1
     assert data_p1["phases"][0]["phase"].startswith("Fase 1")
 
     # 2. Run single phase 2
-    res_p2 = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"], "phase": 2})
+    res_p2 = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"], "phase": 2}, headers=AUTH_HEADER)
     assert res_p2.status_code == 200
     assert len(res_p2.json()["phases"]) == 1
     assert res_p2.json()["phases"][0]["phase"].startswith("Fase 2")
 
     # 3. Remediate phase 2 (Prescriptive recommendations)
-    res_rem = client.post("/api/audit/remediate_phase", json={"phase": 2, "project_id": "agentic-grc-cd06"})
+    res_rem = client.post("/api/audit/remediate_phase", json={"phase": 2, "project_id": "agentic-grc-cd06"}, headers=AUTH_HEADER)
     assert res_rem.status_code == 200
     rem_data = res_rem.json()
     assert rem_data["details"]["status"] == "RECOMMENDATION_GENERATED"
@@ -321,26 +326,26 @@ def test_custom_subagents_lifecycle():
         "temperature": 0.2,
         "target_controls": ["A.5.9", "A.8.10"]
     }
-    res_create = client.post("/api/subagents", json=new_agent)
+    res_create = client.post("/api/subagents", json=new_agent, headers=AUTH_HEADER)
     assert res_create.status_code == 200
     created = res_create.json()["subagent"]
     agent_id = created["id"]
     assert agent_id.startswith("custom-")
 
     # 2. List subagents
-    res_list = client.get("/api/subagents")
+    res_list = client.get("/api/subagents", headers=AUTH_HEADER)
     assert res_list.status_code == 200
     data = res_list.json()
     assert any(a["id"] == agent_id for a in data["custom_subagents"])
 
     # 3. Run custom subagent
-    res_run = client.post(f"/api/subagents/{agent_id}/run")
+    res_run = client.post(f"/api/subagents/{agent_id}/run", headers=AUTH_HEADER)
     assert res_run.status_code == 200
     assert res_run.json()["status"] == "COMPLETED"
     assert len(res_run.json()["findings"]) > 0
 
     # 4. Delete custom subagent
-    res_del = client.delete(f"/api/subagents/{agent_id}")
+    res_del = client.delete(f"/api/subagents/{agent_id}", headers=AUTH_HEADER)
     assert res_del.status_code == 200
     assert res_del.json()["status"] == "DELETED"
 
@@ -357,13 +362,13 @@ def test_custom_subagent_creation_rejected_by_model_armor():
         "temperature": 0.1,
         "target_controls": ["A.5.1"],
     }
-    res = client.post("/api/subagents", json=adversarial_agent)
+    res = client.post("/api/subagents", json=adversarial_agent, headers=AUTH_HEADER)
     assert res.status_code == 400
     assert "Model Armor" in res.text
     assert "system_prompt" in res.text
 
     # Verify it was NOT silently saved
-    res_list = client.get("/api/subagents")
+    res_list = client.get("/api/subagents", headers=AUTH_HEADER)
     assert res_list.status_code == 200
     custom_agents = res_list.json()["custom_subagents"]
     assert not any(a["name"] == "Adversarial Compliance Bypass Agent" for a in custom_agents)
@@ -379,7 +384,7 @@ def test_custom_subagent_creation_rejected_by_model_armor():
         "temperature": 0.1,
         "target_controls": ["A.5.1"],
     }
-    res_role = client.post("/api/subagents", json=adversarial_role_agent)
+    res_role = client.post("/api/subagents", json=adversarial_role_agent, headers=AUTH_HEADER)
     assert res_role.status_code == 400
     assert "Model Armor" in res_role.text
     assert "role" in res_role.text
@@ -395,7 +400,7 @@ def test_custom_subagent_creation_rejected_by_model_armor():
         "temperature": 0.1,
         "target_controls": ["A.5.1"],
     }
-    res_desc = client.post("/api/subagents", json=adversarial_desc_agent)
+    res_desc = client.post("/api/subagents", json=adversarial_desc_agent, headers=AUTH_HEADER)
     assert res_desc.status_code == 400
     assert "Model Armor" in res_desc.text
     assert "description" in res_desc.text
@@ -403,7 +408,7 @@ def test_custom_subagent_creation_rejected_by_model_armor():
 
 def test_agentic_recommendation_and_autonomous_policy_update():
     # 1. Test subagent recommendation
-    res_rec = client.post("/api/agent/recommend_subagent", json={"project_id": "agentic-grc-cd06", "industry": "FINANCIAL_SERVICES"})
+    res_rec = client.post("/api/agent/recommend_subagent", json={"project_id": "agentic-grc-cd06", "industry": "FINANCIAL_SERVICES"}, headers=AUTH_HEADER)
     assert res_rec.status_code == 200
     rec_data = res_rec.json()
     assert rec_data["status"] == "SUCCESS"
@@ -411,7 +416,7 @@ def test_agentic_recommendation_and_autonomous_policy_update():
     assert len(rec_data["recommendation"]["target_controls"]) > 0
 
     # 2. Test autonomous monitor (read-only prescriptive)
-    res_mon = client.post("/api/agent/autonomous_monitor", json={"project_id": "agentic-grc-cd06", "simulate_deviation": True})
+    res_mon = client.post("/api/agent/autonomous_monitor", json={"project_id": "agentic-grc-cd06", "simulate_deviation": True}, headers=AUTH_HEADER)
     assert res_mon.status_code == 200
     mon_data = res_mon.json()
     assert mon_data["status"] == "RECOMMENDATION_GENERATED"
@@ -426,7 +431,7 @@ def test_agentic_recommendation_and_autonomous_policy_update():
     assert "prescriptive_command" in mon_data["alert"]
 
     # 3. Test autonomous policy update (read-only prescriptive)
-    res_update = client.post("/api/agent/update_policy_autonomously", json={"project_id": "agentic-grc-cd06", "control_id": "A.8.24"})
+    res_update = client.post("/api/agent/update_policy_autonomously", json={"project_id": "agentic-grc-cd06", "control_id": "A.8.24"}, headers=AUTH_HEADER)
     assert res_update.status_code == 200
     up_data = res_update.json()
     assert up_data["status"] == "RECOMMENDATION_GENERATED"
@@ -455,7 +460,7 @@ def test_readonly_guardrails_no_fabricated_execution():
     4. /api/remediation/approve approves recommendations only with auto_executed=False.
     """
     # 1. Remediate Phase 1
-    res_p1 = client.post("/api/audit/remediate_phase", json={"phase": 1, "project_id": "agentic-grc-cd06"})
+    res_p1 = client.post("/api/audit/remediate_phase", json={"phase": 1, "project_id": "agentic-grc-cd06"}, headers=AUTH_HEADER)
     assert res_p1.status_code == 200
     p1 = res_p1.json()["details"]
     assert p1["status"] == "RECOMMENDATION_GENERATED"
@@ -472,7 +477,7 @@ def test_readonly_guardrails_no_fabricated_execution():
     assert ans.status == "IN_PROGRESS"
 
     # 2. Autonomous Monitor
-    res_mon = client.post("/api/agent/autonomous_monitor", json={"project_id": "agentic-grc-cd06"})
+    res_mon = client.post("/api/agent/autonomous_monitor", json={"project_id": "agentic-grc-cd06"}, headers=AUTH_HEADER)
     assert res_mon.status_code == 200
     mon = res_mon.json()
     assert mon["status"] == "RECOMMENDATION_GENERATED"
@@ -483,7 +488,7 @@ def test_readonly_guardrails_no_fabricated_execution():
     assert "production-ring" not in str(mon)
 
     # 3. Policy Recommendation Update
-    res_pol = client.post("/api/agent/update_policy_autonomously", json={"project_id": "agentic-grc-cd06", "control_id": "A.8.24"})
+    res_pol = client.post("/api/agent/update_policy_autonomously", json={"project_id": "agentic-grc-cd06", "control_id": "A.8.24"}, headers=AUTH_HEADER)
     assert res_pol.status_code == 200
     pol = res_pol.json()
     assert pol["status"] == "RECOMMENDATION_GENERATED"
@@ -495,7 +500,7 @@ def test_readonly_guardrails_no_fabricated_execution():
     assert "enforcement_actions" not in pol
 
     # 4. Remediation Approval
-    res_app = client.post("/api/remediation/approve", json={"remediation_id": "REM-REC-001"})
+    res_app = client.post("/api/remediation/approve", json={"remediation_id": "REM-REC-001"}, headers=AUTH_HEADER)
     assert res_app.status_code == 200
     app = res_app.json()
     assert app["status"] == "APPROVED"
@@ -505,7 +510,7 @@ def test_readonly_guardrails_no_fabricated_execution():
 
 
 def test_cloudstyle_html_report_export():
-    res_html = client.get("/api/reports/export?format=html")
+    res_html = client.get("/api/reports/export?format=html", headers=AUTH_HEADER)
     assert res_html.status_code == 200
     assert "Continuous Compliance & Audit Dossier" in res_html.text
     assert "data:image/png;base64," in res_html.text
@@ -564,7 +569,7 @@ def test_finops_and_org_scope_toggle():
         client.post("/api/projects/toggle_scope", json={"project_id": "agentic-grc-ai-workloads", "in_scope": False}, headers=headers)
 
     # Test FinOps API
-    res_finops = client.get("/api/finops")
+    res_finops = client.get("/api/finops", headers=AUTH_HEADER)
     assert res_finops.status_code == 200
     data_finops = res_finops.json()
     assert "summary" in data_finops
@@ -574,7 +579,7 @@ def test_finops_and_org_scope_toggle():
     assert len(data_finops["agents"]) >= 8
 
     # Test FinOps simulation
-    res_sim = client.post("/api/finops/simulate")
+    res_sim = client.post("/api/finops/simulate", headers=AUTH_HEADER)
     assert res_sim.status_code == 200
     sim_data = res_sim.json()
     assert sim_data["summary"]["total_invocations"] > data_finops["summary"]["total_invocations"]
@@ -595,7 +600,7 @@ def test_all_native_subagents_and_trigger_endpoints():
         "arbitrary-on-demand-agent",
     ]
     for agent_id in agents:
-        res = client.post(f"/api/subagents/{agent_id}/run?project_id=agentic-grc-cd06")
+        res = client.post(f"/api/subagents/{agent_id}/run?project_id=agentic-grc-cd06", headers=AUTH_HEADER)
         assert res.status_code == 200, f"Failed for {agent_id}: {res.text}"
         data = res.json()
         assert data["status"] == "COMPLETED"
@@ -605,12 +610,12 @@ def test_all_native_subagents_and_trigger_endpoints():
     # Test /api/subagents/trigger
     triggers = ["annex_a", "gcp_telemetry", "horizon_scanner", "org_policies", "codemender", "iac_scanner", "other"]
     for t in triggers:
-        res_trig = client.post("/api/subagents/trigger", json={"subagent": t, "target": "test-target"})
+        res_trig = client.post("/api/subagents/trigger", json={"subagent": t, "target": "test-target"}, headers=AUTH_HEADER)
         assert res_trig.status_code == 200
         assert res_trig.json()["status"] == "COMPLETED"
 
     # Test run_phases with string phase
-    res_phases_str = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"], "phase": "all"})
+    res_phases_str = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"], "phase": "all"}, headers=AUTH_HEADER)
     assert res_phases_str.status_code == 200
     assert len(res_phases_str.json()["phases"]) == 4
 
@@ -728,7 +733,7 @@ def test_frontend_redesign_navigation_and_views():
 
 def test_scorecard_api_endpoint():
     """Verifies /api/scorecard returns dynamic scorecard with evidence tier breakdown."""
-    res = client.get("/api/scorecard")
+    res = client.get("/api/scorecard", headers=AUTH_HEADER)
     assert res.status_code == 200
     data = res.json()
     assert "overall_score" in data
@@ -743,7 +748,7 @@ def test_scorecard_api_endpoint():
 def test_executive_and_technical_reports_endpoints():
     """Verifies /api/reports/executive and /api/reports/technical endpoints across formats."""
     # 1. Executive JSON
-    res_exec = client.get("/api/reports/executive?format=json")
+    res_exec = client.get("/api/reports/executive?format=json", headers=AUTH_HEADER)
     assert res_exec.status_code == 200
     data_exec = res_exec.json()
     assert "Executive" in data_exec["document_title"]
@@ -754,15 +759,15 @@ def test_executive_and_technical_reports_endpoints():
     assert "executive_opinion" in data_exec
 
     # 2. Executive HTML and Markdown
-    res_exec_html = client.get("/api/reports/executive?format=html")
+    res_exec_html = client.get("/api/reports/executive?format=html", headers=AUTH_HEADER)
     assert res_exec_html.status_code == 200
     assert "text/html" in res_exec_html.headers.get("content-type", "")
 
-    res_exec_md = client.get("/api/reports/executive?format=markdown")
+    res_exec_md = client.get("/api/reports/executive?format=markdown", headers=AUTH_HEADER)
     assert res_exec_md.status_code == 200
 
     # 3. Technical JSON
-    res_tech = client.get("/api/reports/technical?format=json")
+    res_tech = client.get("/api/reports/technical?format=json", headers=AUTH_HEADER)
     assert res_tech.status_code == 200
     data_tech = res_tech.json()
     assert "Technical" in data_tech["document_title"]
@@ -772,19 +777,19 @@ def test_executive_and_technical_reports_endpoints():
     assert "evidence_chain" in data_tech
 
     # 4. Technical HTML and Markdown
-    res_tech_html = client.get("/api/reports/technical?format=html")
+    res_tech_html = client.get("/api/reports/technical?format=html", headers=AUTH_HEADER)
     assert res_tech_html.status_code == 200
 
-    res_tech_md = client.get("/api/reports/technical?format=markdown")
+    res_tech_md = client.get("/api/reports/technical?format=markdown", headers=AUTH_HEADER)
     assert res_tech_md.status_code == 200
 
 
 def test_cascading_questionnaire_recalculation_end_to_end():
     """Submits a questionnaire answer and asserts cascading recalculation across Scorecard, Executive Dossier, and Technical Report."""
-    auth_header = {"Authorization": "Bearer ya29.valid-auditor-access-token"}
+    auth_header = AUTH_HEADER
 
     # 1. Check scorecard before submission
-    res_before = client.get("/api/scorecard")
+    res_before = client.get("/api/scorecard", headers=AUTH_HEADER)
     assert res_before.status_code == 200
     sc_before = res_before.json()
     score_before = sc_before["overall_score"]
@@ -805,7 +810,7 @@ def test_cascading_questionnaire_recalculation_end_to_end():
     assert ans_data["ai_consistency_verdict"] in ("COMPLIANT", "COMPLIANT_WITH_OBSERVATION")
 
     # 3. Assert Scorecard recalculated immediately
-    res_after = client.get("/api/scorecard")
+    res_after = client.get("/api/scorecard", headers=AUTH_HEADER)
     assert res_after.status_code == 200
     sc_after = res_after.json()
     score_after = sc_after["overall_score"]
@@ -825,7 +830,7 @@ def test_cascading_questionnaire_recalculation_end_to_end():
     assert node["ai_consistency_verdict"] in ("COMPLIANT", "COMPLIANT_WITH_OBSERVATION")
 
     # 4. Assert Executive Dossier reflects recalculated score and explicit tier distinction
-    res_exec = client.get("/api/reports/executive?format=json")
+    res_exec = client.get("/api/reports/executive?format=json", headers=AUTH_HEADER)
     assert res_exec.status_code == 200
     dossier = res_exec.json()
     assert dossier["overall_score"] == score_after
@@ -833,7 +838,7 @@ def test_cascading_questionnaire_recalculation_end_to_end():
     assert "self-attested questionnaire" in dossier["executive_opinion"]
 
     # 5. Assert Technical Report contains granular provenance
-    res_tech = client.get("/api/reports/technical?format=json")
+    res_tech = client.get("/api/reports/technical?format=json", headers=AUTH_HEADER)
     assert res_tech.status_code == 200
     tech = res_tech.json()
     assert tech["verification_tier_breakdown"]["self_attested_questionnaire"] >= 1
@@ -1006,7 +1011,7 @@ def test_enriched_report_templates_sections_and_taxonomy():
     Declaração de Responsabilidade do Auditor, Período Auditado, and expanded 3-tier severity taxonomy.
     """
     # 1. Executive JSON
-    res_exec = client.get("/api/reports/executive?format=json")
+    res_exec = client.get("/api/reports/executive?format=json", headers=AUTH_HEADER)
     assert res_exec.status_code == 200
     data_exec = res_exec.json()
     assert "audited_period" in data_exec
@@ -1024,7 +1029,7 @@ def test_enriched_report_templates_sections_and_taxonomy():
     assert "OPORTUNIDADE DE MELHORIA" in data_exec["finding_severity_taxonomy"]
 
     # 2. Technical JSON
-    res_tech = client.get("/api/reports/technical?format=json")
+    res_tech = client.get("/api/reports/technical?format=json", headers=AUTH_HEADER)
     assert res_tech.status_code == 200
     data_tech = res_tech.json()
     assert "audited_period" in data_tech
@@ -1036,7 +1041,7 @@ def test_enriched_report_templates_sections_and_taxonomy():
         assert f["taxonomy_severity"] in ("NÃO CONFORMIDADE MAIOR", "NÃO CONFORMIDADE MENOR")
 
     # 3. Export JSON
-    res_exp = client.get("/api/reports/export?format=json")
+    res_exp = client.get("/api/reports/export?format=json", headers=AUTH_HEADER)
     assert res_exp.status_code == 200
     data_exp = res_exp.json()
     assert "audited_period" in data_exp
@@ -1047,7 +1052,7 @@ def test_enriched_report_templates_sections_and_taxonomy():
         assert vm.get("taxonomy_severity") == "NÃO CONFORMIDADE MAIOR"
 
     # 4. HTML Export
-    res_html = client.get("/api/reports/export?format=html")
+    res_html = client.get("/api/reports/export?format=html", headers=AUTH_HEADER)
     assert res_html.status_code == 200
     html_content = res_html.text
     assert "Período Auditado" in html_content
@@ -1059,7 +1064,7 @@ def test_enriched_report_templates_sections_and_taxonomy():
     assert "cloudstyle-badge-opportunity" in html_content
 
     # 5. Markdown Export
-    res_md = client.get("/api/reports/export?format=markdown")
+    res_md = client.get("/api/reports/export?format=markdown", headers=AUTH_HEADER)
     assert res_md.status_code == 200
     md_content = res_md.text
     assert "**Período Auditado:**" in md_content
@@ -1566,4 +1571,202 @@ def test_parse_onboard_txt_endpoint_via_client():
         res_bad = client.post("/api/clients/onboard/parse_txt", files=bad_files, headers=headers)
         assert res_bad.status_code == 400
         assert "Disallowed binary format" in res_bad.json()["detail"]
+
+
+# ===========================================================================
+# Milestone 77: Verified Security Vulnerability Regression Tests
+# ===========================================================================
+
+def test_resolve_operator_id_never_overridden_by_header(monkeypatch):
+    """Asserts that a cryptographically verified identity (e.g. joabson@google.com via IAP JWT)
+    plus a conflicting X-Operator-Id header (e.g. vitima@google.com) resolves to the VERIFIED email,
+    completely ignoring the header (Fix for Vulnerability #1)."""
+    monkeypatch.delenv("ALLOW_DEV_AUTH_BYPASS", raising=False)
+    monkeypatch.setenv("GOOGLE_IAP_AUDIENCE", "projects/123/global/backendServices/456")
+    iap_token = create_mock_iap_jwt(email="joabson@google.com", hd="google.com", aud="projects/123/global/backendServices/456")
+    headers = {
+        "X-Goog-Iap-Jwt-Assertion": iap_token,
+        "X-Operator-Id": "vitima@google.com",
+    }
+    res = client.get("/api/clients", headers=headers)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["operator_id"] == "joabson@google.com"
+    assert data["operator_id"] != "vitima@google.com"
+
+
+def test_all_portal_routes_require_auth_except_allowlist(monkeypatch):
+    """Iterates all registered routes on the portal and asserts each returns 401 without auth,
+    except the allowlisted routes: /health, /healthz, /portal, / (Fix for Vulnerability #2)."""
+    monkeypatch.delenv("ALLOW_DEV_AUTH_BYPASS", raising=False)
+    from mcp_server_grc.portal import router as portal_router
+
+    def collect_all_routes(router):
+        routes = []
+        for r in router.routes:
+            if hasattr(r, "original_router"):
+                routes.extend(collect_all_routes(r.original_router))
+            elif hasattr(r, "routes"):
+                routes.extend(collect_all_routes(r))
+            elif hasattr(r, "path") and hasattr(r, "methods"):
+                for m in r.methods:
+                    if m not in ("HEAD", "OPTIONS"):
+                        routes.append((m, r.path))
+        return routes
+
+    routes = collect_all_routes(portal_router)
+    allowlist = {"/", "/portal", "/health", "/healthz"}
+    tested_count = 0
+
+    for method, path in routes:
+        test_path = (
+            path.replace("{agent_id}", "test-agent")
+            .replace("{control_id}", "A.5.1")
+            .replace("{file_id}", "test-id")
+            .replace("{client_id}", "test-client")
+        )
+        res = client.request(method, test_path)
+        if path in allowlist:
+            assert res.status_code in (200, 307, 308), f"Allowlisted route {method} {path} returned {res.status_code}"
+        else:
+            assert res.status_code == 401, f"Route {method} {path} returned {res.status_code} without auth (expected 401)"
+            tested_count += 1
+
+    assert tested_count >= 30, f"Expected at least 30 protected routes tested, got {tested_count}"
+
+
+def test_upload_compliance_file_payload_rejections():
+    """Asserts that /api/upload rejects malicious, binary, executable, and oversized payloads (Fix for Vulnerability #3)."""
+    headers = {"Authorization": "Bearer ya29.valid-auditor-access-token"}
+
+    # 1. ELF binary disguised as .png / .tf
+    elf_bytes = b"\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00>\x00" + b"\x00" * 40
+    res_elf = client.post(
+        "/api/upload",
+        files={"file": ("malware.png", io.BytesIO(elf_bytes), "image/png")},
+        headers=headers,
+    )
+    assert res_elf.status_code == 400
+    assert "not permitted" in res_elf.json()["detail"] or "Disallowed" in res_elf.json()["detail"]
+
+    # Disguised as .tf
+    res_elf_tf = client.post(
+        "/api/upload",
+        files={"file": ("malware.tf", io.BytesIO(elf_bytes), "text/plain")},
+        headers=headers,
+    )
+    assert res_elf_tf.status_code == 400
+    assert "Disallowed binary" in res_elf_tf.json()["detail"]
+
+    # 2. SVG with embedded script
+    svg_script = b'<svg xmlns="http://www.w3.org/2000/svg"><script>alert("xss")</script></svg>'
+    res_svg = client.post(
+        "/api/upload",
+        files={"file": ("vector.svg", io.BytesIO(svg_script), "image/svg+xml")},
+        headers=headers,
+    )
+    assert res_svg.status_code == 400
+    assert "not permitted" in res_svg.json()["detail"] or "SVG files" in res_svg.json()["detail"]
+
+    # SVG renamed to .yaml
+    res_svg_yaml = client.post(
+        "/api/upload",
+        files={"file": ("vector.yaml", io.BytesIO(svg_script), "text/yaml")},
+        headers=headers,
+    )
+    assert res_svg_yaml.status_code == 400
+    assert "SVG" in res_svg_yaml.json()["detail"]
+
+    # 3. HTML file with script
+    html_script = b'<!DOCTYPE html><html><body><script>alert(document.cookie)</script></body></html>'
+    res_html = client.post(
+        "/api/upload",
+        files={"file": ("report.html", io.BytesIO(html_script), "text/html")},
+        headers=headers,
+    )
+    assert res_html.status_code == 400
+    assert "not permitted" in res_html.json()["detail"] or "HTML" in res_html.json()["detail"]
+
+    # HTML renamed to .json
+    res_html_json = client.post(
+        "/api/upload",
+        files={"file": ("policy.json", io.BytesIO(html_script), "application/json")},
+        headers=headers,
+    )
+    assert res_html_json.status_code == 400
+    assert "HTML" in res_html_json.json()["detail"]
+
+    # 4. ZIP archive
+    zip_bytes = b"PK\x03\x04\x14\x00\x00\x00\x08\x00" + b"\x00" * 40
+    res_zip = client.post(
+        "/api/upload",
+        files={"file": ("bundle.zip", io.BytesIO(zip_bytes), "application/zip")},
+        headers=headers,
+    )
+    assert res_zip.status_code == 400
+    assert "not permitted" in res_zip.json()["detail"] or "ZIP" in res_zip.json()["detail"]
+
+    # 5. File exceeding 10MB limit
+    oversized_bytes = b"# Terraform config\n" + b"x" * (10 * 1024 * 1024 + 1024)  # ~10.001 MB
+    res_large = client.post(
+        "/api/upload",
+        files={"file": ("large_policy.tf", io.BytesIO(oversized_bytes), "text/plain")},
+        headers=headers,
+    )
+    assert res_large.status_code in (400, 413)
+    assert "exceeds" in res_large.json()["detail"].lower()
+
+
+def test_upload_compliance_file_valid_tf_accepted():
+    """Asserts that /api/upload accepts valid Terraform compliance files with valid authentication (Fix for Vulnerability #3)."""
+    headers = {"Authorization": "Bearer ya29.valid-auditor-access-token"}
+    valid_tf = b"""
+    resource "google_storage_bucket" "secure_bucket" {
+      name     = "agentic-grc-secure-vault"
+      location = "US"
+      uniform_bucket_level_access = true
+    }
+    """
+    res = client.post(
+        "/api/upload",
+        files={"file": ("main.tf", io.BytesIO(valid_tf), "text/plain")},
+        headers=headers,
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "SUCCESS"
+    assert data["filename"] == "main.tf"
+    assert "audit_finding" in data
+    assert data["audit_finding"]["status"] in ("COMPLIANT", "NON_COMPLIANT")
+
+
+def test_upload_compliance_file_xss_filename_sanitized():
+    """Asserts that Reflected XSS payloads in filename are safely escaped in JSON response and findings (Fix for Vulnerability #4)."""
+    headers = {"Authorization": "Bearer ya29.valid-auditor-access-token"}
+    xss_filename = '<img src=x onerror=alert(1)>.tf'
+    valid_content = b'resource "google_storage_bucket" "test" { name = "test" }'
+
+    res = client.post(
+        "/api/upload",
+        files={"file": (xss_filename, io.BytesIO(valid_content), "text/plain")},
+        headers=headers,
+    )
+    assert res.status_code == 200
+    data = res.json()
+
+    # The raw unescaped tag must NOT be present in the response
+    assert "<img" not in data["filename"]
+    assert "<" not in data["filename"]
+    assert ">" not in data["filename"]
+    # The escaped version must be present
+    assert "&lt;img" in data["filename"]
+    assert "&gt;" in data["filename"]
+
+    # Also verify finding filename is escaped
+    finding_filename = data["audit_finding"]["filename"]
+    assert "<img" not in finding_filename
+    assert "<" not in finding_filename
+    assert ">" not in finding_filename
+    assert "&lt;img" in finding_filename
+    assert "&gt;" in finding_filename
 
