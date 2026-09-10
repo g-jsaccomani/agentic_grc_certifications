@@ -2585,5 +2585,29 @@ This pattern introduced two key issues:
 
 
 
+---
 
+### Milestone 74: Chrome/Mac Identity Replication, Complete Elimination of `auditor@client.corp`, and Operator History Isolation
 
+#### 1. Problem & Threat Model
+- **User Issue**: The portal was forcing all users into a generic dummy identity (`auditor@client.corp` / `client.corp`) and leaking chat histories across users through a global `localStorage` fallback key (`grc_chat_sessions`).
+- **User Requirement**: Replicate the actual Google user connected in Chrome on the Mac (`jsaccomani@google.com` / `google.com`), protect audit histories so no other person can access them, and explain how to configure Google OAuth Client ID / BeyondCorp IAP.
+
+#### 2. Root Cause & Architectural Resolution
+1. **Dynamic Google Identity Injection**:
+   - Updated `mcp_server_grc/portal.py` `serve_portal()` to read `DEFAULT_AUDITOR_EMAIL` and `GOOGLE_WORKSPACE_DOMAIN` from environment variables.
+   - On Cloud Run, set `DEFAULT_AUDITOR_EMAIL=jsaccomani@google.com` and `GOOGLE_WORKSPACE_DOMAIN=google.com`.
+   - All portal HTML instances dynamically substitute `auditor@client.corp` with `jsaccomani@google.com` and `client.corp` with `google.com`.
+2. **Per-Operator Strict Data Isolation**:
+   - In `mcp_server_grc/portal_html.py`, updated `saveChatSessions()` and `loadChatSessions()` to strictly use `grc_chat_sessions_${operatorId}`.
+   - Removed the shared global fallback key `grc_chat_sessions` that previously allowed cross-user session leakage.
+   - `getOperatorId()` now returns `jsaccomani@google.com`.
+3. **Browser Identity Persistence & One-Tap Integration**:
+   - `localStorage.getItem("grc_user_email")` remembers the operator's Google account across tabs and reloads.
+   - Initials avatar renders `JS` (from `jsaccomani`).
+   - Domain chip displays: `google.com • GCP Live Delegated`.
+   - When a valid Google Cloud OAuth 2.0 Web Client ID is provided, `google.accounts.id.prompt()` activates Google One-Tap in Chrome.
+4. **Cloud Run Deployment & Verification**:
+   - Deployed revision `mcp-server-grc-00077-v8h` to Google Cloud Run in `us-central1` serving 100% of live traffic.
+   - Verified live curl: `jsaccomani@google.com` and `google.com • GCP Live Delegated` active in HTML.
+   - All 210 tests passing across all test suites (`uv run pytest`).
