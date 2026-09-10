@@ -2845,10 +2845,10 @@ During live QA security testing on the running Cloud Run service, four vulnerabi
 
 #### 4. Cloud Run Production Deployment
 - **Service Name:** `mcp-server-grc`
-- **Revision:** `mcp-server-grc-00085-m4m`
+- **Revision:** `mcp-server-grc-00086-qlh`
 - **Traffic:** 100% routed
 - **Live URL:** `https://mcp-server-grc-938078169010.us-central1.run.app`
-- **Verification:** Verified live HTTP 200 response and verified presence of `#btnExportOnboardPdf`, `#view-onboard-instructions`, and `exportOnboardInstructionsPdf()` in the served HTML payload.
+- **Verification:** Verified live HTTP 200 response and verified presence of `#btnExportOnboardPdf`, `#view-onboard-instructions`, and `exportOnboardInstructionsPdf()` with try-catch and safe provider resolution in the served HTML payload.
 
 
 
