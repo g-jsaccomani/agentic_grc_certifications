@@ -3088,7 +3088,7 @@ def parse_onboard_txt_content(content: bytes, filename: str = "config.txt") -> T
       - Strict .txt extension requirement.
       - Content-sniffing against binary executables, archives, media (PNG, JPEG, WEBP, PDF, ZIP),
         NULL bytes, invalid UTF-8 encoding, shebang #!, HTML active content, and SVG tags.
-      - Supported keys: client_name, projects, access_days, drive_folder.
+      - Supported keys: client_name, projects, access_days, drive_folder, org_id, org_name, auditor_identity, cloud_provider.
       - Flat line-by-line parsing splitting only on first '='. Never executes or parses code.
     
     Returns:
@@ -3171,22 +3171,33 @@ def parse_onboard_txt_content(content: bytes, filename: str = "config.txt") -> T
         k, v = stripped.split("=", 1)
         key = k.strip().lower()
         val = v.strip()
-        if key == "client_name":
+        if key in ("client_name", "company_name"):
             parsed["client_name"] = val
-        elif key == "projects":
+        elif key in ("projects", "gcp_projects", "aws_accounts", "azure_subscriptions"):
             parsed["projects"] = val
-        elif key == "access_days":
+        elif key in ("access_days", "days", "validity_days"):
             try:
                 days_int = int(val)
                 if days_int > 0:
                     parsed["access_days"] = days_int
             except ValueError:
                 pass
-        elif key == "drive_folder":
+        elif key in ("drive_folder", "drive_folder_id"):
             parsed["drive_folder"] = val
+        elif key in ("org_id", "organization_id"):
+            parsed["org_id"] = val
+        elif key in ("org_name", "organization_name"):
+            parsed["org_name"] = val
+        elif key in ("auditor_identity", "consultant_identity", "contact_email", "auditor_email"):
+            parsed["auditor_identity"] = val
+            parsed["contact_email"] = val
+        elif key in ("cloud_provider", "cloud"):
+            parsed["cloud_provider"] = val
+        elif key == "generated_at":
+            parsed["generated_at"] = val
 
     if not parsed:
-        return False, None, "No recognizable keys found in file. Supported keys are: client_name, projects, access_days, drive_folder."
+        return False, None, "No recognizable keys found in file. Supported keys are: client_name, projects, access_days, drive_folder, org_id, org_name, auditor_identity, cloud_provider."
 
     return True, parsed, None
 

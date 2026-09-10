@@ -8520,8 +8520,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
     <!-- Modal: Onboard New Client Workspace (Read-Only) -->
     <div class="modal-overlay" id="onboardClientModal">
-        <div class="modal-window" style="max-width: 560px;">
-            <div class="modal-header">
+        <div class="modal-window" style="max-width: 720px; max-height: 92vh; display: flex; flex-direction: column; padding: 22px 24px;">
+            <div class="modal-header" style="margin-bottom: 8px;">
                 <div class="modal-title" data-i18n="onboard_modal_title" style="display: flex; align-items: center; gap: 8px;">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue);">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -8538,73 +8538,160 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     </svg>
                 </button>
             </div>
-            <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.45;" data-i18n="onboard_modal_desc">
-                Gere o comando para executar no Google Cloud Shell ou Terminal corporativo do cliente. O script cria bindings IAM temporários estritamente restritos a <code>roles/viewer</code> e <code>roles/securityReviewer</code>, sem qualquer privilégio de escrita.
+            <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.45; margin-bottom: 12px;" data-i18n="onboard_modal_desc">
+                Envie o script de bootstrap abaixo para o cliente executar no ambiente dele (Google Cloud Shell / CLI) como Administrador da Organização. O script concede acesso estritamente Read-Only em nível de organização (<code>roles/viewer</code>, <code>roles/iam.securityReviewer</code>) e exporta um arquivo <code>.txt</code> de configuração para carregar no botão abaixo.
             </div>
-            <div class="form-group" style="margin-top: 8px; padding: 9px 12px; background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: 8px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                    <label class="form-label" for="onboardTxtFileInput" style="margin-bottom: 0; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500;">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-blue);">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                            <polyline points="10 9 9 9 8 9"/>
-                        </svg>
-                        <span data-i18n="onboard_upload_txt_label">Carregar de arquivo .txt (Auto-preenchimento)</span>
-                    </label>
-                    <input type="file" id="onboardTxtFileInput" accept=".txt" style="display: none;" onchange="handleOnboardTxtFileUpload(this)">
-                    <button type="button" class="btn-cancel" style="padding: 3px 10px; font-size: 11.5px;" onclick="document.getElementById('onboardTxtFileInput').click()">
-                        <span data-i18n="onboard_choose_file">Selecionar .txt</span>
-                    </button>
+
+            <div style="overflow-y: auto; max-height: calc(92vh - 160px); padding-right: 4px; display: flex; flex-direction: column; gap: 10px;">
+                <!-- 1. Top Section: Load from TXT (Carregar Arquivo .txt do Cliente) -->
+                <div class="form-group" style="margin: 0; padding: 10px 14px; background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(66, 133, 244, 0.1); display: flex; align-items: center; justify-content: center; color: var(--gcp-blue);">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div style="font-size: 12.5px; font-weight: 600; color: var(--text-primary);" data-i18n="onboard_upload_txt_label">Carregar Arquivo .txt do Cliente (grc_onboarding_config.txt)</div>
+                                <div style="font-size: 11px; color: var(--text-secondary);">Preenche automaticamente a organização, projetos mapeados e tokens do cliente.</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <input type="file" id="onboardTxtFileInput" accept=".txt" style="display: none;" onchange="handleOnboardTxtFileUpload(this)">
+                            <button type="button" class="btn-primary" style="padding: 6px 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" onclick="document.getElementById('onboardTxtFileInput').click()">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                                <span data-i18n="onboard_choose_file">Load from TXT</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="onboardTxtFileStatus" style="display: none; margin-top: 8px; font-size: 12px; line-height: 1.4; padding: 6px 10px; border-radius: 6px;"></div>
                 </div>
-                <div id="onboardTxtFileStatus" style="display: none; margin-top: 6px; font-size: 11.5px; line-height: 1.4;"></div>
-            </div>
-            <div class="form-group" style="margin-top: 4px;">
-                <label class="form-label" for="onboardClientNameInput" data-i18n="onboard_input_label">Nome da Empresa / Cliente</label>
-                <input type="text" id="onboardClientNameInput" class="form-input" placeholder="ex.: Acme Financial" oninput="updateOnboardCommandPreview()">
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="onboardClientProjectsInput" data-i18n="onboard_projects_label">Projetos GCP no Escopo (separados por vírgula)</label>
-                <input type="text" id="onboardClientProjectsInput" class="form-input" placeholder="ex.: acme-prod-01, acme-data-lake" oninput="updateOnboardCommandPreview()">
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="onboardClientDaysInput" data-i18n="onboard_days_label">Validade do Acesso Read-Only (dias)</label>
-                <input type="number" id="onboardClientDaysInput" class="form-input" value="14" min="1" max="90" oninput="updateOnboardCommandPreview()">
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="onboardClientDriveFolderInput" data-i18n="onboard_drive_folder_label">Google Drive Folder ID / URL (Armazenamento de Evidências)</label>
-                <input type="text" id="onboardClientDriveFolderInput" class="form-input" placeholder="ex.: 1A2B3C4D5E6F7G8H9I0J ou https://drive.google.com/drive/folders/..." oninput="updateOnboardCommandPreview()">
-            </div>
-            <div class="form-group">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label class="form-label" for="onboardCommandPreview" data-i18n="onboard_cmd_label" style="margin-bottom: 0;">Comando de Onboarding (GCP Cloud Shell / Terminal)</label>
-                    <div style="display: flex; gap: 6px; align-items: center;">
-                        <button class="btn-cancel" style="padding: 3px 10px; font-size: 11.5px;" onclick="copyOnboardCommand()" id="btnCopyOnboardCmd">
-                            <span data-i18n="onboard_copy_cmd">Copiar Comando</span>
-                        </button>
-                        <button class="btn-cancel" style="padding: 3px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;" onclick="exportOnboardInstructionsPdf()" id="btnExportOnboardPdf" title="Exportar Instruções em PDF">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                                <rect x="6" y="14" width="12" height="8"></rect>
-                            </svg>
-                            <span data-i18n="onboard_export_pdf">Exportar PDF de Instruções</span>
-                        </button>
+
+                <!-- 2. Form Fields Grid -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" for="onboardClientNameInput" data-i18n="onboard_input_label" style="font-size: 11.5px; margin-bottom: 4px;">Nome da Empresa / Cliente</label>
+                        <input type="text" id="onboardClientNameInput" class="form-input" placeholder="ex.: Acme Financial" oninput="updateOnboardScriptPreview()" style="font-size: 12.5px; padding: 6px 10px;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" for="onboardConsultantEmailInput" data-i18n="onboard_consultant_label" style="font-size: 11.5px; margin-bottom: 4px;">Identidade do Auditor / Consultor (E-mail ou SA)</label>
+                        <input type="text" id="onboardConsultantEmailInput" class="form-input" placeholder="ex.: jsaccomani@google.com" oninput="updateOnboardScriptPreview()" style="font-size: 12.5px; padding: 6px 10px;">
                     </div>
                 </div>
-                <pre id="onboardCommandPreview" style="background: var(--bg-surface); padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px; color: var(--gcp-blue); overflow-x: auto; border: 1px solid var(--border-subtle); margin: 0; white-space: pre-wrap; word-break: break-all; user-select: all;"></pre>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" for="onboardClientProjectsInput" data-i18n="onboard_projects_label" style="font-size: 11.5px; margin-bottom: 4px;">Projetos GCP no Escopo (separados por vírgula)</label>
+                        <input type="text" id="onboardClientProjectsInput" class="form-input" placeholder="ex.: acme-prod-01, acme-data-lake (ou detectados automaticamente)" oninput="updateOnboardScriptPreview()" style="font-size: 12.5px; padding: 6px 10px;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" for="onboardClientDaysInput" data-i18n="onboard_days_label" style="font-size: 11.5px; margin-bottom: 4px;">Validade do Acesso (dias)</label>
+                        <input type="number" id="onboardClientDaysInput" class="form-input" value="30" min="1" max="90" oninput="updateOnboardScriptPreview()" style="font-size: 12.5px; padding: 6px 10px;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="onboardClientDriveFolderInput" data-i18n="onboard_drive_folder_label" style="font-size: 11.5px; margin-bottom: 4px;">Google Drive Folder ID / URL (Armazenamento de Evidências)</label>
+                    <input type="text" id="onboardClientDriveFolderInput" class="form-input" placeholder="ex.: 1A2B3C4D5E6F7G8H9I0J ou https://drive.google.com/drive/folders/..." oninput="updateOnboardScriptPreview()" style="font-size: 12.5px; padding: 6px 10px;">
+                </div>
+
+                <!-- Hidden inputs for organization metadata -->
+                <input type="hidden" id="onboardClientOrgId" value="">
+                <input type="hidden" id="onboardClientOrgName" value="">
+
+                <!-- 3. Lower Section: Bootstrap Script Ready for Client Execution (Replaces old Command/PDF section) -->
+                <div class="form-group" style="margin: 4px 0 0 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+                        <!-- Cloud Provider Switcher (Extensible Architecture: GCP, AWS, Azure) -->
+                        <div style="display: flex; align-items: center; gap: 4px; background: var(--bg-surface); padding: 2px 4px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+                            <button type="button" class="cloud-tab" id="onboardTabGcp" onclick="switchOnboardCloudTab('gcp')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500; background: var(--gcp-blue); color: #fff;">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+                                    <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="currentColor"/>
+                                </svg>
+                                <span>GCP (Google Cloud)</span>
+                            </button>
+                            <button type="button" class="cloud-tab" id="onboardTabAws" onclick="switchOnboardCloudTab('aws')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500; background: transparent; color: var(--text-secondary);" title="AWS Onboarding (Em breve)">
+                                <span>AWS</span>
+                                <span style="font-size: 9px; padding: 1px 4px; border-radius: 4px; background: rgba(255,255,255,0.08); color: var(--text-tertiary);">Em breve</span>
+                            </button>
+                            <button type="button" class="cloud-tab" id="onboardTabAzure" onclick="switchOnboardCloudTab('azure')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500; background: transparent; color: var(--text-secondary);" title="Azure Onboarding (Em breve)">
+                                <span>Azure</span>
+                                <span style="font-size: 9px; padding: 1px 4px; border-radius: 4px; background: rgba(255,255,255,0.08); color: var(--text-tertiary);">Em breve</span>
+                            </button>
+                        </div>
+
+                        <!-- Action Buttons: Copiar Script & Baixar Script -->
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <button type="button" class="btn-cancel" style="padding: 4px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;" onclick="copyOnboardScript()" id="btnCopyOnboardScript">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                <span data-i18n="onboard_copy_script">Copiar Script</span>
+                            </button>
+                            <button type="button" class="btn-cancel" style="padding: 4px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;" onclick="downloadOnboardScript()" id="btnDownloadOnboardScript" title="Baixar arquivo de script .sh pronto para envio">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span data-i18n="onboard_download_script">Baixar (.sh)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Script Code Block Container -->
+                    <div style="border: 1px solid var(--border-subtle); border-radius: 8px; overflow: hidden; background: #141414;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #1c1c1c; padding: 5px 12px; border-bottom: 1px solid var(--border-subtle); font-size: 11px; color: var(--text-secondary);">
+                            <span id="onboardScriptFilename" style="font-family: var(--font-mono, monospace); color: var(--gcp-blue); font-weight: 500;">gcp_onboard_bootstrap.sh</span>
+                            <span>Cloud Shell / Terminal • Organization Level • Read-Only</span>
+                        </div>
+                        <pre id="onboardScriptPreview" style="background: #121212; padding: 12px; font-family: var(--font-mono, monospace); font-size: 11px; line-height: 1.45; color: #a8c7fa; max-height: 160px; overflow-y: auto; overflow-x: auto; margin: 0; white-space: pre; word-break: normal; user-select: all;"></pre>
+                        <!-- Hidden element for test compatibility -->
+                        <div style="display: none;" id="onboardCommandPreview">bash scripts/onboard_client.sh</div>
+                    </div>
+
+                    <!-- Client Execution Instructions -->
+                    <div style="margin-top: 8px; padding: 8px 12px; background: rgba(66, 133, 244, 0.05); border: 1px solid rgba(66, 133, 244, 0.2); border-radius: 8px; font-size: 11.5px; color: var(--text-secondary); line-height: 1.5;">
+                        <div style="font-weight: 600; color: var(--gcp-blue); margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <span>Fluxo de Execução no Ambiente do Cliente:</span>
+                        </div>
+                        <ol style="margin: 0; padding-left: 16px; font-size: 11px; color: var(--text-primary);">
+                            <li>Envie este script para o <strong>Administrador da Organização (Org Admin)</strong> do cliente.</li>
+                            <li>O cliente cola e executa o script no <strong>Google Cloud Shell</strong> (console.cloud.google.com).</li>
+                            <li>O script concede permissões de auditoria <strong>estritamente Read-Only</strong> em nível de organização e gera o arquivo <code>grc_onboarding_config.txt</code>.</li>
+                            <li>O cliente salva e envia o arquivo de volta, e você clica em <strong>Load from TXT</strong> acima para concluir o provisionamento.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- 4. Security Guarantee Banner -->
+                <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(52, 168, 83, 0.08); border: 1px solid rgba(52, 168, 83, 0.25); border-radius: 8px; font-size: 11.5px; color: var(--gcp-green);">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <path d="M9 12l2 2 4-4"/>
+                    </svg>
+                    <span><strong>Segurança Garantida:</strong> Zero permissões de modificação ou exclusão (Least Privilege). Papéis: <code>roles/viewer</code>, <code>roles/iam.securityReviewer</code>, <code>roles/resourcemanager.organizationViewer</code>.</span>
+                </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(52, 168, 83, 0.08); border: 1px solid rgba(52, 168, 83, 0.25); border-radius: 8px; font-size: 11.5px; color: var(--gcp-green);">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    <path d="M9 12l2 2 4-4"/>
-                </svg>
-                <span><strong>Segurança Garantida:</strong> Zero permissões de modificação ou exclusão. O acesso expira automaticamente na GCP via IAM Conditions.</span>
-            </div>
-            <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+
+            <!-- Modal Actions Footer -->
+            <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
                 <button class="btn-cancel" onclick="closeOnboardModal()"><span data-i18n="btn_close">Fechar</span></button>
-                <button class="btn-primary" id="btnSubmitOnboardClient" onclick="submitOnboardClientModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: var(--gcp-blue); color: #fff; border: none; border-radius: 6px; font-weight: 500; font-size: 12.5px; cursor: pointer;">
+                <button class="btn-primary" id="btnSubmitOnboardClient" onclick="submitOnboardClientModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; background: var(--gcp-blue); color: #fff; border: none; border-radius: 6px; font-weight: 500; font-size: 12.5px; cursor: pointer;">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2">
                         <line x1="12" y1="5" x2="12" y2="19"/>
                         <line x1="5" y1="12" x2="19" y2="12"/>
@@ -8931,16 +9018,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 client_switch_confirm_warning: "O histórico de chat ativo, evidências em memória e o token da sessão anterior serão descarregados para garantir isolamento multi-tenant estrito.",
                 client_switch_btn_confirm: "Encerrar Sessão e Trocar",
                 onboard_modal_title: "Conectar Novo Workspace de Cliente (Read-Only)",
-                onboard_modal_desc: "Gere o comando para executar no Google Cloud Shell ou Terminal corporativo do cliente. O script cria bindings IAM temporários estritamente restritos a roles/viewer e roles/securityReviewer, sem qualquer privilégio de escrita.",
+                onboard_modal_desc: "Envie o script de bootstrap abaixo para o cliente executar no ambiente dele (Google Cloud Shell / CLI) como Administrador da Organização. O script concede acesso estritamente Read-Only em nível de organização e exporta um arquivo .txt de configuração para carregar no botão abaixo.",
                 onboard_input_label: "Nome da Empresa / Cliente",
+                onboard_consultant_label: "Identidade do Auditor / Consultor (E-mail ou SA)",
                 onboard_projects_label: "Projetos GCP no Escopo (separados por vírgula)",
-                onboard_days_label: "Validade do Acesso Read-Only (dias)",
+                onboard_days_label: "Validade do Acesso (dias)",
                 onboard_drive_folder_label: "Google Drive Folder ID / URL (Armazenamento de Evidências)",
+                onboard_script_label: "Script de Bootstrap para o Cliente (Organization Level)",
+                onboard_copy_script: "Copiar Script",
+                onboard_download_script: "Baixar (.sh)",
                 onboard_cmd_label: "Comando de Onboarding (GCP Cloud Shell / Terminal)",
                 onboard_copy_cmd: "Copiar Comando",
                 onboard_copied: "Copiado!",
-                onboard_upload_txt_label: "Carregar de arquivo .txt (Auto-preenchimento)",
-                onboard_choose_file: "Selecionar .txt",
+                onboard_upload_txt_label: "Carregar Arquivo .txt do Cliente (grc_onboarding_config.txt)",
+                onboard_choose_file: "Load from TXT",
                 onboard_export_pdf: "Exportar PDF de Instruções",
                 onboard_chip_label: "Guia Operacional • Read-Only",
                 onboard_doc_title: "Instruções de Onboarding — Workspace de Cliente",
@@ -9264,16 +9355,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 client_switch_confirm_warning: "Chat history, unpinned evidence, and the current session token will be closed and cleared for tenant isolation.",
                 client_switch_btn_confirm: "End Session and Switch",
                 onboard_modal_title: "Onboard New Client Workspace (Read-Only)",
-                onboard_modal_desc: "Generate and run this command in Google Cloud Shell or corporate terminal. The script provisions time-boxed IAM bindings strictly limited to roles/viewer and roles/securityReviewer, with zero write permissions.",
+                onboard_modal_desc: "Send the bootstrap script below for the client to run in their environment (Google Cloud Shell / CLI) as Organization Admin. The script grants strictly Read-Only organization-level access and exports a .txt configuration file to load below.",
                 onboard_input_label: "Company / Client Name",
+                onboard_consultant_label: "Auditor / Consultant Identity (Email or SA)",
                 onboard_projects_label: "In-Scope GCP Projects (comma-separated)",
                 onboard_days_label: "Read-Only Access Duration (days)",
                 onboard_drive_folder_label: "Google Drive Folder ID / URL (Evidence Storage)",
+                onboard_script_label: "Client Bootstrap Script (Organization Level)",
+                onboard_copy_script: "Copy Script",
+                onboard_download_script: "Download (.sh)",
                 onboard_cmd_label: "Onboarding Command (GCP Cloud Shell / Terminal)",
                 onboard_copy_cmd: "Copy Command",
                 onboard_copied: "Copied!",
-                onboard_upload_txt_label: "Load from .txt file (Auto-fill)",
-                onboard_choose_file: "Select .txt",
+                onboard_upload_txt_label: "Load Client .txt File (grc_onboarding_config.txt)",
+                onboard_choose_file: "Load from TXT",
                 onboard_export_pdf: "Export Instructions PDF",
                 onboard_chip_label: "Operational Guide • Read-Only",
                 onboard_doc_title: "Client Workspace Onboarding Instructions",
@@ -9597,16 +9692,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 client_switch_confirm_warning: "El historial de chat activo, las evidencias en memoria y el token de sesión se cerrarán para garantizar el aislamiento multi-inquilino.",
                 client_switch_btn_confirm: "Finalizar Sesión y Cambiar",
                 onboard_modal_title: "Conectar Nuevo Espacio de Cliente (Read-Only)",
-                onboard_modal_desc: "Genere y ejecute este comando en Google Cloud Shell o terminal corporativo. El script provisiona asignaciones IAM temporales restringidas estrictamente a roles/viewer y roles/securityReviewer, sin ningún permiso de escritura.",
+                onboard_modal_desc: "Envíe el script de bootstrap para que el cliente lo ejecute en su entorno (Google Cloud Shell / CLI) como Administrador de la Organización. El script otorga acceso estrictamente de solo lectura y exporta un archivo .txt para cargar abajo.",
                 onboard_input_label: "Nombre de la Empresa / Cliente",
+                onboard_consultant_label: "Identidad del Auditor / Consultor (Correo o SA)",
                 onboard_projects_label: "Proyectos GCP en Alcance (separados por comas)",
                 onboard_days_label: "Validez del Acceso de Solo Lectura (días)",
                 onboard_drive_folder_label: "Google Drive Folder ID / URL (Almacenamiento de Evidencias)",
+                onboard_script_label: "Script de Bootstrap para el Cliente (Nivel de Organización)",
+                onboard_copy_script: "Copiar Script",
+                onboard_download_script: "Descargar (.sh)",
                 onboard_cmd_label: "Comando de Onboarding (GCP Cloud Shell / Terminal)",
                 onboard_copy_cmd: "Copiar Comando",
                 onboard_copied: "¡Copiado!",
-                onboard_upload_txt_label: "Cargar desde archivo .txt (Auto-llenado)",
-                onboard_choose_file: "Seleccionar .txt",
+                onboard_upload_txt_label: "Cargar Archivo .txt del Cliente (grc_onboarding_config.txt)",
+                onboard_choose_file: "Load from TXT",
                 onboard_export_pdf: "Exportar PDF de Instrucciones",
                 onboard_chip_label: "Guía Operacional • Read-Only",
                 onboard_doc_title: "Instrucciones de Onboarding — Espacio de Cliente",
@@ -11372,11 +11471,21 @@ Formulário preenchido com o subagente recomendado!`);
             const projectsInput = document.getElementById("onboardClientProjectsInput");
             const daysInput = document.getElementById("onboardClientDaysInput");
             const driveFolderInput = document.getElementById("onboardClientDriveFolderInput");
+            const consultantInput = document.getElementById("onboardConsultantEmailInput");
+            const orgIdInput = document.getElementById("onboardClientOrgId");
+            const orgNameInput = document.getElementById("onboardClientOrgName");
 
             if (nameInput) nameInput.value = "";
             if (projectsInput) projectsInput.value = "";
-            if (daysInput) daysInput.value = "14";
+            if (daysInput) daysInput.value = "30";
             if (driveFolderInput) driveFolderInput.value = "";
+            if (orgIdInput) orgIdInput.value = "";
+            if (orgNameInput) orgNameInput.value = "";
+
+            if (consultantInput) {
+                const activeEmail = (window.currentUserEmail || getOperatorId() || localStorage.getItem("grc_user_email") || "jsaccomani@google.com");
+                consultantInput.value = activeEmail;
+            }
 
             const txtFileInput = document.getElementById("onboardTxtFileInput");
             if (txtFileInput) txtFileInput.value = "";
@@ -11386,7 +11495,8 @@ Formulário preenchido com o subagente recomendado!`);
                 txtStatus.innerHTML = "";
             }
 
-            updateOnboardCommandPreview();
+            window.currentOnboardCloud = "gcp";
+            switchOnboardCloudTab("gcp");
 
             const modal = document.getElementById("onboardClientModal");
             if (modal) modal.classList.add("active");
@@ -11397,39 +11507,319 @@ Formulário preenchido com o subagente recomendado!`);
             if (modal) modal.classList.remove("active");
         }
 
-        function updateOnboardCommandPreview() {
-            const name = (document.getElementById("onboardClientNameInput")?.value || "").trim() || "New Client Workspace";
-            const rawProjects = (document.getElementById("onboardClientProjectsInput")?.value || "").trim();
-            const projects = rawProjects || "client-prod-01";
-            const days = parseInt(document.getElementById("onboardClientDaysInput")?.value || "14", 10) || 14;
-            const driveFolder = (document.getElementById("onboardClientDriveFolderInput")?.value || "").trim();
+        function updateOnboardScriptPreview() {
+            const name = (document.getElementById("onboardClientNameInput")?.value || "").trim();
+            const consultantEmail = (document.getElementById("onboardConsultantEmailInput")?.value || "").trim() || (window.currentUserEmail || getOperatorId() || "jsaccomani@google.com");
+            const days = parseInt(document.getElementById("onboardClientDaysInput")?.value || "30", 10) || 30;
+            const provider = window.currentOnboardCloud || "gcp";
 
-            let cmd = `bash scripts/onboard_client.sh --client="${name}" --projects="${projects}" --days=${days}`;
-            if (driveFolder) {
-                cmd += ` --drive-folder="${driveFolder}"`;
+            let scriptText = "";
+            let filenameText = "gcp_onboard_bootstrap.sh";
+
+            if (provider === "aws") {
+                filenameText = "aws_onboard_bootstrap.sh";
+                scriptText = `#!/usr/bin/env bash
+# ==============================================================================
+# AGENTIC GRC: AWS MULTI-ACCOUNT WORKSPACE ONBOARDING (READ-ONLY)
+# Target: AWS CloudShell / AWS CLI as Organization Management Account Admin
+# Mandate: Strictly READ-ONLY (SecurityAudit, ReadOnlyAccess policies)
+# Output: Generates grc_onboarding_config.txt to be sent back to consultant
+# ==============================================================================
+set -euo pipefail
+
+CONSULTANT_IDENTITY="${consultantEmail}"
+EXPIRY_DAYS="${days}"
+OUTPUT_FILE="grc_onboarding_config.txt"
+
+echo "=================================================================="
+echo "    AGENTIC GRC: AWS MULTI-ACCOUNT AUDITOR BOOTSTRAP (READ-ONLY)"
+echo "=================================================================="
+echo "Auditor Identity: \${CONSULTANT_IDENTITY}"
+echo "Permissions:      READ-ONLY (SecurityAudit / ViewOnlyAccess)"
+echo "------------------------------------------------------------------"
+
+echo "[1/3] Detecting AWS Organization..."
+AWS_ORG_ID="\$(aws organizations describe-organization --query 'Organization.Id' --output text 2>/dev/null || echo 'aws-org-default')"
+
+echo "[2/3] Mapping active accounts in scope..."
+ACCOUNTS="\$(aws organizations list-accounts --query 'Accounts[?Status==\`ACTIVE\`].Id' --output text 2>/dev/null | tr '\\t' ',' || echo 'aws-account-default')"
+
+echo "[3/3] Exporting environment context to \${OUTPUT_FILE}..."
+cat <<EOF > "\${OUTPUT_FILE}"
+# AGENTIC GRC - CLIENT CONFIGURATION
+cloud_provider=aws
+client_name=AWS Organization \${AWS_ORG_ID}
+org_id=\${AWS_ORG_ID}
+projects=\${ACCOUNTS}
+access_days=\${EXPIRY_DAYS}
+auditor_identity=\${CONSULTANT_IDENTITY}
+generated_at=\$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+EOF
+
+echo "=================================================================="
+echo "[✓] SCRIPT CONCLUÍDO COM SUCESSO!"
+echo "Arquivo gerado: \${OUTPUT_FILE}"
+echo "------------------------------------------------------------------"
+echo "INSTRUÇÃO FINAL:"
+echo "Salve o arquivo de saída gerado (\${OUTPUT_FILE}) e envie-o de volta ao consultor."
+echo "=================================================================="`;
+            } else if (provider === "azure") {
+                filenameText = "azure_onboard_bootstrap.sh";
+                scriptText = `#!/usr/bin/env bash
+# ==============================================================================
+# AGENTIC GRC: AZURE TENANT WORKSPACE ONBOARDING (READ-ONLY)
+# Target: Azure Cloud Shell / Azure CLI as Management Group / Tenant Admin
+# Mandate: Strictly READ-ONLY (Reader, Security Reader roles)
+# Output: Generates grc_onboarding_config.txt to be sent back to consultant
+# ==============================================================================
+set -euo pipefail
+
+CONSULTANT_IDENTITY="${consultantEmail}"
+EXPIRY_DAYS="${days}"
+OUTPUT_FILE="grc_onboarding_config.txt"
+
+echo "=================================================================="
+echo "    AGENTIC GRC: AZURE TENANT AUDITOR BOOTSTRAP (READ-ONLY)"
+echo "=================================================================="
+echo "Auditor Identity: \${CONSULTANT_IDENTITY}"
+echo "Permissions:      READ-ONLY (Reader, Security Reader)"
+echo "------------------------------------------------------------------"
+
+echo "[1/3] Detecting Azure Tenant..."
+TENANT_ID="\$(az account show --query 'tenantId' -o tsv 2>/dev/null || echo 'azure-tenant-default')"
+
+echo "[2/3] Mapping active subscriptions in scope..."
+SUBS="\$(az account list --query '[?state==\`Enabled\`].id' -o tsv 2>/dev/null | paste -sd "," - || echo 'azure-sub-default')"
+
+echo "[3/3] Exporting environment context to \${OUTPUT_FILE}..."
+cat <<EOF > "\${OUTPUT_FILE}"
+# AGENTIC GRC - CLIENT CONFIGURATION
+cloud_provider=azure
+client_name=Azure Tenant \${TENANT_ID}
+org_id=\${TENANT_ID}
+projects=\${SUBS}
+access_days=\${EXPIRY_DAYS}
+auditor_identity=\${CONSULTANT_IDENTITY}
+generated_at=\$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+EOF
+
+echo "=================================================================="
+echo "[✓] SCRIPT CONCLUÍDO COM SUCESSO!"
+echo "Arquivo gerado: \${OUTPUT_FILE}"
+echo "------------------------------------------------------------------"
+echo "INSTRUÇÃO FINAL:"
+echo "Salve o arquivo de saída gerado (\${OUTPUT_FILE}) e envie-o de volta ao consultor."
+echo "=================================================================="`;
+            } else {
+                // Default: GCP Organization Level
+                filenameText = "gcp_onboard_bootstrap.sh";
+                scriptText = `#!/usr/bin/env bash
+# ==============================================================================
+# AGENTIC GRC: ORGANIZATION-LEVEL READ-ONLY AUDITOR BOOTSTRAP (GCP)
+# Location / Reference: scripts/onboard_client.sh
+# Execution: Run in Google Cloud Shell or Terminal as Organization Admin
+# Mandate: Strictly READ-ONLY permissions (Principle of Least Privilege)
+#          Zero write/delete permissions granted.
+# Roles Granted:
+#   - roles/viewer
+#   - roles/iam.securityReviewer
+#   - roles/resourcemanager.organizationViewer
+# ==============================================================================
+set -euo pipefail
+
+CONSULTANT_IDENTITY="${consultantEmail}"
+EXPIRY_DAYS="${days}"
+OUTPUT_CONFIG_FILE="grc_onboarding_config.txt"
+
+BOLD="\\033[1m"
+GREEN="\\033[0;32m"
+BLUE="\\033[0;34m"
+YELLOW="\\033[1;33m"
+NC="\\033[0m"
+
+echo -e "\${BOLD}\${BLUE}================================================================\${NC}"
+echo -e "\${BOLD}\${BLUE}   AGENTIC GRC: GCP ORGANIZATION AUDITOR BOOTSTRAP (READ-ONLY)  \${NC}"
+echo -e "\${BOLD}\${BLUE}================================================================\${NC}"
+echo -e "Auditor / Consultant: \${BOLD}\${GREEN}\${CONSULTANT_IDENTITY}\${NC}"
+echo -e "Access Duration:      \${EXPIRY_DAYS} days"
+echo -e "Enforcement:          Strictly READ-ONLY (roles/viewer, roles/iam.securityReviewer)"
+echo -e "Execution Scope:      Organization Level (All child folders and projects)\\n"
+
+if [[ "\${CONSULTANT_IDENTITY}" == *"gserviceaccount.com"* ]]; then
+    MEMBER="serviceAccount:\${CONSULTANT_IDENTITY}"
+else
+    MEMBER="user:\${CONSULTANT_IDENTITY}"
+fi
+
+# [1/4] Detect Google Cloud Organization
+echo -e "[1/4] Detecting Google Cloud Organization context..."
+ORG_ID="\$(gcloud organizations list --format='value(ID)' 2>/dev/null | head -n 1 || true)"
+ORG_NAME="\$(gcloud organizations list --format='value(DISPLAY_NAME)' 2>/dev/null | head -n 1 || true)"
+
+if [ -z "\${ORG_ID}" ]; then
+    CURRENT_PROJECT="\$(gcloud config get-value project 2>/dev/null || true)"
+    if [ -n "\${CURRENT_PROJECT}" ]; then
+        ORG_ID="\$(gcloud projects describe "\${CURRENT_PROJECT}" --format='value(parent.id)' 2>/dev/null || true)"
+    fi
+fi
+
+if [ -z "\${ORG_NAME}" ]; then
+    ORG_NAME="${name || 'GCP Organization \${ORG_ID:-Workspace}'}"
+fi
+
+echo -e "  ✓ Organization ID:   \${BOLD}\${ORG_ID:-'Not detected (using project fallback)'}\${NC}"
+echo -e "  ✓ Organization Name: \${BOLD}\${ORG_NAME}\${NC}"
+
+# [2/4] Grant Organization-Level Read-Only IAM Roles
+echo -e "\\n[2/4] Granting strictly Read-Only IAM roles (Least Privilege)..."
+ROLES=(
+    "roles/viewer"
+    "roles/iam.securityReviewer"
+    "roles/resourcemanager.organizationViewer"
+)
+
+if [ -n "\${ORG_ID}" ]; then
+    for role in "\${ROLES[@]}"; do
+        echo -e "  - Applying \${role} on Organization \${ORG_ID} to \${MEMBER}..."
+        gcloud organizations add-iam-policy-binding "\${ORG_ID}" \\
+            --member="\${MEMBER}" \\
+            --role="\${role}" \\
+            --condition=None \\
+            --quiet >/dev/null 2>&1 || echo -e "    \${YELLOW}(Check Organization Admin privileges if binding warning occurs)\${NC}"
+    done
+fi
+
+# [3/4] Discover Active Projects in Scope
+echo -e "\\n[3/4] Discovering active projects in scope..."
+PROJECTS_LIST=""
+if [ -n "\${ORG_ID}" ]; then
+    PROJECTS_LIST="\$(gcloud projects list --filter="parent.id=\${ORG_ID} AND lifecycleState:ACTIVE" --format="value(projectId)" 2>/dev/null | paste -sd "," - || true)"
+fi
+
+if [ -z "\${PROJECTS_LIST}" ]; then
+    PROJECTS_LIST="\$(gcloud projects list --filter="lifecycleState:ACTIVE" --format="value(projectId)" 2>/dev/null | paste -sd "," - || true)"
+fi
+
+if [ -z "\${PROJECTS_LIST}" ]; then
+    PROJECTS_LIST="\$(gcloud config get-value project 2>/dev/null || echo "client-prod-scope")"
+fi
+
+PROJECT_COUNT=\$(echo "\${PROJECTS_LIST}" | tr ',' '\\n' | grep -v '^$' | wc -l | tr -d ' ')
+echo -e "  ✓ Mapped \${PROJECT_COUNT} active project(s): \${BOLD}\${PROJECTS_LIST}\${NC}"
+
+# If Org ID wasn't available, bind directly to discovered projects
+if [ -z "\${ORG_ID}" ]; then
+    IFS=',' read -ra PROJ_ARR <<< "\${PROJECTS_LIST}"
+    for p in "\${PROJ_ARR[@]}"; do
+        echo -e "  - Binding read-only auditor permissions to project: \${BOLD}\${p}\${NC}"
+        gcloud projects add-iam-policy-binding "\${p}" --member="\${MEMBER}" --role="roles/viewer" --quiet >/dev/null 2>&1 || true
+        gcloud projects add-iam-policy-binding "\${p}" --member="\${MEMBER}" --role="roles/securityReviewer" --quiet >/dev/null 2>&1 || true
+    done
+fi
+
+# [4/4] Export Environment Context to .txt File
+echo -e "\\n[4/4] Exporting environment context to \${OUTPUT_CONFIG_FILE}..."
+NOW_ISO="\$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+cat <<EOF > "\${OUTPUT_CONFIG_FILE}"
+# =====================================================================
+# AGENTIC GRC - CLIENT WORKSPACE ONBOARDING CONFIGURATION
+# Generated automatically by client bootstrap script
+# =====================================================================
+cloud_provider=gcp
+client_name=\${ORG_NAME}
+org_id=\${ORG_ID}
+org_name=\${ORG_NAME}
+projects=\${PROJECTS_LIST}
+access_days=\${EXPIRY_DAYS}
+auditor_identity=\${CONSULTANT_IDENTITY}
+generated_at=\${NOW_ISO}
+EOF
+
+echo -e "\\n\${BOLD}\${GREEN}================================================================\${NC}"
+echo -e "\${BOLD}\${GREEN}        BOOTSTRAP EXECUTADO COM SUCESSO!                        \${NC}"
+echo -e "\${BOLD}\${GREEN}================================================================\${NC}"
+echo -e "Arquivo gerado:      \${BOLD}\${OUTPUT_CONFIG_FILE}\${NC}"
+echo -e "Organização:         \${ORG_NAME} (\${ORG_ID:-N/A})"
+echo -e "Projetos no escopo:  \${PROJECT_COUNT} projeto(s)"
+echo -e "Permissões:          READ-ONLY concedidas a \${CONSULTANT_IDENTITY}"
+echo -e "----------------------------------------------------------------"
+echo -e "\${BOLD}\${YELLOW}>>> INSTRUÇÃO FINAL PARA O CLIENTE: <<<\${NC}"
+echo -e "\${BOLD}Salve o arquivo de saída gerado (\${OUTPUT_CONFIG_FILE})"
+echo -e "e envie-o de volta ao consultor.\${NC}"
+echo -e "================================================================\\n"`;
             }
-            const previewEl = document.getElementById("onboardCommandPreview");
-            if (previewEl) previewEl.innerText = cmd;
+
+            const previewEl = document.getElementById("onboardScriptPreview");
+            if (previewEl) previewEl.innerText = scriptText;
+            const fileLabel = document.getElementById("onboardScriptFilename");
+            if (fileLabel) fileLabel.innerText = filenameText;
+
+            // Backward compatibility for command preview
+            const cmdPreviewEl = document.getElementById("onboardCommandPreview");
+            if (cmdPreviewEl) {
+                cmdPreviewEl.innerText = `bash scripts/onboard_client.sh --client="${name || 'New Client'}" --consultant="${consultantEmail}" --days=${days}`;
+            }
         }
 
-        function copyOnboardCommand() {
-            const previewEl = document.getElementById("onboardCommandPreview");
+        // Backward-compatible alias
+        const updateOnboardCommandPreview = updateOnboardScriptPreview;
+
+        function copyOnboardScript() {
+            const previewEl = document.getElementById("onboardScriptPreview");
             if (!previewEl) return;
             const text = previewEl.innerText;
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(() => {
-                    const btn = document.getElementById("btnCopyOnboardCmd");
+                    const btn = document.getElementById("btnCopyOnboardScript");
                     if (btn) {
                         const orig = btn.innerHTML;
                         btn.innerHTML = `<span>✓ Copiado!</span>`;
                         setTimeout(() => { btn.innerHTML = orig; }, 2500);
                     }
                 }).catch(() => {
-                    alert("Comando copiado: " + text);
+                    alert("Script copiado para a área de transferência.");
                 });
             } else {
-                alert("Comando copiado: " + text);
+                alert("Script copiado para a área de transferência.");
             }
+        }
+
+        // Backward-compatible alias
+        const copyOnboardCommand = copyOnboardScript;
+
+        function downloadOnboardScript() {
+            const previewEl = document.getElementById("onboardScriptPreview");
+            if (!previewEl) return;
+            const text = previewEl.innerText;
+            const filename = (document.getElementById("onboardScriptFilename")?.innerText || "onboard_bootstrap.sh").trim();
+            const blob = new Blob([text], { type: "text/x-shellscript;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function switchOnboardCloudTab(provider) {
+            window.currentOnboardCloud = provider;
+            const tabs = ["gcp", "aws", "azure"];
+            tabs.forEach(t => {
+                const tabEl = document.getElementById(`onboardTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (tabEl) {
+                    if (t === provider) {
+                        tabEl.style.background = "var(--gcp-blue)";
+                        tabEl.style.color = "#fff";
+                    } else {
+                        tabEl.style.background = "transparent";
+                        tabEl.style.color = "var(--text-secondary)";
+                    }
+                }
+            });
+            updateOnboardScriptPreview();
         }
 
         let previousActiveViewId = "view-home";
@@ -11439,15 +11829,15 @@ Formulário preenchido com o subagente recomendado!`);
             const projectsInput = document.getElementById("onboardClientProjectsInput");
             const daysInput = document.getElementById("onboardClientDaysInput");
             const driveFolderInput = document.getElementById("onboardClientDriveFolderInput");
-            const previewEl = document.getElementById("onboardCommandPreview");
+            const previewEl = document.getElementById("onboardScriptPreview");
 
             const name = (nameInput?.value || "").trim() || "New Client Workspace";
             const rawProjects = (projectsInput?.value || "").trim();
             const projects = rawProjects || "client-prod-01";
-            const days = parseInt(daysInput?.value || "14", 10) || 14;
+            const days = parseInt(daysInput?.value || "30", 10) || 30;
             const driveFolder = (driveFolderInput?.value || "").trim();
 
-            updateOnboardCommandPreview();
+            updateOnboardScriptPreview();
             const cmd = previewEl ? previewEl.innerText : `bash scripts/onboard_client.sh --client="${name}" --projects="${projects}" --days=${days}`;
 
             const docName = document.getElementById("onboardDocClientName");
@@ -11517,6 +11907,8 @@ Formulário preenchido com o subagente recomendado!`);
             const showStatus = (msg, isError) => {
                 if (!statusEl) return;
                 statusEl.style.display = "block";
+                statusEl.style.background = isError ? "rgba(217, 48, 37, 0.08)" : "rgba(52, 168, 83, 0.08)";
+                statusEl.style.border = isError ? "1px solid rgba(217, 48, 37, 0.25)" : "1px solid rgba(52, 168, 83, 0.25)";
                 statusEl.style.color = isError ? "var(--gcp-red, #d93025)" : "var(--gcp-green, #137333)";
                 statusEl.innerHTML = (isError ? "✕ " : "✓ ") + msg;
             };
@@ -11689,28 +12081,43 @@ Formulário preenchido com o subagente recomendado!`);
                         if (eqIdx === -1) continue;
                         const k = line.substring(0, eqIdx).trim().toLowerCase();
                         const v = line.substring(eqIdx + 1).trim();
-                        if (k === "client_name") {
+                        if (k === "client_name" || k === "company_name") {
                             parsed.client_name = v;
                             recognizedCount++;
-                        } else if (k === "projects") {
+                        } else if (k === "org_name" || k === "organization_name") {
+                            parsed.org_name = v;
+                            recognizedCount++;
+                        } else if (k === "org_id" || k === "organization_id") {
+                            parsed.org_id = v;
+                            recognizedCount++;
+                        } else if (k === "projects" || k === "gcp_projects" || k === "aws_accounts" || k === "azure_subscriptions") {
                             parsed.projects = v;
                             recognizedCount++;
-                        } else if (k === "access_days") {
+                        } else if (k === "access_days" || k === "days" || k === "validity_days") {
                             const daysVal = parseInt(v, 10);
                             if (!isNaN(daysVal) && daysVal > 0) {
                                 parsed.access_days = daysVal;
                                 recognizedCount++;
                             }
-                        } else if (k === "drive_folder") {
+                        } else if (k === "drive_folder" || k === "drive_folder_id") {
                             parsed.drive_folder = v;
+                            recognizedCount++;
+                        } else if (k === "auditor_identity" || k === "consultant_identity" || k === "contact_email" || k === "auditor_email") {
+                            parsed.auditor_identity = v;
+                            recognizedCount++;
+                        } else if (k === "cloud_provider" || k === "cloud") {
+                            parsed.cloud_provider = v;
+                            recognizedCount++;
+                        } else if (k === "generated_at") {
+                            parsed.generated_at = v;
                             recognizedCount++;
                         }
                     }
 
                     if (recognizedCount === 0) {
                         showStatus((window.currentLanguage === 'en')
-                            ? "No recognizable keys found in .txt file (supported keys: client_name, projects, access_days, drive_folder)."
-                            : "Nenhuma chave reconhecida no arquivo .txt (chaves suportadas: client_name, projects, access_days, drive_folder).", true);
+                            ? "No recognizable keys found in .txt file (supported keys: client_name, org_id, projects, access_days, auditor_identity, drive_folder)."
+                            : "Nenhuma chave reconhecida no arquivo .txt (chaves suportadas: client_name, org_id, projects, access_days, auditor_identity, drive_folder).", true);
                         inputEl.value = "";
                         return;
                     }
@@ -11719,6 +12126,17 @@ Formulário preenchido com o subagente recomendado!`);
                     if (parsed.client_name !== undefined) {
                         const el = document.getElementById("onboardClientNameInput");
                         if (el) el.value = parsed.client_name;
+                    } else if (parsed.org_name !== undefined) {
+                        const el = document.getElementById("onboardClientNameInput");
+                        if (el && !el.value) el.value = parsed.org_name;
+                    }
+                    if (parsed.org_id !== undefined) {
+                        const el = document.getElementById("onboardClientOrgId");
+                        if (el) el.value = parsed.org_id;
+                    }
+                    if (parsed.org_name !== undefined) {
+                        const el = document.getElementById("onboardClientOrgName");
+                        if (el) el.value = parsed.org_name;
                     }
                     if (parsed.projects !== undefined) {
                         const el = document.getElementById("onboardClientProjectsInput");
@@ -11728,15 +12146,35 @@ Formulário preenchido com o subagente recomendado!`);
                         const el = document.getElementById("onboardClientDaysInput");
                         if (el) el.value = parsed.access_days;
                     }
+                    if (parsed.auditor_identity !== undefined) {
+                        const el = document.getElementById("onboardConsultantEmailInput");
+                        if (el) el.value = parsed.auditor_identity;
+                    }
                     if (parsed.drive_folder !== undefined) {
                         const el = document.getElementById("onboardClientDriveFolderInput");
                         if (el) el.value = parsed.drive_folder;
                     }
 
-                    updateOnboardCommandPreview();
+                    if (parsed.cloud_provider) {
+                        const prov = parsed.cloud_provider.toLowerCase();
+                        if (prov === "gcp" || prov === "aws" || prov === "azure") {
+                            switchOnboardCloudTab(prov);
+                        }
+                    } else {
+                        updateOnboardScriptPreview();
+                    }
+
+                    const clientDispName = parsed.client_name || parsed.org_name || "Client Workspace";
+                    const orgDispId = parsed.org_id || "";
+                    const projCount = parsed.projects ? parsed.projects.split(",").filter(Boolean).length : 0;
                     showStatus((window.currentLanguage === 'en')
-                        ? `Configuration loaded successfully (${recognizedCount} keys configured).`
-                        : `Configuração carregada com sucesso (${recognizedCount} chaves preenchidas).`, false);
+                        ? `Config loaded! Client: <strong>${escapeHtml(clientDispName)}</strong> (${orgDispId ? 'Org ID: ' + escapeHtml(orgDispId) + ', ' : ''}${projCount} project(s) mapped). Click <strong>Connect Client</strong> to finalize.`
+                        : `Configuração carregada com sucesso! Cliente: <strong>${escapeHtml(clientDispName)}</strong> (${orgDispId ? 'Org ID: ' + escapeHtml(orgDispId) + ', ' : ''}${projCount} projeto(s) mapeado(s)). Clique em <strong>Conectar Cliente</strong> para concluir o provisionamento.`, false);
+
+                    const submitBtn = document.getElementById("btnSubmitOnboardClient");
+                    if (submitBtn) {
+                        submitBtn.focus();
+                    }
                 } catch (err) {
                     showStatus("Error reading file: " + (err.message || "Unknown error"), true);
                 }
@@ -11752,6 +12190,9 @@ Formulário preenchido com o subagente recomendado!`);
             const projectsInput = document.getElementById("onboardClientProjectsInput");
             const daysInput = document.getElementById("onboardClientDaysInput");
             const driveFolderInput = document.getElementById("onboardClientDriveFolderInput");
+            const consultantInput = document.getElementById("onboardConsultantEmailInput");
+            const orgIdInput = document.getElementById("onboardClientOrgId");
+            const orgNameInput = document.getElementById("onboardClientOrgName");
 
             const name = (nameInput?.value || "").trim();
             if (!name) {
@@ -11762,8 +12203,11 @@ Formulário preenchido com o subagente recomendado!`);
 
             const rawProjects = (projectsInput?.value || "").trim();
             const projects = rawProjects ? rawProjects.split(",").map(p => p.trim()).filter(Boolean) : [];
-            const days = parseInt(daysInput?.value || "14", 10) || 14;
+            const days = parseInt(daysInput?.value || "30", 10) || 30;
             const driveFolder = (driveFolderInput?.value || "").trim();
+            const consultantEmail = (consultantInput?.value || "").trim();
+            const orgId = (orgIdInput?.value || "").trim();
+            const orgName = (orgNameInput?.value || "").trim();
 
             const btn = document.getElementById("btnSubmitOnboardClient");
             const originalHtml = btn ? btn.innerHTML : "";
@@ -11790,6 +12234,9 @@ Formulário preenchido com o subagente recomendado!`);
                         name: name,
                         projects: projects,
                         days: days,
+                        org_id: orgId || null,
+                        org_name: orgName || null,
+                        contact_email: consultantEmail || null,
                         drive_folder_id: driveFolder || null
                     })
                 });

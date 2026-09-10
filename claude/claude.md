@@ -2777,4 +2777,65 @@ During live QA security testing on the running Cloud Run service, four vulnerabi
   - Zero test failures, zero regressions.
 
 
+### Milestone 78: Client Onboarding Refactoring (Client-Side Bootstrap Script Generation, Organization-Level IAM Discovery, Load from TXT Workflow)
+
+#### 1. Context & Objectives
+- Modernize and refactor the Client Onboarding flow to empower consultants to deliver a ready-to-run onboarding script directly to the client's engineering or cloud security team.
+- Ensure the client runs the script locally in their environment (e.g., Google Cloud Shell / Bash with `gcloud` CLI) with strictly **Read-Only / Viewer** permissions (`roles/viewer`, `roles/iam.securityReviewer`, `roles/resourcemanager.organizationViewer`) under the Principle of Least Privilege (no write or delete permissions).
+- The script automatically detects Organization-level metadata (`org_id`, `org_name`), lists active projects, assigns least-privilege IAM roles to the consultant / service account, and generates a structured configuration file (`grc_onboarding_config.txt`).
+- The client returns this `.txt` configuration file to the consultant.
+- The consultant loads the `.txt` file into the Agentic GRC Portal via the enhanced "Load from TXT" feature, which parses all organizational and project parameters, auto-populates the onboarding modal, and provisions the client workspace with cryptographic identity integrity.
+
+#### 2. Key Changes & Architecture
+
+##### A. Onboarding Bootstrap Script (`scripts/onboard_client.sh`)
+- Enforces strict Read-Only / Viewer least-privilege permissions:
+  - `roles/viewer`: Broad read-only inspection of GCP project resources.
+  - `roles/iam.securityReviewer`: Security and IAM policy auditing.
+  - `roles/resourcemanager.organizationViewer`: Organization hierarchy and metadata reading.
+- CLI flags:
+  - `--consultant <email>` (or `-c`): Target consultant user or service account identity.
+  - `--output <path>` (or `-o`): Path for the generated configuration output file (defaults to `grc_onboarding_config.txt`).
+  - `--client <name>`: Client or company display name.
+  - `--days <n>`: Access duration in days.
+- Organization & Project Discovery:
+  - Automatically queries `gcloud organizations list` to resolve Organization ID and Display Name.
+  - Discovers all active projects under the organization (`gcloud projects list --filter='parent.id=... AND lifecycleState=ACTIVE'`).
+  - Automatically binds the organization-level viewer roles if an organization is present, or falls back to project-level bindings if run within a standalone project.
+- Structured Output File Generation:
+  - Writes `cloud_provider = gcp`, `client_name = ...`, `org_id = ...`, `org_name = ...`, `projects = ...`, `access_days = ...`, `auditor_identity = ...`, `generated_at = ...` to `${OUTPUT_FILE}`.
+- Terminal Guidance:
+  - Displays explicit instructions to the client operator: *"Salve o arquivo de saída gerado (${OUTPUT_FILE}) e envie-o de volta ao consultor."*
+
+##### B. Backend TXT Parser Expansion (`mcp_server_grc/portal.py`)
+- Enhanced `parse_onboard_txt_content`:
+  - Added support for new organizational and multi-cloud keys: `cloud_provider`, `org_id`, `org_name`, `auditor_identity`, `consultant_identity`, `contact_email`, `generated_at`, alongside existing `client_name`, `company_name`, `projects`, `gcp_projects`, `aws_accounts`, `azure_subscriptions`, `access_days`, `days`, `validity_days`, `drive_folder`, `drive_folder_id`.
+  - Maintained strict 10 KB file size limit and deep magic bytes content-sniffing against binary executables, media, archives, NULL bytes, shebangs, active HTML, and SVG files.
+  - Non-destructive parsing: skips comments (`#`) and unrecognized keys gracefully.
+
+##### C. Frontend Onboarding Modal UI & Script Generator (`mcp_server_grc/portal_html.py`)
+- Replaced the legacy Command/PDF option with an interactive, copyable, and downloadable script generator.
+- Added Multi-Cloud Provider tabs:
+  - **GCP (Cloud Shell / Bash)**: Fully functional organization-level `onboard_client.sh` script dynamically interpolated with the consultant identity, client name, and duration.
+  - **AWS (CLI / CloudShell)**: Modular read-only STS/IAM audit policy and resource discovery template for AWS Organizations.
+  - **Azure (CLI / Cloud Shell)**: Modular read-only Role Assignment and subscription discovery template for Azure Management Groups.
+- Added Action Buttons:
+  - **Copiar Script**: Copies the dynamically generated script to the clipboard with visual toast feedback.
+  - **Baixar (.sh)**: Downloads the script as `onboard_client_gcp.sh` directly to the consultant's machine.
+- Streamlined "Load from TXT" workflow:
+  - Drag-and-drop or file selector parses the client-provided `grc_onboarding_config.txt`.
+  - Auto-fills Company Name, Consultant Email, Organization ID/Name, Discovered Projects, and Access Duration.
+  - Updates the script preview and status indicators in real time.
+- Preserved legacy anchor elements and test expectations (`scripts/onboard_client.sh`, `roles/viewer`, `roles/securityReviewer` in `#onboardCommandPreview`).
+- Complete I18N support across Portuguese (`pt`), English (`en`), and Spanish (`es`).
+
+#### 3. Automated Verification & Quality Assurance
+- Added unit test in `tests/test_portal.py`:
+  - `test_parse_onboard_txt_content_organization_level_bootstrap_script_output`: Validates end-to-end parsing of the structured `.txt` generated by the organization-level `onboard_client.sh`.
+- Regression testing:
+  - `tests/test_client_isolation.py`: Verified client workspace isolation and onboarding modal markup checks pass cleanly.
+  - Full suite execution: `uv run pytest` -> **222 passed, 0 failures (100% pass rate)**.
+
+
+
 

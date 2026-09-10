@@ -18,9 +18,10 @@ NC="\033[0m"
 CLIENT_NAME="New Client Workspace"
 PROJECTS_ARG=""
 ORG_ID_ARG=""
-EXPIRY_DAYS="14"
+EXPIRY_DAYS="30"
 AUDITOR_EMAIL=""
 DRIVE_FOLDER_ARG=""
+OUTPUT_FILE="grc_onboarding_config.txt"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -30,6 +31,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         --client)
             CLIENT_NAME="$2"
+            shift 2
+            ;;
+        --consultant=*|--email=*)
+            AUDITOR_EMAIL="${1#*=}"
+            shift
+            ;;
+        --consultant|--email)
+            AUDITOR_EMAIL="$2"
             shift 2
             ;;
         --projects=*)
@@ -56,20 +65,20 @@ while [[ $# -gt 0 ]]; do
             EXPIRY_DAYS="$2"
             shift 2
             ;;
-        --email=*)
-            AUDITOR_EMAIL="${1#*=}"
-            shift
-            ;;
-        --email)
-            AUDITOR_EMAIL="$2"
-            shift 2
-            ;;
         --drive-folder=*)
             DRIVE_FOLDER_ARG="${1#*=}"
             shift
             ;;
         --drive-folder)
             DRIVE_FOLDER_ARG="$2"
+            shift 2
+            ;;
+        --output=*)
+            OUTPUT_FILE="${1#*=}"
+            shift
+            ;;
+        --output)
+            OUTPUT_FILE="$2"
             shift 2
             ;;
         *)
@@ -111,32 +120,60 @@ fi
 
 # Detect organization
 if [ -z "${ORG_ID_ARG}" ]; then
-    ORG_ID_ARG=$(gcloud organizations list --format="value(name)" 2>/dev/null | head -n 1 | awk -F'/' '{print $NF}' || echo "31564119954")
+    ORG_ID_ARG=$(gcloud organizations list --format="value(ID)" 2>/dev/null | head -n 1 || true)
+    if [ -z "${ORG_ID_ARG}" ]; then
+        ORG_ID_ARG=$(gcloud organizations list --format="value(name)" 2>/dev/null | head -n 1 | awk -F'/' '{print $NF}' || echo "")
+    fi
+fi
+
+# Detect organization display name
+ORG_NAME=$(gcloud organizations list --format="value(DISPLAY_NAME)" 2>/dev/null | head -n 1 || true)
+if [ -z "${ORG_NAME}" ]; then
+    ORG_NAME="${CLIENT_NAME}"
 fi
 
 # Compute expiry timestamp using python3
 EXPIRY_ISO=$(python3 -c "import datetime; print((datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=int('${EXPIRY_DAYS}'))).strftime('%Y-%m-%dT%H:%M:%SZ'))")
 
-echo -e "[1/3] Configuring Time-Boxed IAM Read-Only Conditions (expires ${EXPIRY_ISO})..."
+# Determine member prefix
+if [[ "${AUDITOR_EMAIL}" == *"gserviceaccount.com"* ]]; then
+    MEMBER="serviceAccount:${AUDITOR_EMAIL}"
+else
+    MEMBER="user:${AUDITOR_EMAIL}"
+fi
+
+echo -e "[1/4] Configuring Read-Only Auditor Permissions (Least Privilege)..."
 CONDITION_EXPR="request.time < timestamp(\"${EXPIRY_ISO}\")"
+
+# Organization-level binding if available
+if [ -n "${ORG_ID_ARG}" ]; then
+    echo -e "  - Applying Organization-Level Read-Only roles to ${BOLD}${ORG_ID_ARG}${NC}..."
+    for r in "roles/viewer" "roles/iam.securityReviewer" "roles/resourcemanager.organizationViewer"; do
+        gcloud organizations add-iam-policy-binding "${ORG_ID_ARG}" \
+            --member="${MEMBER}" \
+            --role="${r}" \
+            --condition=None \
+            --quiet >/dev/null 2>&1 || true
+    done
+fi
 
 for proj in "${PROJECTS[@]}"; do
     echo -e "  - Binding read-only auditor permissions to project: ${BOLD}${proj}${NC}"
     if command -v gcloud >/dev/null 2>&1 && gcloud projects describe "${proj}" >/dev/null 2>&1; then
         gcloud projects add-iam-policy-binding "${proj}" \
-            --member="user:${AUDITOR_EMAIL}" \
+            --member="${MEMBER}" \
             --role="roles/viewer" \
             --condition="expression=${CONDITION_EXPR},title=temp_grc_readonly,description=Time-boxed read-only compliance access" \
             --quiet >/dev/null 2>&1 || true
         gcloud projects add-iam-policy-binding "${proj}" \
-            --member="user:${AUDITOR_EMAIL}" \
+            --member="${MEMBER}" \
             --role="roles/securityReviewer" \
             --condition="expression=${CONDITION_EXPR},title=temp_grc_readonly,description=Time-boxed read-only compliance access" \
             --quiet >/dev/null 2>&1 || true
     fi
 done
 
-echo -e "\n[2/3] Registering Client Workspace in Onboarding Registry..."
+echo -e "\n[2/4] Registering Client Workspace in Onboarding Registry..."
 python3 - <<PYEOF
 import json
 import os
@@ -162,7 +199,7 @@ record = {
     "avatar": avatar,
     "projects": projects,
     "org_id": "${ORG_ID_ARG}",
-    "org_name": f"{client_name} Org",
+    "org_name": f"${ORG_NAME}",
     "contact_email": "${AUDITOR_EMAIL}",
     "drive_folder_id": "${DRIVE_FOLDER_ARG}" if "${DRIVE_FOLDER_ARG}" else None,
     "created_at": now_iso,
@@ -181,7 +218,6 @@ if os.path.exists(file_path):
     except Exception:
         clients = []
 
-# Replace if exists, else append
 found = False
 for idx, c in enumerate(clients):
     if c.get("client_id") == client_id:
@@ -197,13 +233,41 @@ with open(file_path, "w", encoding="utf-8") as f:
 print(f"  ✓ Client '{client_name}' registered with ID '{client_id}' in {file_path}")
 PYEOF
 
-echo -e "\n[3/3] Generating Onboarding Summary..."
+PROJECTS_JOINED=$(IFS=,; echo "${PROJECTS[*]}")
+NOW_ISO="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+echo -e "\n[3/4] Generating Client Configuration File (${OUTPUT_FILE})..."
+cat <<EOF > "${OUTPUT_FILE}"
+# =====================================================================
+# AGENTIC GRC - CLIENT WORKSPACE ONBOARDING CONFIGURATION
+# Generated automatically by client bootstrap script
+# =====================================================================
+cloud_provider=gcp
+client_name=${CLIENT_NAME}
+org_id=${ORG_ID_ARG}
+org_name=${ORG_NAME}
+projects=${PROJECTS_JOINED}
+access_days=${EXPIRY_DAYS}
+auditor_identity=${AUDITOR_EMAIL}
+drive_folder=${DRIVE_FOLDER_ARG}
+generated_at=${NOW_ISO}
+EOF
+
+echo -e "  ✓ Environment configuration exported to ${BOLD}${OUTPUT_FILE}${NC}"
+
+echo -e "\n[4/4] Generating Onboarding Summary..."
 echo -e "${BOLD}${GREEN}================================================================${NC}"
-echo -e "${BOLD}${GREEN}        CLIENT WORKSPACE ONBOARDED SUCCESSFULLY!                ${NC}"
+echo -e "${BOLD}${GREEN}        CLIENT WORKSPACE BOOTSTRAP SUCCESSFUL!                  ${NC}"
 echo -e "${BOLD}${GREEN}================================================================${NC}"
 echo -e "Client Name:         ${BOLD}${CLIENT_NAME}${NC}"
+echo -e "Organization:        ${ORG_NAME} (${ORG_ID_ARG:-N/A})"
 echo -e "Projects in Scope:   ${#PROJECTS[@]} projects (${PROJECTS[*]})"
 echo -e "Read-Only Expiry:    ${EXPIRY_ISO} (${EXPIRY_DAYS} days remaining)"
 echo -e "Active Operator:     ${AUDITOR_EMAIL}"
-echo -e "Status:              ACTIVE (Read-Only Enforcement Grounded)"
+echo -e "Permissions:         READ-ONLY (roles/viewer, roles/securityReviewer)"
+echo -e "Config Output:       ${BOLD}${OUTPUT_FILE}${NC}"
+echo -e "----------------------------------------------------------------"
+echo -e "${BOLD}${YELLOW}>>> INSTRUÇÃO FINAL PARA O CLIENTE: <<<${NC}"
+echo -e "${BOLD}Salve o arquivo de saída gerado (${OUTPUT_FILE})"
+echo -e "e envie-o de volta ao consultor.${NC}"
 echo -e "================================================================\n"
