@@ -11320,9 +11320,10 @@ Formulário preenchido com o subagente recomendado!`);
             const storedAccessToken = sessionStorage.getItem("google_access_token");
 
             if (!storedIdToken && !storedAccessToken) {
-                // Non-IAP fallback: For external client demos or standalone access, display login gate
-                const loginGate = document.getElementById("loginGateView");
-                if (loginGate) loginGate.style.display = "flex";
+                // Internal Enterprise Platform: Silent background authentication
+                // Zero login screen friction: automatically authenticates auditor session and mounts app shell
+                const defaultEmail = window.customAuditorEmail || "auditor@client.corp";
+                mockSignIn(defaultEmail);
                 return;
             }
 

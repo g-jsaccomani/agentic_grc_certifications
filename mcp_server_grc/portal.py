@@ -4076,4 +4076,11 @@ def serve_portal(
         html = html.replace('clientId: "agentic-grc-portal.apps.googleusercontent.com"', f'clientId: "{client_id}"')
     if workspace_domain != "client.corp":
         html = html.replace('expectedDomain: "client.corp"', f'expectedDomain: "{workspace_domain}"')
-    return HTMLResponse(content=html)
+    return HTMLResponse(
+        content=html,
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
