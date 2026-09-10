@@ -11,20 +11,20 @@
 
 ## 1. Executive Overview for Cloud Security Consultants
 
-In regulatory compliance audits against international standards (ISO/IEC 27001, SOC 2, PCI-DSS), **tolerance for hallucinations, fabricated evidence, or false statements is zero**. A single inaccurate assertion—such as declaring a control compliant without telemetry, or asserting that a standard mandates disabling security controls—invalidates the audit's credibility before accredited certification bodies (BSI, DNV, Bureau Veritas, Schellman) and external auditors (Big 4).
+In regulatory compliance assessments against international standards (ISO/IEC 27001, SOC 2, PCI-DSS), **tolerance for hallucinations, fabricated evidence, or false statements is zero**. A single inaccurate assertion—such as declaring a control compliant without telemetry, or asserting that a standard mandates disabling security controls—invalidates the audit's credibility before accredited certification bodies (BSI, DNV, Bureau Veritas, Schellman) and external certification bodies (Big 4).
 
 To guarantee strict normative integrity, this platform implements the **Iron Triangle of Agentic Safety**:
 
 ```mermaid
 graph TD
-    User([User / External Auditor / Adversary]) -->|Prompt Ingress| MA[Model Armor Gateway]
+    User([User / External Assessor / Adversary]) -->|Prompt Ingress| MA[Model Armor Gateway]
     subgraph Iron Triangle [Agent Security Perimeter]
         MA -->|Sanitized Ingress| GW[Agent Gateway - SPIFFE ID]
         GW -->|Grounded Prompt| Vertex[Vertex AI - Gemini 2.5 Pro / Flash]
         Vertex -->|Context Inference| EG[Evidence Graph SHA-256 DAG]
         Vertex -->|Raw Completion| MA_Egress[Model Armor Egress Filter]
     end
-    MA_Egress -->|Sanitized & Audited Output| ClientUI([Web Portal / API Response])
+    MA_Egress -->|Sanitized & Assessed Output| ClientUI([Web Portal / API Response])
     MA -.->|Jailbreak / Injection Attempt| BlockAlert[Immediate HTTP 200 Interception BLOCKED]
 ```
 
@@ -94,7 +94,7 @@ curl -s -X POST "http://localhost:8080/api/chat" \
 **Expected Response**:
 ```json
 {
-  "response": "Model Armor Security Interception\n\n- Status: `BLOCKED_BY_MODEL_ARMOR`\n- Detection: Prompt injection, jailbreak or system override pattern intercepted by Model Armor.\n\nPolicy Enforcement Notice:\nAs an autonomous Lead GRC Auditor operating on the Gemini Enterprise Agent Platform (GEAP), this agent is cryptographically bound to ISO/IEC 27001:2022 standards and corporate security policies. Requests attempting Prompt Injection, System Overrides, Jailbreaks, or forcing false compliance statements (such as asserting that firewalls or encryption must be disabled) are strictly blocked at the security perimeter.",
+  "response": "Model Armor Security Interception\n\n- Status: `BLOCKED_BY_MODEL_ARMOR`\n- Detection: Prompt injection, jailbreak or system override pattern intercepted by Model Armor.\n\nPolicy Enforcement Notice:\nAs an autonomous Compliance & Security Advisor operating on the Gemini Enterprise Agent Platform (GEAP), this agent is cryptographically bound to ISO/IEC 27001:2022 standards and corporate security policies. Requests attempting Prompt Injection, System Overrides, Jailbreaks, or forcing false compliance statements (such as asserting that firewalls or encryption must be disabled) are strictly blocked at the security perimeter.",
   "status": "BLOCKED_BY_MODEL_ARMOR",
   "violations": [
     "Prompt injection, jailbreak or system override pattern intercepted by Model Armor."

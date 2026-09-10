@@ -69,13 +69,13 @@ sequenceDiagram
     Admin->>TF: Run bootstrap (CLI, Cloud Shell, or Terraform)
     TF->>GCP: Create Folder (fldr-agentic-grc) & Host Project
     TF->>GCP: Enable 16 APIs (Cloud Run, Model Armor, SCC, Asset Inventory)
-    TF->>GCP: Create sa-agentic-grc-auditor Service Account
+    TF->>GCP: Create sa-agentic-grc-advisor Service Account
     TF->>GCP: Bind Org-Level Read Roles (cloudasset.viewer, securityReviewer)
     TF-->>Admin: Outputs PROJECT_ID (agentic-grc-xxxx)
 
     Note over Deployer,CR: Phase 2: Application Build & Automated Journey
     Deployer->>GCP: gcloud auth login & set PROJECT_ID
-    Deployer->>Build: make journey (runs 69 tests & builds container)
+    Deployer->>Build: make journey (runs 223 tests & builds container)
     Build->>CR: Deploy container to Cloud Run (us-central1)
     CR->>CR: Run live API smoke test verification
     CR-->>Client: Live HTTPS Portal (https://<RUN_URL>/portal)
@@ -104,7 +104,7 @@ The client or organization administrator runs the Terraform bootstrap located in
    - `artifactregistry.googleapis.com` (Container Registry)
    - `cloudbuild.googleapis.com` (Build Automation)
    - `iam.googleapis.com`, `cloudresourcemanager.googleapis.com`, `serviceusage.googleapis.com`, `logging.googleapis.com`, `monitoring.googleapis.com`
-5. **Auditor Identity**: Service Account `sa-agentic-grc-auditor@<PROJECT_ID>.iam.gserviceaccount.com`.
+5. **Advisor Identity**: Service Account `sa-agentic-grc-advisor@<PROJECT_ID>.iam.gserviceaccount.com`.
 6. **Organization-Level Read-Only IAM Bindings**:
    - `roles/cloudasset.viewer`: Real-time inspection of cloud resources across all projects.
    - `roles/browser`: Organizational hierarchy navigation.
@@ -316,10 +316,10 @@ gcloud logging read \
   --limit=30
 ```
 
-### Verify Organization-Level Auditor IAM Bindings
+### Verify Organization-Level Advisor IAM Bindings
 ```bash
 gcloud organizations get-iam-policy "<ORGANIZATION_ID>" \
-  --filter="bindings.members:sa-agentic-grc-auditor"
+  --filter="bindings.members:sa-agentic-grc-advisor"
 ```
 
 ### Verify Project Deployer Permissions

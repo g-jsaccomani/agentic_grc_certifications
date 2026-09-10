@@ -35,7 +35,7 @@ Agentic GRC Platform (Continuous & Cryptographically Proven)
                                                                                            ▼
                                                                            [ Real-Time 93-Control Matrix ]
                                                                            [ Prescriptive Remediation Guidance ]
-                                                                           [ Instant Auditor Dossier Export ]
+                                                                           [ Instant Compliance Dossier Export ]
 ```
 
 ---
@@ -70,7 +70,7 @@ The platform is designed around the **Iron Triangle of Agentic Safety**:
 ```mermaid
 graph TB
     subgraph "External Access & Client Perimeter"
-        User["Authorized Auditor / CISO\n(@client.corp via Google Workspace)"]
+        User["Authorized Compliance Officer / CISO\n(@client.corp via Google Workspace)"]
         BrowserUI["Zero-Trust Web Portal\n(Tailwind CSS • Responsive SPA)"]
     end
 
@@ -84,10 +84,10 @@ graph TB
         MCP["Model Context Protocol (MCP) Server\n(6 Standardized Security Tools)"]
         
         subgraph "Autonomous Multi-Agent Orchestrator"
-            LeadAuditor["Lead Auditor Agent\n(Annex A ISO 27001 Coordinator)"]
-            TechAuditor["Technical Telemetry Auditor\n(GCP Cloud Inspector)"]
-            FinOpsAuditor["FinOps Auditor\n(Context Caching & ROI)"]
-            HorizonAuditor["Horizon Scanner\n(Threat Intel & Amd 1:2024 Climate)"]
+            LeadAdvisor["Lead Compliance Advisor Agent\n(Annex A ISO 27001 Coordinator)"]
+            TechReviewer["Technical Telemetry Reviewer\n(GCP Cloud Inspector)"]
+            FinOpsAdvisor["FinOps Advisor\n(Context Caching & ROI)"]
+            HorizonAdvisor["Horizon Scanner\n(Threat Intel & Amd 1:2024 Climate)"]
         end
 
         subgraph "Continuous Intelligence (CI) Engine"
@@ -112,22 +112,22 @@ graph TB
     OAuth --> ModelArmor
     ModelArmor --> FastAPI
     FastAPI --> MCP
-    MCP --> LeadAuditor
-    LeadAuditor --> TechAuditor
-    LeadAuditor --> FinOpsAuditor
-    LeadAuditor --> HorizonAuditor
+    MCP --> LeadAdvisor
+    LeadAdvisor --> TechReviewer
+    LeadAdvisor --> FinOpsAdvisor
+    LeadAdvisor --> HorizonAdvisor
 
-    TechAuditor --> CAI
-    TechAuditor --> Storage
-    TechAuditor --> KMS
-    TechAuditor --> Compute
-    TechAuditor --> IAM
-    TechAuditor --> SCC
+    TechReviewer --> CAI
+    TechReviewer --> Storage
+    TechReviewer --> KMS
+    TechReviewer --> Compute
+    TechReviewer --> IAM
+    TechReviewer --> SCC
 
-    TechAuditor --> EvidenceGraph
+    TechReviewer --> EvidenceGraph
     EvidenceGraph --> Questionnaire
     RemediationAdvisor -.->|Prescriptive Recommendations (Read-Only)| User
-    LeadAuditor --> VertexAI
+    LeadAdvisor --> VertexAI
 ```
 
 ### 3.2 Core Architectural Modules
@@ -171,9 +171,9 @@ The audit workflow is divided into four sequential phases, modeling the exact me
 journey
     title 4-Phase Autonomous ISO 27001 Audit Pipeline
     section Phase 1: Document Triage
-      Upload & parse policies: 5: Lead Auditor
-      Evaluate Statement of Applicability (SoA): 5: Lead Auditor
-      Map 93 controls to scope: 5: Lead Auditor
+      Upload & parse policies: 5: Lead Compliance Advisor
+      Evaluate Statement of Applicability (SoA): 5: Lead Compliance Advisor
+      Map 93 controls to scope: 5: Lead Compliance Advisor
     section Phase 2: Technical Telemetry
       Scan Cloud Storage (UBLA, PAP, CMEK): 5: Technical Auditor
       Scan Cloud KMS (HSM, 90-day rotation): 5: Technical Auditor
@@ -186,7 +186,7 @@ journey
     section Phase 4: Formal Opinion & Sealing
       Calculate global compliance score: 5: Continuous Intelligence
       Seal evidence graph with SHA-256: 5: Continuous Intelligence
-      Generate Executive Dossier & Technical Report: 5: Lead Auditor
+      Generate Executive Dossier & Technical Report: 5: Lead Compliance Advisor
 ```
 
 | Phase | Name | Scope & Actions | Output |
@@ -332,7 +332,7 @@ graph TD
     Root --> Node2
     Root --> Node3
     
-    Attestation["Auditor Attestation Receipt\nRoot Merkle Hash: 4a8e91c..."]
+    Attestation["Assessment Attestation Receipt\nRoot Merkle Hash: 4a8e91c..."]
     Node1 --> Attestation
     Node2 --> Attestation
     Node3 --> Attestation

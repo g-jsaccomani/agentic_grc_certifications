@@ -55,10 +55,10 @@ The documentation is organized into dedicated, comprehensive guides:
 
 | Document | Description | Target Audience |
 | :--- | :--- | :--- |
-| **[`POC_DOCUMENT.md`](./POC_DOCUMENT.md)** | **Complete POC Specification**: Business problem, objectives, success criteria, technical architecture, phased audit scope, the 9 baseline non-conformances, and safety guardrails. | CISO, Lead Auditors, Enterprise Architects, Security Leadership |
+| **[`POC_DOCUMENT.md`](./POC_DOCUMENT.md)** | **Complete POC Specification**: Business problem, objectives, success criteria, technical architecture, phased audit scope, the 9 baseline non-conformances, and safety guardrails. | CISO, Lead Compliance Advisors, Enterprise Architects, Security Leadership |
 | **[`HOW_TO.md`](./HOW_TO.md)** | **Product Implementation & GCP Deployment Guide**: Automated one-line Cloud Shell bootstrap (`curl ... \| bash`), resource provisioning (Folder, Project, 16 APIs, IAM, Service Account), user access setup, and Cloud Run deployment. | DevOps Engineers, Cloud Platform Admins, Security Architects |
 | **[`ENVIRONMENT_SETUP.md`](./ENVIRONMENT_SETUP.md)** | **Infrastructure & Deployment Guide**: Step-by-step GCP project provisioning, IAM permissions, Cloud Run deployment, Google Workspace OAuth 2.0 configuration, and local setup. | DevOps Engineers, Cloud Platform Admins, Security Engineers |
-| **[`TESTING_AND_VERIFICATION.md`](./TESTING_AND_VERIFICATION.md)** | **Quality Assurance & Verification**: Full test suite overview (184 automated tests), automated verification scripts (`verify_poc_environment.py`), API verification commands (`curl`), and teardown procedures. | QA Engineers, Internal Auditors, Technical Reviewers |
+| **[`TESTING_AND_VERIFICATION.md`](./TESTING_AND_VERIFICATION.md)** | **Quality Assurance & Verification**: Full test suite overview (223 automated tests), automated verification scripts (`verify_poc_environment.py`), API verification commands (`curl`), and teardown procedures. | QA Engineers, Internal Reviewers, Technical Reviewers |
 | **[`scripts/`](./scripts/)** | **POC Automation & Verification Scripts**: Standalone audit scripts (`verify_poc_environment.py`, `poc_live_audit.py`, `cleanup_poc_resources.sh`, `smoke_test.py`). | Engineers, Presenters, Auditors |
 
 ---

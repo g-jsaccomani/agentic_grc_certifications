@@ -5,6 +5,11 @@
 > **Platform**: Gemini Enterprise Agent Platform (GEAP) & Google Cloud Run  
 > **Language**: English
 
+> [!IMPORTANT]
+> **Legal & Compliance Disclaimer**:
+> **Google Cloud does not conduct formal audits or issue compliance certifications.**  
+> The Agentic Compliance Readiness Accelerator is an advisory, assessment, and evidence readiness framework. It automates technical evidence collection, analyzes security configurations, and identifies posture gaps to assist organizations in preparing for independent, accredited third-party certification audits.
+
 ---
 
 ## 1. Documentation Organization
@@ -15,7 +20,7 @@ All documentation, architecture specifications, deployment guides, proof-of-conc
 | :--- | :--- | :--- | :--- |
 | **[`blueprint/`](./blueprint/)** | **Architecture Blueprint** | Complete technical architecture, multi-agent orchestration specifications, Zero-Trust boundaries, SPIFFE identities, and data flows. | Enterprise Architects, Lead Engineers |
 | **[`guardrails/`](./guardrails/)** | **Model Armor & Guardrails** | Ingress/egress perimeter defense, prompt injection prevention, PII redaction, anti-hallucination directives, and red-team test matrix. | Security Engineers, Compliance Officers |
-| **[`poc/`](./poc/)** | **Proof of Concept (POC)** | Complete customer demonstration package: technical specification, 7-scene presentation runbook, setup guide, testing recipes, and runner scripts. | Solution Architects, Sales Engineers, Auditors |
+| **[`poc/`](./poc/)** | **Proof of Concept (POC)** | Complete customer demonstration package: technical specification, 7-scene presentation runbook, setup guide, testing recipes, and runner scripts. | Solution Architects, Sales Engineers, Compliance Reviewers |
 | **[`operations/`](./operations/)** | **Operations & Deployment** | Two-phase enterprise deployment guide: Terraform identity bootstrap, Google Workspace OAuth 2.0, Cloud Run hosting, and monitoring. | DevOps Engineers, Platform Administrators |
 | **[`roadmap/`](./roadmap/)** | **Strategic Roadmap** | Multi-framework expansion (SOC 2 Type II, PCI-DSS v4.0, NIST CSF), multi-cloud telemetry (AWS, Azure, OCI), and automated code remediation. | Product Managers, CISOs, Engineering Leads |
 | **[`build/`](./build/)** | **Build & Automation** | Developer workflow shortcuts, Makefile targets, testing commands, and local virtual environment setup. | Software Engineers, QA Engineers |
@@ -28,14 +33,39 @@ All documentation, architecture specifications, deployment guides, proof-of-conc
    Compliance states are evaluated by deterministic Python collectors querying live Google Cloud APIs, not by generative model assumption.
 2. **Iron Triangle of Agentic Safety**:
    Every operation is bound by verifiable SPIFFE identities, Model Armor perimeter filtering, and an epistemic Directed Acyclic Graph (DAG) sealed with SHA-256 hashes.
-3. **Continuous Compliance vs. Point-in-Time Audits**:
-   Transforms periodic compliance into real-time posture awareness, automatically updating the 93 ISO 27001 controls and detecting configuration drift.
+3. **Continuous Compliance Readiness vs. Point-in-Time Audits**:
+   Transforms periodic reviews into real-time posture awareness, automatically updating the 93 ISO 27001 controls and detecting configuration drift.
 4. **Prescriptive Remediation Guidance (Zero-Mutation Guardrail)**:
    The platform identifies findings and generates exact remediation recommendations (CLI commands and Terraform configuration changes); it never executes mutations against client environments. Production changes remain strictly with client platform teams.
 
 ---
 
-## 3. Quick Navigation
+## 3. Client Onboarding & Deployment Architectures
+
+The platform supports two complementary operational models:
+- **Model 1: Central Advisor Hub (Default / SaaS Mode)**:
+  - Zero infrastructure deployed to the client organization.
+  - The client Organization Administrator runs `gcp_onboard_bootstrap.sh` in Google Cloud Shell.
+  - Automatically traverses the entire organization hierarchy (all folders and projects) using Cloud Asset Inventory.
+  - Grants strictly **Read-Only** assessment permissions (`roles/viewer`, `roles/iam.securityReviewer`, `roles/resourcemanager.organizationViewer`).
+  - Exports `grc_onboarding_config.txt`, loaded directly into the portal via **Load from TXT**.
+- **Model 2: Dedicated Single-Tenant In-Client Deployment (Self-Hosted)**:
+  - Provisioned via Terraform (`terraform/first_steps/`) and automated deployment (`make journey`).
+  - Creates a dedicated folder and project (`grc-compliance-core`), service accounts, KMS keys, Firestore database, and Cloud Run service within the customer's cloud organization.
+
+---
+
+## 4. Test Suite & Verification (223 Tests, 100% Pass Rate)
+
+The platform is continuously validated across 223 automated unit and integration tests covering multi-agent orchestration, client workspace isolation, Model Armor guardrails, Zero-Copy evidence grounding, and FinOps telemetry:
+```bash
+uv run pytest
+# Output: 223 passed in ~11s
+```
+
+---
+
+## 5. Quick Navigation
 
 - **For Product Implementation & Deployment**: Follow the **[Product Implementation Guide](./poc/HOW_TO.md)**.
 - **For Infrastructure Provisioning**: Follow the **[Operations Guide](./operations/README.md)**.

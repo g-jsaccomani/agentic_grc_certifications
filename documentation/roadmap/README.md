@@ -101,7 +101,7 @@ Transforms the audit engine into an enterprise multi-normative platform with evi
 | Initiative / Pillar | Estimated Completion | Status & Scope Gap Analysis (Real vs. Missing) |
 | :--- | :---: | :--- |
 | **Foundation (ISO 27001 / GCP)** | **90%** | Live Cloud KMS, Cloud Storage, IAM, and Cloud Run security inspections are fully implemented; live Firewall and Compute Engine deep inspection remain pending. |
-| **Pillar 1 (Questionnaires & Evidence)** | **90%** | Interactive 93-control questionnaire, drag-and-drop evidence uploads, SHA-256 graph anchoring, and AI consistency analysis are operational; formal report Methodology and Auditor Responsibility sections remain pending. |
+| **Pillar 1 (Questionnaires & Evidence)** | **90%** | Interactive 93-control questionnaire, drag-and-drop evidence uploads, SHA-256 graph anchoring, and AI consistency analysis are operational; formal report Methodology and Assessment Responsibility sections remain pending. |
 | **Pillar 2 (Multi-Cloud Connectors)** | **5%** | OIDC federation architecture and control abstraction schemas are specified, but zero real connectors for AWS, Azure, or OCI are implemented. |
 | **Pillar 3 (Multi-Framework Expansion)** | **15%** | A pilot SOC 2 catalog covering 5 controls is implemented; no catalogs currently exist for PCI-DSS, NIST CSF 2.0, or GDPR/LGPD. |
 

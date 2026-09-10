@@ -3,7 +3,7 @@
 
 > **Document Version**: 1.0.0  
 > **Status**: Production Ready  
-> **Target Audience**: QA Engineers, Internal Auditors, Security Reviewers, Technical Evaluators  
+> **Target Audience**: QA Engineers, Internal Reviewers, Security Reviewers, Technical Evaluators  
 > **Platform**: Pytest • Google Cloud APIs • cURL • Python 3.12  
 > **Repository**: `https://github.com/g-jsaccomani/agentic_grc_certifications.git`  
 > **Language**: English
@@ -182,7 +182,7 @@ curl -s -X POST "${RUN_URL}/api/questionnaire/sync_scan" \
 }
 ```
 
-### 4.4 Test Conversational Auditor (Chat API)
+### 4.4 Test Compliance & Security Advisor (Chat API)
 ```bash
 curl -s -X POST "${RUN_URL}/api/chat" \
   -H "Content-Type: application/json" \
@@ -249,4 +249,4 @@ Preview resources that would be deleted without executing mutations:
 1. **10 GCS Buckets**: Empties and deletes demo storage buckets.
 2. **6 Compute Firewall Rules**: Removes demo ingress rules (`poc-fw-open-ssh-demo`, etc.).
 3. **6 Cloud KMS Key Versions**: Destroys version 1 of demo cryptographic keys.
-4. **2 Demo Service Accounts**: Deletes `poc-sa-reader` and `poc-sa-auditor`.
+4. **2 Demo Service Accounts**: Deletes `poc-sa-reader` and `poc-sa-reviewer`.

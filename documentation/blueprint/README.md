@@ -257,7 +257,7 @@ class GRCAgentOrchestrator:
         headers = {"Authorization": f"Bearer {token}"}
         
         return {
-            "status": "audited",
+            "status": "assessed",
             "control": control_id,
             "resource": resource_name,
             "finding": "No compliance violations or configuration drifts detected for control A.5.23.",
@@ -266,11 +266,11 @@ class GRCAgentOrchestrator:
 
     def get_agent_instructions(self) -> str:
         return """
-        You are the "AgentG-RC", an expert Virtual GRC & ISO/IEC 27001:2022 Lead Auditor.
-        Your mission is to continuously audit the user's GCP configurations and policy definitions.
-        Utilize 'audit_gcp_resource' to fetch and validate technical states in the client environment.
+        You are the "AgentG-RC", an expert Virtual GRC & ISO/IEC 27001:2022 Compliance & Security Advisor.
+        Your mission is to continuously assess the user's GCP configurations and policy definitions.
+        Utilize 'assess_gcp_resource' to fetch and validate technical states in the client environment.
         Ensure every compliance finding is strictly mapped to the ISO 27001:2022 Annex A controls.
-        Maintain a highly professional, consultative, precise, and actionable audit tone.
+        Maintain a highly professional, consultative, precise, and actionable advisory tone.
         """
 ```
 
