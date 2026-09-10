@@ -16,7 +16,7 @@ def test_portal_html_serving():
     res = client.get("/")
     assert res.status_code == 200
     assert "Gemini Enterprise Agent Platform" in res.text
-    assert "Chatbot Auditor" in res.text
+    assert "Compliance & Security Advisor" in res.text
     assert "frameworkSelectorBar" in res.text
     assert "ISO/IEC 27001:2022" in res.text
     assert "fwCardIso27001" in res.text
@@ -292,13 +292,13 @@ def test_individual_phases_and_remediation():
     assert res_p1.status_code == 200
     data_p1 = res_p1.json()
     assert len(data_p1["phases"]) == 1
-    assert data_p1["phases"][0]["phase"].startswith("Fase 1")
+    assert data_p1["phases"][0]["phase"].startswith(("Phase 1", "Fase 1"))
 
     # 2. Run single phase 2
     res_p2 = client.post("/api/audit/run_phases", json={"projects": ["agentic-grc-cd06"], "phase": 2}, headers=AUTH_HEADER)
     assert res_p2.status_code == 200
     assert len(res_p2.json()["phases"]) == 1
-    assert res_p2.json()["phases"][0]["phase"].startswith("Fase 2")
+    assert res_p2.json()["phases"][0]["phase"].startswith(("Phase 2", "Fase 2"))
 
     # 3. Remediate phase 2 (Prescriptive recommendations)
     res_rem = client.post("/api/audit/remediate_phase", json={"phase": 2, "project_id": "agentic-grc-cd06"}, headers=AUTH_HEADER)
@@ -512,7 +512,7 @@ def test_readonly_guardrails_no_fabricated_execution():
 def test_cloudstyle_html_report_export():
     res_html = client.get("/api/reports/export?format=html", headers=AUTH_HEADER)
     assert res_html.status_code == 200
-    assert "Continuous Compliance & Audit Dossier" in res_html.text
+    assert "Continuous Compliance & Assessment Dossier" in res_html.text
     assert "data:image/png;base64," in res_html.text
     assert "google-color-stripe-bar" in res_html.text
 
@@ -1018,15 +1018,15 @@ def test_enriched_report_templates_sections_and_taxonomy():
     assert "start" in data_exec["audited_period"]
     assert "end" in data_exec["audited_period"]
     assert "methodology" in data_exec
-    assert "auditoria foi conduzida através de metodologia híbrida contínua" in data_exec["methodology"]
+    assert "continuous hybrid methodology" in data_exec["methodology"]
     assert "auditor_responsibility" in data_exec
     assert "verified_machine_findings_count" in data_exec["auditor_responsibility"]
     assert "self_attested_findings_count" in data_exec["auditor_responsibility"]
     assert "statement" in data_exec["auditor_responsibility"]
     assert "finding_severity_taxonomy" in data_exec
-    assert "NÃO CONFORMIDADE MAIOR" in data_exec["finding_severity_taxonomy"]
-    assert "NÃO CONFORMIDADE MENOR" in data_exec["finding_severity_taxonomy"]
-    assert "OPORTUNIDADE DE MELHORIA" in data_exec["finding_severity_taxonomy"]
+    assert "NÃO CONFORMIDADE MAIOR" in data_exec["finding_severity_taxonomy"] or "MAJOR NON-CONFORMITY" in data_exec["finding_severity_taxonomy"]
+    assert "NÃO CONFORMIDADE MENOR" in data_exec["finding_severity_taxonomy"] or "MINOR NON-CONFORMITY" in data_exec["finding_severity_taxonomy"]
+    assert "OPORTUNIDADE DE MELHORIA" in data_exec["finding_severity_taxonomy"] or "OPPORTUNITY FOR IMPROVEMENT" in data_exec["finding_severity_taxonomy"]
 
     # 2. Technical JSON
     res_tech = client.get("/api/reports/technical?format=json", headers=AUTH_HEADER)
@@ -1038,7 +1038,7 @@ def test_enriched_report_templates_sections_and_taxonomy():
     assert "finding_severity_taxonomy" in data_tech
     for f in data_tech.get("non_compliant_findings", []):
         assert "taxonomy_severity" in f
-        assert f["taxonomy_severity"] in ("NÃO CONFORMIDADE MAIOR", "NÃO CONFORMIDADE MENOR")
+        assert f["taxonomy_severity"] in ("NÃO CONFORMIDADE MAIOR", "NÃO CONFORMIDADE MENOR", "MAJOR NON-CONFORMITY", "MINOR NON-CONFORMITY")
 
     # 3. Export JSON
     res_exp = client.get("/api/reports/export?format=json", headers=AUTH_HEADER)
@@ -1049,29 +1049,29 @@ def test_enriched_report_templates_sections_and_taxonomy():
     assert "auditor_responsibility" in data_exp
     assert "finding_severity_taxonomy" in data_exp
     for vm in data_exp.get("vm_fleet_audit", []):
-        assert vm.get("taxonomy_severity") == "NÃO CONFORMIDADE MAIOR"
+        assert vm.get("taxonomy_severity") in ("NÃO CONFORMIDADE MAIOR", "MAJOR NON-CONFORMITY")
 
     # 4. HTML Export
     res_html = client.get("/api/reports/export?format=html", headers=AUTH_HEADER)
     assert res_html.status_code == 200
     html_content = res_html.text
-    assert "Período Auditado" in html_content
-    assert "Metodologia de Auditoria" in html_content
-    assert "Declaração de Responsabilidade do Auditor" in html_content
-    assert "NÃO CONFORMIDADE MAIOR" in html_content
-    assert "NÃO CONFORMIDADE MENOR" in html_content
-    assert "OPORTUNIDADE DE MELHORIA" in html_content
+    assert "Evaluation Period" in html_content or "Período Auditado" in html_content
+    assert "Assessment Methodology" in html_content or "Metodologia de Auditoria" in html_content
+    assert "Assessment Scope & Responsibility Declaration" in html_content or "Declaração de Responsabilidade do Auditor" in html_content
+    assert "NÃO CONFORMIDADE MAIOR" in html_content or "MAJOR NON-CONFORMITY" in html_content
+    assert "NÃO CONFORMIDADE MENOR" in html_content or "MINOR NON-CONFORMITY" in html_content
+    assert "OPORTUNIDADE DE MELHORIA" in html_content or "OPPORTUNITY FOR IMPROVEMENT" in html_content
     assert "cloudstyle-badge-opportunity" in html_content
 
     # 5. Markdown Export
     res_md = client.get("/api/reports/export?format=markdown", headers=AUTH_HEADER)
     assert res_md.status_code == 200
     md_content = res_md.text
-    assert "**Período Auditado:**" in md_content
-    assert "## 2. Metodologia de Auditoria" in md_content
-    assert "## 3. Declaração de Responsabilidade do Auditor" in md_content
-    assert "## 4. Taxonomia de Severidade de Achados" in md_content
-    assert "**NÃO CONFORMIDADE MAIOR**" in md_content
+    assert "**Evaluation Period:**" in md_content or "**Período Auditado:**" in md_content
+    assert "## 2. Assessment Methodology" in md_content or "## 2. Metodologia de Auditoria" in md_content
+    assert "## 3. Assessment Scope & Responsibility Declaration" in md_content or "## 3. Declaração de Responsabilidade do Auditor" in md_content
+    assert "## 4. Finding Severity Taxonomy" in md_content or "## 4. Taxonomia de Severidade de Achados" in md_content
+    assert "MAJOR NON-CONFORMITY" in md_content or "NÃO CONFORMIDADE MAIOR" in md_content
 
 
 def test_chat_questionnaire_status_fallback_routing():
@@ -1473,6 +1473,7 @@ generated_at = 2026-09-10T12:00:00Z
         "org_name": "altostrat.com",
         "projects": "alto-prod-core, alto-data-lake, alto-sec-mgmt",
         "access_days": 45,
+        "consultant_identity": "consultant@altostrat.com",
         "auditor_identity": "consultant@altostrat.com",
         "contact_email": "consultant@altostrat.com",
         "generated_at": "2026-09-10T12:00:00Z",

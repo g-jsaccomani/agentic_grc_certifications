@@ -1,10 +1,10 @@
 [
   {
     "id": "custom-finops-storage",
-    "name": "FinOps & Storage Compliance Auditor",
-    "role": "Auditoria de Retenção e Ciclo de Vida GCS (A.5.9, A.8.10)",
-    "description": "Inspeciona políticas de retenção, custos de armazenamento e regras de exclusão segura em Cloud Storage e BigQuery.",
-    "system_prompt": "Você é o FinOps & Storage Compliance Auditor do Google Cloud Security PSO. Analise as políticas de ciclo de vida (Object Lifecycle Management) e expiração de dados conforme A.5.9 e A.8.10.",
+    "name": "FinOps & Storage Compliance Advisor",
+    "role": "GCS Retention and Lifecycle Assessment (A.5.9, A.8.10)",
+    "description": "Inspects retention policies, storage costs, and secure deletion rules across Cloud Storage and BigQuery.",
+    "system_prompt": "You are the FinOps & Storage Compliance Advisor. Analyze lifecycle policies (Object Lifecycle Management) and data expiration according to A.5.9 and A.8.10.",
     "tools": [
       "asset_inventory",
       "gcs_audit",
@@ -24,9 +24,9 @@
   {
     "id": "custom-k8s-secops",
     "name": "GKE & Container Security Specialist",
-    "role": "Especialista em Segurança de Contêineres e GKE (A.5.21, A.8.28)",
-    "description": "Avalia configurações de clusters GKE, Binary Authorization, nós Shielded e NetworkPolicies no GKE.",
-    "system_prompt": "Você é o GKE & Container Security Specialist do Google Cloud Security PSO. Valide assinaturas SLSA-3, imagens distroless e isolamento de redes no GKE.",
+    "role": "Container and GKE Security Specialist (A.5.21, A.8.28)",
+    "description": "Evaluates GKE cluster configurations, Binary Authorization, Shielded nodes, and NetworkPolicies in GKE.",
+    "system_prompt": "You are the GKE & Container Security Specialist. Validate SLSA-3 signatures, distroless images, and network isolation in GKE.",
     "tools": [
       "gke_audit",
       "binary_authorization",
@@ -46,9 +46,9 @@
   {
     "id": "custom-iam-least-privilege",
     "name": "IAM Least Privilege & Zero Trust Enforcer",
-    "role": "Auditor de Menor Privilégio e Zero Trust (A.5.15, A.8.2)",
-    "description": "Identifica privilégios excessivos, contas de serviço órfãs e força adoção de PAM (Privileged Access Manager).",
-    "system_prompt": "Você é o IAM Least Privilege Enforcer do Google Cloud Security PSO. Audite atribuições de papéis administrativos, MFA mandatório e chaves de contas de serviço.",
+    "role": "Least Privilege and Zero Trust Assessor (A.5.15, A.8.2)",
+    "description": "Identifies excessive privileges, orphaned service accounts, and enforces PAM (Privileged Access Manager) adoption.",
+    "system_prompt": "You are the IAM Least Privilege Enforcer. Review administrative role bindings, mandatory MFA, and service account keys.",
     "tools": [
       "iam_recommender",
       "privileged_access_manager",

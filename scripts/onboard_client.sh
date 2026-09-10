@@ -19,7 +19,7 @@ CLIENT_NAME="New Client Workspace"
 PROJECTS_ARG=""
 ORG_ID_ARG=""
 EXPIRY_DAYS="30"
-AUDITOR_EMAIL=""
+CONSULTANT_EMAIL=""
 DRIVE_FOLDER_ARG=""
 OUTPUT_FILE="grc_onboarding_config.txt"
 
@@ -34,11 +34,11 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --consultant=*|--email=*)
-            AUDITOR_EMAIL="${1#*=}"
+            CONSULTANT_EMAIL="${1#*=}"
             shift
             ;;
         --consultant|--email)
-            AUDITOR_EMAIL="$2"
+            CONSULTANT_EMAIL="$2"
             shift 2
             ;;
         --projects=*)
@@ -95,9 +95,9 @@ echo -e "Access Expiration:   ${EXPIRY_DAYS} days"
 echo -e "Access Type:         ${BOLD}READ-ONLY ONLY (roles/viewer, roles/securityReviewer)${NC}"
 echo -e "Security Mandate:    ${YELLOW}No service account used during live inspection has write permissions.${NC}\n"
 
-# Resolve auditor email if not passed
-if [ -z "${AUDITOR_EMAIL}" ]; then
-    AUDITOR_EMAIL=$(gcloud config get-value account 2>/dev/null || echo "auditor@client.corp")
+# Resolve consultant email if not passed
+if [ -z "${CONSULTANT_EMAIL}" ]; then
+    CONSULTANT_EMAIL=$(gcloud config get-value account 2>/dev/null || echo "consultant@client.corp")
 fi
 
 # Resolve projects list
@@ -136,13 +136,13 @@ fi
 EXPIRY_ISO=$(python3 -c "import datetime; print((datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=int('${EXPIRY_DAYS}'))).strftime('%Y-%m-%dT%H:%M:%SZ'))")
 
 # Determine member prefix
-if [[ "${AUDITOR_EMAIL}" == *"gserviceaccount.com"* ]]; then
-    MEMBER="serviceAccount:${AUDITOR_EMAIL}"
+if [[ "${CONSULTANT_EMAIL}" == *"gserviceaccount.com"* ]]; then
+    MEMBER="serviceAccount:${CONSULTANT_EMAIL}"
 else
-    MEMBER="user:${AUDITOR_EMAIL}"
+    MEMBER="user:${CONSULTANT_EMAIL}"
 fi
 
-echo -e "[1/4] Configuring Read-Only Auditor Permissions (Least Privilege)..."
+echo -e "[1/4] Configuring Read-Only Assessment Permissions (Least Privilege)..."
 CONDITION_EXPR="request.time < timestamp(\"${EXPIRY_ISO}\")"
 
 # Organization-level binding if available
@@ -158,7 +158,7 @@ if [ -n "${ORG_ID_ARG}" ]; then
 fi
 
 for proj in "${PROJECTS[@]}"; do
-    echo -e "  - Binding read-only auditor permissions to project: ${BOLD}${proj}${NC}"
+    echo -e "  - Binding read-only assessment permissions to project: ${BOLD}${proj}${NC}"
     if command -v gcloud >/dev/null 2>&1 && gcloud projects describe "${proj}" >/dev/null 2>&1; then
         gcloud projects add-iam-policy-binding "${proj}" \
             --member="${MEMBER}" \
@@ -200,7 +200,7 @@ record = {
     "projects": projects,
     "org_id": "${ORG_ID_ARG}",
     "org_name": f"${ORG_NAME}",
-    "contact_email": "${AUDITOR_EMAIL}",
+    "contact_email": "${CONSULTANT_EMAIL}",
     "drive_folder_id": "${DRIVE_FOLDER_ARG}" if "${DRIVE_FOLDER_ARG}" else None,
     "created_at": now_iso,
     "read_only_access_expires_at": "${EXPIRY_ISO}",
@@ -248,7 +248,8 @@ org_id=${ORG_ID_ARG}
 org_name=${ORG_NAME}
 projects=${PROJECTS_JOINED}
 access_days=${EXPIRY_DAYS}
-auditor_identity=${AUDITOR_EMAIL}
+consultant_identity=${CONSULTANT_EMAIL}
+auditor_identity=${CONSULTANT_EMAIL}
 drive_folder=${DRIVE_FOLDER_ARG}
 generated_at=${NOW_ISO}
 EOF
@@ -263,11 +264,11 @@ echo -e "Client Name:         ${BOLD}${CLIENT_NAME}${NC}"
 echo -e "Organization:        ${ORG_NAME} (${ORG_ID_ARG:-N/A})"
 echo -e "Projects in Scope:   ${#PROJECTS[@]} projects (${PROJECTS[*]})"
 echo -e "Read-Only Expiry:    ${EXPIRY_ISO} (${EXPIRY_DAYS} days remaining)"
-echo -e "Active Operator:     ${AUDITOR_EMAIL}"
+echo -e "Active Operator:     ${CONSULTANT_EMAIL}"
 echo -e "Permissions:         READ-ONLY (roles/viewer, roles/securityReviewer)"
 echo -e "Config Output:       ${BOLD}${OUTPUT_FILE}${NC}"
 echo -e "----------------------------------------------------------------"
-echo -e "${BOLD}${YELLOW}>>> INSTRUÇÃO FINAL PARA O CLIENTE: <<<${NC}"
-echo -e "${BOLD}Salve o arquivo de saída gerado (${OUTPUT_FILE})"
-echo -e "e envie-o de volta ao consultor.${NC}"
+echo -e "${BOLD}${YELLOW}>>> FINAL INSTRUCTION FOR CLIENT: <<<${NC}"
+echo -e "${BOLD}Save the generated output file (${OUTPUT_FILE})"
+echo -e "and send it back to the consultant.${NC}"
 echo -e "================================================================\n"

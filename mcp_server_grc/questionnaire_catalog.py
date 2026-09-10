@@ -1,4 +1,4 @@
-"""Multilingual Questionnaire Catalog with Comprehensive Audit Questions and Evidence Guidance.
+"""Multilingual Questionnaire Catalog with Comprehensive Assessment Questions and Evidence Guidance.
 Provides detailed question formulation, regulatory descriptions, and evidence checklists
 for all 93 ISO/IEC 27001:2022 Annex A controls and SOC 2 Trust Services Criteria across PT, EN, and ES.
 """
@@ -71,7 +71,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade, Disponibilidade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Resource Manager Organization Policies & Zero-Copy Drive',
-        'how_to_check': '1. Auditar repositório de políticas corporativas sincronizado via Zero-Copy (Google Drive).\n'
+        'how_to_check': '1. Inspecionar repositório de políticas corporativas sincronizado via Zero-Copy (Google Drive).\n'
                         '2. Checar Organization Policies ativas via: `gcloud resource-manager org-policies list`.\n'
                         '3. Validar assinaturas e carimbo temporal de aprovação da diretoria.',
         'how_to_maintain': '1. Revisão semestral automatizada com alertas via Cloud Scheduler.\n'
@@ -144,11 +144,11 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
         'gcp_mapping': 'Cloud IAM Roles & Cloud Identity Groups',
         'how_to_check': '1. Inspecionar atribuições de papéis IAM no GCP via: `gcloud projects get-iam-policy '
                         'PROJECT_ID`.\n'
-                        '2. Verificar segregação de Security Admin, Network Admin e Auditor.\n'
+                        '2. Verificar segregação de Security Admin, Network Admin e Reviewer.\n'
                         '3. Checar vínculo de papéis corporativos em grupos do Google Workspace.',
         'how_to_maintain': '1. Manter RBAC centralizado em grupos do Cloud Identity/Workspace, proibindo concessão '
                            'direta a usuários individuais.\n'
-                           '2. Executar auditoria de privilégios com IAM Recommender mensalmente.',
+                           '2. Executar revisão de privilégios com IAM Recommender mensalmente.',
         'id': 'A.5.2',
         'severity': 'HIGH',
         'soa_status': 'APLICÁVEL (INCLUÍDO NO SGSI)',
@@ -185,7 +185,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -204,7 +204,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -260,7 +260,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -279,7 +279,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -294,7 +294,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
         'gcp_mapping': 'Executive GRC Dashboard & Security Scorecards',
         'how_to_check': '1. Verificar atas de reunião de gestão e relatórios de conformidade assinados pela '
                         'liderança.\n'
-                        '2. Auditar trilhas de aprovação executiva no canal de GRC.',
+                        '2. Inspecionar trilhas de aprovação executiva no canal de GRC.',
         'how_to_maintain': '1. Estabelecer revisões trimestrais obrigatórias da postura de segurança entre CISO e '
                            'gestores de engenharia.\n'
                            '2. Integrar metas de segurança (SLOs) no plano de desempenho das equipes.',
@@ -334,7 +334,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -353,7 +353,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -407,7 +407,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -426,7 +426,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -479,7 +479,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -498,7 +498,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -555,7 +555,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -574,7 +574,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -587,7 +587,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Enterprise Landing Zone Architecture & Cloud Build Gates',
-        'how_to_check': '1. Auditar se novos projetos no GCP passam por gate de revisão de arquitetura de segurança '
+        'how_to_check': '1. Inspecionar se novos projetos no GCP passam por gate de revisão de arquitetura de segurança '
                         'antes do provisionamento.\n'
                         '2. Validar questionário de segurança e modelo de ameaças (Threat Model) em projetos críticos.',
         'how_to_maintain': '1. Integrar checklist automatizado de segurança em templates do Jira e Cloud Build.\n'
@@ -626,7 +626,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -643,7 +643,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -697,7 +697,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -716,7 +716,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -730,7 +730,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'type': 'Preventivo'},
         'gcp_mapping': 'BeyondCorp Endpoint Verification & Google Workspace Policies',
         'how_to_check': '1. Inspecionar o termo de uso aceitável de ativos assinado por colaboradores e prestadores.\n'
-                        '2. Auditar regras de bloqueio de navegação e transferência de dados em endpoints BeyondCorp.',
+                        '2. Inspecionar regras de bloqueio de navegação e transferência de dados em endpoints BeyondCorp.',
         'how_to_maintain': '1. Revisão e aceite digital periódico do termo de uso no onboarding e anualmente.\n'
                            '2. Monitoramento de desvios através de telemetria de endpoint e Cloud Identity.',
         'id': 'A.5.10',
@@ -767,7 +767,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -786,7 +786,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -799,7 +799,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Disponibilidade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Cloud Identity Deprovisioning & MDM Wipe',
-        'how_to_check': '1. Auditar fluxo de offboarding: verificar devolução de hardware e revogação de licenças '
+        'how_to_check': '1. Inspecionar fluxo de offboarding: verificar devolução de hardware e revogação de licenças '
                         'corporativas em até 24 horas.\n'
                         '2. Validar protocolo de desassociação de certificados e dispositivos corporativos.',
         'how_to_maintain': '1. Automatizar bloqueio de conta e revogação de tokens de acesso via integração HRIS '
@@ -839,7 +839,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -858,7 +858,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -914,7 +914,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -933,7 +933,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -988,7 +988,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -1007,7 +1007,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -1022,7 +1022,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
         'gcp_mapping': 'SSL Policies & VPC Service Controls Egress Rules',
         'how_to_check': '1. Validar que canais de transferência utilizam TLS 1.3 obrigatório e certificados '
                         'gerenciados.\n'
-                        '2. Auditar se canais de egresso de dados são protegidos por VPC Service Controls para evitar '
+                        '2. Inspecionar se canais de egresso de dados são protegidos por VPC Service Controls para evitar '
                         'exfiltração.',
         'how_to_maintain': '1. Bloquear tráfego HTTP desprotegido em Cloud Load Balancers com SSL Policies modernas '
                            '(MODERN / RESTRICTED).\n'
@@ -1062,7 +1062,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -1081,7 +1081,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -1094,7 +1094,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Cloud IAM Policy & BeyondCorp Context-Aware Access',
-        'how_to_check': '1. Auditar política corporativa de controle de acesso (Need-to-Know e Menor Privilégio).\n'
+        'how_to_check': '1. Inspecionar política corporativa de controle de acesso (Need-to-Know e Menor Privilégio).\n'
                         '2. Inspecionar se acessos administrativos a instâncias de produção exigem autenticação '
                         'centralizada e aprovada.',
         'how_to_maintain': '1. Impor autenticação context-aware (BeyondCorp) baseada em dispositivo, IP e localização '
@@ -1204,7 +1204,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -1223,7 +1223,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -1278,7 +1278,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -1297,7 +1297,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -1310,9 +1310,9 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade',
                           'type': 'Preventivo, Detectivo'},
         'gcp_mapping': 'IAM Recommender & Automated Access Revocation',
-        'how_to_check': '1. Inspecionar relatórios de auditoria de IAM Recommender para remoção de privilégios não '
+        'how_to_check': '1. Inspecionar relatórios de revisão de IAM Recommender para remoção de privilégios não '
                         'utilizados nos últimos 90 dias.\n'
-                        '2. Auditar permissões excessivas atribuídas a Service Accounts.',
+                        '2. Inspecionar permissões excessivas atribuídas a Service Accounts.',
         'how_to_maintain': '1. Automatizar aceitação de recomendações do IAM Recommender via Cloud Functions.\n'
                            '2. Proibir atribuição de `roles/editor` e `roles/owner` em ambientes de produção.',
         'id': 'A.5.18',
@@ -1351,7 +1351,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -1370,7 +1370,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -1423,7 +1423,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -1442,7 +1442,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -1455,8 +1455,8 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Supplier Security Addendum & Contractual SLA Repository',
-        'how_to_check': '1. Auditar cláusulas contratuais de segurança, SLAs de resposta a incidentes e direito de '
-                        'auditoria com provedores.\n'
+        'how_to_check': '1. Inspecionar cláusulas contratuais de segurança, SLAs de resposta a incidentes e direito de '
+                        'avaliação com provedores.\n'
                         '2. Verificar conformidade de cláusulas de proteção de dados (LGPD / GDPR).',
         'how_to_maintain': '1. Padronizar minutas contratuais de TI com revisão obrigatória do departamento de '
                            'Segurança e Jurídico.\n'
@@ -1497,7 +1497,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -1515,7 +1515,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -1528,7 +1528,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Integridade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Binary Authorization & Artifact Registry Vulnerability Scanning',
-        'how_to_check': '1. Auditar proveniência de contêineres e imagens de software no Artifact Registry.\n'
+        'how_to_check': '1. Inspecionar proveniência de contêineres e imagens de software no Artifact Registry.\n'
                         '2. Validar assinatura criptográfica de binários com Binary Authorization antes da implantação '
                         'no GKE.',
         'how_to_maintain': '1. Enforçar verificação de atestados SLSA (Supply-chain Levels for Software Artifacts) '
@@ -1571,7 +1571,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -1590,7 +1590,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -1605,7 +1605,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
         'gcp_mapping': 'Cloud Monitoring SLA Dashboards & Supplier Review',
         'how_to_check': '1. Inspecionar relatórios mensais de cumprimento de SLA e disponibilidade de serviços '
                         'terceirizados.\n'
-                        '2. Auditar alterações em serviços de terceiros integrados via APIs GCP.',
+                        '2. Inspecionar alterações em serviços de terceiros integrados via APIs GCP.',
         'how_to_maintain': '1. Revisão trimestral de desempenho de segurança dos fornecedores críticos.\n'
                            '2. Monitorar métricas de disponibilidade e latência via Cloud Monitoring com alertas de '
                            'desvio de SLA.',
@@ -1645,7 +1645,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -1664,7 +1664,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -1722,7 +1722,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -1741,7 +1741,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -1754,7 +1754,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade, Disponibilidade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Incident Response Playbooks & Cloud Incident Response Team',
-        'how_to_check': '1. Auditar plano formal de resposta a incidentes de segurança cibernética (IRP).\n'
+        'how_to_check': '1. Inspecionar plano formal de resposta a incidentes de segurança cibernética (IRP).\n'
                         '2. Verificar se o playbook de resposta a incidentes em nuvem cobre compromisso de chaves, '
                         'negação de serviço e vazamento de dados.',
         'how_to_maintain': '1. Atualizar contatos e playbooks semestralmente.\n'
@@ -1797,7 +1797,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -1817,7 +1817,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -1831,7 +1831,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'type': 'Detectivo'},
         'gcp_mapping': 'Security Command Center Findings & Chronicle SIEM Triaging',
         'how_to_check': '1. Inspecionar regras de correlação no Google Security Operations (Chronicle SIEM).\n'
-                        '2. Auditar a triagem e severidade de alertas gerados pelo Security Command Center (SCC).',
+                        '2. Inspecionar a triagem e severidade de alertas gerados pelo Security Command Center (SCC).',
         'how_to_maintain': '1. Integrar alertas automáticos do SCC com plataformas de ITSM (Jira / ServiceNow / '
                            'PagerDuty).\n'
                            '2. Monitorar tempo médio de triagem (MTTA) de eventos de segurança.',
@@ -1871,7 +1871,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -1890,7 +1890,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -1945,7 +1945,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -1964,7 +1964,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -2018,7 +2018,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -2037,7 +2037,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -2092,7 +2092,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -2111,7 +2111,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -2166,7 +2166,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -2185,7 +2185,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -2198,7 +2198,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Disponibilidade',
                           'type': 'Preventivo, Corretivo'},
         'gcp_mapping': 'Multiregion Cloud SQL / Spanner & Cloud DNS Failover',
-        'how_to_check': '1. Auditar arquitetura de alta disponibilidade: cargas de trabalho distribuídas em múltiplas '
+        'how_to_check': '1. Inspecionar arquitetura de alta disponibilidade: cargas de trabalho distribuídas em múltiplas '
                         'zonas e regiões GCP.\n'
                         '2. Checar relatórios de testes de failover e métricas de RTO/RPO alcançadas.',
         'how_to_maintain': '1. Automatizar testes semestrais de Disaster Recovery com comutação de tráfego via Cloud '
@@ -2239,7 +2239,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -2258,7 +2258,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -2311,7 +2311,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -2330,7 +2330,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -2386,7 +2386,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -2405,7 +2405,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -2418,7 +2418,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Integridade, Disponibilidade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'GCS Retention Policies & Immutable Object Versioning',
-        'how_to_check': '1. Auditar retenção de registros contábeis, logs fiscais e auditorias no Cloud Storage com '
+        'how_to_check': '1. Inspecionar retenção de registros contábeis, logs fiscais e avaliações no Cloud Storage com '
                         'Bucket Lock.\n'
                         '2. Validar controle de versão e proteção contra exclusão acidental.',
         'how_to_maintain': '1. Enforçar política de imutabilidade e retenção mínima de 5 anos para registros '
@@ -2459,7 +2459,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -2478,7 +2478,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -2491,7 +2491,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Sensitive Data Protection (Cloud DLP) & CMEK Encryption',
-        'how_to_check': '1. Auditar bases de dados contendo dados pessoais: verificar anonimização e criptografia em '
+        'how_to_check': '1. Inspecionar bases de dados contendo dados pessoais: verificar anonimização e criptografia em '
                         'repouso com CMEK.\n'
                         '2. Inspecionar relatórios de impacto à proteção de dados (RIPD / DPIA).',
         'how_to_maintain': '1. Implementar mascaramento automático de dados PII em tempo real com Sensitive Data '
@@ -2532,7 +2532,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -2551,7 +2551,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -2564,12 +2564,12 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade, Disponibilidade',
                           'type': 'Detectivo'},
         'gcp_mapping': 'Independent Audit Reports & External Penetration Testing',
-        'how_to_check': '1. Inspecionar relatórios de auditoria independente e testes de intrusão (pentest) externos '
+        'how_to_check': '1. Inspecionar relatórios de avaliação independente e testes de intrusão (pentest) externos '
                         'dos últimos 12 meses.\n'
-                        '2. Validar independência do auditor em relação à operação técnica auditada.',
-        'how_to_maintain': '1. Realizar auditorias independentes anuais e pentests externos antes de grandes '
+                        '2. Validar independência do avaliador em relação à operação técnica auditada.',
+        'how_to_maintain': '1. Realizar avaliações independentes anuais e pentests externos antes de grandes '
                            'lançamentos.\n'
-                           '2. Acompanhar a execução do plano de remediação de apontamentos de auditoria.',
+                           '2. Acompanhar a execução do plano de remediação de apontamentos de conformidade.',
         'id': 'A.5.35',
         'severity': 'HIGH',
         'soa_status': 'APLICÁVEL (INCLUÍDO NO SGSI)',
@@ -2605,7 +2605,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -2624,7 +2624,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -2637,7 +2637,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade',
                           'type': 'Detectivo'},
         'gcp_mapping': 'Security Health Analytics & Continuous Policy Scanner',
-        'how_to_check': '1. Auditar score contínuo de conformidade no Security Health Analytics do Google Cloud.\n'
+        'how_to_check': '1. Inspecionar score contínuo de conformidade no Security Health Analytics do Google Cloud.\n'
                         '2. Inspecionar desvios entre código Terraform e infraestrutura real no GCP.',
         'how_to_maintain': '1. Executar varreduras diárias automatizadas de conformidade com alertas no Slack/Chat.\n'
                            '2. Impedir merge de pull requests que introduzam desvios de conformidade.',
@@ -2677,7 +2677,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -2696,7 +2696,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -2750,7 +2750,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'y aprobados por la alta dirección.\n'
                                                               '2. Actas de reuniones del comité de seguridad de la '
                                                               'información y revisiones por la dirección.\n'
-                                                              '3. Informes de auditoría interna y exportación de '
+                                                              '3. Informes de evaluación interna y exportación de '
                                                               'Google Cloud Organization Policies (`gcloud '
                                                               'resource-manager org-policies list`).\n'
                                                               '4. Contratos de proveedores, acuerdos de nivel de '
@@ -2769,7 +2769,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'e aprovados pela Diretoria.\n'
                                                               '2. Atas de reunião do comitê de segurança da informação '
                                                               'e análises críticas da gestão.\n'
-                                                              '3. Relatórios de auditoria interna e registros de '
+                                                              '3. Relatórios de avaliação interna e registros de '
                                                               'conformidade do Google Cloud Organization Policies '
                                                               '(`gcloud resource-manager org-policies list`).\n'
                                                               '4. Contratos e acordos de nível de serviço (SLA/NDA) '
@@ -2782,7 +2782,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'HR Screening Workflow & Access Pre-requisite Gate',
-        'how_to_check': '1. Auditar processos de RH: checar relatórios de checagem de antecedentes para 100% dos '
+        'how_to_check': '1. Inspecionar processos de RH: checar relatórios de checagem de antecedentes para 100% dos '
                         'colaboradores e terceiros admitidos.\n'
                         '2. Verificar conformidade com legislações de privacidade no processo de triagem.',
         'how_to_maintain': '1. Integrar checklist de antecedentes no sistema de admissão de pessoal (HRIS).\n'
@@ -2925,7 +2925,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
         'gcp_mapping': 'Security Awareness LMS & Phishing Simulation Metrics',
         'how_to_check': '1. Inspecionar relatórios de conclusão de treinamentos de segurança da informação (taxa de '
                         'adesão > 95%).\n'
-                        '2. Auditar campanhas semestrais de phishing simulado e índices de cliques.',
+                        '2. Avaliar campanhas semestrais de phishing simulado e índices de cliques.',
         'how_to_maintain': '1. Treinamento mandatório anual de segurança para todos os colaboradores e na integração '
                            'de novos funcionários.\n'
                            '2. Treinamento especializado em DevSecOps e segurança em nuvem para equipes técnicas.',
@@ -2996,7 +2996,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'type': 'Corretivo'},
         'gcp_mapping': 'Disciplinary Policy & Ethics Committee Logs',
         'how_to_check': '1. Inspecionar processo disciplinar formal publicado e comunicado a todos os colaboradores.\n'
-                        '2. Auditar histórico de aplicações de sanções por incidentes provocados por dolo ou '
+                        '2. Inspecionar histórico de aplicações de sanções por incidentes provocados por dolo ou '
                         'negligência.',
         'how_to_maintain': '1. Garantir aplicação isonômica do processo disciplinar com acompanhamento do departamento '
                            'Jurídico e RH.\n'
@@ -3068,7 +3068,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
         'gcp_mapping': 'Offboarding Exit Checklist & Legal Non-Disclosure',
         'how_to_check': '1. Checar termos de encerramento contratual e lembretes de obrigações de sigilo e '
                         'não-concorrência pós-desligamento.\n'
-                        '2. Auditar se equipamentos e credenciais foram revogados antes do último dia útil.',
+                        '2. Inspecionar se equipamentos e credenciais foram revogados antes do último dia útil.',
         'how_to_maintain': '1. Formalizar termo de ciência das responsabilidades continuadas no processo de saída.\n'
                            '2. Monitorar tentativas de login ou exfiltração antes e após a notificação de '
                            'desligamento.',
@@ -3138,7 +3138,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Digital NDA Repository & Zero-Copy Validation',
-        'how_to_check': '1. Auditar registro de Termos de Confidencialidade (NDAs) assinados por 100% dos empregados e '
+        'how_to_check': '1. Inspecionar registro de Termos de Confidencialidade (NDAs) assinados por 100% dos empregados e '
                         'parceiros comerciais.\n'
                         '2. Validar data de validade dos NDAs e abrangência do escopo de dados protegidos.',
         'how_to_maintain': '1. Enforçar assinatura digital de NDA antes da concessão de qualquer credencial de acesso '
@@ -3284,7 +3284,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
         'gcp_mapping': 'Incident Reporting Hotlines & Phishing Alert Add-in',
         'how_to_check': '1. Inspecionar canal formal de reporte de incidentes e suspeitas de segurança (ex: botão de '
                         'reporte de phishing, canal SecOps).\n'
-                        '2. Auditar volume de reportes realizados por colaboradores e tempo de resposta do time de '
+                        '2. Avaliar volume de reportes realizados por colaboradores e tempo de resposta do time de '
                         'segurança.',
         'how_to_maintain': '1. Disponibilizar canal ágil e sem atrito para notificação de incidentes via Google Chat e '
                            'email dedicado.\n'
@@ -3357,7 +3357,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
         'gcp_mapping': 'Google Cloud SOC 2 Type II Reports & Physical Perimeter Controls',
         'how_to_check': '1. Inspecionar relatórios SOC 2 Tipo II do Google Cloud demonstrando perímetros de segurança '
                         'física multicamadas nos data centers que hospedam as regiões utilizadas (`us-central1`).\n'
-                        '2. Auditar perímetros de escritórios corporativos e salas de servidores locais.',
+                        '2. Inspecionar perímetros de escritórios corporativos e salas de servidores locais.',
         'how_to_maintain': '1. Revisar anualmente os relatórios de conformidade física dos data centers do provedor de '
                            'nuvem via Google Compliance Reports Manager.\n'
                            '2. Manter controle de perímetro nos escritórios da organização.',
@@ -3391,7 +3391,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': '¿Garantiza la organización que se definan y utilicen perímetros de '
                                                   'seguridad física para proteger áreas que contengan información y '
                                                   'activos asociados?',
-                                      'recommended_evidence': '1. Informes de auditoría independiente de centros de '
+                                      'recommended_evidence': '1. Informes de evaluación independiente de centros de '
                                                               'datos (Google Cloud SOC 2 / SOC 3 / Certificaciones ISO '
                                                               '27001).\n'
                                                               '2. Registros de control de acceso físico mediante '
@@ -3412,7 +3412,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': 'A organização garante que perímetros de segurança física sejam '
                                                   'definidos e usados para proteger áreas que contenham informações e '
                                                   'ativos de processamento?',
-                                      'recommended_evidence': '1. Relatórios de conformidade e auditoria independente '
+                                      'recommended_evidence': '1. Relatórios de conformidade e avaliação independente '
                                                               'de data centers (Google Cloud SOC 2 / SOC 3 / ISO 27001 '
                                                               'Audit Reports).\n'
                                                               '2. Registros de controle de acesso físico, crachás '
@@ -3431,7 +3431,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Data Center Physical Access Attestation & Office Badge Access',
-        'how_to_check': '1. Auditar controles de entrada física nos data centers GCP (autenticação biométrica, crachás '
+        'how_to_check': '1. Inspecionar controles de entrada física nos data centers GCP (autenticação biométrica, crachás '
                         'RFID, guardas 24/7).\n'
                         '2. Inspecionar registros de acesso e catracas nas instalações corporativas.',
         'how_to_maintain': '1. Revisão trimestral dos relatórios de conformidade física do Google Cloud.\n'
@@ -3467,7 +3467,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': '¿Garantiza la organización que las áreas seguras estén protegidas '
                                                   'por controles de acceso físico adecuados para garantizar que solo '
                                                   'el personal autorizado acceda?',
-                                      'recommended_evidence': '1. Informes de auditoría independiente de centros de '
+                                      'recommended_evidence': '1. Informes de evaluación independiente de centros de '
                                                               'datos (Google Cloud SOC 2 / SOC 3 / Certificaciones ISO '
                                                               '27001).\n'
                                                               '2. Registros de control de acceso físico mediante '
@@ -3488,7 +3488,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': 'A organização garante que áreas seguras sejam protegidas por '
                                                   'controles de entrada física adequados e autenticação para garantir '
                                                   'que apenas pessoal autorizado tenha acesso?',
-                                      'recommended_evidence': '1. Relatórios de conformidade e auditoria independente '
+                                      'recommended_evidence': '1. Relatórios de conformidade e avaliação independente '
                                                               'de data centers (Google Cloud SOC 2 / SOC 3 / ISO 27001 '
                                                               'Audit Reports).\n'
                                                               '2. Registros de controle de acesso físico, crachás '
@@ -3509,7 +3509,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
         'gcp_mapping': 'Facility Security Procedures & Restricted Room Access',
         'how_to_check': '1. Inspecionar projeto de segurança física das instalações e salas com equipamentos de rede.\n'
                         '2. Checar se salas técnicas permanecem trancadas e com acesso restrito a pessoas autorizadas.',
-        'how_to_maintain': '1. Auditoria semestral das fechaduras e alarmes das instalações corporativas.\n'
+        'how_to_maintain': '1. Inspeção semestral das fechaduras e alarmes das instalações corporativas.\n'
                            '2. Proibir acesso de visitantes sem acompanhamento às salas críticas.',
         'id': 'A.7.3',
         'severity': 'LOW',
@@ -3541,7 +3541,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': '¿Garantiza la organización que la seguridad física de oficinas, '
                                                   'salas e instalaciones esté diseñada y aplicada para evitar accesos '
                                                   'no autorizados y daños?',
-                                      'recommended_evidence': '1. Informes de auditoría independiente de centros de '
+                                      'recommended_evidence': '1. Informes de evaluación independiente de centros de '
                                                               'datos (Google Cloud SOC 2 / SOC 3 / Certificaciones ISO '
                                                               '27001).\n'
                                                               '2. Registros de control de acceso físico mediante '
@@ -3562,7 +3562,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': 'A organização garante que a segurança física para escritórios, '
                                                   'salas e instalações seja projetada e aplicada para prevenir acesso '
                                                   'não autorizado e danos?',
-                                      'recommended_evidence': '1. Relatórios de conformidade e auditoria independente '
+                                      'recommended_evidence': '1. Relatórios de conformidade e avaliação independente '
                                                               'de data centers (Google Cloud SOC 2 / SOC 3 / ISO 27001 '
                                                               'Audit Reports).\n'
                                                               '2. Registros de controle de acesso físico, crachás '
@@ -3584,7 +3584,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
         'how_to_check': '1. Validar monitoramento contínuo por CFTV com retenção de gravações em data centers GCP e '
                         'instalações corporativas.\n'
                         '2. Inspecionar alarmes de intrusão e sensores de presença ativos 24x7.',
-        'how_to_maintain': '1. Revisão anual dos relatórios de auditoria de monitoramento de data centers do Google '
+        'how_to_maintain': '1. Revisão anual dos relatórios de conformidade e monitoramento de data centers do Google '
                            'Cloud.\n'
                            '2. Testar mensalmente alarmes de intrusão nos escritórios corporativos.',
         'id': 'A.7.4',
@@ -3618,7 +3618,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': '¿Garantiza la organización que las instalaciones sean monitoreadas '
                                                   'continuamente mediante sistemas de videovigilancia y detección de '
                                                   'intrusos?',
-                                      'recommended_evidence': '1. Informes de auditoría independiente de centros de '
+                                      'recommended_evidence': '1. Informes de evaluación independiente de centros de '
                                                               'datos (Google Cloud SOC 2 / SOC 3 / Certificaciones ISO '
                                                               '27001).\n'
                                                               '2. Registros de control de acceso físico mediante '
@@ -3638,7 +3638,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': 'A organização garante que as instalações sejam continuamente '
                                                   'monitoradas por sistemas de vigilância, alarmes e detecção de '
                                                   'intrusão física?',
-                                      'recommended_evidence': '1. Relatórios de conformidade e auditoria independente '
+                                      'recommended_evidence': '1. Relatórios de conformidade e avaliação independente '
                                                               'de data centers (Google Cloud SOC 2 / SOC 3 / ISO 27001 '
                                                               'Audit Reports).\n'
                                                               '2. Registros de controle de acesso físico, crachás '
@@ -3657,7 +3657,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Disponibilidade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Environmental Controls Certification & Google Data Center Infrastructure',
-        'how_to_check': '1. Auditar sistemas de proteção contra incêndio (gás inerte), controle de temperatura/umidade '
+        'how_to_check': '1. Inspecionar sistemas de proteção contra incêndio (gás inerte), controle de temperatura/umidade '
                         'e sensores de inundação nos data centers utilizados.\n'
                         '2. Inspecionar geradores e no-breaks (UPS) redundantes.',
         'how_to_maintain': '1. Validar relatórios ISO 22301 e SOC 2 dos data centers do Google Cloud que garantem '
@@ -3693,7 +3693,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': '¿Garantiza la organización que se diseñe y aplique protección '
                                                   'contra amenazas físicas y desastres naturales (incendios, '
                                                   'inundaciones, sismos)?',
-                                      'recommended_evidence': '1. Informes de auditoría independiente de centros de '
+                                      'recommended_evidence': '1. Informes de evaluación independiente de centros de '
                                                               'datos (Google Cloud SOC 2 / SOC 3 / Certificaciones ISO '
                                                               '27001).\n'
                                                               '2. Registros de control de acceso físico mediante '
@@ -3714,7 +3714,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': 'A organização garante que proteção contra ameaças físicas e '
                                                   'desastres ambientais (incêndios, inundações, terremotos) seja '
                                                   'projetada e implementada?',
-                                      'recommended_evidence': '1. Relatórios de conformidade e auditoria independente '
+                                      'recommended_evidence': '1. Relatórios de conformidade e avaliação independente '
                                                               'de data centers (Google Cloud SOC 2 / SOC 3 / ISO 27001 '
                                                               'Audit Reports).\n'
                                                               '2. Registros de controle de acesso físico, crachás '
@@ -3735,7 +3735,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
         'gcp_mapping': 'Secure Area Protocols & Visitor Escort Policy',
         'how_to_check': '1. Inspecionar procedimentos operacionais em áreas seguras (proibição de câmeras e gravação '
                         'não autorizada).\n'
-                        '2. Auditar registros de entrada e saída em ambientes restritos.',
+                        '2. Inspecionar registros de entrada e saída em ambientes restritos.',
         'how_to_maintain': '1. Comunicar regras de conduta em áreas seguras a todos os envolvidos.\n'
                            '2. Conduzir inspeções visuais periódicas nas áreas restritas.',
         'id': 'A.7.6',
@@ -3769,7 +3769,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': '¿Garantiza la organización que se diseñen y apliquen medidas de '
                                                   'seguridad para el trabajo en áreas seguras, prohibiendo '
                                                   'dispositivos de grabación no autorizados?',
-                                      'recommended_evidence': '1. Informes de auditoría independiente de centros de '
+                                      'recommended_evidence': '1. Informes de evaluación independiente de centros de '
                                                               'datos (Google Cloud SOC 2 / SOC 3 / Certificaciones ISO '
                                                               '27001).\n'
                                                               '2. Registros de control de acceso físico mediante '
@@ -3790,7 +3790,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': 'A organização garante que medidas de segurança para trabalho em '
                                                   'áreas restritas sejam projetadas e aplicadas, proibindo '
                                                   'dispositivos de gravação não autorizados?',
-                                      'recommended_evidence': '1. Relatórios de conformidade e auditoria independente '
+                                      'recommended_evidence': '1. Relatórios de conformidade e avaliação independente '
                                                               'de data centers (Google Cloud SOC 2 / SOC 3 / ISO 27001 '
                                                               'Audit Reports).\n'
                                                               '2. Registros de controle de acesso físico, crachás '
@@ -3809,7 +3809,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Screen Lock MDM Policy & Clean Desk Audit',
-        'how_to_check': '1. Auditar política de mesa limpa e tela limpa: checar configuração de bloqueio de tela '
+        'how_to_check': '1. Inspecionar política de mesa limpa e tela limpa: checar configuração de bloqueio de tela '
                         'automático em computadores corporativos (máximo 5 minutos de inatividade).\n'
                         '2. Inspecionar se documentos físicos sensíveis são trancados em gavetas.',
         'how_to_maintain': '1. Enforçar bloqueio automático de tela e proteção de senha via política de MDM do Google '
@@ -3847,7 +3847,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': '¿Garantiza la organización que se definan y apliquen normas de '
                                                   'escritorio limpio para documentos y pantallas limpias para equipos '
                                                   'de procesamiento de información?',
-                                      'recommended_evidence': '1. Informes de auditoría independiente de centros de '
+                                      'recommended_evidence': '1. Informes de evaluación independiente de centros de '
                                                               'datos (Google Cloud SOC 2 / SOC 3 / Certificaciones ISO '
                                                               '27001).\n'
                                                               '2. Registros de control de acceso físico mediante '
@@ -3868,7 +3868,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': 'A organização garante que regras de mesa limpa para papéis e mídias '
                                                   'removíveis e regras de tela limpa para instalações de processamento '
                                                   'de informações sejam aplicadas?',
-                                      'recommended_evidence': '1. Relatórios de conformidade e auditoria independente '
+                                      'recommended_evidence': '1. Relatórios de conformidade e avaliação independente '
                                                               'de data centers (Google Cloud SOC 2 / SOC 3 / ISO 27001 '
                                                               'Audit Reports).\n'
                                                               '2. Registros de controle de acesso físico, crachás '
@@ -3887,7 +3887,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Disponibilidade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Infrastructure Siting Controls & Google Cloud Redundancy',
-        'how_to_check': '1. Auditar proteção de servidores e equipamentos de conectividade contra sobrecargas '
+        'how_to_check': '1. Inspecionar proteção de servidores e equipamentos de conectividade contra sobrecargas '
                         'elétricas e umidade.\n'
                         '2. Validar redundância de alimentação elétrica nas zonas de disponibilidade do Google Cloud.',
         'how_to_maintain': '1. Hospedar cargas de trabalho em regiões Google Cloud com infraestrutura de nível '
@@ -3924,7 +3924,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': '¿Garantiza la organización que los equipos estén ubicados y '
                                                   'protegidos para reducir los riesgos derivados de amenazas '
                                                   'ambientales y accesos no autorizados?',
-                                      'recommended_evidence': '1. Informes de auditoría independiente de centros de '
+                                      'recommended_evidence': '1. Informes de evaluación independiente de centros de '
                                                               'datos (Google Cloud SOC 2 / SOC 3 / Certificaciones ISO '
                                                               '27001).\n'
                                                               '2. Registros de control de acceso físico mediante '
@@ -3945,7 +3945,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': 'A organização garante que equipamentos sejam posicionados de forma '
                                                   'segura e protegidos para reduzir riscos ambientais e oportunidades '
                                                   'de acesso não autorizado?',
-                                      'recommended_evidence': '1. Relatórios de conformidade e auditoria independente '
+                                      'recommended_evidence': '1. Relatórios de conformidade e avaliação independente '
                                                               'de data centers (Google Cloud SOC 2 / SOC 3 / ISO 27001 '
                                                               'Audit Reports).\n'
                                                               '2. Registros de controle de acesso físico, crachás '
@@ -4001,7 +4001,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': '¿Garantiza la organización que los activos fuera de las '
                                                   'instalaciones estén protegidos teniendo en cuenta los riesgos de '
                                                   'trabajar fuera de la organización?',
-                                      'recommended_evidence': '1. Informes de auditoría independiente de centros de '
+                                      'recommended_evidence': '1. Informes de evaluación independiente de centros de '
                                                               'datos (Google Cloud SOC 2 / SOC 3 / Certificaciones ISO '
                                                               '27001).\n'
                                                               '2. Registros de control de acceso físico mediante '
@@ -4020,7 +4020,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'name': 'Segurança de ativos fora das instalações',
                                       'question': 'A organização garante que ativos fora das instalações corporativas '
                                                   'sejam protegidos contra roubo, perda ou comprometimento?',
-                                      'recommended_evidence': '1. Relatórios de conformidade e auditoria independente '
+                                      'recommended_evidence': '1. Relatórios de conformidade e avaliação independente '
                                                               'de data centers (Google Cloud SOC 2 / SOC 3 / ISO 27001 '
                                                               'Audit Reports).\n'
                                                               '2. Registros de controle de acesso físico, crachás '
@@ -4075,7 +4075,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': '¿Garantiza la organización que los medios de almacenamiento se '
                                                   'gestionen a lo largo de su ciclo de vida de adquisición, uso, '
                                                   'transporte y eliminación?',
-                                      'recommended_evidence': '1. Informes de auditoría independiente de centros de '
+                                      'recommended_evidence': '1. Informes de evaluación independiente de centros de '
                                                               'datos (Google Cloud SOC 2 / SOC 3 / Certificaciones ISO '
                                                               '27001).\n'
                                                               '2. Registros de control de acceso físico mediante '
@@ -4096,7 +4096,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': 'A organização garante que mídias de armazenamento sejam gerenciadas '
                                                   'ao longo de seu ciclo de vida de aquisição, uso, transporte e '
                                                   'descarte de acordo com a classificação?',
-                                      'recommended_evidence': '1. Relatórios de conformidade e auditoria independente '
+                                      'recommended_evidence': '1. Relatórios de conformidade e avaliação independente '
                                                               'de data centers (Google Cloud SOC 2 / SOC 3 / ISO 27001 '
                                                               'Audit Reports).\n'
                                                               '2. Registros de controle de acesso físico, crachás '
@@ -4152,7 +4152,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': '¿Garantiza la organización que las instalaciones de procesamiento '
                                                   'estén protegidas contra cortes de energía e interrupciones de '
                                                   'suministros esenciales?',
-                                      'recommended_evidence': '1. Informes de auditoría independiente de centros de '
+                                      'recommended_evidence': '1. Informes de evaluación independiente de centros de '
                                                               'datos (Google Cloud SOC 2 / SOC 3 / Certificaciones ISO '
                                                               '27001).\n'
                                                               '2. Registros de control de acceso físico mediante '
@@ -4173,7 +4173,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': 'A organização garante que instalações de processamento de '
                                                   'informações sejam protegidas contra falhas de energia e outras '
                                                   'interrupções de utilidades essenciais?',
-                                      'recommended_evidence': '1. Relatórios de conformidade e auditoria independente '
+                                      'recommended_evidence': '1. Relatórios de conformidade e avaliação independente '
                                                               'de data centers (Google Cloud SOC 2 / SOC 3 / ISO 27001 '
                                                               'Audit Reports).\n'
                                                               '2. Registros de controle de acesso físico, crachás '
@@ -4192,7 +4192,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Google Backbone Physical Encryption (MACsec) & Cable Trays',
-        'how_to_check': '1. Auditar infraestrutura de cabeamento de rede: canaletas protegidas e trancadas contra '
+        'how_to_check': '1. Inspecionar infraestrutura de cabeamento de rede: canaletas protegidas e trancadas contra '
                         'interceptação de cabos.\n'
                         '2. Validar que todo tráfego entre data centers do Google Cloud é criptografado '
                         'automaticamente na camada física (MACsec / PSP).',
@@ -4230,7 +4230,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': '¿Garantiza la organización que el cableado que transporta energía o '
                                                   'datos esté protegido contra interceptaciones, interferencias o '
                                                   'daños?',
-                                      'recommended_evidence': '1. Informes de auditoría independiente de centros de '
+                                      'recommended_evidence': '1. Informes de evaluación independiente de centros de '
                                                               'datos (Google Cloud SOC 2 / SOC 3 / Certificaciones ISO '
                                                               '27001).\n'
                                                               '2. Registros de control de acceso físico mediante '
@@ -4251,7 +4251,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': 'A organização garante que cabos de transmissão de dados e de '
                                                   'energia elétrica que transportam informações sejam protegidos '
                                                   'contra interceptação ou danos?',
-                                      'recommended_evidence': '1. Relatórios de conformidade e auditoria independente '
+                                      'recommended_evidence': '1. Relatórios de conformidade e avaliação independente '
                                                               'de data centers (Google Cloud SOC 2 / SOC 3 / ISO 27001 '
                                                               'Audit Reports).\n'
                                                               '2. Registros de controle de acesso físico, crachás '
@@ -4307,7 +4307,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': '¿Garantiza la organización que el equipamiento se mantenga '
                                                   'adecuadamente para asegurar su continua disponibilidad e integridad '
                                                   'conforme a las especificaciones?',
-                                      'recommended_evidence': '1. Informes de auditoría independiente de centros de '
+                                      'recommended_evidence': '1. Informes de evaluación independiente de centros de '
                                                               'datos (Google Cloud SOC 2 / SOC 3 / Certificaciones ISO '
                                                               '27001).\n'
                                                               '2. Registros de control de acceso físico mediante '
@@ -4328,7 +4328,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': 'A organização garante que equipamentos sejam mantidos corretamente '
                                                   'por pessoal qualificado para garantir sua disponibilidade e '
                                                   'integridade contínuas?',
-                                      'recommended_evidence': '1. Relatórios de conformidade e auditoria independente '
+                                      'recommended_evidence': '1. Relatórios de conformidade e avaliação independente '
                                                               'de data centers (Google Cloud SOC 2 / SOC 3 / ISO 27001 '
                                                               'Audit Reports).\n'
                                                               '2. Registros de controle de acesso físico, crachás '
@@ -4347,7 +4347,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Google Cloud NIST 800-88 Sanitization & Destruction Certificates',
-        'how_to_check': '1. Auditar certificação de descarte seguro do Google Cloud (trituração de discos e '
+        'how_to_check': '1. Inspecionar documentação de descarte seguro do Google Cloud (trituração de discos e '
                         'desmagnetização conforme NIST SP 800-88 R1).\n'
                         '2. Inspecionar certificados de destruição de hardware local emitidos por empresas '
                         'especializadas.',
@@ -4385,7 +4385,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': '¿Garantiza la organización que los equipos que contengan medios de '
                                                   'almacenamiento sean verificados para asegurar que los datos '
                                                   'confidenciales hayan sido destruidos?',
-                                      'recommended_evidence': '1. Informes de auditoría independiente de centros de '
+                                      'recommended_evidence': '1. Informes de evaluación independiente de centros de '
                                                               'datos (Google Cloud SOC 2 / SOC 3 / Certificaciones ISO '
                                                               '27001).\n'
                                                               '2. Registros de control de acceso físico mediante '
@@ -4406,7 +4406,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'question': 'A organização garante que itens de equipamento que contenham mídias '
                                                   'de armazenamento sejam verificados para assegurar que dados '
                                                   'confidenciais tenham sido sanitizados?',
-                                      'recommended_evidence': '1. Relatórios de conformidade e auditoria independente '
+                                      'recommended_evidence': '1. Relatórios de conformidade e avaliação independente '
                                                               'de data centers (Google Cloud SOC 2 / SOC 3 / ISO 27001 '
                                                               'Audit Reports).\n'
                                                               '2. Registros de controle de acesso físico, crachás '
@@ -4431,7 +4431,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                         'criptografado.',
         'how_to_maintain': '1. Bloquear requisições ao console e APIs do Google Cloud originadas de dispositivos não '
                            'conformes.\n'
-                           '2. Executar auditoria semanal do inventário de dispositivos no Google Admin Console.',
+                           '2. Executar revisão semanal do inventário de dispositivos no Google Admin Console.',
         'id': 'A.8.1',
         'severity': 'HIGH',
         'soa_status': 'APLICÁVEL (INCLUÍDO NO SGSI)',
@@ -4477,7 +4477,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -4500,7 +4500,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -4511,7 +4511,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade',
                           'type': 'Preventivo, Detectivo'},
         'gcp_mapping': 'Privileged Access Manager (PAM) & Just-In-Time Elevation',
-        'how_to_check': '1. Auditar contas com papéis administrativos no GCP '
+        'how_to_check': '1. Inspecionar contas com papéis administrativos no GCP '
                         '(`roles/resourcemanager.organizationAdmin`, `roles/owner`).\n'
                         '2. Checar se acessos com privilégios elevados utilizam concessão just-in-time via Privileged '
                         'Access Manager (PAM).',
@@ -4564,7 +4564,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -4587,7 +4587,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -4649,7 +4649,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -4672,7 +4672,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -4683,7 +4683,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Branch Protection Rules & Cloud Build Source Integrations',
-        'how_to_check': '1. Auditar permissões de acesso em repositórios de código (GitHub / Cloud Source Repositories '
+        'how_to_check': '1. Inspecionar permissões de acesso em repositórios de código (GitHub / Cloud Source Repositories '
                         '/ GitLab).\n'
                         '2. Checar exigência de MFA para desenvolvedores e proteção de branches principais (`main`, '
                         '`master`).',
@@ -4734,7 +4734,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -4757,7 +4757,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -4820,7 +4820,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -4843,7 +4843,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -4904,7 +4904,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -4927,7 +4927,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -4938,7 +4938,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Integridade, Disponibilidade',
                           'type': 'Preventivo, Detectivo'},
         'gcp_mapping': 'EDR Integration & Automated GCS Anti-Malware Pipeline',
-        'how_to_check': '1. Auditar proteção antimalware e EDR em máquinas virtuais Compute Engine e endpoints de '
+        'how_to_check': '1. Inspecionar proteção antimalware e EDR em máquinas virtuais Compute Engine e endpoints de '
                         'usuários.\n'
                         '2. Inspecionar varredura automática de malware em uploads de arquivos para buckets Cloud '
                         'Storage.',
@@ -4991,7 +4991,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -5014,7 +5014,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -5075,7 +5075,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -5098,7 +5098,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -5161,7 +5161,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -5184,7 +5184,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -5200,7 +5200,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                         '2. Validar expiração de partições e tabelas temporárias no BigQuery.',
         'how_to_maintain': '1. Enforçar regras de exclusão segura automática baseadas na sensibilidade e requisitos '
                            'regulatórios.\n'
-                           '2. Conduzir auditoria de limpeza de dados expirados semestralmente.',
+                           '2. Conduzir revisão de limpeza de dados expirados semestralmente.',
         'id': 'A.8.10',
         'severity': 'MEDIUM',
         'soa_status': 'APLICÁVEL (INCLUÍDO NO SGSI)',
@@ -5246,7 +5246,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -5269,7 +5269,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -5332,7 +5332,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -5355,7 +5355,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -5418,7 +5418,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -5441,7 +5441,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -5452,7 +5452,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Integridade, Disponibilidade',
                           'type': 'Preventivo, Corretivo'},
         'gcp_mapping': 'Cloud SQL Automated Backups & Cross-Region Snapshots',
-        'how_to_check': '1. Auditar agendamento de backups automáticos de bancos de dados Cloud SQL, Spanner e '
+        'how_to_check': '1. Inspecionar agendamento de backups automáticos de bancos de dados Cloud SQL, Spanner e '
                         'snapshots de Compute Engine.\n'
                         '2. Checar relatórios de testes periódicos de restauração de backup com validação de '
                         'integridade.',
@@ -5503,7 +5503,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -5526,7 +5526,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -5590,7 +5590,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -5613,7 +5613,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -5627,7 +5627,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
         'how_to_check': '1. Inspecionar se 100% dos serviços possuem Cloud Audit Logs ativados para Admin Read, Data '
                         'Read e Data Write.\n'
                         '2. Validar exportação de logs para bucket centralizado com Bucket Lock (WORM).',
-        'how_to_maintain': '1. Enforçar Organization Policy que impede desativação de auditoria de logs no Google '
+        'how_to_maintain': '1. Enforçar Organization Policy que impede desativação de Cloud Audit Logs no Google '
                            'Cloud.\n'
                            '2. Configurar alertas no Cloud Monitoring para exclusão de sinks ou modificação de filtros '
                            'de log.',
@@ -5661,11 +5661,11 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                       'theme_title': 'A.8 — Technological Controls'},
                             'es': {   'description': 'Requisito del control ISO/IEC 27001:2022 (A.8.15): Asegurar que '
                                                      'se generen, almacenen de forma segura y revisen registros de '
-                                                     'auditoría que documenten actividades, fallos y eventos de '
+                                                     'Cloud Audit Logs que documenten actividades, fallos y eventos de '
                                                      'seguridad.',
                                       'name': 'Registro de logs',
                                       'question': '¿Garantiza la organización que se generen, almacenen de forma '
-                                                  'segura y revisen registros de auditoría que documenten actividades, '
+                                                  'segura y revisen registros de Cloud Audit Logs que documenten actividades, '
                                                   'fallos y eventos de seguridad?',
                                       'recommended_evidence': '1. Exportación de políticas IAM (`gcloud projects '
                                                               'get-iam-policy`) con autenticación multifactor (MFA) '
@@ -5677,7 +5677,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -5700,7 +5700,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -5761,7 +5761,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -5784,7 +5784,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -5797,7 +5797,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
         'gcp_mapping': 'Google TrueTime API & Network Time Protocol (NTP)',
         'how_to_check': '1. Validar que todas as instâncias Compute Engine e nós de contêiner sincronizam com o '
                         'servidor NTP oficial do Google (`metadata.google.internal` / `time.google.com`).\n'
-                        '2. Checar consistência de timestamps nos logs de auditoria.',
+                        '2. Checar consistência de timestamps nos Cloud Audit Logs.',
         'how_to_maintain': '1. Enforçar configuração de NTP padrão via agente do SO e imagens base aprovadas.\n'
                            '2. Rejeitar logs com deriva temporal superior a 1 segundo.',
         'id': 'A.8.17',
@@ -5844,7 +5844,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -5867,7 +5867,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -5930,7 +5930,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -5953,7 +5953,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -5964,7 +5964,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Integridade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'VM Manager OS Config & Immutable Golden Images',
-        'how_to_check': '1. Auditar bloqueio de instalação de pacotes não autorizados em instâncias Compute Engine.\n'
+        'how_to_check': '1. Inspecionar bloqueio de instalação de pacotes não autorizados em instâncias Compute Engine.\n'
                         '2. Validar uso de VM Manager (OS Config) para gerenciar inventário e conformidade de pacotes.',
         'how_to_maintain': '1. Bloquear repositórios de pacotes externos não homologados via firewall e Cloud NAT.\n'
                            '2. Automatizar instalação exclusiva de software através de imagens douradas (Golden '
@@ -6014,7 +6014,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -6037,7 +6037,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -6098,7 +6098,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -6121,7 +6121,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -6132,7 +6132,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade, Disponibilidade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Cloud Interconnect & High-Availability Cloud VPN',
-        'how_to_check': '1. Auditar contratos e configurações de conexões corporativas dedicadas (Cloud Interconnect / '
+        'how_to_check': '1. Inspecionar contratos e configurações de conexões corporativas dedicadas (Cloud Interconnect / '
                         'Cloud VPN IPsec).\n'
                         '2. Validar criptografia de túneis VPN e autenticação mTLS em serviços expostos.',
         'how_to_maintain': '1. Enforçar criptografia AES-256 em todas as conexões VPN IPsec.\n'
@@ -6183,7 +6183,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -6206,7 +6206,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -6267,7 +6267,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -6290,7 +6290,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -6352,7 +6352,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -6375,7 +6375,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -6457,7 +6457,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Integridade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Cloud Build Secure CI/CD Pipeline & SAST/DAST Gates',
-        'how_to_check': '1. Auditar pipeline de CI/CD: checar presença de etapas de SAST, DAST, SCA e verificação de '
+        'how_to_check': '1. Inspecionar pipeline de CI/CD: checar presença de etapas de SAST, DAST, SCA e verificação de '
                         'segredos (Secret Scanning).\n'
                         '2. Inspecionar política de DevSecOps aprovada.',
         'how_to_maintain': '1. Integrar verificações de segurança obrigatórias no Cloud Build / GitHub Actions.\n'
@@ -6506,7 +6506,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -6529,7 +6529,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -6541,7 +6541,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'type': 'Preventivo'},
         'gcp_mapping': 'OWASP Application Security Baseline & Architecture Review',
         'how_to_check': '1. Inspecionar especificações funcionais e de arquitetura de software: validar presença de '
-                        'requisitos de autenticação, autorização e trilhas de auditoria.\n'
+                        'requisitos de autenticação, autorização e trilhas de rastreabilidade.\n'
                         '2. Checar conformidade com OWASP Top 10.',
         'how_to_maintain': '1. Realizar modelagem formal de ameaças (Threat Modeling) na fase de concepção de novos '
                            'sistemas.\n'
@@ -6591,7 +6591,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -6614,7 +6614,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -6625,7 +6625,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Confidencialidade, Integridade, Disponibilidade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Google Cloud Architecture Framework (Security Pillar) & Zero Trust',
-        'how_to_check': '1. Auditar projetos GCP contra princípios de arquitetura segura: Menor Privilégio, Defesa em '
+        'how_to_check': '1. Inspecionar projetos GCP contra princípios de arquitetura segura: Menor Privilégio, Defesa em '
                         'Profundidade e Falha Segura (Fail-Safe).\n'
                         '2. Validar arquitetura Zero Trust implementada.',
         'how_to_maintain': '1. Adotar os princípios do Google Cloud Architecture Framework (Security pillar).\n'
@@ -6675,7 +6675,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -6698,7 +6698,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -6830,7 +6830,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -6853,7 +6853,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -6864,7 +6864,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Integridade',
                           'type': 'Preventivo, Detectivo'},
         'gcp_mapping': 'Third-Party Code Quality Gate & SLA Enforcement',
-        'how_to_check': '1. Auditar conformidade de código produzido por empresas terceirizadas e consultorias de '
+        'how_to_check': '1. Inspecionar conformidade de código produzido por empresas terceirizadas e consultorias de '
                         'desenvolvimento.\n'
                         '2. Checar testes de segurança e validação de dependências antes da integração nos '
                         'repositórios internos.',
@@ -6917,7 +6917,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -6940,7 +6940,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -7003,7 +7003,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -7026,7 +7026,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -7037,7 +7037,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Integridade, Disponibilidade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'GitOps Change Management & Automated Rollback',
-        'how_to_check': '1. Auditar trilha de auditoria de mudanças: verificar aprovações em PRs de Terraform e '
+        'how_to_check': '1. Inspecionar trilha de rastreabilidade de mudanças: verificar aprovações em PRs de Terraform e '
                         'tíquetes de mudança (Change Requests) aprovados pelo CAB.\n'
                         '2. Checar logs de alterações na infraestrutura via Cloud Audit Logs.',
         'how_to_maintain': '1. Enforçar infraestrutura imutável e proibição de alterações manuais não rastreadas.\n'
@@ -7087,7 +7087,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -7110,7 +7110,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -7123,7 +7123,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
         'gcp_mapping': 'Synthetic Data Generators & Irreversible DLP Anonymization',
         'how_to_check': '1. Validar que dados de teste são gerados sinteticamente ou anonimizados/mascarados antes de '
                         'serem carregados em ambientes de teste.\n'
-                        '2. Auditar bancos de teste com Sensitive Data Protection (Cloud DLP).',
+                        '2. Inspecionar bancos de teste com Sensitive Data Protection (Cloud DLP).',
         'how_to_maintain': '1. Proibir cópia de bases de dados de produção para homologação sem processo prévio de '
                            'mascaramento irreversível.\n'
                            '2. Utilizar ferramentas de geração de dados sintéticos para testes de carga e QA.',
@@ -7173,7 +7173,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -7196,7 +7196,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -7207,7 +7207,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                           'properties': 'Integridade, Disponibilidade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Controlled Audit Windows & Test Isolation Protocols',
-        'how_to_check': '1. Inspecionar procedimentos de auditoria técnica e testes de estresse: validar agendamento '
+        'how_to_check': '1. Inspecionar procedimentos de avaliação técnica e testes de estresse: validar agendamento '
                         'prévio fora de horário de pico e janelas controladas.\n'
                         '2. Checar monitoramento em tempo real durante execuções de pentest para evitar '
                         'indisponibilidade.',
@@ -7261,7 +7261,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'innecesarias.\n'
                                                               '4. Informes recientes de escaneo de vulnerabilidades '
                                                               '(SAST/DAST) y pruebas de penetración (pentest).\n'
-                                                              '5. Registros de auditoría centralizados en Cloud '
+                                                              '5. Registros de Cloud Audit Logs centralizados en Cloud '
                                                               'Logging / SIEM con política de retención de al menos '
                                                               '365 días.',
                                       'theme': 'A.8 Tecnológico',
@@ -7284,7 +7284,7 @@ ISO_27001_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Gov
                                                               'isolamento de rede sem IP público desnecessário.\n'
                                                               '4. Relatórios de varredura de vulnerabilidades '
                                                               '(SAST/DAST) e testes de intrusão (pentest) recentes.\n'
-                                                              '5. Registros de logs de auditoria centralizados no '
+                                                              '5. Registros de Cloud Audit Logs centralizados no '
                                                               'Cloud Logging / Cloud Monitoring com retenção mínima de '
                                                               '365 dias.',
                                       'theme': 'A.8 Tecnológico',
@@ -7297,7 +7297,7 @@ SOC2_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Controle
                           'properties': 'Confidencialidade, Integridade',
                           'type': 'Preventivo'},
         'gcp_mapping': 'Cloud IAM, Cloud Identity, Context-Aware Access',
-        'how_to_check': '1. Auditar políticas IAM e RBAC no GCP e Google Workspace.\n'
+        'how_to_check': '1. Inspecionar políticas IAM e RBAC no GCP e Google Workspace.\n'
                         '2. Verificar restrições de acesso por IP e Context-Aware Access.\n'
                         '3. Checar logs de autenticação no Cloud Identity.',
         'how_to_maintain': '1. Revisão trimestral de acessos com IAM Recommender.\n'
@@ -7342,7 +7342,7 @@ SOC2_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Controle
                                       'recommended_evidence': '• Política de Controle de Acesso Lógico formalizada.\n'
                                                               '• Exportação de configurações IAM e MFA obrigatório no '
                                                               'Google Workspace e GCP.\n'
-                                                              '• Relatórios de auditoria de acessos trimestrais.',
+                                                              '• Relatórios de revisão de acessos trimestrais.',
                                       'theme': 'SOC 2 Segurança',
                                       'theme_title': 'SOC 2 — Critérios de Segurança (Common Criteria)'}}},
     {   'attributes': {   'capabilities': 'Gestão de Identidade',
@@ -7437,7 +7437,7 @@ SOC2_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Controle
                                                               'registros de suspensión de cuentas.\n'
                                                               '• Listas de verificación de desvinculación '
                                                               'completadas.\n'
-                                                              '• Registros de auditoría de Admin que confirman el '
+                                                              '• Registros de actividad de Admin que confirman el '
                                                               'bloqueo inmediato.',
                                       'theme': 'SOC 2 Seguridad',
                                       'theme_title': 'SOC 2 — Criterios de Seguridad (Common Criteria)'},
@@ -7450,7 +7450,7 @@ SOC2_QUESTIONNAIRE_CATALOG = [   {   'attributes': {   'capabilities': 'Controle
                                                               'cruzada com timestamps de desativação de conta.\n'
                                                               '• Checklist de desligamento de acessos assinado por RH '
                                                               'e TI.\n'
-                                                              '• Logs de auditoria do Google Workspace comprovando '
+                                                              '• Logs de atividade do Google Workspace comprovando '
                                                               'bloqueio imediato.',
                                       'theme': 'SOC 2 Segurança',
                                       'theme_title': 'SOC 2 — Critérios de Segurança (Common Criteria)'}}},

@@ -1,4 +1,4 @@
-"""Unit tests for ISO/IEC 27001:2022 Control A.5.23 Cloud Security Auditor."""
+"""Unit tests for ISO/IEC 27001:2022 Control A.5.23 Cloud Security Reviewer."""
 
 import pytest
 from mcp_server_grc.tools.cloud_security import audit_cloud_security
@@ -10,7 +10,7 @@ def test_gcs_bucket_compliant():
         "uniform_bucket_level_access": True,
         "kms_key_name": "projects/my-p/locations/us-central1/keyRings/kr/cryptoKeys/key1",
         "iam_bindings": [
-            {"role": "roles/storage.objectViewer", "members": ["group:auditors@company.com"]}
+            {"role": "roles/storage.objectViewer", "members": ["group:reviewers@company.com"]}
         ],
     }
     result = audit_cloud_security("gcs_bucket", "secure-audit-bucket", config=config)

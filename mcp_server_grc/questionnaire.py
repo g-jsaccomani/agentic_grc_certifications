@@ -181,13 +181,13 @@ class QuestionnaireAnswer(BaseModel):
     control_id: str = Field(..., description="Control ID (e.g. A.5.1 or CC6.1)")
     framework: str = Field(default="ISO27001:2022", description="Compliance framework identifier")
     status: str = Field(..., description="COMPLIANT, NON_COMPLIANT, NOT_APPLICABLE, IN_PROGRESS, PARTIAL")
-    justification: str = Field(..., description="Auditor explanation or rationale")
+    justification: str = Field(..., description="Reviewer explanation or rationale")
     evidence_text: Optional[str] = Field(default=None, description="Extracted or textual evidence content")
     evidence_uri: Optional[str] = Field(default=None, description="Storage URI or link")
     file_id: Optional[str] = Field(default=None, description="Attached evidence file ID")
     original_filename: Optional[str] = Field(default=None, description="Safe filename of attached evidence")
     updated_at: Optional[float] = Field(default=None, description="Timestamp of submission")
-    user_email: Optional[str] = Field(default=None, description="Submitting auditor email")
+    user_email: Optional[str] = Field(default=None, description="Submitting reviewer email")
     ai_consistency_verdict: Optional[str] = Field(default=None, description="AI consistency verdict: COMPLIANT, COMPLIANT_WITH_OBSERVATION, NON_COMPLIANT")
     ai_consistency_reasoning: Optional[str] = Field(default=None, description="AI reasoning for the consistency verdict")
     verification_tier: Optional[str] = Field(default=None, description="Verification tier: TELEMETRY, VERIFIED, SELF_ATTESTED")
@@ -266,12 +266,12 @@ def sync_scan_telemetry_to_questionnaire(
         if existing and not overwrite_self_attested and existing.user_email and existing.user_email != "gcp-telemetry-scanner@client.corp":
             continue
 
-        phase = item.get("phase") or "Auditoria Automatizada GCP"
-        ev_text = item.get("evidence_text") or item.get("evidence") or f"Auditoria automatizada do controle {norm_cid} concluída no ambiente Google Cloud."
-        gcp_map = item.get("gcp_mapping") or "Telemetria Google Cloud"
+        phase = item.get("phase") or "GCP Automated Security Assessment"
+        ev_text = item.get("evidence_text") or item.get("evidence") or f"Automated technical assessment of control {norm_cid} completed in Google Cloud environment."
+        gcp_map = item.get("gcp_mapping") or "Google Cloud Telemetry"
         justification = item.get("justification") or (
-            f"Evidência de conformidade verificada via Scan real ({phase}): {ev_text} "
-            f"[Mapeamento GCP: {gcp_map}]"
+            f"Compliance evidence verified via real scan ({phase}): {ev_text} "
+            f"[GCP Mapping: {gcp_map}]"
         )
         safe_cid = norm_cid.lower().replace(".", "_")
 
@@ -286,7 +286,7 @@ def sync_scan_telemetry_to_questionnaire(
             user_email=item.get("user_email") or "gcp-telemetry-scanner@client.corp",
             verification_tier=item.get("verification_tier") or EvidenceVerificationTier.TELEMETRY.value,
             ai_consistency_verdict=status if status in ("COMPLIANT", "NON_COMPLIANT") else "COMPLIANT_WITH_OBSERVATION",
-            ai_consistency_reasoning="Evidência de telemetria GCP verificada via Scan real validada com sucesso pelo auditor de conformidade.",
+            ai_consistency_reasoning="GCP telemetry evidence verified via real scan and validated by compliance reviewer.",
         )
         synced_count += 1
 
@@ -306,7 +306,7 @@ def sync_scan_telemetry_to_questionnaire(
                     "user_email": item.get("user_email") or "gcp-telemetry-scanner@client.corp",
                     "verification_tier": EvidenceVerificationTier.TELEMETRY.value,
                     "ai_consistency_verdict": status if status in ("COMPLIANT", "NON_COMPLIANT") else "COMPLIANT_WITH_OBSERVATION",
-                    "ai_consistency_reasoning": "Evidência de telemetria GCP verificada via Scan real validada com sucesso pelo auditor de conformidade.",
+                    "ai_consistency_reasoning": "GCP telemetry evidence verified via real scan and validated by compliance reviewer.",
                 },
                 verification_tier=EvidenceVerificationTier.TELEMETRY,
                 framework=framework,
@@ -767,7 +767,7 @@ def evaluate_answer_ai_consistency(
 
     # 3. Instantiate LLMSubAgent
     system_instruction = (
-        "You are an expert ISO 27001 and SOC 2 compliance auditor in the Gemini Enterprise Agent Platform. "
+        "You are an expert ISO 27001 and SOC 2 compliance reviewer in the Gemini Enterprise Agent Platform. "
         "Your task is to analyze whether the submitted evidence text or attached files substantiate "
         "the user's declared compliance status for a specific security control.\n"
         "Requirements:\n"
@@ -782,7 +782,7 @@ def evaluate_answer_ai_consistency(
 
     try:
         subagent = LLMSubAgent(
-            name="QuestionnaireConsistencyAuditor",
+            name="QuestionnaireConsistencyReviewer",
             system_instruction=system_instruction,
             tools={},
         )
@@ -790,8 +790,8 @@ def evaluate_answer_ai_consistency(
         logger.warning("Failed to initialize LLMSubAgent for consistency validation: %s", exc)
         finops_tracker.record_usage(
             agent_id="questionnaire-consistency",
-            name="Questionnaire Consistency Auditor",
-            category="Consistência de Respostas",
+            name="Questionnaire Consistency Reviewer",
+            category="Response Consistency",
             prompt_tokens=0,
             completion_tokens=0,
             cached_tokens=0,
@@ -806,8 +806,8 @@ def evaluate_answer_ai_consistency(
     if subagent.client is None:
         finops_tracker.record_usage(
             agent_id="questionnaire-consistency",
-            name="Questionnaire Consistency Auditor",
-            category="Consistência de Respostas",
+            name="Questionnaire Consistency Reviewer",
+            category="Response Consistency",
             prompt_tokens=0,
             completion_tokens=0,
             cached_tokens=0,
@@ -838,8 +838,8 @@ def evaluate_answer_ai_consistency(
 
         finops_tracker.record_usage(
             agent_id="questionnaire-consistency",
-            name="Questionnaire Consistency Auditor",
-            category="Consistência de Respostas",
+            name="Questionnaire Consistency Reviewer",
+            category="Response Consistency",
             prompt_tokens=int(usage.get("prompt_token_count", 0)),
             completion_tokens=int(usage.get("candidates_token_count", 0)),
             cached_tokens=int(usage.get("cached_content_token_count", 0)),
@@ -865,14 +865,14 @@ def evaluate_answer_ai_consistency(
         elif "COMPLIANT" in narrative.upper():
             return "COMPLIANT", narrative[:250].strip()
         else:
-            return "COMPLIANT_WITH_OBSERVATION", "Evidence received; pending auditor validation."
+            return "COMPLIANT_WITH_OBSERVATION", "Evidence received; pending assessment validation."
 
     except Exception as exc:
         logger.warning("LLMSubAgent execution error in consistency evaluation: %s", exc)
         finops_tracker.record_usage(
             agent_id="questionnaire-consistency",
-            name="Questionnaire Consistency Auditor",
-            category="Consistência de Respostas",
+            name="Questionnaire Consistency Reviewer",
+            category="Response Consistency",
             prompt_tokens=0,
             completion_tokens=0,
             cached_tokens=0,
@@ -949,7 +949,7 @@ async def submit_questionnaire_answer(
         source_node_id=node_id,
         control_id=control_id,
         status=answer.status,
-        justification=f"Self-attested by {answer.user_email or 'auditor'}: {answer.justification} [AI Validation: {answer.ai_consistency_verdict}]",
+        justification=f"Self-attested by {answer.user_email or 'reviewer'}: {answer.justification} [AI Validation: {answer.ai_consistency_verdict}]",
         violations=[] if answer.status == "COMPLIANT" else [answer.justification],
         framework=answer.framework,
     )

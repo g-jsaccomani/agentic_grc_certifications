@@ -2172,7 +2172,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
 
         /* ------------------------------------------------------------------ */
-        /* View 1: Chatbot Auditor */
+        /* View 1: Compliance & Security Advisor */
         
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -2180,7 +2180,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
     
         /* ------------------------------------------------------------------ */
-        /* View 1: Chatbot Auditor (Full Width Viewport, Scrollbar on Far Right Edge) */
+        /* View 1: Compliance & Security Advisor (Full Width Viewport, Scrollbar on Far Right Edge) */
         #view-chat {
             padding: 0 !important;
             height: 100%;
@@ -3920,7 +3920,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .btn-confirm { background: var(--gcp-blue); border: none; color: #131314; font-weight: 600; padding: 8px 18px; border-radius: 8px; cursor: pointer; }
 
 
-        /* Minimalist Auditor Health & Compliance Dashboard */
+        /* Minimalist Advisor Health & Compliance Dashboard */
         .auditor-health-dash {
             display: grid;
             grid-template-columns: 290px 1fr;
@@ -4980,7 +4980,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
     
 
-        /* Rich Questionnaire Callouts & Auditor Guide */
+        /* Rich Questionnaire Callouts & Assessment Guide */
         .quest-callout-box {
             background: rgba(66, 133, 244, 0.08);
             border-left: 3px solid var(--gcp-blue, #4285f4);
@@ -5094,7 +5094,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
             <!-- Short Description -->
             <p class="login-gate-description" data-i18n="login_gate_desc">
-                Plataforma corporativa de auditoria contínua e prontidão regulatória multicloud com IA agêntica.
+                Corporate platform for continuous compliance assessment and multicloud regulatory readiness with agentic AI.
             </p>
 
             <!-- Optional Feedback/Notice Message Banner (e.g. session expired, error) -->
@@ -5112,12 +5112,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <span data-i18n="login_gate_btn">Acessar Plataforma Interna</span>
                 </button>
 
-                <div class="login-gate-auditor-chip" onclick="openCorporateIdentityModal()" title="Ambiente corporativo interno Google Cloud">
+                <div class="login-gate-auditor-chip" onclick="openCorporateIdentityModal()" title="Google Cloud Internal Corporate Environment">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                         <circle cx="12" cy="7" r="4"/>
                     </svg>
-                    <span>Ambiente Corporativo: <strong id="loginGateAuditorDisplay">auditor@client.corp</strong></span>
+                    <span>Corporate Environment: <strong id="loginGateAuditorDisplay">compliance.reviewer@client.corp</strong></span>
                 </div>
             </div>
 
@@ -5129,8 +5129,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
             <!-- Language Selector -->
             <div class="login-gate-lang">
-                <button type="button" class="lang-btn active" id="loginGateLangPt" onclick="setLanguage('pt')">PT</button>
-                <button type="button" class="lang-btn" id="loginGateLangEn" onclick="setLanguage('en')">EN</button>
+                <button type="button" class="lang-btn" id="loginGateLangPt" onclick="setLanguage('pt')">PT</button>
+                <button type="button" class="lang-btn active" id="loginGateLangEn" onclick="setLanguage('en')">EN</button>
                 <button type="button" class="lang-btn" id="loginGateLangEs" onclick="setLanguage('es')">ES</button>
             </div>
 
@@ -5159,11 +5159,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             </div>
             <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px; padding: 18px 24px;">
                 <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0; line-height: 1.45;">
-                    Configure a identidade de auditor utilizada para assinar pareceres de conformidade e delegar leitura de recursos GCP.
+                    Configure the reviewer / consultant identity used to assess compliance and delegate GCP resource inspection.
                 </p>
                 <div class="quest-form-field">
-                    <label class="quest-form-label" for="corporateEmailInput">Email do Auditor Corporativo (Google Account):</label>
-                    <input type="email" id="corporateEmailInput" class="quest-input" value="auditor@client.corp" placeholder="ex: usuario@empresa.com" oninput="if(this.value.includes('@')){const d=document.getElementById('corporateDomainInput');if(d)d.value=this.value.split('@')[1].trim();}">
+                    <label class="quest-form-label" for="corporateEmailInput">Corporate Reviewer Email (Google Account):</label>
+                    <input type="email" id="corporateEmailInput" class="quest-input" value="compliance.reviewer@client.corp" placeholder="ex: usuario@empresa.com" oninput="if(this.value.includes('@')){const d=document.getElementById('corporateDomainInput');if(d)d.value=this.value.split('@')[1].trim();}">
                 </div>
                 <div class="quest-form-field">
                     <label class="quest-form-label" for="corporateDomainInput">Domínio Corporativo Vinculado:</label>
@@ -5429,7 +5429,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <div class="framework-selector-bar" id="frameworkSelectorBar">
                         <div class="framework-cards-grid">
                             <!-- 1. ISO/IEC 27001:2022 (Active) -->
-                            <div class="framework-card active" id="fwCardIso27001" onclick="selectFramework('iso27001')" title="ISO/IEC 27001:2022 - Auditoria agêntica ativa" data-i18n-title="framework_tooltip_iso">
+                            <div class="framework-card active" id="fwCardIso27001" onclick="selectFramework('iso27001')" title="ISO/IEC 27001:2022 - Active agentic assessment" data-i18n-title="framework_tooltip_iso">
                                 <div class="framework-card-icon shield-active">
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -5547,11 +5547,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </div>
             </div>
 
-            <!-- 5. Histórico de Auditorias -->
+            <!-- 5. Assessment History -->
             <div class="sidebar-category" id="catHistory">
                 <div class="section-header collapsible" onclick="toggleSidebarCategory('history')" title="Recolher/Expandir Histórico">
                     <div class="section-header-left">
-                        <span class="section-title">Histórico de Auditorias</span>
+                        <span class="section-title">Assessment History</span>
                         <span class="section-badge" id="chatHistoryCount"></span>
                     </div>
                     <svg class="section-chevron" id="chevronHistory" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
@@ -5561,7 +5561,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <div class="section-content" id="catHistoryContent">
                     <div class="recent-list" id="chatSessionsHistory">
                         <div class="recent-item" onclick="promptPreFill('Gerar parecer executivo formal de conformidade para agentic-grc-cd06')"><span style="overflow: hidden; text-overflow: ellipsis;">Parecer ISO 27001 - agentic-grc-cd06</span></div>
-                        <div class="recent-item" onclick="promptPreFill('Auditar conformidade do Cloud KMS e rotação de chaves HSM (A.8.24)')"><span style="overflow: hidden; text-overflow: ellipsis;">Auditoria Criptografia KMS - A.8.24</span></div>
+                        <div class="recent-item" onclick="promptPreFill('Assess Cloud KMS compliance and HSM key rotation (A.8.24)')"><span style="overflow: hidden; text-overflow: ellipsis;">KMS Cryptography Assessment - A.8.24</span></div>
                         <div class="recent-item" onclick="promptPreFill('Verificar perímetros VPC Service Controls e proteção contra exfiltração')"><span style="overflow: hidden; text-overflow: ellipsis;">Inspeção VPC-SC & DLP</span></div>
                     </div>
                 </div>
@@ -5733,7 +5733,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </div>
             </div>
 
-            <!-- Perfil do Auditor: Google Cloud Wordmark (sem a nuvem) & Credentials -->
+            <!-- Consultant Profile: Google Cloud Wordmark (sem a nuvem) & Credentials -->
             <div class="user-meta" onclick="switchView('view-scorecard')" title="Clique para ver Scorecard de Conformidade" style="cursor: pointer; padding: 10px 4px 4px 4px; display: flex; flex-direction: column; gap: 4px; border: none; background: transparent;">
                 <img src="data:image/png;base64,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" alt="Google Cloud" style="height: 18px; width: auto; max-width: 140px; object-fit: contain; align-self: flex-start; border: none !important; outline: none !important; background: transparent !important; display: block; margin-bottom: 2px;">
                 <div class="user-info" style="display: flex; flex-direction: column; gap: 2px;">
@@ -5744,7 +5744,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
             <!-- Persistent Readiness Disclaimer Footer -->
             <div class="sidebar-disclaimer" style="padding: 8px 6px 4px 6px; margin-top: 4px; font-size: 9px; color: var(--text-tertiary); line-height: 1.35; border-top: 1px solid var(--border-subtle);">
-                Avaliação de prontidão automatizada. Não constitui auditoria formal nem certificação ISO/IEC 27001, SOC 2 ou PCI-DSS. A Google não emite certificações de conformidade.
+                Automated readiness evaluation. Does not constitute a formal audit or certification (ISO/IEC 27001, SOC 2, PCI-DSS). Google Cloud does not perform formal audits or issue compliance certifications.
             </div>
         </div>
     </aside>
@@ -5785,7 +5785,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <div class="workspace-user-chip" id="workspaceUserChip" style="display: none;">
                         <div class="workspace-user-avatar" id="workspaceUserAvatar">A</div>
                         <div class="workspace-user-details">
-                            <span class="workspace-user-email" id="workspaceUserEmail">auditor@client.corp</span>
+                            <span class="workspace-user-email" id="workspaceUserEmail">compliance.reviewer@client.corp</span>
                             <span class="workspace-user-domain" id="workspaceUserDomain">client.corp &bull; GCP Live Delegated</span>
                         </div>
                         <button class="btn-workspace-signout" onclick="signOutWorkspaceUser()" title="Sign out / Encerrar sessão">
@@ -5798,9 +5798,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                 <!-- Language Selector Pill -->
                 <div class="lang-selector-group" id="langSelectorGroup" title="Idioma / Language / Idioma">
-                    <button class="lang-btn active" id="langBtnPt" onclick="setLanguage('pt')">PT</button>
+                    <button class="lang-btn" id="langBtnPt" onclick="setLanguage('pt')">PT</button>
                     <span class="lang-divider">|</span>
-                    <button class="lang-btn" id="langBtnEn" onclick="setLanguage('en')">EN</button>
+                    <button class="lang-btn active" id="langBtnEn" onclick="setLanguage('en')">EN</button>
                     <span class="lang-divider">|</span>
                     <button class="lang-btn" id="langBtnEs" onclick="setLanguage('es')">ES</button>
                 </div>
@@ -5826,7 +5826,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 </svg>
                             </div>
                             <h1 class="home-simple-title" data-i18n="home_search_title">O que você gostaria de verificar hoje?</h1>
-                            <p class="home-simple-subtitle sr-only" data-i18n="home_search_subtitle" style="display: none;">Auditoria contínua de conformidade e segurança em nuvem com inteligência artificial.</p>
+                            <p class="home-simple-subtitle sr-only" data-i18n="home_search_subtitle" style="display: none;">Continuous compliance assessment and cloud security with artificial intelligence.</p>
                         </div>
 
                         <!-- Large Centered Chat Input Box -->
@@ -5910,7 +5910,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                                     </svg>
-                                    <span data-i18n="home_btn_open_chat">Chatbot Auditor</span>
+                                    <span data-i18n="home_btn_open_chat">Compliance & Security Advisor</span>
                                 </button>
                                 <button class="btn-home-quick" onclick="switchView('view-phases')">
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
@@ -5923,7 +5923,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                         <h1 class="home-hero-title" data-i18n="home_hero_title">Hub de Módulos & Governança de Certificações</h1>
                         <p class="home-hero-subtitle" data-i18n="home_hero_subtitle">
-                            Plataforma autônoma para auditoria contínua, governança de segurança multi-cloud e prontidão para certificações internacionais (ISO/IEC 27001:2022, SOC 2, PCI DSS e CMMI) impulsionada por IA generativa no Google Cloud Vertex AI com Model Armor e Grounding determinístico.
+                            Autonomous platform for continuous compliance assessment, multi-cloud security governance, and certification readiness (ISO/IEC 27001:2022, SOC 2, PCI DSS, CMMI) powered by generative AI in Google Cloud Vertex AI with Model Armor and deterministic grounding. Google Cloud does not perform audits or issue compliance certifications.
                         </p>
 
                         <div class="home-hero-meta-row">
@@ -6009,7 +6009,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </div>
                     </div>
 
-                    <!-- Category 1: Auditoria & Inteligência Agêntica -->
+                    <!-- Category 1: Readiness & Agentic Intelligence -->
                     <div class="home-section">
                         <div class="home-section-header">
                             <div class="home-section-title-wrap">
@@ -6019,14 +6019,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                     </svg>
                                 </div>
                                 <div>
-                                    <h2 class="home-section-title" data-i18n="home_cat_ai_title">Auditoria & Inteligência Agêntica</h2>
+                                    <h2 class="home-section-title" data-i18n="home_cat_ai_title">Readiness & Agentic Intelligence</h2>
                                 </div>
                             </div>
                             <span class="home-section-badge" data-i18n="home_cat_ai_badge">3 Módulos Ativos</span>
                         </div>
 
                         <div class="home-modules-grid">
-                            <!-- Card 1: Chatbot Auditor Líder -->
+                            <!-- Card 1: Compliance & Security Advisor Líder -->
                             <div class="home-module-card" onclick="document.getElementById('homeSearchInput')?.focus()">
                                 <div>
                                     <div class="home-module-card-header">
@@ -6038,12 +6038,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                             </div>
                                             <div>
                                                 <div class="home-module-name" data-i18n="home_mod_chat_name">Agentic Compliance Readiness Accelerator</div>
-                                                <span class="home-module-tag" style="background: rgba(66, 133, 244, 0.12); color: var(--gcp-blue);">Chatbot Auditor</span>
+                                                <span class="home-module-tag" style="background: rgba(66, 133, 244, 0.12); color: var(--gcp-blue);">Compliance & Security Advisor</span>
                                             </div>
                                         </div>
                                     </div>
                                     <p class="home-module-desc" data-i18n="home_mod_chat_desc">
-                                        Auditoria conversacional com Gemini 2.5 Flash/Pro. Execute inspeções dinâmicas de IAM, KMS e GCS via ferramentas MCP com grounding determinístico e barreira Model Armor.
+                                        Conversational compliance assessment with Gemini 2.5 Flash/Pro. Execute dynamic IAM, KMS, and GCS inspections via MCP tools with deterministic grounding and Model Armor guardrails.
                                     </p>
                                     <div class="home-module-features">
                                         <span class="home-module-feature-chip">Vertex AI Gemini 2.5</span>
@@ -6077,7 +6077,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                         </div>
                                     </div>
                                     <p class="home-module-desc" data-i18n="home_mod_phases_desc">
-                                        Pipeline estruturado em 4 etapas: Descoberta & IAM (Fase 1), Auditoria Técnica & IaC (Fase 2), Criptografia & Dados (Fase 3) e Governança & Threat Intel (Fase 4).
+                                        Structured 4-stage pipeline: Discovery & IAM (Phase 1), Technical Review & IaC (Phase 2), Zero-Copy Governance & Policies (Phase 3), and Cryptographic Graph & Final Scorecard (Phase 4).
                                     </p>
                                     <div class="home-module-features">
                                         <span class="home-module-feature-chip">Pipeline Automatizado</span>
@@ -6206,11 +6206,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                         </div>
                                     </div>
                                     <p class="home-module-desc" data-i18n="home_mod_scorecard_desc">
-                                        Painel consolidado com o Grafo Criptográfico de Evidências, histórico de auditoria contínua, telemetria em tempo real e esteira de remediação CAPA com aprovação humana (HITL).
+                                        Consolidated dashboard with Cryptographic Evidence Graph, continuous evaluation history, real-time telemetry, and CAPA remediation pipeline with Human-in-the-Loop (HITL) approval.
                                     </p>
                                     <div class="home-module-features">
                                         <span class="home-module-feature-chip">Hashes SHA-256</span>
-                                        <span class="home-module-feature-chip">Auditoria Contínua</span>
+                                        <span class="home-module-feature-chip">Continuous Assessment</span>
                                         <span class="home-module-feature-chip">HITL Remediação</span>
                                     </div>
                                 </div>
@@ -6294,12 +6294,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                             </div>
                                             <div>
                                                 <div class="home-module-name" data-i18n="home_mod_tech_name">Relatório Técnico</div>
-                                                <span class="home-module-tag" style="background: rgba(234, 67, 53, 0.12); color: #ea4335;">Auditoria Externa</span>
+                                                <span class="home-module-tag" style="background: rgba(234, 67, 53, 0.12); color: #ea4335;">Technical Report</span>
                                             </div>
                                         </div>
                                     </div>
                                     <p class="home-module-desc" data-i18n="home_mod_tech_desc">
-                                        Caderno técnico de auditoria para certificadoras (BSI, Bureau Veritas, DNV) contendo saídas reais gcloud, comandos de teste e atestação SPIFFE/mTLS com verificação criptográfica.
+                                        Technical assessment workbook containing actual gcloud outputs, test commands, and SPIFFE/mTLS attestation with cryptographic verification.
                                     </p>
                                     <div class="home-module-features">
                                         <span class="home-module-feature-chip">Outputs Literais gcloud</span>
@@ -6334,7 +6334,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                         </div>
                                     </div>
                                     <p class="home-module-desc" data-i18n="home_mod_finops_desc">
-                                        Monitoramento financeiro detalhado de chamadas Gemini 2.5, economia alcançada com Context Caching de 1M tokens e projeção de custos operacionais de auditoria contínua.
+                                        Detailed financial monitoring of Gemini 2.5 calls, savings achieved with 1M-token Context Caching, and operational cost projections for continuous assessment.
                                     </p>
                                     <div class="home-module-features">
                                         <span class="home-module-feature-chip">Consumo de Tokens</span>
@@ -6363,14 +6363,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 </svg>
                             </div>
                             <div>
-                                <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);" data-i18n="home_quick_actions_title">Ações Rápidas de Auditoria</div>
+                                <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);" data-i18n="home_quick_actions_title">Quick Assessment Actions</div>
                                 <div style="font-size: 11px; color: var(--text-tertiary);" data-i18n="home_quick_actions_desc">Dispare ciclos completos ou inicie consultas com 1 clique</div>
                             </div>
                         </div>
                         <div class="home-quick-actions-btns">
-                            <button class="btn-home-quick" onclick="promptPreFill('Executar ciclo de auditoria proativa completo')">
+                            <button class="btn-home-quick" onclick="promptPreFill('Run full proactive assessment cycle')">
                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                                <span data-i18n="home_action_run_audit">Auditoria Proativa</span>
+                                <span data-i18n="home_action_run_audit">Proactive Assessment</span>
                             </button>
                             <button class="btn-home-quick" onclick="startNewConversation()">
                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -6388,7 +6388,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 </div>
             </section>
 
-            <!-- View 1: Chatbot Auditor -->
+            <!-- View 1: Compliance & Security Advisor -->
             <section class="view-pane" id="view-chat">
                 <div class="chat-view-container">
                     
@@ -6428,14 +6428,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <div class="hero-work-header">
                                 <h1 class="hero-work-title" data-i18n="hero_work_title">Vamos trabalhar!</h1>
                                 <p class="hero-work-subtitle" data-i18n="hero_work_subtitle">
-                                    Auditoria contínua autônoma e governança para Google Cloud & ISO/IEC 27001:2022
+                                    Autonomous continuous compliance assessment and governance for Google Cloud & ISO/IEC 27001:2022. Google Cloud does not perform audits or issue compliance certifications.
                                 </p>
                             </div>
 
                             <!-- Wide & Spacious Main Input Box -->
                             <div class="hero-input-container">
                                 <div class="hero-input-card">
-                                    <textarea id="chatInputHero" class="hero-textarea" placeholder="O que você gostaria de auditar hoje? (ex.: ISO 27001, Cloud KMS, VPC-SC, FinOps)" data-i18n-placeholder="hero_placeholder" rows="2" onkeydown="handleHeroKey(event)" oninput="handleHeroInput(this)"></textarea>
+                                    <textarea id="chatInputHero" class="hero-textarea" placeholder="What would you like to verify today? (e.g.: ISO 27001, Cloud KMS, VPC-SC, FinOps)" data-i18n-placeholder="hero_placeholder" rows="2" onkeydown="handleHeroKey(event)" oninput="handleHeroInput(this)"></textarea>
                                     
                                     <div class="hero-input-controls">
                                         <div class="hero-input-left">
@@ -6477,7 +6477,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                                             <span class="model-picker-dot" style="background:#8ab4f8; box-shadow: 0 0 6px #8ab4f8;"></span>
                                                             <span>Gemini 2.5 Pro</span>
                                                         </div>
-                                                        <div class="model-opt-desc" data-i18n="model_pro_desc">Auditor Líder • Raciocínio normativo profundo & Pareceres</div>
+                                                        <div class="model-opt-desc" data-i18n="model_pro_desc">Lead Compliance Advisor • Deep normative reasoning & Assessment</div>
                                                     </div>
                                                     <div class="model-option" data-model="gemini-2.5-flash" onclick="selectModel('gemini-2.5-flash', 'Gemini 2.5 Flash')">
                                                         <div class="model-opt-title">
@@ -6498,7 +6498,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                             </div>
 
                                             <!-- Submit Upward Arrow Button -->
-                                            <button type="button" class="btn-send-hero" id="btnSendHero" onclick="sendChatMessageFromHero()" title="Enviar para o Auditor Líder">
+                                            <button type="button" class="btn-send-hero" id="btnSendHero" onclick="sendChatMessageFromHero()" title="Send to Lead Compliance Advisor">
                                                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6">
                                                     <line x1="12" y1="19" x2="12" y2="5"/>
                                                     <polyline points="5 12 12 5 19 12"/>
@@ -6511,7 +6511,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                             <!-- Dynamic & Always-Altering Suggestion Chips (Visible in Agentic Compliance Readiness Accelerator) -->
                             <div class="hero-quick-chips" id="heroQuickChips" style="display: none;">
-                                <!-- Populated dynamically by shuffleDynamicSuggestions() when Auditor tab is clicked -->
+                                <!-- Populated dynamically by shuffleDynamicSuggestions() when Advisor tab is clicked -->
                             </div>
 
                             <!-- Agentic Compliance Readiness Accelerator Health Dash (Speedometer & Compliance Status) -->
@@ -6606,7 +6606,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                         </div>
                                         <div class="news-card-title">Emenda Climática ISO 27001 Obrigatória</div>
                                         <div class="news-card-snippet">
-                                            A IAF determinou que auditorias devem checar se os riscos de mudanças climáticas foram avaliados nas cláusulas 4.1 e 4.2 do SGSI.
+                                            IAF guidance establishes that compliance assessments must verify whether climate change risks have been evaluated under ISMS clauses 4.1 and 4.2.
                                         </div>
                                         <div class="news-card-footer" style="display: flex; justify-content: space-between; align-items: center;">
                                             <span class="news-action-link">Ler notícia completa ➔</span>
@@ -6731,8 +6731,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
             <section class="view-pane" id="view-phases">
                 <div class="section-header-banner">
                     <div class="view-title-group">
-                        <h2 data-i18n="phases_title">Scan de Auditoria por Fases (Google Cloud Security)</h2>
-                        <p data-i18n="phases_subtitle">Pipeline estruturado de 4 fases para auditoria técnica, governança de dados e ancoragem criptográfica.</p>
+                        <h2 data-i18n="phases_title">Phase-based Assessment Scan (Google Cloud Security)</h2>
+                        <p data-i18n="phases_subtitle">Structured 4-phase pipeline for technical review, data governance, and cryptographic anchoring.</p>
                     </div>
                     <button class="btn-confirm" onclick="triggerPhasedAudit()">
                         <span data-i18n="phases_run_all">Executar Scan nas 4 Fases</span>
@@ -6763,7 +6763,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <span class="phase-step-num">Fase 2</span>
                             <span class="phase-status-tag" id="statusPhase2">Pronto</span>
                         </div>
-                        <div class="phase-name" data-i18n="phase_2_name">Auditoria Técnica & IaC</div>
+                        <div class="phase-name" data-i18n="phase_2_name">Phase 2: Deep Technical Review & IaC Assessment</div>
                         <div class="phase-desc" data-i18n="phase_2_desc">Scan de templates Terraform, portas abertas, VPC Service Controls e Cloud KMS (A.8.9, A.8.24).</div>
                         <div class="phase-progress-bar"><div class="phase-progress-fill" id="fillPhase2"></div></div>
                         <div class="phase-actions-row">
@@ -6782,7 +6782,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <span class="phase-status-tag" id="statusPhase3">Pronto</span>
                         </div>
                         <div class="phase-name" data-i18n="phase_3_name">Governança & Políticas</div>
-                        <div class="phase-desc" data-i18n="phase_3_desc">Auditoria de Organization Policies e políticas corporativas do SGSI (A.5).</div>
+                        <div class="phase-desc" data-i18n="phase_3_desc">Evaluation of Organization Policies and corporate ISMS policies (A.5).</div>
                         <div class="phase-progress-bar"><div class="phase-progress-fill" id="fillPhase3"></div></div>
                         <div class="phase-actions-row">
                             <button class="btn-phase-exec" onclick="runSinglePhase(3)">
@@ -6815,13 +6815,13 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                 <div class="audit-console-panel">
                     <div class="console-header">
-                        <span>Terminal de Auditoria em Tempo Real</span>
+                        <span>Real-Time Assessment Terminal</span>
                         <span id="auditExecId">Exec ID: Standby</span>
                     </div>
                     <div class="console-logs" id="auditLogsContainer">
                         <div class="log-entry">
                             <span class="log-ts">--:--:--</span>
-                            <span class="log-msg">Motor de auditoria Google Cloud Security pronto para inicialização das 4 fases nos projetos selecionados.</span>
+                            <span class="log-msg">Motor de avaliação Google Cloud Security pronto para inicialização das 4 fases nos projetos selecionados.</span>
                         </div>
                     </div>
                 </div>
@@ -7005,12 +7005,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 </svg>
                             </div>
                             <div>
-                                <div class="card-title">Annex A Auditor Agent</div>
+                                <div class="card-title">Annex A Security Assessor Agent</div>
                                 <div style="font-size: 11px; color: var(--gcp-green)">Online</div>
                             </div>
                         </div>
                         <div class="card-desc">Inspeciona controles do Anexo A (A.5 a A.8) contra telemetria em tempo real do Cloud Asset Inventory.</div>
-                        <button class="btn-action-primary" onclick="executeSubagent('annex_a', 'Annex A Auditor Agent')" style="margin-top: auto;">Auditar Anexo A</button>
+                        <button class="btn-action-primary" onclick="executeSubagent('annex_a', 'Annex A Security Assessor Agent')" style="margin-top: auto;">Assess Annex A</button>
                     </div>
 
                     <div class="card-panel">
@@ -7028,8 +7028,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <div style="font-size: 11px; color: var(--gcp-green)">Online</div>
                             </div>
                         </div>
-                        <div class="card-desc">Auditoria contínua de recursos ativos via Cloud Asset Inventory, sinks BigQuery e perímetros VPC-SC.</div>
-                        <button class="btn-action-primary" onclick="executeSubagent('gcp_telemetry', 'GCP Telemetry & Infrastructure Sub-Agent')" style="margin-top: auto;">Auditar Telemetria GCP</button>
+                        <div class="card-desc">Continuous evaluation of active resources via Cloud Asset Inventory, BigQuery sinks, and VPC-SC perimeters.</div>
+                        <button class="btn-action-primary" onclick="executeSubagent('gcp_telemetry', 'GCP Telemetry & Infrastructure Sub-Agent')" style="margin-top: auto;">Inspect GCP Telemetry</button>
                     </div>
 
                     <div class="card-panel">
@@ -7117,7 +7117,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <div style="font-size: 11px; color: var(--gcp-green)">Conectado</div>
                             </div>
                         </div>
-                        <div class="card-desc">Auditoria contínua de políticas corporativas armazenadas no Google Workspace via delegação SPIFFE.</div>
+                        <div class="card-desc">Avaliação contínua de políticas corporativas armazenadas no Google Workspace via delegação SPIFFE.</div>
                         <button class="btn-action-primary" onclick="openStorageModal()" style="margin-top: auto;">Sincronizar Políticas</button>
                     </div>
                 </div>
@@ -7207,8 +7207,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <div class="reports-hub-container" style="max-width: 1200px; margin: 0 auto;">
                     <div class="section-header-banner" style="margin-bottom: 16px;">
                         <div class="view-title-group">
-                            <h2 data-i18n="reports_hub_title">Relatórios & Dossiê de Auditoria</h2>
-                            <p data-i18n="reports_hub_subtitle">Visão unificada de conformidade: Scorecard contínuo, Dossiê Executivo para liderança e Relatório Técnico detalhado para auditoria externa.</p>
+                            <h2 data-i18n="reports_hub_title">Reports & Assessment Dossier</h2>
+                            <p data-i18n="reports_hub_subtitle">Visão unificada de conformidade: Scorecard contínuo, Dossiê Executivo para liderança e Relatório Técnico detalhado de prontidão.</p>
                         </div>
                     </div>
 
@@ -7224,7 +7224,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </button>
                         <button type="button" class="reports-tab-btn" id="tabBtnTech" onclick="switchReportsTab('tech')">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            <span data-i18n="tab_tech_report">Relatório Técnico (Auditoria Externa)</span>
+                            <span data-i18n="tab_tech_report">Technical Readiness Report</span>
                         </button>
                     </div>
 
@@ -7241,7 +7241,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <div class="stat-card">
                         <div class="stat-label" data-i18n="scorecard_global_comp">Conformidade Global</div>
                         <div class="stat-val" style="color: var(--gcp-yellow);" id="scoreDisplay">78.5%</div>
-                        <div style="font-size: 12px; color: var(--text-secondary)" id="scorecardAuditorOpinion" data-i18n="scorecard_auditor_opinion">Opinião do Auditor: QUALIFIED (ACTION REQUIRED - 9 FINDINGS DETECTED)</div>
+                        <div style="font-size: 12px; color: var(--text-secondary)" id="scorecardAuditorOpinion" data-i18n="scorecard_auditor_opinion">Advisor Assessment: QUALIFIED (ACTION REQUIRED - 9 FINDINGS DETECTED)</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label" data-i18n="scorecard_nodes">Nós no Grafo de Evidências</div>
@@ -7260,7 +7260,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                         <div class="card-title" style="margin-bottom: 0;">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gcp-yellow); vertical-align: -2px; margin-right: 6px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                            <span id="scorecardFindingsTitle">Diagnóstico do Scan por Fases & Achados de Auditoria</span>
+                            <span id="scorecardFindingsTitle">Phase Scan Diagnostics & Assessment Findings</span>
                         </div>
                         <span class="status-badge non-compliant" id="scorecardFindingsBadge" style="font-size: 11px;">9 Não-Conformidades</span>
                     </div>
@@ -7289,7 +7289,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <div class="doc-viewer-actions-bar">
                     <div class="doc-viewer-actions-left">
                         <span class="doc-viewer-chip blue" data-i18n="doc_exec_chip">Visão Estratégica • C-Level</span>
-                        <span class="doc-viewer-title" data-i18n="doc_exec_title">Continuous Compliance & Audit Dossier</span>
+                        <span class="doc-viewer-title" data-i18n="doc_exec_title">Continuous Compliance & Assessment Dossier</span>
                     </div>
                     <div class="doc-viewer-actions-right">
                         <button class="btn-doc-action primary" onclick="printExecutiveReport()" title="Imprimir ou Salvar em PDF">
@@ -7326,14 +7326,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <!-- Header with Google Cloud Wordmark and Confidentiality Badge -->
                     <div class="cloudstyle-header-row">
                         <img src="data:image/png;base64,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" alt="Google Cloud" class="cloudstyle-brand-logo">
-                        <span class="cloudstyle-confidential-pill">Confidencial • Relatório de Auditoria Formal</span>
+                        <span class="cloudstyle-confidential-pill">Confidential • Security Posture & Readiness Report</span>
                     </div>
 
                     <!-- Iconic Google 4-Color Accent Stripe -->
                     <div class="google-color-stripe-bar"></div>
 
                     <!-- Title & Subtitle in Google Sans -->
-                    <h1 class="cloudstyle-doc-title">Continuous Compliance & Audit Dossier</h1>
+                    <h1 class="cloudstyle-doc-title">Continuous Compliance & Assessment Dossier</h1>
                     <div class="cloudstyle-doc-subtitle" data-i18n="exec_doc_subtitle">
                         Avaliação autônoma de segurança da informação, conformidade contínua com a <strong>ISO/IEC 27001:2022</strong> (93 Controles do Anexo A) e validação de telemetria nos ambientes Google Cloud Platform.
                     </div>
@@ -7353,7 +7353,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <td>ABNT NBR ISO/IEC 27001:2022 (Anexo A - 93 Controles) + Amd 1:2024 (Ação Climática)</td>
                         </tr>
                         <tr>
-                            <td data-i18n="meta_lead_auditor">Auditor Líder Responsável</td>
+                            <td data-i18n="meta_lead_auditor">Lead Compliance Advisor in Charge</td>
                             <td>Agentic Compliance Readiness Accelerator (Vertex AI Gemini 2.5 Flash Autonomous Readiness Advisor)</td>
                         </tr>
                         <tr>
@@ -7386,7 +7386,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <div class="cloudstyle-highlight-item">
                             <div class="cloudstyle-card-num">04</div>
                             <div class="cloudstyle-card-title">Grafo SHA-256</div>
-                            <div class="cloudstyle-card-text">Nós de evidência selados com garantia matemática de integridade, trilha de auditoria e não-repúdio.</div>
+                            <div class="cloudstyle-card-text">Nós de evidência selados com garantia matemática de integridade, trilha de rastreabilidade (Cloud Audit Logs) e não-repúdio.</div>
                         </div>
                     </div>
 
@@ -7396,7 +7396,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             “Com base na coleta automatizada de telemetria, inspeção contínua de configurações e análise de infraestrutura como código (IaC), a prática de Google Cloud Security emite uma <strong>OPINIÃO LIMPA E SEM RESSALVAS (UNQUALIFIED OPINION)</strong>, atestando conformidade plena com os 93 requisitos do Anexo A da ISO/IEC 27001:2022.”
                         </div>
                         <div class="cloudstyle-quote-author">
-                            — Agentic GRC Virtual Lead Auditor, Google Cloud Security Practice
+                            — Agentic GRC Virtual Lead Compliance Advisor, Google Cloud Security Practice
                         </div>
                     </div>
 
@@ -7539,7 +7539,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <!-- Floating Action Bar above Document Paper -->
                 <div class="doc-viewer-actions-bar">
                     <div class="doc-viewer-actions-left">
-                        <span class="doc-viewer-chip" data-i18n="doc_tech_chip">Auditoria Externa • Stage 2</span>
+                        <span class="doc-viewer-chip" data-i18n="doc_tech_chip">Readiness Assessment • Stage 2</span>
                         <span class="doc-viewer-title" data-i18n="doc_tech_title">ISO/IEC 27001:2022 Technical Dossier</span>
                     </div>
                     <div class="doc-viewer-actions-right">
@@ -7578,23 +7578,23 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <div class="cloudstyle-header-row">
                         <img src="data:image/png;base64,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" alt="Google Cloud" class="cloudstyle-brand-logo">
                         <span class="cloudstyle-confidential-pill" style="background: rgba(234, 67, 53, 0.08); color: #d93025; border-color: rgba(234, 67, 53, 0.2);">
-                            CONFIDENCIAL • RELATÓRIO TÉCNICO DE AUDITORIA EXTERNA (STAGE 2)
+                            CONFIDENTIAL • TECHNICAL READINESS ASSESSMENT REPORT (STAGE 2)
                         </span>
                     </div>
 
                     <h1 class="cloudstyle-doc-title" data-i18n="tech_doc_title">Relatório de Avaliação de Prontidão para Certificação & Statement of Applicability (SoA)</h1>
                     <div class="cloudstyle-doc-subtitle" data-i18n="tech_doc_subtitle">
-                        Auditoria Independente de Eficácia Operacional dos 93 Controles ISO/IEC 27001:2022, ISO/IEC 27017 & ISO/IEC 27018 em Google Cloud
+                        Avaliação de Eficácia Operacional dos 93 Controles ISO/IEC 27001:2022, ISO/IEC 27017 & ISO/IEC 27018 em Google Cloud
                     </div>
 
-                    <!-- Ficha Técnica da Auditoria Externa -->
+                    <!-- Ficha Técnica da Avaliação de Conformidade -->
                     <table class="cloudstyle-meta-box">
                         <tr>
                             <td data-i18n="tech_meta_dossier_code">Código do Dossiê Técnico</td>
                             <td><code style="font-family: monospace; font-weight: 700; color: #1a73e8;" id="techDossierCode">GCS-EXT-AUDIT-ISO27001-2022-TECH-001</code></td>
                         </tr>
                         <tr>
-                            <td data-i18n="tech_meta_criteria">Normas & Critérios de Auditoria</td>
+                            <td data-i18n="tech_meta_criteria">Assessment Standards & Criteria</td>
                             <td>
                                 <strong>ABNT NBR ISO/IEC 27001:2022</strong> (Anexo A - 93 Controles)<br>
                                 <span style="font-size: 11px; color: var(--text-secondary);">Completado com: ISO/IEC 27017:2015 (Segurança em Nuvem) e ISO/IEC 27018:2019 (Privacidade de Dados PII em Nuvem Pública)</span>
@@ -7605,7 +7605,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <td><strong>Organismo de Certificação Acreditado</strong> (BSI, DNV, TÜV, Bureau Veritas, A-LIGN, Schellman ou Big 4 Audit)</td>
                         </tr>
                         <tr>
-                            <td data-i18n="tech_meta_scope">Escopo de Auditoria (GCP Projects)</td>
+                            <td data-i18n="tech_meta_scope">Assessment Scope (GCP Projects)</td>
                             <td><strong id="techProjectsAudited">agentic-grc-cd06</strong> (Google Cloud Multi-Region Tenant)</td>
                         </tr>
                         <tr>
@@ -7626,7 +7626,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </tr>
                     </table>
 
-                    <!-- Parecer Formal do Auditor Líder -->
+                    <!-- Parecer Técnico do Consultor Líder -->
                     <div class="cloudstyle-quote-callout">
                         <div class="cloudstyle-quote-text" data-i18n="tech_quote_text">
                             "Com base nos testes de desenho e de eficácia operacional contínua executados sobre 100% da infraestrutura em nuvem, certificamos que os controles do SGSI descritos na Declaração de Aplicabilidade (SoA) estão plenamente implementados, operando de forma autônoma e mitigando os riscos cibernéticos em estrita conformidade com os requisitos da norma ISO/IEC 27001:2022. Não foram identificadas Não-Conformidades Maiores ou Menores remanescentes."
@@ -7636,7 +7636,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </div>
                     </div>
 
-                    <!-- Cobertura da Auditoria Externa por Domínio ISO/IEC 27001:2022 -->
+                    <!-- Cobertura da Avaliação por Domínio ISO/IEC 27001:2022 -->
                     <div class="cloudstyle-heading-block">
                         <span data-i18n="tech_sec1_heading">1. Resumo Quantitativo de Eficácia Operacional (4 Domínios ISO/IEC 27001:2022)</span>
                     </div>
@@ -7812,7 +7812,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <span class="tech-badge-pass">✓ Verificação Aprovada</span>
                         </div>
                         <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
-                            <strong>Procedimento de Teste:</strong> Auditoria exaustiva em todas as Service Accounts para garantir ausência de chaves de usuário (<code>USER_MANAGED</code>) e imposição de política organizacional de bloqueio de criação de chaves.
+                            <strong>Procedimento de Teste:</strong> Inspeção exaustiva em todas as Service Accounts para garantir ausência de chaves de usuário (<code>USER_MANAGED</code>) e imposição de política organizacional de bloqueio de criação de chaves.
                         </div>
                         <div class="tech-code-box">
 <span class="tech-code-comment"># Verificação da Organização: Bloqueio de Chaves Estáticas de Service Account</span>
@@ -7897,10 +7897,10 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <span class="tech-badge-pass">✓ Verificação Aprovada</span>
                         </div>
                         <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
-                            <strong>Procedimento de Teste:</strong> Auditoria das políticas de segurança Cloud Armor e ausência de regras de firewall de entrada permitindo portas SSH/RDP para a Internet aberta.
+                            <strong>Procedimento de Teste:</strong> Inspeção das políticas de segurança Cloud Armor e ausência de regras de firewall de entrada permitindo portas SSH/RDP para a Internet aberta.
                         </div>
                         <div class="tech-code-box">
-<span class="tech-code-comment"># 1. Auditoria de Firewall: Verificação de Portas 22 (SSH) e 3389 (RDP) expostas para 0.0.0.0/0</span>
+<span class="tech-code-comment"># 1. Inspeção de Firewall: Verificação de Portas 22 (SSH) e 3389 (RDP) expostas para 0.0.0.0/0</span>
 <span class="tech-code-cmd">$ gcloud compute firewall-rules list --filter="direction=INGRESS AND allowed.ports:(22 OR 3389) AND sourceRanges:0.0.0.0/0"</span>
 <span class="tech-code-val">Listed 0 items. (Em estrita conformidade - Todas as conexões via Identity-Aware Proxy)</span>
 
@@ -8005,7 +8005,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <!-- Selo Criptográfico de Integridade -->
                     <div class="cloudstyle-seal-wrapper">
                         <div class="cloudstyle-seal-box">
-                            <div class="cloudstyle-seal-tag" data-i18n="tech_seal_tag">SELO CRIPTOGRÁFICO DE INTEGRIDADE DA AUDITORIA EXTERNA</div>
+                            <div class="cloudstyle-seal-tag" data-i18n="tech_seal_tag">SELO CRIPTOGRÁFICO DE INTEGRIDADE DA AVALIAÇÃO DE CONFORMIDADE</div>
                             <div class="cloudstyle-seal-hash">Merkle Root Hash: 9f8e7d6c5b4a39281726354859607182a3b4c5d6e7f8091a2b3c4d5e6f7a8b9c</div>
                             <div style="margin-top: 6px; font-size: 11px; color: var(--text-secondary);">
                                 Dossiê SHA-256: <code>e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</code> • Carimbo de Tempo RFC 3161 Atômico: <span id="techSealDate">2026-09-04 14:15:00 UTC</span>
@@ -8028,8 +8028,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <span class="tech-sig-status">✓ Homologado sem Ressalvas</span>
                         </div>
                         <div class="tech-sig-box">
-                            <div class="tech-sig-name">Lead Certification Auditor</div>
-                            <div class="tech-sig-role">Auditor Externo (Organismo Credenciado)</div>
+                            <div class="tech-sig-name">Lead Compliance Advisor</div>
+                            <div class="tech-sig-role">Lead Technical Advisor (Accredited Framework)</div>
                             <div class="tech-sig-line"></div>
                             <span class="tech-sig-status">✓ Revisão Técnica Concluída</span>
                         </div>
@@ -8049,7 +8049,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <div class="section-header-banner">
                     <div class="view-title-group">
                         <h2 data-i18n="finops_title">FinOps & Gestão de Custos de IA</h2>
-                        <p data-i18n="finops_subtitle">Telemetria em tempo real de consumo de tokens (Prompt, Context Caching, Completion) e custos ($ USD / R$ BRL) por agente, subagente e fases de auditoria.</p>
+                        <p data-i18n="finops_subtitle">Telemetria em tempo real de consumo de tokens (Prompt, Context Caching, Completion) e custos ($ USD / R$ BRL) por agente, subagente e fases de avaliação.</p>
                     </div>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                         <button class="btn-action-primary" onclick="loadFinOpsMetrics()" title="Recarregar métricas em tempo real">
@@ -8063,7 +8063,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="5 3 19 12 5 21 5 3"/>
                             </svg>
-                            <span data-i18n="finops_btn_simulate">Simular Auditoria Contínua</span>
+                            <span data-i18n="finops_btn_simulate">Simulate Continuous Assessment</span>
                         </button>
                         <button class="btn-action-primary" onclick="exportFinOpsJson()">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
@@ -8100,13 +8100,13 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <div class="stat-label" data-i18n="finops_kpi_cost_per_ctrl">Custo Médio por Controle ISO 27001</div>
                         <div class="stat-val" style="color: #fdd663;" id="finopsCostPerControl">$ 0.020 USD</div>
                         <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">R$ 0,11 BRL por controle auditado</div>
-                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Auditoria humana tradicional: ~R$ 350 / controle</div>
+                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">Consultoria humana tradicional: ~R$ 350 / controle</div>
                     </div>
                 </div>
 
                 <!-- Detalhamento de Custos por Fase (Fases 1 a 4) -->
                 <div class="card-panel" style="margin-top: 16px;">
-                    <div class="card-title" data-i18n="finops_phase_title">Consumo de IA por Fase da Auditoria (Pipeline de Certificação)</div>
+                    <div class="card-title" data-i18n="finops_phase_title">Consumo de IA por Fase da Avaliação (Pipeline de Prontidão)</div>
                     <div class="card-desc" data-i18n="finops_phase_desc">Divisão de tokens e custos em cada estágio do ciclo de conformidade autônoma.</div>
                     
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 14px;">
@@ -8132,7 +8132,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <div style="font-size: 11px; font-weight: 600; color: var(--gcp-green); text-transform: uppercase;"><span data-i18n="finops_p4_title">Fase 4: Parecer & Selagem</span></div>
                             <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 4px 0;" id="finopsPhase4Cost">$ 1.64 USD</div>
                             <div style="font-size: 12px; color: var(--text-secondary);" id="finopsPhase4Tokens">352.650 tokens • R$ 9,35</div>
-                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;" data-i18n="finops_p4_desc">Gemini 2.5 Pro Lead Auditor</div>
+                            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;" data-i18n="finops_p4_desc">Gemini 2.5 Pro Lead Compliance Advisor</div>
                         </div>
                     </div>
                 </div>
@@ -8281,7 +8281,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <td style="padding: 10px 12px; color: #202124;"><strong id="onboardDocClientName">—</strong></td>
                             </tr>
                             <tr style="border-bottom: 1px solid #e8eaed;">
-                                <td style="padding: 10px 12px; font-weight: 600; color: #5f6368;">Identidade do Auditor / Consultor</td>
+                                <td style="padding: 10px 12px; font-weight: 600; color: #5f6368;">Identidade do Consultor / Revisor</td>
                                 <td style="padding: 10px 12px; color: #202124;"><strong id="onboardDocConsultantEmail" style="font-family: var(--font-mono, monospace); color: #1a73e8;">—</strong></td>
                             </tr>
                             <tr style="border-bottom: 1px solid #e8eaed;">
@@ -8415,7 +8415,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         </div>
     </div>
 
-        <!-- Modal: Leitura de Notícia Regulatória & Auditoria Opcional -->
+        <!-- Modal: Leitura de Notícia Regulatória & Avaliação Opcional -->
     <div class="modal-overlay" id="newsModal">
         <div class="modal-window" style="max-width: 680px; border-radius: 16px;">
             <div class="modal-header" style="border-bottom: 1px solid var(--border-subtle); padding: 16px 20px;">
@@ -8468,7 +8468,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <circle cx="11" cy="11" r="8"/>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                     </svg>
-                    <span>Auditar meu ambiente com esta norma (Opcional)</span>
+                    <span>Avaliar meu ambiente com esta norma (Opcional)</span>
                 </button>
             </div>
         </div>
@@ -8595,7 +8595,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <input type="text" id="onboardClientNameInput" class="form-input" placeholder="ex.: Acme Financial" oninput="updateOnboardScriptPreview()" style="font-size: 12.5px; padding: 6px 10px;">
                     </div>
                     <div class="form-group" style="margin: 0;">
-                        <label class="form-label" for="onboardConsultantEmailInput" data-i18n="onboard_consultant_label" style="font-size: 11.5px; margin-bottom: 4px;">Identidade do Auditor / Consultor (E-mail ou SA)</label>
+                        <label class="form-label" for="onboardConsultantEmailInput" data-i18n="onboard_consultant_label" style="font-size: 11.5px; margin-bottom: 4px;">Identidade do Consultor / Revisor (E-mail ou SA)</label>
                         <input type="text" id="onboardConsultantEmailInput" class="form-input" placeholder="ex.: jsaccomani@google.com" oninput="updateOnboardScriptPreview()" style="font-size: 12.5px; padding: 6px 10px;">
                     </div>
                 </div>
@@ -8693,7 +8693,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <ol style="margin: 0; padding-left: 16px; font-size: 11px; color: var(--text-primary);">
                             <li>Envie este script para o <strong>Administrador da Organização (Org Admin)</strong> do cliente.</li>
                             <li>O cliente cola e executa o script no <strong>Google Cloud Shell</strong> (console.cloud.google.com).</li>
-                            <li>O script concede permissões de auditoria <strong>estritamente Read-Only</strong> em nível de organização e gera o arquivo <code>grc_onboarding_config.txt</code>.</li>
+                            <li>O script concede permissões de avaliação <strong>estritamente Read-Only</strong> em nível de organização e gera o arquivo <code>grc_onboarding_config.txt</code>.</li>
                             <li>O cliente salva e envia o arquivo de volta, e você clica em <strong>Load from TXT</strong> acima para concluir o provisionamento.</li>
                         </ol>
                     </div>
@@ -8736,8 +8736,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 nav_questionnaire: "Questionário de Conformidade",
                 tab_scorecard: "Scorecard & Evidências",
                 tab_exec_report: "Dossiê Executivo",
-                tab_tech_report: "Relatório Técnico (Auditoria Externa)",
-                reports_hub_title: "Relatórios & Dossiê de Auditoria",
+                tab_tech_report: "Relatório Técnico de Prontidão",
+                reports_hub_title: "Relatórios & Dossiê de Avaliação",
                 reports_hub_subtitle: "Visão consolidada de conformidade: Scorecard contínuo, Dossiê Executivo para liderança e Relatório Técnico detalhado.",
                 quest_title: "Questionário de Conformidade — ISO/IEC 27001:2022",
                 quest_subtitle: "Preenchimento de controles, justificativas técnicas e upload seguro de evidências auditáveis.",
@@ -8746,20 +8746,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 framework_modal_desc: "Selecione o framework normativo para auditar ou confira os módulos em desenvolvimento no roadmap de expansão multi-normas:",
 
                 status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
-                top_active_agent: "Chatbot Auditor",
-                top_title_chat: "Chatbot Auditor",
+                top_active_agent: "Compliance & Security Advisor",
+                top_title_chat: "Compliance & Security Advisor",
                 top_title_phases: "Scan por Fases",
                 top_title_matrix: "Matriz ISO 27001 & SoA",
                 top_title_connectors: "Subagentes & Zero-Copy",
                 top_title_scorecard: "Scorecard & Evidências",
                 top_title_exec: "Dossiê Executivo",
-                top_title_tech: "Relatório Técnico (Auditoria Externa)",
+                top_title_tech: "Relatório Técnico de Prontidão",
                 top_title_finops: "FinOps & Custos de IA",
                 top_project_count: "1 projeto ativo",
                 top_projects_count: "{n} projetos ativos",
                 export_btn: "Exportar Relatório",
                 export_exec: "Visualizar Dossiê Executivo",
-                export_tech: "Visualizar Relatório Técnico (Auditoria Externa)",
+                export_tech: "Visualizar Relatório Técnico de Prontidão",
                 export_print: "Imprimir / Salvar PDF Oficial",
                 export_json: "Exportar JSON (Audit Machine-Readable)",
                 export_md: "Exportar Markdown Técnico",
@@ -8771,7 +8771,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 nav_connectors: "Conectores & Zero-Copy",
                 nav_scorecard: "Scorecard & Evidências",
                 nav_exec_report: "Dossiê Executivo",
-                nav_tech_report: "Relatório Técnico (Auditoria Externa)",
+                nav_tech_report: "Relatório Técnico de Prontidão",
                 nav_finops: "FinOps & Custos de IA",
                 
                 scope_title: "Escopo da Organização GCP",
@@ -8782,11 +8782,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 subagents_title: "SUBAGENTES ESPECIALISTAS",
                 
                 hero_work_title: "Vamos trabalhar!",
-                hero_work_subtitle: "Auditoria contínua autônoma e governança para Google Cloud & ISO/IEC 27001:2022",
-                hero_placeholder: "O que você gostaria de auditar hoje? (ex.: ISO 27001, Cloud KMS, VPC-SC, FinOps)",
+                hero_work_subtitle: "Autonomous continuous compliance assessment and governance for Google Cloud & ISO/IEC 27001:2022. Google Cloud does not perform audits or issue compliance certifications.",
+                hero_placeholder: "O que você gostaria de verificar hoje? (ex.: ISO 27001, Cloud KMS, VPC-SC, FinOps)",
                 model_auto_name: "Automático",
                 model_auto_desc: "Roteamento autônomo Gemini 2.5 com otimização FinOps",
-                model_pro_desc: "Auditor Líder • Raciocínio normativo profundo & Pareceres",
+                model_pro_desc: "Lead Compliance Advisor • Deep normative reasoning & Assessment",
                 model_flash_desc: "Alta velocidade • Triagem de evidências e telemetria GCP",
                 model_flash35_desc: "Nova geração • Context Caching de 1M tokens para varreduras contínuas",
                 tag_recommended: "Recomendado",
@@ -8794,19 +8794,19 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 
                 health_title: "Saúde do Ambiente GCP",
                 health_badge: "Telemetria Ativa",
-                health_continuous: "Auditoria Contínua Ativa • Drift Temporal: ESTÁVEL",
+                health_continuous: "Avaliação Contínua Ativa • Drift Temporal: ESTÁVEL",
                 health_no_drift: "Nenhum desvio crítico detectado",
                 news_header_title: "Novidades & Atualizações Regulatórias (RSS Feed)",
                 
-                phases_title: "Scan de Auditoria por Fases (Google Cloud Security)",
-                phases_subtitle: "Pipeline estruturado de 4 fases para auditoria técnica, governança de dados e ancoragem criptográfica.",
+                phases_title: "Scan de Avaliação por Fases (Google Cloud Security)",
+                phases_subtitle: "Pipeline estruturado de 4 fases para avaliação técnica, governança de dados e ancoragem criptográfica.",
                 phases_run_all: "Executar Scan nas 4 Fases",
                 phase_1_name: "Fase 1: Descoberta & IAM",
                 phase_1_desc: "Cloud Asset Inventory, service accounts e privilégio mínimo (A.5.2, A.5.15, A.8.2).",
-                phase_2_name: "Fase 2: Auditoria Técnica & IaC",
+                phase_2_name: "Fase 2: Avaliação Técnica & IaC",
                 phase_2_desc: "Scan de templates Terraform, portas abertas, VPC Service Controls e Cloud KMS (A.8.9, A.8.24).",
                 phase_3_name: "Fase 3: Governança & Políticas",
-                phase_3_desc: "Auditoria de Organization Policies e políticas corporativas do SGSI (A.5).",
+                phase_3_desc: "Avaliação de Organization Policies e políticas corporativas do SGSI (A.5).",
                 phase_4_name: "Fase 4: Grafo & Assinatura",
                 phase_4_desc: "Consolidação e ancoragem de evidências com hashes SHA-256 no grafo imutável.",
                 
@@ -8832,7 +8832,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 th_actions: "Ações",
                 btn_view_details: "Ver Detalhes",
                 btn_hide_details: "Ocultar",
-                btn_audit_control: "Auditar este Controle",
+                btn_audit_control: "Avaliar este Controle",
                 matrix_empty: "Nenhum controle encontrado.",
                 
                 connectors_title: "Subagentes Especializados & Conectores Zero-Copy",
@@ -8846,7 +8846,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 scorecard_title: "Scorecard Contínuo & Grafo de Evidências",
                 scorecard_subtitle: "Métricas consolidadas de conformidade, drift de segurança e aprovações humanas pendentes.",
                 scorecard_global_comp: "Conformidade Global",
-                scorecard_auditor_opinion: "Opinião do Auditor: LIMPA / EXCELLENT",
+                scorecard_auditor_opinion: "Parecer do Assessor: CONFORME / EXCELLENT",
                 scorecard_nodes: "Nós no Grafo de Evidências",
                 scorecard_crypto_sig: "Assinatura Criptográfica: SHA-256",
                 scorecard_edge_protect: "Proteção de Borda IA",
@@ -8856,9 +8856,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 scorecard_btn_sandbox: "Ver Simulação em Sandbox",
                 
                 finops_title: "FinOps & Gestão de Custos de IA",
-                finops_subtitle: "Telemetria em tempo real de consumo de tokens (Prompt, Context Caching, Completion) e custos ($ USD / R$ BRL) por agente, subagente e fases de auditoria.",
+                finops_subtitle: "Telemetria em tempo real de consumo de tokens (Prompt, Context Caching, Completion) e custos ($ USD / R$ BRL) por agente, subagente e fases de avaliação.",
                 finops_btn_refresh: "Atualizar Métricas",
-                finops_btn_simulate: "Simular Auditoria Contínua",
+                finops_btn_simulate: "Simular Avaliação Contínua",
                 finops_btn_export: "Exportar FinOps",
                 
                 modal_upload_title: "Analisar Template de Infraestrutura (IaC)",
@@ -8878,15 +8878,15 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 meta_org: "Organização / Cliente",
                 meta_doc_code: "Código do Documento",
                 meta_standards: "Norma & Emendas Auditadas",
-                meta_lead_auditor: "Auditor Líder Responsável",
-                meta_audit_date: "Data da Auditoria",
+                meta_lead_auditor: "Consultor Líder Responsável",
+                meta_audit_date: "Data da Avaliação",
                 meta_classification: "Classificação da Informação",
-                meta_result: "Resultado Final da Auditoria",
+                meta_result: "Resultado Final da Avaliação",
                 
-                doc_tech_chip: "Auditoria Externa • Stage 2",
+                doc_tech_chip: "Avaliação de Prontidão • Stage 2",
                 doc_tech_title: "ISO/IEC 27001:2022 Technical Dossier",
                 doc_exec_chip: "Visão Estratégica • C-Level",
-                doc_exec_title: "Continuous Compliance & Audit Dossier",
+                doc_exec_title: "Continuous Compliance & Assessment Dossier",
                 btn_print_pdf: "Imprimir / PDF",
                 btn_to_exec: "Dossiê Executivo ›",
                 btn_to_tech: "Relatório Técnico ›",
@@ -8898,7 +8898,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 finops_kpi_tokens: "Tokens Totais Processados",
                 finops_kpi_caching: "Economia Gemini Context Caching",
                 finops_kpi_cost_per_ctrl: "Custo Médio por Controle ISO 27001",
-                finops_phase_title: "Consumo de IA por Fase da Auditoria (Pipeline de Certificação)",
+                finops_phase_title: "Consumo de IA por Fase da Avaliação (Pipeline de Prontidão)",
                 finops_phase_desc: "Divisão de tokens e custos em cada estágio do ciclo de conformidade autônoma.",
                 finops_p1_title: "Fase 1: Triagem Zero-Copy",
                 finops_p1_desc: "Ingestão documental semântica",
@@ -8907,7 +8907,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 finops_p3_title: "Fase 3: Teste de Eficácia & Drift",
                 finops_p3_desc: "Simulação de drift e verificação",
                 finops_p4_title: "Fase 4: Parecer & Selagem",
-                finops_p4_desc: "Gemini 2.5 Pro Lead Auditor",
+                finops_p4_desc: "Gemini 2.5 Pro Lead Compliance Advisor",
                 finops_agent_table_title: "Detalhamento por Agente e Subagente (Métricas e Custos)",
                 finops_agent_table_desc: "Contabilização exata de prompt tokens, context cache hits, completion tokens e custo final em USD/BRL.",
                 finops_filter_placeholder: "Filtrar agentes...",
@@ -8921,11 +8921,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 finops_th_cost_brl: "Custo Total (BRL)",
                 
                 tech_doc_title: "Relatório de Avaliação de Prontidão para Certificação & Statement of Applicability (SoA)",
-                tech_doc_subtitle: "Auditoria Independente de Eficácia Operacional dos 93 Controles ISO/IEC 27001:2022, ISO/IEC 27017 & ISO/IEC 27018 em Google Cloud",
+                tech_doc_subtitle: "Avaliação de Eficácia Operacional dos 93 Controles ISO/IEC 27001:2022, ISO/IEC 27017 & ISO/IEC 27018 em Google Cloud",
                 tech_meta_dossier_code: "Código do Dossiê Técnico",
-                tech_meta_criteria: "Normas & Critérios de Auditoria",
+                tech_meta_criteria: "Normas & Critérios de Avaliação",
                 tech_meta_bodies: "Organismos Alvo & Entidades Receptoras",
-                tech_meta_scope: "Escopo de Auditoria (GCP Projects)",
+                tech_meta_scope: "Escopo de Avaliação (GCP Projects)",
                 tech_meta_methodology: "Metodologia de Teste",
                 tech_meta_date: "Data e Hora da Emissão",
                 tech_meta_conclusion: "Parecer Técnico Conclusivo",
@@ -8939,8 +8939,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 tech_sec3_lead: "As evidências técnicas a seguir contêm saídas de comandos oficiais do Google Cloud CLI (gcloud), telemetrias de APIs e hashes imutáveis que comprovam a operação contínua e sem falhas dos controles críticos de segurança:",
                 tech_sec4_heading: "4. Trilha de Eficácia Operacional e Tratamento de Desvios (CAPA Register)",
                 tech_sec4_lead: "Registro dos desvios identificados durante as rotinas de telemetria contínua, planos de ação gerados e histórico de aprovação humana (Human-in-the-Loop):",
-                tech_seal_tag: "SELO CRIPTOGRÁFICO DE INTEGRIDADE DA AUDITORIA EXTERNA",
-                tech_sig_role: "Auditor Líder Técnico Virtual (SPIFFE Validated)",
+                tech_seal_tag: "SELO CRIPTOGRÁFICO DE INTEGRIDADE DA AVALIAÇÃO DE CONFORMIDADE",
+                tech_sig_role: "Consultor Líder Técnico Virtual (SPIFFE Validated)",
                 tech_sig_status: "✓ Atestação Criptográfica Emitida",
                 
                 exec_doc_subtitle: "Avaliação autônoma de segurança da informação, conformidade contínua com a ISO/IEC 27001:2022 (93 Controles do Anexo A) e validação de telemetria nos ambientes Google Cloud Platform.",
@@ -8950,7 +8950,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 framework_badge_active: "Ativo",
                 framework_badge_coming_soon: "Em breve",
                 framework_more: "Mais frameworks",
-                framework_tooltip_iso: "ISO/IEC 27001:2022 - Auditoria agêntica ativa",
+                framework_tooltip_iso: "ISO/IEC 27001:2022 - Avaliação agêntica ativa",
                 framework_tooltip_soc2: "SOC 2 Type II - No roadmap de desenvolvimento",
                 framework_tooltip_pcidss: "PCI DSS v4.0 - No roadmap de desenvolvimento",
                 framework_tooltip_cmmi: "CMMI DEV/SVC - No roadmap de desenvolvimento",
@@ -8976,7 +8976,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 nav_home: "Visão Geral dos Módulos",
                 home_hero_badge: "Google Cloud Security • Agentic GRC Hub",
                 home_hero_title: "Hub de Módulos & Governança de Certificações",
-                home_hero_subtitle: "Plataforma autônoma para auditoria contínua, governança de segurança multi-cloud e prontidão para certificações internacionais (ISO/IEC 27001:2022, SOC 2, PCI DSS e CMMI) impulsionada por IA generativa no Google Cloud Vertex AI com Model Armor e Grounding determinístico.",
+                home_hero_subtitle: "Autonomous platform for continuous compliance assessment, multi-cloud security governance, and certification readiness (ISO/IEC 27001:2022, SOC 2, PCI DSS, CMMI) powered by generative AI in Google Cloud Vertex AI with Model Armor and deterministic grounding. Google Cloud does not perform audits or issue compliance certifications.",
                 home_meta_org: "Organização GCP:",
                 home_meta_fw: "Framework Ativo:",
                 home_meta_model: "Motor de IA:",
@@ -8984,14 +8984,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_kpi_controls: "Controles do Anexo A Mapeados",
                 home_kpi_evidence: "Grafo SHA-256 Imutável",
                 home_kpi_caching: "Economia Context Caching",
-                home_cat_ai_title: "Auditoria & Inteligência Agêntica",
+                home_cat_ai_title: "Avaliação & Inteligência Agêntica",
                 home_cat_ai_badge: "3 Módulos Ativos",
                 home_mod_chat_name: "Agentic Compliance Readiness Accelerator",
-                home_mod_chat_desc: "Auditoria conversacional com Gemini 2.5 Flash/Pro. Execute inspeções dinâmicas de IAM, KMS e GCS via ferramentas MCP com grounding determinístico e barreira Model Armor.",
+                home_mod_chat_desc: "Conversational compliance assessment with Gemini 2.5 Flash/Pro. Execute dynamic IAM, KMS, and GCS inspections via MCP tools with deterministic grounding and Model Armor guardrails.",
                 home_mod_chat_sub: "Interação em Linguagem Natural",
                 home_btn_open_chat: "Abrir Chatbot",
                 home_mod_phases_name: "Scan por Fases",
-                home_mod_phases_desc: "Pipeline estruturado em 4 etapas: Descoberta & IAM (Fase 1), Auditoria Técnica & IaC (Fase 2), Criptografia & Dados (Fase 3) e Governança & Threat Intel (Fase 4).",
+                home_mod_phases_desc: "Structured 4-stage pipeline: Discovery & IAM (Phase 1), Technical Review & IaC (Phase 2), Zero-Copy Governance & Policies (Phase 3), and Cryptographic Graph & Final Scorecard (Phase 4).",
                 home_mod_phases_sub: "Execução Sequencial",
                 home_btn_scan_phases: "Iniciar Scan",
                 home_mod_conn_name: "Subagentes & Zero-Copy",
@@ -9005,7 +9005,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_mod_matrix_sub: "Governança do Anexo A",
                 home_btn_open_matrix: "Explorar Matriz",
                 home_mod_scorecard_name: "Scorecard & Evidências",
-                home_mod_scorecard_desc: "Painel consolidado com o Grafo Criptográfico de Evidências, histórico de auditoria contínua, telemetria em tempo real e esteira de remediação CAPA com aprovação humana (HITL).",
+                home_mod_scorecard_desc: "Consolidated dashboard with Cryptographic Evidence Graph, continuous evaluation history, real-time telemetry, and CAPA remediation pipeline with Human-in-the-Loop (HITL) approval.",
                 home_mod_scorecard_sub: "Integridade Inalterável",
                 home_btn_open_scorecard: "Ver Scorecard",
                 home_cat_reports_title: "Relatórios Oficiais & Governança Financeira",
@@ -9015,16 +9015,16 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_mod_exec_sub: "Diretoria & Compliance",
                 home_btn_open_exec: "Abrir Dossiê",
                 home_mod_tech_name: "Relatório Técnico",
-                home_mod_tech_desc: "Caderno técnico de auditoria para certificadoras (BSI, Bureau Veritas, DNV) contendo saídas reais gcloud, comandos de teste e atestação SPIFFE/mTLS com verificação criptográfica.",
+                home_mod_tech_desc: "Technical assessment workbook containing actual gcloud outputs, test commands, and SPIFFE/mTLS attestation with cryptographic verification.",
                 home_mod_tech_sub: "Certificadoras Externas",
                 home_btn_open_tech: "Abrir Relatório",
                 home_mod_finops_name: "FinOps & Custos de IA",
-                home_mod_finops_desc: "Monitoramento financeiro detalhado de chamadas Gemini 2.5, economia alcançada com Context Caching de 1M tokens e projeção de custos operacionais de auditoria contínua.",
+                home_mod_finops_desc: "Detailed financial monitoring of Gemini 2.5 calls, savings achieved with 1M-token Context Caching, and operational cost projections for continuous assessment.",
                 home_mod_finops_sub: "Governança Orçamentária",
                 home_btn_open_finops: "Painel FinOps",
-                home_quick_actions_title: "Ações Rápidas de Auditoria",
+                home_quick_actions_title: "Quick Assessment Actions",
                 home_quick_actions_desc: "Dispare ciclos completos ou inicie consultas com 1 clique",
-                home_action_run_audit: "Auditoria Proativa",
+                home_action_run_audit: "Avaliação Proativa",
                 home_action_new_chat: "Nova Conversa",
                 home_action_dossier: "Dossiê Executivo",
                 client_workspace_title: "Workspace de Clientes",
@@ -9041,7 +9041,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_modal_title: "Conectar Novo Workspace de Cliente (Read-Only)",
                 onboard_modal_desc: "Envie o script de bootstrap abaixo para o cliente executar no ambiente dele (Google Cloud Shell / CLI) como Administrador da Organização. O script concede acesso estritamente Read-Only em nível de organização e exporta um arquivo .txt de configuração para carregar no botão abaixo.",
                 onboard_input_label: "Nome da Empresa / Cliente",
-                onboard_consultant_label: "Identidade do Auditor / Consultor (E-mail ou SA)",
+                onboard_consultant_label: "Identidade do Consultor / Revisor (E-mail ou SA)",
                 onboard_projects_label: "Projetos GCP no Escopo (separados por vírgula)",
                 onboard_days_label: "Validade do Acesso (dias)",
                 onboard_drive_folder_label: "Google Drive Folder ID / URL (Armazenamento de Evidências)",
@@ -9060,7 +9060,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 btn_close: "Fechar",
                 btn_cancel: "Cancelar",
                 btn_confirm_onboard: "Conectar Cliente",
-                login_gate_desc: "Plataforma corporativa de auditoria contínua e prontidão regulatória multicloud com IA agêntica.",
+                login_gate_desc: "Corporate platform for continuous compliance assessment and multicloud regulatory readiness with agentic AI.",
                 login_gate_btn: "Acessar Plataforma Interna",
                 login_gate_verifying: "Validando credenciais corporativas...",
                 login_gate_notice: "Ambiente corporativo interno protegido via Google Cloud BeyondCorp / IAP.",
@@ -9108,7 +9108,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 nav_connectors: "Connectors & Zero-Copy",
                 nav_scorecard: "Scorecard & Evidence",
                 nav_exec_report: "Executive Dossier",
-                nav_tech_report: "Technical Report (External Audit)",
+                nav_tech_report: "Technical Readiness Report",
                 nav_finops: "FinOps & AI Costs",
                 
                 scope_title: "GCP Organization Scope",
@@ -9120,10 +9120,10 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 
                 hero_work_title: "Let's get to work!",
                 hero_work_subtitle: "Autonomous continuous compliance and governance for Google Cloud & ISO/IEC 27001:2022",
-                hero_placeholder: "What would you like to audit today? (e.g.: ISO 27001, Cloud KMS, VPC-SC, FinOps)",
+                hero_placeholder: "What would you like to assess today? (e.g.: ISO 27001, Cloud KMS, VPC-SC, FinOps)",
                 model_auto_name: "Automatic",
                 model_auto_desc: "Autonomous Gemini 2.5 routing with FinOps optimization",
-                model_pro_desc: "Lead Auditor • Deep normative reasoning & Opinions",
+                model_pro_desc: "Lead Compliance Advisor • Deep normative reasoning & Assessment",
                 model_flash_desc: "High speed • Evidence triage and GCP telemetry",
                 model_flash35_desc: "New generation • 1M token Context Caching for continuous scans",
                 tag_recommended: "Recommended",
@@ -9131,19 +9131,19 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 
                 health_title: "GCP Environment Health",
                 health_badge: "Active Telemetry",
-                health_continuous: "Continuous Audit Active • Temporal Drift: STABLE",
+                health_continuous: "Continuous Assessment Active • Temporal Drift: STABLE",
                 health_no_drift: "No critical deviations detected",
                 news_header_title: "Regulatory Updates & News (RSS Feed)",
                 
-                phases_title: "Phased Audit Scan (Google Cloud Security)",
-                phases_subtitle: "Structured 4-phase pipeline for technical audit, data governance, and cryptographic anchoring.",
+                phases_title: "Phased Assessment Scan (Google Cloud Security)",
+                phases_subtitle: "Structured 4-phase pipeline for technical review, data governance, and cryptographic anchoring.",
                 phases_run_all: "Run Scan on All 4 Phases",
                 phase_1_name: "Phase 1: Discovery & IAM",
                 phase_1_desc: "Cloud Asset Inventory, service accounts, and least privilege (A.5.2, A.5.15, A.8.2).",
-                phase_2_name: "Phase 2: Technical Audit & IaC",
+                phase_2_name: "Phase 2: Deep Technical Review & IaC Assessment",
                 phase_2_desc: "Terraform templates scan, open ports, VPC Service Controls, and Cloud KMS (A.8.9, A.8.24).",
                 phase_3_name: "Phase 3: Governance & Policies",
-                phase_3_desc: "Audit of Organization Policies and corporate ISMS policies (A.5).",
+                phase_3_desc: "Evaluation of Organization Policies and corporate ISMS policies (A.5).",
                 phase_4_name: "Phase 4: Graph & Signature",
                 phase_4_desc: "Consolidation and anchoring of evidence with SHA-256 hashes in immutable graph.",
                 
@@ -9169,7 +9169,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 th_actions: "Actions",
                 btn_view_details: "View Details",
                 btn_hide_details: "Hide",
-                btn_audit_control: "Audit this Control",
+                btn_audit_control: "Assess this Control",
                 matrix_empty: "No controls found.",
                 
                 connectors_title: "Specialist Subagents & Zero-Copy Connectors",
@@ -9183,7 +9183,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 scorecard_title: "Continuous Scorecard & Evidence Graph",
                 scorecard_subtitle: "Consolidated compliance metrics, security drift, and pending human approvals.",
                 scorecard_global_comp: "Overall Compliance",
-                scorecard_auditor_opinion: "Auditor Opinion: UNQUALIFIED / EXCELLENT",
+                scorecard_auditor_opinion: "Advisor Assessment: UNQUALIFIED / EXCELLENT",
                 scorecard_nodes: "Nodes in Evidence Graph",
                 scorecard_crypto_sig: "Cryptographic Signature: SHA-256",
                 scorecard_edge_protect: "AI Edge Protection",
@@ -9193,9 +9193,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 scorecard_btn_sandbox: "View Sandbox Simulation",
                 
                 finops_title: "FinOps & AI Cost Management",
-                finops_subtitle: "Real-time telemetry of token consumption (Prompt, Context Caching, Completion) and costs ($ USD / R$ BRL) by agent, subagent, and audit phases.",
+                finops_subtitle: "Real-time telemetry of token consumption (Prompt, Context Caching, Completion) and costs ($ USD / R$ BRL) by agent, subagent, and assessment phases.",
                 finops_btn_refresh: "Refresh Metrics",
-                finops_btn_simulate: "Simulate Continuous Audit",
+                finops_btn_simulate: "Simulate Continuous Assessment",
                 finops_btn_export: "Export FinOps",
                 
                 modal_upload_title: "Analyze Infrastructure Template (IaC)",
@@ -9214,16 +9214,16 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 
                 meta_org: "Organization / Client",
                 meta_doc_code: "Document Code",
-                meta_standards: "Audited Standards & Amendments",
-                meta_lead_auditor: "Lead Auditor in Charge",
-                meta_audit_date: "Audit Date",
+                meta_standards: "Evaluated Standards & Criteria",
+                meta_lead_auditor: "Lead Compliance Advisor in Charge",
+                meta_audit_date: "Assessment Date",
                 meta_classification: "Information Classification",
-                meta_result: "Final Audit Result",
+                meta_result: "Final Assessment Result",
                 
-                doc_tech_chip: "External Audit • Stage 2",
+                doc_tech_chip: "Readiness Assessment • Stage 2",
                 doc_tech_title: "ISO/IEC 27001:2022 Technical Dossier",
                 doc_exec_chip: "Strategic View • C-Level",
-                doc_exec_title: "Continuous Compliance & Audit Dossier",
+                doc_exec_title: "Continuous Compliance & Assessment Dossier",
                 btn_print_pdf: "Print / PDF",
                 btn_to_exec: "Executive Dossier ›",
                 btn_to_tech: "Technical Report ›",
@@ -9235,7 +9235,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 finops_kpi_tokens: "Total Tokens Processed",
                 finops_kpi_caching: "Gemini Context Caching Savings",
                 finops_kpi_cost_per_ctrl: "Average Cost per ISO 27001 Control",
-                finops_phase_title: "AI Consumption by Audit Phase (Certification Pipeline)",
+                finops_phase_title: "AI Consumption by Assessment Phase (Readiness Pipeline)",
                 finops_phase_desc: "Tokens and cost breakdown across each stage of autonomous compliance cycle.",
                 finops_p1_title: "Phase 1: Zero-Copy Triage",
                 finops_p1_desc: "Semantic document ingestion",
@@ -9244,7 +9244,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 finops_p3_title: "Phase 3: Effectiveness Testing & Drift",
                 finops_p3_desc: "Drift simulation and verification",
                 finops_p4_title: "Phase 4: Opinion & Sealing",
-                finops_p4_desc: "Gemini 2.5 Pro Lead Auditor",
+                finops_p4_desc: "Gemini 2.5 Pro Lead Compliance Advisor",
                 finops_agent_table_title: "Breakdown by Agent and Subagent (Metrics & Costs)",
                 finops_agent_table_desc: "Exact accounting of prompt tokens, context cache hits, completion tokens, and final cost in USD/BRL.",
                 finops_filter_placeholder: "Filter agents...",
@@ -9258,11 +9258,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 finops_th_cost_brl: "Total Cost (BRL)",
                 
                 tech_doc_title: "Compliance Readiness Assessment Report & Statement of Applicability (SoA)",
-                tech_doc_subtitle: "Independent Operating Effectiveness Audit of 93 ISO/IEC 27001:2022, ISO/IEC 27017 & ISO/IEC 27018 Controls in Google Cloud",
+                tech_doc_subtitle: "Operating Effectiveness Assessment of 93 ISO/IEC 27001:2022, ISO/IEC 27017 & ISO/IEC 27018 Controls in Google Cloud",
                 tech_meta_dossier_code: "Technical Dossier Code",
-                tech_meta_criteria: "Audit Standards & Criteria",
-                tech_meta_bodies: "Target Certification Bodies & External Auditors",
-                tech_meta_scope: "Audit Scope (GCP Projects)",
+                tech_meta_criteria: "Assessment Standards & Criteria",
+                tech_meta_bodies: "Target Assessment Frameworks & Standards",
+                tech_meta_scope: "Assessment Scope (GCP Projects)",
                 tech_meta_methodology: "Testing Methodology",
                 tech_meta_date: "Issuance Date and Time",
                 tech_meta_conclusion: "Conclusive Technical Opinion",
@@ -9276,8 +9276,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 tech_sec3_lead: "The technical evidence below contains outputs from official Google Cloud CLI (gcloud) commands, API telemetries, and immutable hashes proving continuous and flawless control operation:",
                 tech_sec4_heading: "4. Operating Effectiveness Trail & Corrective Actions (CAPA Register)",
                 tech_sec4_lead: "Register of observations identified during continuous telemetry routines, generated action plans, and Human-in-the-Loop approval history:",
-                tech_seal_tag: "EXTERNAL AUDIT CRYPTOGRAPHIC INTEGRITY SEAL",
-                tech_sig_role: "Virtual Lead Technical Auditor (SPIFFE Validated)",
+                tech_seal_tag: "CRYPTOGRAPHIC READINESS INTEGRITY SEAL",
+                tech_sig_role: "Virtual Lead Technical Advisor (SPIFFE Validated)",
                 tech_sig_status: "✓ Cryptographic Attestation Issued",
                 
                 exec_doc_subtitle: "Autonomous information security assessment, continuous compliance with ISO/IEC 27001:2022 (93 Annex A Controls) and telemetry validation across Google Cloud Platform environments.",
@@ -9287,7 +9287,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 framework_badge_active: "Active",
                 framework_badge_coming_soon: "Coming soon",
                 framework_more: "More frameworks",
-                framework_tooltip_iso: "ISO/IEC 27001:2022 - Active agentic audit",
+                framework_tooltip_iso: "ISO/IEC 27001:2022 - Active agentic assessment",
                 framework_tooltip_soc2: "SOC 2 Type II - On the development roadmap",
                 framework_tooltip_pcidss: "PCI DSS v4.0 - On the development roadmap",
                 framework_tooltip_cmmi: "CMMI DEV/SVC - On the development roadmap",
@@ -9353,7 +9353,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_btn_open_exec: "Open Dossier",
                 home_mod_tech_name: "Technical Report",
                 home_mod_tech_desc: "Detailed audit dossier for certification bodies (BSI, Bureau Veritas, DNV) featuring literal gcloud outputs, test commands, and SPIFFE/mTLS cryptographic attestation.",
-                home_mod_tech_sub: "External Auditors",
+                home_mod_tech_sub: "Compliance Assessment",
                 home_btn_open_tech: "Open Report",
                 home_mod_finops_name: "FinOps & AI Costs",
                 home_mod_finops_desc: "Granular financial monitoring of Gemini 2.5 API usage, ROI realized through 1M token Context Caching, and operational cost projections for continuous audit.",
@@ -9378,7 +9378,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_modal_title: "Onboard New Client Workspace (Read-Only)",
                 onboard_modal_desc: "Send the bootstrap script below for the client to run in their environment (Google Cloud Shell / CLI) as Organization Admin. The script grants strictly Read-Only organization-level access and exports a .txt configuration file to load below.",
                 onboard_input_label: "Company / Client Name",
-                onboard_consultant_label: "Auditor / Consultant Identity (Email or SA)",
+                onboard_consultant_label: "Consultant / Advisor Identity (Email or SA)",
                 onboard_projects_label: "In-Scope GCP Projects (comma-separated)",
                 onboard_days_label: "Read-Only Access Duration (days)",
                 onboard_drive_folder_label: "Google Drive Folder ID / URL (Evidence Storage)",
@@ -9410,8 +9410,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 nav_questionnaire: "Cuestionario de Conformidad",
                 tab_scorecard: "Scorecard y Evidencias",
                 tab_exec_report: "Dossier Ejecutivo",
-                tab_tech_report: "Informe Técnico (Auditoría Externa)",
-                reports_hub_title: "Informes y Dossier de Auditoría",
+                tab_tech_report: "Informe Técnico de Preparación",
+                reports_hub_title: "Informes y Dossier de Preparación",
                 reports_hub_subtitle: "Visión unificada de cumplimiento: Scorecard continuo, Dossier Ejecutivo para liderazgo e Informe Técnico.",
                 quest_title: "Cuestionario de Conformidad — ISO/IEC 27001:2022",
                 quest_subtitle: "Evaluación de controles, justificaciones técnicas y carga segura de evidencias auditables.",
@@ -9420,20 +9420,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 framework_modal_desc: "Seleccione el marco normativo para auditar o consulte los módulos en desarrollo en la hoja de ruta multi-normas:",
 
                 status_indicator: "Vertex AI gemini-2.5-flash (Google Cloud Security Certified)",
-                top_active_agent: "Chatbot Auditor",
-                top_title_chat: "Chatbot Auditor",
+                top_active_agent: "Compliance & Security Advisor",
+                top_title_chat: "Compliance & Security Advisor",
                 top_title_phases: "Escaneo por Fases",
                 top_title_matrix: "Matriz ISO 27001 y SoA",
                 top_title_connectors: "Subagentes y Zero-Copy",
                 top_title_scorecard: "Scorecard y Evidencias",
                 top_title_exec: "Dossier Ejecutivo",
-                top_title_tech: "Informe Técnico (Auditoría Externa)",
+                top_title_tech: "Informe Técnico de Preparación",
                 top_title_finops: "FinOps y Costos de IA",
                 top_project_count: "1 proyecto activo",
                 top_projects_count: "{n} proyectos activos",
                 export_btn: "Exportar Informe",
                 export_exec: "Ver Dossier Ejecutivo",
-                export_tech: "Ver Informe Técnico (Auditoría Externa)",
+                export_tech: "Ver Informe Técnico de Preparación",
                 export_print: "Imprimir / Guardar PDF Oficial",
                 export_json: "Exportar JSON (Legible por máquina)",
                 export_md: "Exportar Markdown Técnico",
@@ -9445,7 +9445,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 nav_connectors: "Conectores y Zero-Copy",
                 nav_scorecard: "Scorecard y Evidencias",
                 nav_exec_report: "Dossier Ejecutivo",
-                nav_tech_report: "Informe Técnico (Auditoría Externa)",
+                nav_tech_report: "Informe Técnico de Preparación",
                 nav_finops: "FinOps y Costos de IA",
                 
                 scope_title: "Alcance de Organización GCP",
@@ -9456,11 +9456,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 subagents_title: "SUBAGENTES ESPECIALISTAS",
                 
                 hero_work_title: "¡Manos a la obra!",
-                hero_work_subtitle: "Auditoría continua autónoma y gobernanza para Google Cloud e ISO/IEC 27001:2022",
-                hero_placeholder: "¿Qué le gustaría auditar hoy? (ej.: ISO 27001, Cloud KMS, VPC-SC, FinOps)",
+                hero_work_subtitle: "Evaluación continua autónoma y gobernanza para Google Cloud e ISO/IEC 27001:2022",
+                hero_placeholder: "¿Qué le gustaría evaluar hoy? (ej.: ISO 27001, Cloud KMS, VPC-SC, FinOps)",
                 model_auto_name: "Automático",
                 model_auto_desc: "Enrutamiento autónomo Gemini 2.5 con optimización FinOps",
-                model_pro_desc: "Auditor Líder • Razonamiento normativo profundo y Dictámenes",
+                model_pro_desc: "Asesor Líder • Razonamiento normativo profundo y Evaluación",
                 model_flash_desc: "Alta velocidad • Triaje de evidencias y telemetría GCP",
                 model_flash35_desc: "Nueva generación • Context Caching de 1M tokens para escaneos continuos",
                 tag_recommended: "Recomendado",
@@ -9468,19 +9468,19 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 
                 health_title: "Salud del Entorno GCP",
                 health_badge: "Telemetría Activa",
-                health_continuous: "Auditoría Continua Activa • Desvío Temporal: ESTABLE",
+                health_continuous: "Evaluación Continua Activa • Desvío Temporal: ESTABLE",
                 health_no_drift: "Sin desviaciones críticas detectadas",
                 news_header_title: "Novedades y Actualizaciones Regulatorias (RSS Feed)",
                 
-                phases_title: "Escaneo de Auditoría por Fases (Google Cloud Security)",
-                phases_subtitle: "Pipeline estructurado de 4 fases para auditoría técnica, gobernanza de datos y anclaje criptográfico.",
+                phases_title: "Escaneo de Evaluación por Fases (Google Cloud Security)",
+                phases_subtitle: "Pipeline estructurado de 4 fases para evaluación técnica, gobernanza de datos y anclaje criptográfico.",
                 phases_run_all: "Ejecutar Escaneo en las 4 Fases",
                 phase_1_name: "Fase 1: Descubrimiento e IAM",
                 phase_1_desc: "Cloud Asset Inventory, service accounts y privilegio mínimo (A.5.2, A.5.15, A.8.2).",
-                phase_2_name: "Fase 2: Auditoría Técnica e IaC",
+                phase_2_name: "Fase 2: Evaluación Técnica e IaC",
                 phase_2_desc: "Escaneo de plantillas Terraform, puertos abiertos, VPC Service Controls y Cloud KMS (A.8.9, A.8.24).",
                 phase_3_name: "Fase 3: Gobernanza y Políticas",
-                phase_3_desc: "Auditoría de Organization Policies y políticas corporativas del SGSI (A.5).",
+                phase_3_desc: "Evaluación de Organization Policies y políticas corporativas del SGSI (A.5).",
                 phase_4_name: "Fase 4: Grafo y Firma",
                 phase_4_desc: "Consolidación y anclaje de evidencias con hashes SHA-256 en grafo inmutable.",
                 
@@ -9506,7 +9506,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 th_actions: "Acciones",
                 btn_view_details: "Ver Detalles",
                 btn_hide_details: "Ocultar",
-                btn_audit_control: "Auditar este Control",
+                btn_audit_control: "Evaluar este Control",
                 matrix_empty: "No se encontraron controles.",
                 
                 connectors_title: "Subagentes Especializados y Conectores Zero-Copy",
@@ -9520,7 +9520,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 scorecard_title: "Scorecard Continuo y Grafo de Evidencias",
                 scorecard_subtitle: "Métricas consolidadas de cumplimiento, desvío de seguridad y aprobaciones humanas pendientes.",
                 scorecard_global_comp: "Cumplimiento Global",
-                scorecard_auditor_opinion: "Opinión del Auditor: LIMPIA / EXCELENTE",
+                scorecard_auditor_opinion: "Dictamen del Asesor: CONFORME / EXCELENTE",
                 scorecard_nodes: "Nodos en Grafo de Evidencias",
                 scorecard_crypto_sig: "Firma Criptográfica: SHA-256",
                 scorecard_edge_protect: "Protección de Borde IA",
@@ -9530,9 +9530,9 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 scorecard_btn_sandbox: "Ver Simulación en Sandbox",
                 
                 finops_title: "FinOps y Gestión de Costos de IA",
-                finops_subtitle: "Telemetría en tiempo real de consumo de tokens (Prompt, Context Caching, Completion) y costos ($ USD / R$ BRL) por agente, subagente y fases de auditoría.",
+                finops_subtitle: "Telemetría en tiempo real de consumo de tokens (Prompt, Context Caching, Completion) y costos ($ USD / R$ BRL) por agente, subagente y fases de evaluación.",
                 finops_btn_refresh: "Actualizar Métricas",
-                finops_btn_simulate: "Simular Auditoría Continua",
+                finops_btn_simulate: "Simular Evaluación Continua",
                 finops_btn_export: "Exportar FinOps",
                 
                 modal_upload_title: "Analizar Plantilla de Infraestructura (IaC)",
@@ -9551,28 +9551,28 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 
                 meta_org: "Organización / Cliente",
                 meta_doc_code: "Código del Documento",
-                meta_standards: "Normas y Enmiendas Auditadas",
-                meta_lead_auditor: "Auditor Líder Responsable",
-                meta_audit_date: "Fecha de Auditoría",
+                meta_standards: "Normas y Criterios Evaluados",
+                meta_lead_auditor: "Asesor Líder Responsable",
+                meta_audit_date: "Fecha de Evaluación",
                 meta_classification: "Clasificación de la Información",
-                meta_result: "Resultado Final de Auditoría",
+                meta_result: "Resultado Final de Evaluación",
                 
-                doc_tech_chip: "Auditoría Externa • Stage 2",
+                doc_tech_chip: "Evaluación de Preparación • Stage 2",
                 doc_tech_title: "ISO/IEC 27001:2022 Technical Dossier",
                 doc_exec_chip: "Visión Estratégica • C-Level",
-                doc_exec_title: "Continuous Compliance & Audit Dossier",
+                doc_exec_title: "Continuous Compliance & Assessment Dossier",
                 btn_print_pdf: "Imprimir / PDF",
                 btn_to_exec: "Dossier Ejecutivo ›",
                 btn_to_tech: "Informe Técnico ›",
                 
                 chat_input_placeholder: "Consulte al Agentic Compliance Readiness Accelerator (Google Cloud Security)...",
-                chat_disclaimer: "Google Cloud Security • Evidencias y dictámenes de auditoría validados en Grafo Criptográfico SHA-256 y protegidos por Model Armor.",
+                chat_disclaimer: "Google Cloud Security • Evidencias y evaluaciones de conformidad validadas en Grafo Criptográfico SHA-256 y protegidos por Model Armor.",
                 bot_evaluating: "Agentic Compliance Readiness Accelerator (Google Cloud Security) evaluando telemetría y grafo de evidencias...",
                 finops_kpi_total_cost: "Costo Total de IA Acumulado",
                 finops_kpi_tokens: "Tokens Totales Procesados",
                 finops_kpi_caching: "Ahorro Gemini Context Caching",
                 finops_kpi_cost_per_ctrl: "Costo Promedio por Control ISO 27001",
-                finops_phase_title: "Consumo de IA por Fase de Auditoría (Pipeline de Certificación)",
+                finops_phase_title: "Consumo de IA por Fase de Evaluación (Pipeline de Preparación)",
                 finops_phase_desc: "Desglose de tokens y costos en cada etapa del ciclo de cumplimiento autónomo.",
                 finops_p1_title: "Fase 1: Triaje Zero-Copy",
                 finops_p1_desc: "Ingestión documental semántica",
@@ -9581,7 +9581,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 finops_p3_title: "Fase 3: Pruebas de Efectividad y Desvío",
                 finops_p3_desc: "Simulación de desvío y verificación",
                 finops_p4_title: "Fase 4: Dictamen y Sellado",
-                finops_p4_desc: "Gemini 2.5 Pro Lead Auditor",
+                finops_p4_desc: "Gemini 2.5 Pro Lead Compliance Advisor",
                 finops_agent_table_title: "Desglose por Agente y Subagente (Métricas y Costos)",
                 finops_agent_table_desc: "Contabilización exacta de tokens de prompt, aciertos de caché de contexto, tokens de salida y costo final en USD/BRL.",
                 finops_filter_placeholder: "Filtrar agentes...",
@@ -9595,11 +9595,11 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 finops_th_cost_brl: "Costo Total (BRL)",
                 
                 tech_doc_title: "Informe de Evaluación de Prontitud para Certificación y Declaración de Aplicabilidad (SoA)",
-                tech_doc_subtitle: "Auditoría Independiente de Eficacia Operativa de los 93 Controles ISO/IEC 27001:2022, ISO/IEC 27017 e ISO/IEC 27018 en Google Cloud",
+                tech_doc_subtitle: "Evaluación de Eficacia Operativa de los 93 Controles ISO/IEC 27001:2022, ISO/IEC 27017 e ISO/IEC 27018 en Google Cloud",
                 tech_meta_dossier_code: "Código del Dossier Técnico",
-                tech_meta_criteria: "Normas y Criterios de Auditoría",
-                tech_meta_bodies: "Organismos de Certificación y Auditores Externos",
-                tech_meta_scope: "Alcance de Auditoría (Proyectos GCP)",
+                tech_meta_criteria: "Normas y Criterios de Evaluación",
+                tech_meta_bodies: "Marcos de Evaluación y Normas Regulatorias",
+                tech_meta_scope: "Alcance de Evaluación (Proyectos GCP)",
                 tech_meta_methodology: "Metodología de Prueba",
                 tech_meta_date: "Fecha y Hora de Emisión",
                 tech_meta_conclusion: "Dictamen Técnico Conclusivo",
@@ -9613,8 +9613,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 tech_sec3_lead: "Las evidencias técnicas a continuación contienen salidas de comandos oficiales de Google Cloud CLI (gcloud), telemetrías de APIs y hashes inmutables que comprueban la operación continua y sin fallas de los controles críticos:",
                 tech_sec4_heading: "4. Registro de Eficacia Operativa y Acciones Correctivas (CAPA Register)",
                 tech_sec4_lead: "Registro de observaciones identificadas durante rutinas de telemetría continua, planes de acción generados e historial de aprobación humana (Human-in-the-Loop):",
-                tech_seal_tag: "SELLO CRIPTOGRÁFICO DE INTEGRIDAD DE LA AUDITORÍA EXTERNA",
-                tech_sig_role: "Auditor Líder Técnico Virtual (Validado por SPIFFE)",
+                tech_seal_tag: "SELLO CRIPTOGRÁFICO DE INTEGRIDAD DE LA EVALUACIÓN",
+                tech_sig_role: "Asesor Líder Técnico Virtual (Validado por SPIFFE)",
                 tech_sig_status: "✓ Atestación Criptográfica Emitida",
                 
                 exec_doc_subtitle: "Evaluación autónoma de seguridad de la información, cumplimiento continuo con ISO/IEC 27001:2022 (93 Controles del Anexo A) y validación de telemetría en Google Cloud Platform.",
@@ -9624,7 +9624,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 framework_badge_active: "Activo",
                 framework_badge_coming_soon: "Próximamente",
                 framework_more: "Más frameworks",
-                framework_tooltip_iso: "ISO/IEC 27001:2022 - Auditoría agéntica activa",
+                framework_tooltip_iso: "ISO/IEC 27001:2022 - Evaluación agéntica activa",
                 framework_tooltip_soc2: "SOC 2 Type II - En el roadmap de desarrollo",
                 framework_tooltip_pcidss: "PCI DSS v4.0 - En el roadmap de desarrollo",
                 framework_tooltip_cmmi: "CMMI DEV/SVC - En el roadmap de desarrollo",
@@ -9650,7 +9650,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 nav_home: "Visión General de Módulos",
                 home_hero_badge: "Google Cloud Security • Agentic GRC Hub",
                 home_hero_title: "Hub de Módulos y Gobernanza de Certificaciones",
-                home_hero_subtitle: "Plataforma autónoma para auditoría continua, gobernanza de seguridad multi-cloud y preparación para certificaciones internacionales (ISO/IEC 27001:2022, SOC 2, PCI DSS, CMMI) impulsada por IA generativa en Google Cloud Vertex AI con Model Armor y Grounding determinista.",
+                home_hero_subtitle: "Plataforma autónoma para evaluación continua de conformidad, gobernanza de seguridad multi-cloud y preparación para certificaciones internacionales (ISO/IEC 27001:2022, SOC 2, PCI DSS, CMMI) impulsada por IA generativa en Google Cloud Vertex AI con Model Armor y Grounding determinista.",
                 home_meta_org: "Organización GCP:",
                 home_meta_fw: "Marco Activo:",
                 home_meta_model: "Motor de IA:",
@@ -9658,14 +9658,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_kpi_controls: "Controles del Anexo A Mapeados",
                 home_kpi_evidence: "Grafo SHA-256 Inmutable",
                 home_kpi_caching: "Ahorro Context Caching",
-                home_cat_ai_title: "Auditoría e Inteligencia Agéntica",
+                home_cat_ai_title: "Evaluación e Inteligencia Agéntica",
                 home_cat_ai_badge: "3 Módulos Activos",
                 home_mod_chat_name: "Agentic Compliance Readiness Accelerator",
-                home_mod_chat_desc: "Auditoría conversacional con Gemini 2.5 Flash/Pro. Ejecute inspecciones dinámicas de IAM, KMS y GCS mediante herramientas MCP con grounding determinista y barrera Model Armor.",
+                home_mod_chat_desc: "Evaluación conversacional con Gemini 2.5 Flash/Pro. Ejecute inspecciones dinámicas de IAM, KMS y GCS mediante herramientas MCP con grounding determinista y barrera Model Armor.",
                 home_mod_chat_sub: "Interacción en Lenguaje Natural",
                 home_btn_open_chat: "Abrir Chatbot",
                 home_mod_phases_name: "Escaneo por Fases",
-                home_mod_phases_desc: "Pipeline estructurado en 4 etapas: Descubrimiento e IAM (Fase 1), Auditoría Técnica e IaC (Fase 2), Criptografía y Datos (Fase 3) y Gobernanza y Threat Intel (Fase 4).",
+                home_mod_phases_desc: "Pipeline estructurado en 4 etapas: Descubrimiento e IAM (Fase 1), Evaluación Técnica e IaC (Fase 2), Gobernanza y Políticas (Fase 3) y Grafo Criptográfico (Fase 4).",
                 home_mod_phases_sub: "Ejecución Secuencial",
                 home_btn_scan_phases: "Iniciar Escaneo",
                 home_mod_conn_name: "Subagentes y Zero-Copy",
@@ -9679,7 +9679,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_mod_matrix_sub: "Gobernanza del Anexo A",
                 home_btn_open_matrix: "Explorar Matriz",
                 home_mod_scorecard_name: "Scorecard y Evidencias",
-                home_mod_scorecard_desc: "Panel consolidado con el Grafo Criptográfico de Evidencias, historial de auditoría continua, telemetría en tiempo real y flujo de remediación CAPA con aprobación humana (HITL).",
+                home_mod_scorecard_desc: "Panel consolidado con el Grafo Criptográfico de Evidencias, historial de evaluación continua, telemetría en tiempo real y flujo de remediación CAPA con aprobación humana (HITL).",
                 home_mod_scorecard_sub: "Integridad Inalterable",
                 home_btn_open_scorecard: "Ver Scorecard",
                 home_cat_reports_title: "Informes Oficiales y Gobernanza Financiera",
@@ -9689,16 +9689,16 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 home_mod_exec_sub: "Dirección y Cumplimiento",
                 home_btn_open_exec: "Abrir Dossier",
                 home_mod_tech_name: "Informe Técnico",
-                home_mod_tech_desc: "Cuaderno técnico de auditoría para organismos certificadores (BSI, Bureau Veritas, DNV) con salidas reales gcloud, comandos de prueba y atestación SPIFFE/mTLS criptográfica.",
-                home_mod_tech_sub: "Auditores Externos",
+                home_mod_tech_desc: "Cuaderno técnico de evaluación para organismos evaluadores (BSI, Bureau Veritas, DNV) con salidas reales gcloud, comandos de prueba y atestación SPIFFE/mTLS criptográfica.",
+                home_mod_tech_sub: "Evaluación Técnica",
                 home_btn_open_tech: "Abrir Informe",
                 home_mod_finops_name: "FinOps y Costes de IA",
-                home_mod_finops_desc: "Monitoreo financiero detallado de llamadas Gemini 2.5, ahorro logrado con Context Caching de 1M tokens y proyección de costes operativos de auditoría continua.",
+                home_mod_finops_desc: "Monitoreo financiero detallado de llamadas Gemini 2.5, ahorro logrado con Context Caching de 1M tokens y proyección de costes operativos de evaluación continua.",
                 home_mod_finops_sub: "Gobernanza Presupuestaria",
                 home_btn_open_finops: "Panel FinOps",
-                home_quick_actions_title: "Acciones Rápidas de Auditoría",
+                home_quick_actions_title: "Acciones Rápidas de Evaluación",
                 home_quick_actions_desc: "Dispare ciclos completos o inicie consultas con 1 clic",
-                home_action_run_audit: "Auditoría Proactiva",
+                home_action_run_audit: "Evaluación Proactiva",
                 home_action_new_chat: "Nueva Conversación",
                 home_action_dossier: "Dossier Ejecutivo",
                 client_workspace_title: "Espacio de Clientes",
@@ -9715,7 +9715,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 onboard_modal_title: "Conectar Nuevo Espacio de Cliente (Read-Only)",
                 onboard_modal_desc: "Envíe el script de bootstrap para que el cliente lo ejecute en su entorno (Google Cloud Shell / CLI) como Administrador de la Organización. El script otorga acceso estrictamente de solo lectura y exporta un archivo .txt para cargar abajo.",
                 onboard_input_label: "Nombre de la Empresa / Cliente",
-                onboard_consultant_label: "Identidad del Auditor / Consultor (Correo o SA)",
+                onboard_consultant_label: "Identidad del Consultor / Revisor (Correo o SA)",
                 onboard_projects_label: "Proyectos GCP en Alcance (separados por comas)",
                 onboard_days_label: "Validez del Acceso de Solo Lectura (días)",
                 onboard_drive_folder_label: "Google Drive Folder ID / URL (Almacenamiento de Evidencias)",
@@ -9734,14 +9734,14 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 btn_close: "Cerrar",
                 btn_cancel: "Cancelar",
                 btn_confirm_onboard: "Conectar Cliente",
-                login_gate_desc: "Plataforma corporativa de auditoría continua y preparación regulatoria multicloud con IA agéntica.",
+                login_gate_desc: "Plataforma corporativa de evaluación continua y preparación regulatoria multicloud con IA agéntica.",
                 login_gate_btn: "Iniciar sesión con Google",
                 login_gate_verifying: "Validando credenciales corporativas...",
                 login_gate_notice: "Acceso corporativo restringido a identidades autorizadas con delegación GCP en vivo.",
                 login_gate_session_expired: "Su sesión ha expirado. Por favor, inicie sesión nuevamente con Google Workspace.",
             }
         };
-window.currentLanguage = 'pt';
+window.currentLanguage = 'en';
 
         function detectUserLanguage() {
             try {
@@ -9749,7 +9749,7 @@ window.currentLanguage = 'pt';
                 if (saved && ['pt', 'en', 'es'].includes(saved)) {
                     return saved;
                 }
-                const navLang = (navigator.language || navigator.languages?.[0] || 'pt').toLowerCase();
+                const navLang = (navigator.language || navigator.languages?.[0] || 'en').toLowerCase();
                 if (navLang.startsWith('en')) return 'en';
                 if (navLang.startsWith('es')) return 'es';
                 if (navLang.startsWith('pt')) return 'pt';
@@ -9902,7 +9902,7 @@ window.currentLanguage = 'pt';
             statusTag.innerText = "Executando...";
             statusTag.className = "phase-status-tag running";
             fill.style.width = "40%";
-            appendLog(`[Fase ${phaseNum} Execução Individual] Iniciando auditoria para projetos: ${projects.join(', ')}...`);
+            appendLog(`[Fase ${phaseNum} Execução Individual] Iniciando avaliação para projetos: ${projects.join(', ')}...`);
 
             try {
                 const res = await fetch("/api/audit/run_phases", {
@@ -9951,7 +9951,7 @@ window.currentLanguage = 'pt';
             
             const plans = {
                 1: "<strong>Plano de Remediação da Fase 1 (Descoberta & IAM):</strong><br>• Revogação preventiva de papéis herdados permissivos via IAM Recommender.<br>• Enforce de MFA/2FA mandatório para identidades com privilégios administrativos.<br>• Desativação de chaves de service account inativas e rotação de credenciais.",
-                2: "<strong>Plano de Remediação da Fase 2 (Auditoria Técnica & IaC):</strong><br>• Enforce de Public Access Prevention (PAP) e UBLA nos buckets Cloud Storage.<br>• Configuração de período de rotação de chaves Cloud KMS HSM para 60 dias (baseline <= 90 dias).<br>• Correção de portas administrativas abertas (SSH/RDP) no firewall VPC e sincronização de IaC Terraform.",
+                2: "<strong>Plano de Remediação da Fase 2 (Avaliação Técnica & IaC):</strong><br>• Enforce de Public Access Prevention (PAP) e UBLA nos buckets Cloud Storage.<br>• Configuração de período de rotação de chaves Cloud KMS HSM para 60 dias (baseline <= 90 dias).<br>• Correção de portas administrativas abertas (SSH/RDP) no firewall VPC e sincronização de IaC Terraform.",
                 3: "<strong>Plano de Remediação da Fase 3 (Governança & Políticas):</strong><br>• Enforce de Organization Policies restritivas (restrição de localização geográfica).<br>• Sincronização e assinatura digital das políticas do SGSI via Zero-Copy (Google Drive).<br>• Registro formal da aprovação da diretoria no grafo de conformidade com hash SHA-256.",
                 4: "<strong>Plano de Remediação da Fase 4 (Grafo Criptográfico):</strong><br>• Recálculo completo de hashes SHA-256 para todos os nós de evidência.<br>• Emissão de novo recibo digital com garantia de não-repúdio.<br>• Reconciliação do Scorecard executivo em 100.0% (EXCELLENT)."
             };
@@ -10091,7 +10091,7 @@ window.currentLanguage = 'pt';
                                     <div class="card-title">${escapeHtml(agent.name)}</div>
                                     <span class="badge-custom">Customizado</span>
                                 </div>
-                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">${escapeHtml(agent.role || 'Auditor Especialista')}</div>
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">${escapeHtml(agent.role || 'Advisor Especialista')}</div>
                             </div>
                         </div>
                         <div class="card-desc">${escapeHtml(agent.description || '')}</div>
@@ -10100,7 +10100,7 @@ window.currentLanguage = 'pt';
                             ${controlsHtml} ${toolsHtml}
                         </div>
                         <div class="subagent-card-actions">
-                            <button class="btn-subagent-run" onclick="executeSubagent('${agent.id}', '${escapeHtml(agent.name)}')">Executar Auditoria</button>
+                            <button class="btn-subagent-run" onclick="executeSubagent('${agent.id}', '${escapeHtml(agent.name)}')">Executar Avaliação</button>
                             <button class="btn-subagent-delete" onclick="deleteCustomSubagent('${agent.id}')" title="Excluir Subagente">
                                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                             </button>
@@ -10387,10 +10387,10 @@ window.currentLanguage = 'pt';
                             <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Parecer ISO 27001 - agentic-grc-cd06</span>
                         </div>
                     </div>
-                    <div class="recent-item" onclick="promptPreFill('Auditar conformidade do Cloud KMS e rotação de chaves HSM (A.8.24)')">
+                    <div class="recent-item" onclick="promptPreFill('Assess Cloud KMS compliance and HSM key rotation (A.8.24)')">
                         <div style="display: flex; align-items: center; gap: 7px; overflow: hidden; flex: 1;">
                             <span style="color: var(--text-tertiary); font-size: 9px; flex-shrink: 0;">○</span>
-                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Auditoria Criptografia KMS - A.8.24</span>
+                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">KMS Cryptography Assessment - A.8.24</span>
                         </div>
                     </div>
                     <div class="recent-item" onclick="promptPreFill('Verificar perímetros VPC Service Controls e proteção contra exfiltração')">
@@ -10494,7 +10494,7 @@ window.currentLanguage = 'pt';
             const userRow = document.createElement("div");
             userRow.className = "msg-row user";
             userRow.innerHTML = `
-                <div class="msg-content">Executar auditoria especializada com o subagente: <strong>${escapeHtml(displayName)}</strong> no projeto <code>${escapeHtml(project)}</code></div>
+                <div class="msg-content">Executar avaliação especializada com o subagente: <strong>${escapeHtml(displayName)}</strong> no projeto <code>${escapeHtml(project)}</code></div>
                 <div class="msg-avatar user-av">JS</div>
             `;
             chatArea.appendChild(userRow);
@@ -10516,7 +10516,7 @@ window.currentLanguage = 'pt';
             chatArea.appendChild(botRow);
             chatArea.scrollTop = chatArea.scrollHeight;
 
-            // Registra a nova sessão no histórico de auditorias
+            // Registra a nova sessão no histórico de avaliações
             const newSession = {
                 id: sessionId,
                 title: displayName,
@@ -10533,10 +10533,10 @@ window.currentLanguage = 'pt';
 
             const titleEl = document.getElementById("topActiveTitle");
             if (titleEl) {
-                titleEl.innerText = `Auditoria • ${displayName}`;
+                titleEl.innerText = `Avaliação • ${displayName}`;
             }
 
-            appendLog(`[Novo Chat • ${displayName}] Executando auditoria especializada no projeto '${project}'...`, "info");
+            appendLog(`[Novo Chat • ${displayName}] Executando avaliação especializada no projeto '${project}'...`, "info");
 
             try {
                 const res = await fetch(`/api/subagents/${encodeURIComponent(agentId)}/run?project_id=${encodeURIComponent(project)}`, {
@@ -10549,7 +10549,7 @@ window.currentLanguage = 'pt';
                 if (data.markdown_report) {
                     renderedReport = renderExecutiveMarkdown(data.markdown_report);
                 } else {
-                    let text = `### Auditoria Concluída: ${displayName}\n\n`;
+                    let text = `### Avaliação Concluída: ${displayName}\n\n`;
                     text += `**Projeto:** \`${data.project_id || project}\` | **Score:** **${data.compliance_score || 100}%**\n\n`;
                     if (data.findings && data.findings.length) {
                         text += `#### Descobertas Técnicas:\n`;
@@ -10657,8 +10657,8 @@ window.currentLanguage = 'pt';
                 id: document.getElementById("drawerAgentEditId").value || null,
                 name: name,
                 role: role,
-                description: desc || `Subagente customizado para auditoria de ${role}`,
-                system_prompt: prompt || `Você é o auditor ${name} de Google Cloud Security focado em conformidade ISO 27001.`,
+                description: desc || `Subagente customizado para avaliação de ${role}`,
+                system_prompt: prompt || `Você é o assessor ${name} de Google Cloud Security focado em conformidade ISO 27001.`,
                 tools: tools.length > 0 ? tools : ["asset_inventory"],
                 model: model,
                 temperature: 0.1,
@@ -10685,18 +10685,18 @@ window.currentLanguage = 'pt';
             const templates = {
                 fintech: {
                     name: "Fintech & Banking Compliance Sentinel",
-                    role: "Auditor Especialista em Criptografia e Regulação Bancária",
+                    role: "Advisor Especialista em Criptografia e Regulação Bancária",
                     controls: "A.5.15, A.5.23, A.8.2, A.8.12, A.8.24",
-                    desc: "Auditoria especializada em cargas críticas com foco em proteção de chaves HSM, segregação de ambientes e perímetros VPC-SC.",
-                    prompt: "Você é o Fintech Compliance Sentinel de Google Cloud Security. Audite com máximo rigor chaves Cloud KMS HSM (A.8.24), perímetros VPC Service Controls (A.8.12) e privilégio mínimo no IAM (A.5.15). Forneça pareceres orientados a BACEN e PCI-DSS.",
+                    desc: "Avaliação especializada em cargas críticas com foco em proteção de chaves HSM, segregação de ambientes e perímetros VPC-SC.",
+                    prompt: "Você é o Fintech Compliance Sentinel de Google Cloud Security. Avalie com máximo rigor chaves Cloud KMS HSM (A.8.24), perímetros VPC Service Controls (A.8.12) e privilégio mínimo no IAM (A.5.15). Forneça pareceres orientados a BACEN e PCI-DSS.",
                     tools: ["cloud_kms", "vpc_sc", "iam_recommender", "asset_inventory"]
                 },
                 zerotrust: {
-                    name: "Zero-Trust & Identity Governance Auditor",
-                    role: "Auditor de Identidade, MFA e Menor Privilégio",
+                    name: "Zero-Trust & Identity Governance Advisor",
+                    role: "Advisor de Identidade, MFA e Menor Privilégio",
                     controls: "A.5.15, A.5.16, A.5.17, A.8.5",
                     desc: "Varredura contínua de contas de serviço, MFA obrigatório e políticas de acesso contextual BeyondCorp.",
-                    prompt: "Você é o Zero-Trust Identity Auditor de Google Cloud Security. Identifique privilégios administrativos herdados, contas órfãs (>90 dias) e exija autenticação context-aware.",
+                    prompt: "Você é o Zero-Trust Identity Advisor de Google Cloud Security. Identifique privilégios administrativos herdados, contas órfãs (>90 dias) e exija autenticação context-aware.",
                     tools: ["iam_recommender", "asset_inventory"]
                 },
                 k8s: {
@@ -10709,18 +10709,18 @@ window.currentLanguage = 'pt';
                 },
                 privacy: {
                     name: "HealthData Privacy & LGPD Sentinel",
-                    role: "Auditor de Proteção de Dados e Anonimização PII",
+                    role: "Reviewer de Proteção de Dados e Anonimização PII",
                     controls: "A.5.12, A.5.34, A.8.10, A.8.11, A.8.24",
                     desc: "Inspeção de anonimização com Cloud DLP e criptografia de registros sensíveis no BigQuery.",
-                    prompt: "Você é o Privacy & LGPD Sentinel de Google Cloud Security. Audite desidentificação de dados sensíveis, retenção de logs e mascaramento de colunas no BigQuery.",
+                    prompt: "Você é o Privacy & LGPD Sentinel de Google Cloud Security. Avalie a desidentificação de dados sensíveis, retenção de logs e mascaramento de colunas no BigQuery.",
                     tools: ["asset_inventory", "cloud_kms", "zero_copy_drive"]
                 },
                 finops: {
                     name: "FinOps & Storage Lifecycle Sentinel",
-                    role: "Auditor de Retenção de Dados e Otimização de Custos",
+                    role: "Advisor de Retenção de Dados e Otimização de Custos",
                     controls: "A.5.9, A.8.10, A.8.13",
                     desc: "Inspeção de regras de ciclo de vida de dados (Object Lifecycle Management), WORM Bucket Lock e descarte seguro.",
-                    prompt: "Você é o FinOps & Storage Lifecycle Sentinel de Google Cloud Security. Audite retenção imutável e expiração de partições no BigQuery.",
+                    prompt: "Você é o FinOps & Storage Lifecycle Sentinel de Google Cloud Security. Avalie retenção imutável e expiração de partições no BigQuery.",
                     tools: ["asset_inventory", "zero_copy_drive"]
                 }
             };
@@ -11017,7 +11017,7 @@ Formulário preenchido com o subagente recomendado!`);
                                 const banner = document.getElementById("loginGateMessage");
                                 if (banner) {
                                     banner.style.display = "block";
-                                    banner.innerHTML = `⚠️ Falha na autorização Google OAuth: ${err.type || err.message || "Erro de cliente/origem"}. <a href="javascript:void(0)" onclick="mockSignIn()" style="color: var(--gcp-blue); text-decoration: underline; margin-left: 6px;">Entrar com sessão de auditor corporativo</a>`;
+                                    banner.innerHTML = `⚠️ Google OAuth authorization notice: ${err.type || err.message || "Client/origin configuration"}. <a href="javascript:void(0)" onclick="mockSignIn()" style="color: var(--gcp-blue); text-decoration: underline; margin-left: 6px;">Sign in with corporate reviewer session</a>`;
                                 }
                             }
                         });
@@ -11029,7 +11029,7 @@ Formulário preenchido com o subagente recomendado!`);
         }
 
         function mockSignIn(enteredEmail = null, domain = null) {
-            const email = (enteredEmail || localStorage.getItem("grc_user_email") || window.customAuditorEmail || "auditor@client.corp").trim();
+            const email = (enteredEmail || localStorage.getItem("grc_user_email") || window.customAuditorEmail || "compliance.reviewer@client.corp").trim();
             if (!domain) {
                 domain = email.includes("@") ? email.split("@")[1].trim() : GOOGLE_WORKSPACE_CONFIG.expectedDomain;
             }
@@ -11061,7 +11061,7 @@ Formulário preenchido com o subagente recomendado!`);
         window.mockSignIn = mockSignIn;
 
         function triggerGoogleWorkspaceSignIn() {
-            const currentEmail = localStorage.getItem("grc_user_email") || window.customAuditorEmail || "auditor@client.corp";
+            const currentEmail = localStorage.getItem("grc_user_email") || window.customAuditorEmail || "compliance.reviewer@client.corp";
             const currentDomain = currentEmail.includes("@") ? currentEmail.split("@")[1].trim() : GOOGLE_WORKSPACE_CONFIG.expectedDomain;
 
             if (isRealGoogleClientId(GOOGLE_WORKSPACE_CONFIG.clientId) && window.google && window.google.accounts && window.googleTokenClient) {
@@ -11073,7 +11073,7 @@ Formulário preenchido com o subagente recomendado!`);
                 }
             }
 
-            // Direct internal corporate auditor authentication (zero OAuth errors or blocking)
+            // Direct internal corporate reviewer authentication (zero OAuth errors or blocking)
             mockSignIn(currentEmail, currentDomain);
         }
 
@@ -11092,7 +11092,7 @@ Formulário preenchido com o subagente recomendado!`);
         function saveCorporateIdentityAndSignIn() {
             const emailInput = document.getElementById("corporateEmailInput");
             const clientIdInput = document.getElementById("corporateClientIdInput");
-            const email = (emailInput && emailInput.value.trim()) || localStorage.getItem("grc_user_email") || window.customAuditorEmail || "auditor@client.corp";
+            const email = (emailInput && emailInput.value.trim()) || localStorage.getItem("grc_user_email") || window.customAuditorEmail || "compliance.reviewer@client.corp";
             const customClientId = clientIdInput ? clientIdInput.value.trim() : "";
 
             if (customClientId && isRealGoogleClientId(customClientId)) {
@@ -11124,7 +11124,7 @@ Formulário preenchido com o subagente recomendado!`);
                     GOOGLE_WORKSPACE_CONFIG.expectedDomain = payload.hd.toLowerCase();
                 }
                 window.currentUserIdToken = response.credential;
-                window.currentUserEmail = payload.email || `auditor@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}`;
+                window.currentUserEmail = payload.email || `reviewer@${GOOGLE_WORKSPACE_CONFIG.expectedDomain}`;
                 window.currentUserHd = payload.hd || GOOGLE_WORKSPACE_CONFIG.expectedDomain;
 
                 window.customAuditorEmail = window.currentUserEmail;
@@ -11273,7 +11273,7 @@ Formulário preenchido com o subagente recomendado!`);
             const isActive = client.status === "active" && (client.read_only_access_days_remaining === undefined || client.read_only_access_days_remaining > 0);
             if (statusEl) {
                 statusEl.className = `client-status-pill ${isActive ? 'active' : 'expired'}`;
-                const lang = window.currentLanguage || 'pt';
+                const lang = window.currentLanguage || 'en';
                 const dict = (typeof I18N !== 'undefined' && I18N[lang]) ? I18N[lang] : {};
                 statusEl.innerText = isActive
                     ? (dict.client_status_active || "Active")
@@ -11282,7 +11282,7 @@ Formulário preenchido com o subagente recomendado!`);
 
             const projCount = (client.projects || []).length;
             if (countEl) {
-                const lang = window.currentLanguage || 'pt';
+                const lang = window.currentLanguage || 'en';
                 const dict = (typeof I18N !== 'undefined' && I18N[lang]) ? I18N[lang] : {};
                 const tmpl = dict.client_projects_in_scope || "{n} projects in scope";
                 countEl.innerText = tmpl.replace('{n}', projCount);
@@ -11290,7 +11290,7 @@ Formulário preenchido com o subagente recomendado!`);
 
             if (expiryWrapEl && expiryTextEl) {
                 const days = client.read_only_access_days_remaining;
-                const lang = window.currentLanguage || 'pt';
+                const lang = window.currentLanguage || 'en';
                 const dict = (typeof I18N !== 'undefined' && I18N[lang]) ? I18N[lang] : {};
                 if (days !== undefined && days > 0 && client.status === "active") {
                     expiryWrapEl.classList.remove("expired");
@@ -11553,9 +11553,9 @@ EXPIRY_DAYS="${days}"
 OUTPUT_FILE="grc_onboarding_config.txt"
 
 echo "=================================================================="
-echo "    AGENTIC GRC: AWS MULTI-ACCOUNT AUDITOR BOOTSTRAP (READ-ONLY)"
+echo "    AGENTIC GRC: AWS MULTI-ACCOUNT READINESS REVIEWER BOOTSTRAP (READ-ONLY)"
 echo "=================================================================="
-echo "Auditor Identity: \${CONSULTANT_IDENTITY}"
+echo "Reviewer / Consultant Identity: \${CONSULTANT_IDENTITY}"
 echo "Permissions:      READ-ONLY (SecurityAudit / ViewOnlyAccess)"
 echo "------------------------------------------------------------------"
 
@@ -11573,6 +11573,7 @@ client_name=AWS Organization \${AWS_ORG_ID}
 org_id=\${AWS_ORG_ID}
 projects=\${ACCOUNTS}
 access_days=\${EXPIRY_DAYS}
+consultant_identity=\${CONSULTANT_IDENTITY}
 auditor_identity=\${CONSULTANT_IDENTITY}
 generated_at=\$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 EOF
@@ -11600,9 +11601,9 @@ EXPIRY_DAYS="${days}"
 OUTPUT_FILE="grc_onboarding_config.txt"
 
 echo "=================================================================="
-echo "    AGENTIC GRC: AZURE TENANT AUDITOR BOOTSTRAP (READ-ONLY)"
+echo "    AGENTIC GRC: AZURE TENANT READINESS REVIEWER BOOTSTRAP (READ-ONLY)"
 echo "=================================================================="
-echo "Auditor Identity: \${CONSULTANT_IDENTITY}"
+echo "Reviewer / Consultant Identity: \${CONSULTANT_IDENTITY}"
 echo "Permissions:      READ-ONLY (Reader, Security Reader)"
 echo "------------------------------------------------------------------"
 
@@ -11620,6 +11621,7 @@ client_name=Azure Tenant \${TENANT_ID}
 org_id=\${TENANT_ID}
 projects=\${SUBS}
 access_days=\${EXPIRY_DAYS}
+consultant_identity=\${CONSULTANT_IDENTITY}
 auditor_identity=\${CONSULTANT_IDENTITY}
 generated_at=\$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 EOF
@@ -11636,7 +11638,7 @@ echo "=================================================================="`;
                 filenameText = "gcp_onboard_bootstrap.sh";
                 scriptText = `#!/usr/bin/env bash
 # ==============================================================================
-# AGENTIC GRC: ORGANIZATION-LEVEL READ-ONLY AUDITOR BOOTSTRAP (GCP)
+# AGENTIC GRC: ORGANIZATION-LEVEL READ-ONLY READINESS REVIEWER BOOTSTRAP (GCP)
 # Location / Reference: scripts/onboard_client.sh
 # Execution: Run in Google Cloud Shell or Terminal as Organization Admin
 # Mandate: Strictly READ-ONLY permissions (Principle of Least Privilege)
@@ -11659,9 +11661,9 @@ YELLOW="\\033[1;33m"
 NC="\\033[0m"
 
 echo -e "\${BOLD}\${BLUE}================================================================\${NC}"
-echo -e "\${BOLD}\${BLUE}   AGENTIC GRC: GCP ORGANIZATION AUDITOR BOOTSTRAP (READ-ONLY)  \${NC}"
+echo -e "\${BOLD}\${BLUE}   AGENTIC GRC: GCP ORGANIZATION READINESS REVIEWER BOOTSTRAP (READ-ONLY)  \${NC}"
 echo -e "\${BOLD}\${BLUE}================================================================\${NC}"
-echo -e "Auditor / Consultant: \${BOLD}\${GREEN}\${CONSULTANT_IDENTITY}\${NC}"
+echo -e "Reviewer / Consultant: \${BOLD}\${GREEN}\${CONSULTANT_IDENTITY}\${NC}"
 echo -e "Access Duration:      \${EXPIRY_DAYS} days"
 echo -e "Enforcement:          Strictly READ-ONLY (roles/viewer, roles/iam.securityReviewer)"
 echo -e "Execution Scope:      Organization Level (All child folders and projects)\\n"
@@ -11732,7 +11734,7 @@ echo -e "  ✓ Mapped \${PROJECT_COUNT} active project(s): \${BOLD}\${PROJECTS_L
 if [ -z "\${ORG_ID}" ]; then
     IFS=',' read -ra PROJ_ARR <<< "\${PROJECTS_LIST}"
     for p in "\${PROJ_ARR[@]}"; do
-        echo -e "  - Binding read-only auditor permissions to project: \${BOLD}\${p}\${NC}"
+        echo -e "  - Binding read-only assessment permissions to project: \${BOLD}\${p}\${NC}"
         gcloud projects add-iam-policy-binding "\${p}" --member="\${MEMBER}" --role="roles/viewer" --quiet >/dev/null 2>&1 || true
         gcloud projects add-iam-policy-binding "\${p}" --member="\${MEMBER}" --role="roles/securityReviewer" --quiet >/dev/null 2>&1 || true
     done
@@ -11753,6 +11755,7 @@ org_id=\${ORG_ID}
 org_name=\${ORG_NAME}
 projects=\${PROJECTS_LIST}
 access_days=\${EXPIRY_DAYS}
+consultant_identity=\${CONSULTANT_IDENTITY}
 auditor_identity=\${CONSULTANT_IDENTITY}
 generated_at=\${NOW_ISO}
 EOF
@@ -12166,8 +12169,8 @@ echo -e "================================================================\\n"`;
 
                     if (recognizedCount === 0) {
                         showStatus((window.currentLanguage === 'en')
-                            ? "No recognizable keys found in .txt file (supported keys: client_name, org_id, projects, access_days, auditor_identity, drive_folder)."
-                            : "Nenhuma chave reconhecida no arquivo .txt (chaves suportadas: client_name, org_id, projects, access_days, auditor_identity, drive_folder).", true);
+                            ? "No recognizable keys found in .txt file (supported keys: client_name, org_id, projects, access_days, consultant_identity, auditor_identity, drive_folder)."
+                            : "Nenhuma chave reconhecida no arquivo .txt (chaves suportadas: client_name, org_id, projects, access_days, consultant_identity, auditor_identity, drive_folder).", true);
                         inputEl.value = "";
                         return;
                     }
@@ -12337,8 +12340,8 @@ echo -e "================================================================\\n"`;
 
             if (!storedIdToken && !storedAccessToken) {
                 // Internal Enterprise Platform: Silent background authentication
-                // Zero login screen friction: automatically authenticates auditor session and mounts app shell
-                const defaultEmail = localStorage.getItem("grc_user_email") || window.customAuditorEmail || "auditor@client.corp";
+                // Zero login screen friction: automatically authenticates reviewer session and mounts app shell
+                const defaultEmail = localStorage.getItem("grc_user_email") || window.customAuditorEmail || "compliance.reviewer@client.corp";
                 mockSignIn(defaultEmail);
                 return;
             }
@@ -12480,7 +12483,7 @@ echo -e "================================================================\\n"`;
         }
 
         function showLockedProviderNotice(providerName) {
-            const lang = window.currentLanguage || 'pt';
+            const lang = window.currentLanguage || 'en';
             const dict = (typeof I18N !== 'undefined' && I18N[lang]) ? I18N[lang] : {};
             const tmpl = dict.provider_locked_notice || "{name} - No roadmap de desenvolvimento multi-cloud.";
             const msg = tmpl.replace('{name}', providerName);
@@ -12596,7 +12599,7 @@ echo -e "================================================================\\n"`;
             const titleEl = document.getElementById("topActiveTitle");
             if (titleEl) {
                 titleEl.setAttribute("data-i18n", activeKey);
-                const dict = (I18N[window.currentLanguage || "pt"] || I18N.pt);
+                const dict = (I18N[window.currentLanguage || 'en'] || I18N.pt);
                 titleEl.innerText = dict[activeKey] || "Visão Geral dos Módulos";
             }
         }
@@ -12689,31 +12692,31 @@ echo -e "================================================================\\n"`;
         // =========================================================================
                 const dynamicSuggestionPools = {
             pt: [
-                { label: "Auditoria Completa ISO 27001", prompt: "Executar auditoria técnica completa de todos os 93 controles da ISO/IEC 27001:2022" },
-                { label: "Criptografia Cloud KMS (A.8.24)", prompt: "Auditar controle A.8.24 de Criptografia Cloud KMS e rotação de chaves HSM" },
+                { label: "Avaliação Completa ISO 27001", prompt: "Executar avaliação técnica completa de todos os 93 controles da ISO/IEC 27001:2022" },
+                { label: "Criptografia Cloud KMS (A.8.24)", prompt: "Avaliar controle A.8.24 de Criptografia Cloud KMS e rotação de chaves HSM" },
                 { label: "Perímetros VPC-SC (A.8.12)", prompt: "Verificar perímetros VPC Service Controls e controle de fuga de dados A.8.12" },
-                { label: "Armazenamento GCS (A.5.23)", prompt: "Auditar segurança do Cloud Storage e controle A.5.23 para serviços em nuvem" },
-                { label: "IAM & Menor Privilégio", prompt: "Auditar conformidade de IAM, segregação de funções e ausência de papéis primitivos" },
-                { label: "Logs 365 Dias (A.8.16)", prompt: "Verificar retenção de 365 dias dos logs de auditoria no BigQuery (A.8.16)" },
-                { label: "Amd 1:2024 Clima & DR", prompt: "Auditar conformidade com a Emenda Climática ISO 27001 Amd 1:2024 e Disaster Recovery" }
+                { label: "Armazenamento GCS (A.5.23)", prompt: "Avaliar segurança do Cloud Storage e controle A.5.23 para serviços em nuvem" },
+                { label: "IAM & Menor Privilégio", prompt: "Avaliar conformidade de IAM, segregação de funções e ausência de papéis primitivos" },
+                { label: "Logs 365 Dias (A.8.16)", prompt: "Verificar retenção de 365 dias dos Cloud Audit Logs no BigQuery (A.8.16)" },
+                { label: "Amd 1:2024 Clima & DR", prompt: "Avaliar conformidade com a Emenda Climática ISO 27001 Amd 1:2024 e Disaster Recovery" }
             ],
             en: [
-                { label: "Complete ISO 27001 Audit", prompt: "Run complete technical audit of all 93 ISO/IEC 27001:2022 controls" },
-                { label: "Cloud KMS Encryption (A.8.24)", prompt: "Audit control A.8.24 Cloud KMS Encryption and HSM key rotation" },
+                { label: "Complete ISO 27001 Assessment", prompt: "Run complete technical assessment of all 93 ISO/IEC 27001:2022 controls" },
+                { label: "Cloud KMS Encryption (A.8.24)", prompt: "Assess control A.8.24 Cloud KMS Encryption and HSM key rotation" },
                 { label: "VPC-SC Perimeters (A.8.12)", prompt: "Verify VPC Service Controls perimeters and data leakage prevention A.8.12" },
-                { label: "GCS Storage (A.5.23)", prompt: "Audit Cloud Storage security and control A.5.23 for cloud services" },
-                { label: "IAM & Least Privilege", prompt: "Audit IAM compliance, segregation of duties and absence of primitive roles" },
-                { label: "365-Day Logs (A.8.16)", prompt: "Verify 365-day audit log retention in BigQuery sinks (A.8.16)" },
-                { label: "Amd 1:2024 Climate & DR", prompt: "Audit compliance with ISO 27001 Amd 1:2024 Climate Amendment and Disaster Recovery" }
+                { label: "GCS Storage (A.5.23)", prompt: "Assess Cloud Storage security and control A.5.23 for cloud services" },
+                { label: "IAM & Least Privilege", prompt: "Assess IAM compliance, segregation of duties and absence of primitive roles" },
+                { label: "365-Day Logs (A.8.16)", prompt: "Verify 365-day Cloud Audit Logs retention in BigQuery sinks (A.8.16)" },
+                { label: "Amd 1:2024 Climate & DR", prompt: "Assess compliance with ISO 27001 Amd 1:2024 Climate Amendment and Disaster Recovery" }
             ],
             es: [
-                { label: "Auditoría Completa ISO 27001", prompt: "Ejecutar auditoría técnica completa de los 93 controles de ISO/IEC 27001:2022" },
-                { label: "Criptografía Cloud KMS (A.8.24)", prompt: "Auditar control A.8.24 de Criptografía Cloud KMS y rotación de claves HSM" },
+                { label: "Evaluación Completa ISO 27001", prompt: "Ejecutar evaluación técnica completa de los 93 controles de ISO/IEC 27001:2022" },
+                { label: "Criptografía Cloud KMS (A.8.24)", prompt: "Evaluar control A.8.24 de Criptografía Cloud KMS y rotación de claves HSM" },
                 { label: "Perímetros VPC-SC (A.8.12)", prompt: "Verificar perímetros VPC Service Controls y prevención de fuga de datos A.8.12" },
-                { label: "Almacenamiento GCS (A.5.23)", prompt: "Auditar seguridad de Cloud Storage y control A.5.23 para servicios cloud" },
-                { label: "IAM y Menor Privilegio", prompt: "Auditar cumplimiento de IAM, segregación de funciones y ausencia de roles primitivos" },
-                { label: "Logs 365 Días (A.8.16)", prompt: "Verificar retención de 365 días de logs de auditoría en BigQuery (A.8.16)" },
-                { label: "Amd 1:2024 Clima y DR", prompt: "Auditar cumplimiento de la Enmienda Climática ISO 27001 Amd 1:2024 y Disaster Recovery" }
+                { label: "Almacenamiento GCS (A.5.23)", prompt: "Evaluar seguridad de Cloud Storage y control A.5.23 para servicios cloud" },
+                { label: "IAM y Menor Privilegio", prompt: "Evaluar cumplimiento de IAM, segregación de funciones y ausencia de roles primitivos" },
+                { label: "Logs 365 Días (A.8.16)", prompt: "Verificar retención de 365 días de Cloud Audit Logs en BigQuery (A.8.16)" },
+                { label: "Amd 1:2024 Clima y DR", prompt: "Evaluar cumplimiento de la Enmienda Climática ISO 27001 Amd 1:2024 y Disaster Recovery" }
             ]
         };
 
@@ -12725,7 +12728,7 @@ echo -e "================================================================\\n"`;
             if (!container) return;
 
             // Pick 5 random items distinct from last selection
-            const pool = dynamicSuggestionPools[window.currentLanguage || "pt"] || dynamicSuggestionPools.en;
+            const pool = dynamicSuggestionPools[window.currentLanguage || 'en'] || dynamicSuggestionPools.en;
             let availableIndices = pool
                 .map((_, i) => i)
                 .filter(i => !lastPickedIndices.includes(i));
@@ -12781,7 +12784,7 @@ echo -e "================================================================\\n"`;
             }, 12000);
         }
 
-// selectAuditorTab merged into home view
+// selectAdvisorTab merged into home view
 
         // 2. startNewConversation(): Nova Conversa
         // Mostra: APENAS O RSS FEED.
@@ -12804,7 +12807,7 @@ echo -e "================================================================\\n"`;
             const newsEl = document.getElementById("heroNewsSection");
 
             if (titleEl) titleEl.innerText = "Vamos trabalhar!";
-            if (subtitleEl) subtitleEl.innerText = "Auditoria contínua autônoma e governança para Google Cloud & ISO/IEC 27001:2022";
+            if (subtitleEl) subtitleEl.innerText = "Autonomous continuous compliance assessment and governance for Google Cloud & ISO/IEC 27001:2022. Google Cloud does not perform audits or issue compliance certifications.";
 
             // Rules requested by user:
             // "Na nova conversa, não pode ter, apenas o RSS."
@@ -13015,7 +13018,7 @@ echo -e "================================================================\\n"`;
         function renderNewsCarousel() {
             const track = document.getElementById("newsCarouselTrack");
             if (!track) return;
-            const lang = window.currentLanguage || 'pt';
+            const lang = window.currentLanguage || 'en';
             const db = regulatoryNewsDatabases[lang] || regulatoryNewsDatabases.en;
             const readFull = lang === 'en' ? 'Read full article ➔' : (lang === 'es' ? 'Leer noticia completa ➔' : 'Ler notícia completa ➔');
             const official = lang === 'en' ? 'Official source ↗' : (lang === 'es' ? 'Fuente oficial ↗' : 'Fonte oficial ↗');
@@ -13036,7 +13039,7 @@ echo -e "================================================================\\n"`;
             `).join('');
         }
 function openNewsModal(newsKey) {
-            const lang = window.currentLanguage || 'pt';
+            const lang = window.currentLanguage || 'en';
             const db = regulatoryNewsDatabases[lang] || regulatoryNewsDatabases.en;
             const data = db[newsKey];
             if (!data) return;
@@ -13083,7 +13086,7 @@ function openNewsModal(newsKey) {
 
         function executeNewsAudit() {
             if (!currentActiveNewsKey) return;
-            const lang = window.currentLanguage || 'pt';
+            const lang = window.currentLanguage || 'en';
             const db = regulatoryNewsDatabases[lang] || regulatoryNewsDatabases.pt || regulatoryNewsDatabases.en;
             const data = db ? db[currentActiveNewsKey] : null;
             closeNewsModal();
@@ -13352,7 +13355,7 @@ function openNewsModal(newsKey) {
                     remaining.delete(p.project_id);
                 }
                 if (remaining.size === 0) {
-                    alert("Pelo menos um projeto deve permanecer no escopo de auditoria.");
+                    alert("Pelo menos um projeto deve permanecer no escopo de avaliação.");
                     updateEnvToggleState();
                     return;
                 }
@@ -13383,7 +13386,7 @@ function openNewsModal(newsKey) {
                 if (selectedProjectIds.size > 1) {
                     selectedProjectIds.delete(pid);
                 } else {
-                    alert("Pelo menos um projeto deve permanecer no escopo de auditoria.");
+                    alert("Pelo menos um projeto deve permanecer no escopo de avaliação.");
                     renderScopeBox();
                     renderOrgDropdown();
                     return;
@@ -13552,7 +13555,7 @@ function openNewsModal(newsKey) {
                         project_id: Array.from(selectedProjectIds)[0],
                         selected_projects: Array.from(selectedProjectIds),
                         model: currentSelectedModel,
-                        locale: window.currentLanguage || 'pt',
+                        locale: window.currentLanguage || 'en',
                         user_token: window.currentUserToken || undefined,
                         id_token: window.currentUserIdToken || undefined,
                         history: previousTurns,
@@ -13583,7 +13586,7 @@ function openNewsModal(newsKey) {
                             ? `### ⛔ Access Denied (403 Forbidden)\n\nYour account domain or token lacks permissions for this tenant.\n\n*(Details: ${errDetail})*`
                             : `### ⛔ Acesso Negado (403 Forbidden)\n\nSeu domínio ou token não possui permissões para inspecionar os recursos deste locatário.\n\n*(Detalhes: ${errDetail})*`;
                     } else {
-                        errorMarkdown = `### ⚠️ Erro na Comunicação com o Auditor (${res.status})\n\n${errDetail}`;
+                        errorMarkdown = `### ⚠️ Erro na Comunicação com o Consultor (${res.status})\n\n${errDetail}`;
                     }
 
                     if (replyElem) {
@@ -13609,8 +13612,8 @@ function openNewsModal(newsKey) {
                     }
                 }
                 const defaultEmptyMsg = (window.currentLanguage === 'en')
-                    ? "The auditor completed the assessment without additional remarks."
-                    : "O auditor concluiu a análise sem observações adicionais.";
+                    ? "The advisor completed the assessment without additional remarks."
+                    : "O consultor concluiu a avaliação sem observações adicionais.";
                 const replyMarkdown = renderExecutiveMarkdown(data.response || defaultEmptyMsg);
                 if (replyElem) {
                     replyElem.innerHTML = replyMarkdown;
@@ -13625,7 +13628,7 @@ function openNewsModal(newsKey) {
                 }
             } catch (err) {
                 const replyElem = document.getElementById(replyId);
-                const errHtml = `<span style="color: var(--gcp-red)">Erro na comunicação com o auditor Google Cloud Security: ${err}</span>`;
+                const errHtml = `<span style="color: var(--gcp-red)">Erro na comunicação com o consultor Google Cloud Security: ${err}</span>`;
                 if (replyElem) {
                     replyElem.innerHTML = errHtml;
                 }
@@ -13644,7 +13647,7 @@ function openNewsModal(newsKey) {
             const consoleBox = document.getElementById("auditLogsContainer");
             consoleBox.innerHTML = "";
 
-            appendLog(`Iniciando Scan de Auditoria estruturado em 4 Fases para [${projects.join(', ')}]...`, "info");
+            appendLog(`Iniciando Scan de Avaliação estruturado em 4 Fases para [${projects.join(', ')}]...`, "info");
 
             for (let i = 1; i <= 4; i++) {
                 document.getElementById(`statusPhase${i}`).innerText = "Em Execução...";
@@ -13677,7 +13680,7 @@ function openNewsModal(newsKey) {
                         }
                     });
                 }
-                appendLog(`Auditoria Finalizada com Sucesso! Score Global: ${data.overall_score}%`, "success");
+                appendLog(`Avaliação Finalizada com Sucesso! Score Global: ${data.overall_score}%`, "success");
                 if (typeof loadScorecard === 'function') loadScorecard();
                 if (typeof loadIsoMatrix === 'function') loadIsoMatrix();
                 if (typeof loadQuestionnaireData === 'function') loadQuestionnaireData();
@@ -13767,7 +13770,7 @@ function openNewsModal(newsKey) {
         }
 
         function renderMatrixTable(items) {
-            const dict = (I18N[window.currentLanguage || "pt"] || I18N.pt);
+            const dict = (I18N[window.currentLanguage || 'en'] || I18N.pt);
             const tbody = document.getElementById("matrixTableBody");
             if (!tbody) return;
             tbody.innerHTML = "";
@@ -13907,7 +13910,7 @@ function openNewsModal(newsKey) {
                                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor">
                                                 <polyline points="20 6 9 17 4 12"/>
                                             </svg>
-                                            Como Checar em Compliance (Auditoria & Telemetria GCP)
+                                            Como Checar em Compliance (Avaliação & Telemetria GCP)
                                         </div>
                                         <div class="detail-box-content">
                                             ${escapeHtml(c.how_to_check || 'Validar recursos via Cloud Asset Inventory e checar permissões IAM.')}
@@ -13970,7 +13973,7 @@ function openNewsModal(newsKey) {
                 // 2. Update Auditor Opinion
                 const opinionElem = document.getElementById("scorecardAuditorOpinion");
                 if (opinionElem) {
-                    opinionElem.innerText = `Opinião do Auditor: ${data.rating}`;
+                    opinionElem.innerText = `Parecer do Assessor: ${data.rating}`;
                 }
 
                 // 3. Update Evidence Nodes Display
@@ -14029,7 +14032,7 @@ function openNewsModal(newsKey) {
                 "A.5.23": "Bucket bkt-iso-noncompliant-legacy com PAP desativado, single-region e sem chave CMEK Cloud KMS.",
                 "A.8.14": "Frota de 5 instâncias Compute Engine alocada em zona única us-central1-a sem proteção contra exclusão.",
                 "A.8.15": "Perímetro VPC Service Controls ausente para isolamento estrito de serviços de armazenamento e big data.",
-                "A.8.16": "Monitoramento de segurança sem exportação contínua de logs de auditoria e trilhas do Cloud Logging.",
+                "A.8.16": "Monitoramento de segurança sem exportação contínua de Cloud Audit Logs e trilhas do Cloud Logging.",
                 "A.8.20": "Regra de firewall fw-iso-noncompliant-open-ssh expõe porta 22 (SSH) para a Internet pública (0.0.0.0/0).",
                 "A.8.24": "Discos de boot sem chave de criptografia gerenciada pelo cliente (CMEK Cloud KMS HSM).",
                 "A.8.28": "Vulnerabilidade BOLA (/api/v1/customers/{id}) e endpoint com falha de Prompt Injection na vm-payment-api."
@@ -14037,7 +14040,7 @@ function openNewsModal(newsKey) {
 
             let html = `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px;">`;
             ncList.forEach(cid => {
-                const desc = ncDetails[cid] || "Não conformidade técnica identificada pelo Scan de Auditoria do GCP.";
+                const desc = ncDetails[cid] || "Não conformidade técnica identificada pelo Scan de Avaliação do GCP.";
                 html += `
                     <div style="background: rgba(234, 67, 53, 0.05); border: 1px solid rgba(234, 67, 53, 0.25); border-radius: 8px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -14062,7 +14065,7 @@ function openNewsModal(newsKey) {
 
         async function triggerSubagent(subagent, target) {
             const nameMap = {
-                "annex_a": "Annex A Auditor Agent",
+                "annex_a": "Annex A Security Assessor Agent",
                 "gcp_telemetry": "GCP Telemetry & Infrastructure Sub-Agent",
                 "org_policies": "Organization Policies Enforcer",
                 "horizon_scanner": "Horizon Scanner Agent",
@@ -14210,7 +14213,7 @@ function openNewsModal(newsKey) {
         function renderFinOpsDashboard(data) {
             if (!data || !data.summary) return;
             const s = data.summary;
-            const lang = window.currentLanguage || 'pt';
+            const lang = window.currentLanguage || 'en';
 
             // Localized text snippets
             const rateLabel = lang === 'en' ? `(Exchange Rate R$ ${s.usd_to_brl_rate.toFixed(2)})` : (lang === 'es' ? `(Tipo de Cambio R$ ${s.usd_to_brl_rate.toFixed(2)})` : `(Cotação R$ ${s.usd_to_brl_rate.toFixed(2)})`);
@@ -14404,7 +14407,7 @@ function openNewsModal(newsKey) {
                 if (res.ok) {
                     finopsData = await res.json();
                     renderFinOpsDashboard(finopsData);
-                    alert("Simulação de auditoria contínua executada! Telemetria de tokens e custos atualizada.");
+                    alert("Simulação de avaliação contínua executada! Telemetria de tokens e custos atualizada.");
                 }
             } catch(e) {
                 console.error("Simulation error", e);
@@ -14528,7 +14531,7 @@ function openNewsModal(newsKey) {
 
         async function loadQuestionnaireControls() {
             const container = document.getElementById("questControlsAccordion");
-            const lang = window.currentLanguage || 'pt';
+            const lang = window.currentLanguage || 'en';
             const fw = window.currentFramework || 'ISO27001:2022';
             try {
                 const res = await fetch(`/api/questionnaire?framework=${encodeURIComponent(fw)}&lang=${encodeURIComponent(lang)}`, {
@@ -14593,13 +14596,13 @@ function openNewsModal(newsKey) {
             const container = document.getElementById("questControlsAccordion");
             if (!container) return;
 
-            const currentLang = window.currentLanguage || 'pt';
+            const currentLang = window.currentLanguage || 'en';
 
             const i18nLabels = {
                 pt: {
-                    auditQuestion: "Pergunta de Auditoria",
+                    auditQuestion: "Pergunta de Avaliação",
                     scopeReq: "Requisito Normativo:",
-                    evidenceGuide: "Guia do Auditor: Evidências Recomendadas & Mapeamento GCP",
+                    evidenceGuide: "Guia de Avaliação: Evidências Recomendadas & Mapeamento GCP",
                     evidenceArtifacts: "Artefatos de Evidência Recomendados:",
                     gcpCheck: "Como Verificar no GCP (CLI / Console):",
                     gcpTelemetry: "Origem de Telemetria GCP:",
@@ -14610,7 +14613,7 @@ function openNewsModal(newsKey) {
                     partial: "⚠ Parcial",
                     notApplicable: "— Não Aplicável",
                     justLabel: "Avaliação de Prontidão & Justificativa Técnica",
-                    justPlaceholder: "Descreva a justificativa do auditor, escopo auditado e parecer...",
+                    justPlaceholder: "Descreva a justificativa da avaliação, escopo verificado e parecer...",
                     uriLabel: "URI / Link da Evidência",
                     uriPlaceholder: "gs://bucket/doc.pdf ou URL...",
                     attachFile: "Anexar Arquivo",
@@ -14620,9 +14623,9 @@ function openNewsModal(newsKey) {
                     clickToExpand: "(clique para expandir/recolher)"
                 },
                 en: {
-                    auditQuestion: "Audit Question",
+                    auditQuestion: "Assessment Question",
                     scopeReq: "Regulatory Requirement:",
-                    evidenceGuide: "Auditor Guidance: Recommended Evidence & GCP Verification",
+                    evidenceGuide: "Assessment Guidance: Recommended Evidence & GCP Verification",
                     evidenceArtifacts: "Recommended Evidence Artifacts:",
                     gcpCheck: "How to Verify in GCP (CLI / Console):",
                     gcpTelemetry: "GCP Telemetry Source:",
@@ -14633,7 +14636,7 @@ function openNewsModal(newsKey) {
                     partial: "⚠ Partial",
                     notApplicable: "— Not Applicable",
                     justLabel: "Readiness Assessment & Technical Justification",
-                    justPlaceholder: "Describe the auditor justification, evaluated scope, and rationale...",
+                    justPlaceholder: "Describe the evaluation rationale, verified scope, and recommendations...",
                     uriLabel: "Evidence URI / Link",
                     uriPlaceholder: "gs://bucket/doc.pdf or URL...",
                     attachFile: "Attach File",
@@ -14643,9 +14646,9 @@ function openNewsModal(newsKey) {
                     clickToExpand: "(click to expand/collapse)"
                 },
                 es: {
-                    auditQuestion: "Pregunta de Auditoría",
+                    auditQuestion: "Pregunta de Evaluación",
                     scopeReq: "Requisito Reglamentario:",
-                    evidenceGuide: "Guía del Auditor: Evidencias Recomendadas y Verificación GCP",
+                    evidenceGuide: "Guía de Evaluación: Evidencias Recomendadas y Verificación GCP",
                     evidenceArtifacts: "Artefactos de Evidencia Recomendados:",
                     gcpCheck: "Cómo Verificar en GCP (CLI / Consola):",
                     gcpTelemetry: "Origen de Telemetría GCP:",
@@ -14656,7 +14659,7 @@ function openNewsModal(newsKey) {
                     partial: "⚠ Parcial",
                     notApplicable: "— No Aplicable",
                     justLabel: "Evaluación de Prontitud y Justificación Técnica",
-                    justPlaceholder: "Describa la justificación del auditor, alcance evaluado y dictamen...",
+                    justPlaceholder: "Describa la justificación de la evaluación, alcance evaluado y dictamen...",
                     uriLabel: "URI / Enlace de la Evidencia",
                     uriPlaceholder: "gs://bucket/doc.pdf o URL...",
                     attachFile: "Adjuntar Archivo",
@@ -14770,7 +14773,7 @@ function openNewsModal(newsKey) {
                             <strong style="color: var(--text-primary);">${lbl.scopeReq}</strong> ${escapeHtml(ctrlDesc)}
                         </div>` : ''}
 
-                        <!-- Auditor Guidance & Recommended Evidence -->
+                        <!-- Assessment Guidance & Recommended Evidence -->
                         <div class="quest-evidence-guide">
                             <div class="quest-guide-header" onclick="toggleQuestGuide('${safeId}')">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -15035,12 +15038,12 @@ function openNewsModal(newsKey) {
             
             <div class="form-group">
                 <label class="form-label" for="drawerAgentName">Nome do Subagente</label>
-                <input type="text" id="drawerAgentName" class="form-control" placeholder="Ex: FinOps & Storage Compliance Auditor">
+                <input type="text" id="drawerAgentName" class="form-control" placeholder="Ex: FinOps & Storage Compliance Advisor">
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="drawerAgentRole">Cargo / Especialidade</label>
-                <input type="text" id="drawerAgentRole" class="form-control" placeholder="Ex: Auditor de Ciclo de Vida e Retenção">
+                <input type="text" id="drawerAgentRole" class="form-control" placeholder="Ex: Assessor de Ciclo de Vida e Retenção">
             </div>
 
             <div class="form-group">
@@ -15053,7 +15056,7 @@ function openNewsModal(newsKey) {
                 <select id="drawerAgentModel" class="form-control">
                     <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Recomendado / Resposta Rápida)</option>
                     <option value="gemini-1.5-pro">Gemini 1.5 Pro (Raciocínio Profundo)</option>
-                    <option value="gemini-2.5-pro">Gemini 2.5 Pro (Especialista em Auditoria)</option>
+                    <option value="gemini-2.5-pro">Gemini 2.5 Pro (Especialista em Avaliação e Raciocínio Normativo)</option>
                 </select>
             </div>
 
@@ -15064,7 +15067,7 @@ function openNewsModal(newsKey) {
 
             <div class="form-group">
                 <label class="form-label" for="drawerAgentPrompt">System Prompt / Instrução Especializada</label>
-                <textarea id="drawerAgentPrompt" class="form-control" rows="4" placeholder="Defina a metodologia e critérios do auditor: 'Você é o especialista de Google Cloud Security responsável por...'"></textarea>
+                <textarea id="drawerAgentPrompt" class="form-control" rows="4" placeholder="Defina a metodologia e critérios do assessor: 'Você é o especialista de Google Cloud Security responsável por...'"></textarea>
             </div>
 
             <div class="form-group">

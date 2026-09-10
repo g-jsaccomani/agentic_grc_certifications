@@ -134,7 +134,7 @@ async def test_subagent_arun_accumulates_usage_and_fallback():
     """Verify arun() accumulates usage or records zero on fallback."""
     agent = LLMSubAgent(
         name="Async Agent",
-        system_instruction="Async auditor",
+        system_instruction="Async advisor",
         model_id="gemini-2.5-pro",
     )
 

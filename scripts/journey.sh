@@ -113,7 +113,7 @@ echo -e "Discovery Endpoint:   ${SERVICE_URL:-http://localhost:8080}/.well-known
 echo -e "StreamableHTTP MCP:   ${SERVICE_URL:-http://localhost:8080}/mcp"
 echo -e "----------------------------------------------------------------"
 echo -e "Features Available in Client Portal:"
-echo -e " 1. 💬 Chatbot Auditor: Prompt & response interface with evidence grounding"
+echo -e " 1. 💬 Compliance & Security Advisor: Prompt & response interface with evidence grounding"
 echo -e " 2. 🤖 Sub-agents: Trigger Annex A, GCP Telemetry, Org Policies, Horizon Scanner"
 echo -e " 3. 📁 File Upload: Live analysis of Terraform (.tf), Ansible (.yml), Policies"
 echo -e " 4. 🔗 Zero-Copy Sync: Connect Google Drive, SharePoint, Jira without data copy"

@@ -90,7 +90,7 @@ class ZeroCopyConnectorManager:
                 ZeroCopyDocument(
                     source=source,
                     document_id="SEC-1042",
-                    title="Auditoria Pendente: Migração para Perímetros VPC-SC em Produção",
+                    title="Pending Review: Migration to VPC-SC Perimeters in Production",
                     content_snippet="Status: Em andamento. Responsável: SRE Team. Prazo: Q3/2026.",
                     metadata={"status": "IN_PROGRESS", "priority": "HIGH", "component": "VPC-SC"},
                     user_authorized=True,

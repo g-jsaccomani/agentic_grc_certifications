@@ -191,13 +191,16 @@ Open the URL displayed at the end of `make journey`:
 https://<SERVICE_NAME>-<HASH>.a.run.app/portal
 ```
 
+> [!IMPORTANT]
+> **Notice**: Google Cloud does not perform formal audits or issue compliance certifications. The platform provides continuous technical assessment, gap analysis, and evidence readiness tooling to assist organizations preparing for accredited third-party certification audits.
+
 ### Key Operational Modules
 
-1. **Chatbot Auditor (Agentic GRC Virtual Lead Auditor)**:
-   - Interactive consultative auditing grounded in live cloud telemetry and Model Armor guardrails.
-   - Real-time subagent execution and generation of auditable markdown dossiers for all 93 controls.
-2. **Scan por Fases (4-Phase Certification Pipeline)**:
-   - Autonomous execution across Phase 1 (Document Triage), Phase 2 (Technical Telemetry), Phase 3 (Operating Effectiveness), and Phase 4 (Formal Opinion & Sealing).
+1. **Compliance & Security Advisor (Agentic GRC Virtual Lead Advisor)**:
+   - Interactive consultative assessment grounded in live cloud telemetry and Model Armor guardrails.
+   - Real-time subagent execution and generation of verifiable markdown dossiers for all 93 controls.
+2. **Scan por Fases (4-Phase Readiness Pipeline)**:
+   - Autonomous execution across Phase 1 (Asset Discovery), Phase 2 (Technical Telemetry), Phase 3 (Zero-Copy Governance), and Phase 4 (Formal Opinion & Sealing).
 3. **Matriz ISO 27001 & SoA (93 Controls)**:
    - Full 2022 taxonomy organized by Organizational (A.5), People (A.6), Physical (A.7), and Technological (A.8) themes with real-time pass/fail states.
 4. **Conectores Zero-Copy**:
@@ -206,8 +209,8 @@ https://<SERVICE_NAME>-<HASH>.a.run.app/portal
    - Epistemic evidence graph showing cryptographically anchored nodes with SHA-256 hashes and continuous drift velocity.
 6. **Dossiê Executivo (C-Level Board Attestation)**:
    - High-level executive dashboard tailored for Boards and CISOs with global compliance metrics (100%), FinOps ROI, and attestation certificates.
-7. **Relatório Técnico de Auditoria Externa (ISO/IEC 27001:2022 Stage 2)**:
-   - Formal certification deliverable designed for external certification bodies (BSI, DNV, TÜV, Schellman, Big 4).
+7. **Technical Assessment Dossier (ISO/IEC 27001:2022 Stage 2 Readiness)**:
+   - Formal readiness deliverable designed for external certification reviews.
    - Multi-format export: Official A4 print-ready PDF, structured machine-readable JSON (for Archer, ServiceNow, Vanta, Drata), and Markdown.
 8. **FinOps & ROI de IA**:
    - Real-time token usage telemetry and financial savings tracking from Gemini Context Caching.

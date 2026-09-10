@@ -414,7 +414,7 @@ class SubagentCreateRequest(BaseModel):
     name: str = Field(..., description="Nome do subagente")
     role: str = Field(..., description="Especialidade ou cargo virtual")
     description: str = Field(..., description="Descrição detalhada do propósito")
-    system_prompt: str = Field(..., description="Instruções de sistema / postura de auditoria")
+    system_prompt: str = Field(..., description="Instruções de sistema / postura de avaliação")
     tools: List[str] = Field(default=["iam", "asset_inventory"], description="Ferramentas habilitadas")
     model: str = Field(default="gemini-2.5-flash")
     temperature: float = Field(default=0.1)
@@ -469,25 +469,25 @@ def build_audit_context_summary(
 
     if not has_audit_run:
         if loc.startswith("en"):
-            score_line = "Current Compliance Scorecard: No environment data collected yet (no proactive audit cycle has been executed in this session/tenant)."
+            score_line = "Current Compliance Scorecard: No environment data collected yet (no proactive assessment cycle has been executed in this session/tenant)."
             posture_section = (
-                "Audited Controls and Environment Posture:\n"
-                "- No controls audited yet. Never assume compliance for any resource without empirical telemetry.\n"
-                "- Recommended action: run 'Execute proactive audit' or invoke specific tools to collect technical evidence."
+                "Assessed Controls and Environment Posture:\n"
+                "- No controls assessed yet. Never assume compliance for any resource without empirical telemetry.\n"
+                "- Recommended action: run 'Execute proactive assessment' or invoke specific tools to collect technical evidence."
             )
         elif loc.startswith("es"):
-            score_line = "Scorecard de Cumplimiento Actual: No environment data collected yet (ningún ciclo de auditoría proactivo ejecutado en esta sesión/tenant)."
+            score_line = "Scorecard de Cumplimiento Actual: No environment data collected yet (ningún ciclo de evaluación proactivo ejecutado en esta sesión/tenant)."
             posture_section = (
-                "Posturas y Controles Auditados en el Entorno:\n"
-                "- Ningún control auditado hasta el momento. No asuma cumplimiento para ningún recurso sin telemetría real.\n"
-                "- Acciones recomendadas: ejecute 'Execute proactive audit' o active tools específicas para recolectar evidencias técnicas."
+                "Posturas y Controles Evaluados en el Entorno:\n"
+                "- Ningún control evaluado hasta el momento. No asuma cumplimiento para ningún recurso sin telemetría real.\n"
+                "- Acciones recomendadas: ejecute 'Execute proactive assessment' o active tools específicas para recolectar evidencias técnicas."
             )
         else:
-            score_line = "Scorecard de Conformidade Atual: No environment data collected yet (nenhum ciclo de auditoria proativo executado nesta sessão/tenant)."
+            score_line = "Scorecard de Conformidade Atual: No environment data collected yet (nenhum ciclo de avaliação proativo executado nesta sessão/tenant)."
             posture_section = (
-                "Posturas e Controles Auditados no Ambiente:\n"
-                "- Nenhum controle auditado até o momento. Não assuma conformidade para nenhum recurso sem telemetria real.\n"
-                "- Ações recomendadas: execute 'Execute proactive audit' ou acione tools específicas para coletar evidências técnicas."
+                "Posturas e Controles Avaliados no Ambiente:\n"
+                "- Nenhum controle avaliado até o momento. Não assuma conformidade para nenhum recurso sem telemetria real.\n"
+                "- Ações recomendadas: execute 'Execute proactive assessment' ou acione tools específicas para coletar evidências técnicas."
             )
     else:
         last_cycle = audit_history[-1] if audit_history else None
@@ -579,12 +579,13 @@ Proteção de Borda: Model Armor ativo inspecionando prompts e respostas contra 
 
 
 
-def get_auditor_system_instruction(locale: str = "pt", context_summary: str = "") -> str:
+def get_auditor_system_instruction(locale: str = "en", context_summary: str = "") -> str:
     """Generates localized Readiness Advisor system instructions bound to the dynamic context summary."""
-    loc = (locale or "pt").lower()
+    loc = (locale or "en").lower()
     if loc.startswith("en"):
         system_instruction = (
             "You are the 'Agentic Compliance Readiness Accelerator', Autonomous Readiness Advisor and Senior Specialist from Google Cloud Security Practice, operating on the Gemini Enterprise Agent Platform (GEAP).\n"
+            "Notice: Google Cloud provides technical posture assessment and readiness evaluation tools. Google Cloud does NOT perform audits or issue certifications. You provide empirical assessment, evidence collection, and gap analysis assistance.\n"
             "You possess ACTIVE CLOUD READINESS EVALUATION POWER with live, real-time read-only access to the customer's Google Cloud environment.\n\n"
             "Mandatory Integrity & Cloud Execution Rules:\n"
             "1. Real-Time Telemetry: The human practitioner is connected and expecting REAL-TIME empirical answers from Google Cloud on their screen.\n"
@@ -599,6 +600,7 @@ def get_auditor_system_instruction(locale: str = "pt", context_summary: str = ""
     elif loc.startswith("es"):
         system_instruction = (
             "Usted es el 'Agentic Compliance Readiness Accelerator', Asesor de Prontitud Autónomo y Especialista Senior de la Práctica de Google Cloud Security, operando sobre la Gemini Enterprise Agent Platform (GEAP).\n"
+            "Aviso: Google Cloud no realiza auditorías ni emite certificaciones. Proporciona herramientas de evaluación técnica y análisis de brechas de cumplimiento.\n"
             "Posee PODER DE EVALUACIÓN DE PRONTITUD ACTIVA EN LAS NUBES con acceso de lectura (Read-Only) en tiempo real al entorno de Google Cloud.\n\n"
             "Reglas Obligatorias de Integridad y Ejecución Cloud:\n"
             "1. Telemetría en Tiempo Real: El usuario ya está conectado y espera respuestas empíricas y telemetría EN VIVO extraídas de la nube.\n"
@@ -613,6 +615,7 @@ def get_auditor_system_instruction(locale: str = "pt", context_summary: str = ""
     else:
         system_instruction = (
             "Você é o 'Agentic Compliance Readiness Accelerator', Consultor de Prontidão (Readiness Advisor) Autônomo e Especialista Sênior da Prática de Google Cloud Security, operando sobre o Gemini Enterprise Agent Platform (GEAP).\n"
+            "Aviso: A Google Cloud não realiza auditorias nem emite certificações. Esta ferramenta fornece avaliação técnica de postura e análise de prontidão.\n"
             "Você possui PODER DE AVALIAÇÃO DE PRONTIDÃO ATIVA NAS NUVENS com acesso de LEITURA (Read-Only) em tempo real ao ambiente Google Cloud do cliente.\n\n"
             "Regras Mandatórias de Integridade e Execução em Nuvem:\n"
             "1. Telemetria em Tempo Real: O avaliador humano está do outro lado da tela, já está autenticado/conectado e espera respostas e telemetria EM TEMPO REAL extraídas da nuvem.\n"
@@ -626,9 +629,11 @@ def get_auditor_system_instruction(locale: str = "pt", context_summary: str = ""
         )
     return f"{system_instruction}\n\nContexto Atual do Grafo de Evidências e Ambiente:\n{context_summary}"
 
+get_assessment_system_instruction = get_auditor_system_instruction
+
 
 def get_auditor_tools(bearer_token: Optional[str] = None) -> Dict[str, Any]:
-    """Provides lead auditor tools with delegated user OAuth token injected."""
+    """Provides lead assessment tools with delegated user OAuth token injected."""
     def _audit_cloud_security(resource_type: str, resource_name: str, config: Optional[Dict[str, Any]] = None, **kwargs):
         return audit_cloud_security(resource_type=resource_type, resource_name=resource_name, config=config, bearer_token=bearer_token)
 
@@ -740,7 +745,7 @@ def strip_boilerplate_signature(text: str) -> str:
 
 
 def call_vertex_gemini(user_prompt: str, projects: Optional[List[str]] = None, locale: str = "pt") -> Optional[str]:
-    """Queries Vertex AI Gemini for intelligent ISO 27001 lead auditor reasoning using empirical context."""
+    """Queries Vertex AI Gemini for intelligent ISO 27001 lead advisor reasoning using empirical context."""
     try:
         from google import genai
         primary_project = os.getenv("PROJECT_ID") or "agentic-grc-cd06"
@@ -991,7 +996,7 @@ async def simulate_finops_audit(
     for ag_id, model_name in [("lead-auditor", "gemini-2.5-pro"), ("subagent-a8", "gemini-2.5-flash"), ("gcp-telemetry", "gemini-2.5-flash")]:
         sub = LLMSubAgent(
             name=ag_id,
-            system_instruction="Auditor de conformidade autônomo.",
+            system_instruction="Assessor de conformidade autônomo.",
             tools={},
             model_id=model_name,
         )
@@ -1176,16 +1181,16 @@ async def run_phased_audit(
 
     # Phase 1: Asset Discovery & IAM
     phase1_results = {
-        "phase": "Fase 1: Descoberta de Ativos & IAM",
+        "phase": "Phase 1: Asset Discovery & IAM Assessment",
         "status": "COMPLETED",
         "assets_discovered": len(projects) * 8 + 5,
         "iam_service_accounts_verified": len(projects) * 4 + 3,
         "compliance_score": 75.0,
         "findings": [
-            f"Projetos analisados: {', '.join(projects)}",
-            "Mapeamento de 5 instâncias de computação ativas: vm-legacy-crm, vm-payment-api, vm-ai-inference, vm-mgmt-bastion, vm-aispr-runner.",
-            "NÃO-CONFORMIDADE A.5.15 (CRÍTICA): Conta 'sa-ai-pipeline-dev' no projeto fnlab-ai-data-8fa913 possui papel primitivo roles/editor; vm-mgmt-bastion opera com conta de serviço padrão do Compute Engine; sa-aispr-engine possui escopo amplo cloud-platform.",
-            "NÃO-CONFORMIDADE A.5.17 (CRÍTICA): Instância vm-legacy-crm armazena credencial administrativa em metadados (legacy-credentials: app_admin:StaticPasswordDemo2026); senhas em texto plano expostas em scripts e /debug/env da vm-payment-api.",
+            f"Evaluated projects: {', '.join(projects)}",
+            "Discovered 5 active compute instances: vm-legacy-crm, vm-payment-api, vm-ai-inference, vm-mgmt-bastion, vm-aispr-runner.",
+            "MAJOR NON-CONFORMITY A.5.15 (CRITICAL): Account 'sa-ai-pipeline-dev' in project fnlab-ai-data-8fa913 has primitive role roles/editor; vm-mgmt-bastion operates with default Compute Engine service account; sa-aispr-engine has broad cloud-platform scope.",
+            "MAJOR NON-CONFORMITY A.5.17 (CRITICAL): Instance vm-legacy-crm stores admin credentials in metadata (legacy-credentials: app_admin:StaticPasswordDemo2026); plaintext credentials exposed in scripts and /debug/env on vm-payment-api.",
         ]
     }
 
@@ -1218,35 +1223,35 @@ async def run_phased_audit(
     ci_res = scoped_engine.execute_proactive_audit_cycle(f"phased-cycle-{int(datetime.datetime.now().timestamp())}", sample_assets)
 
     phase2_results = {
-        "phase": "Fase 2: Auditoria Técnica Profunda & IaC",
+        "phase": "Phase 2: Deep Technical Review & IaC Assessment",
         "status": "COMPLETED",
         "controls_tested": ["A.5.7", "A.5.23", "A.5.28", "A.8.9", "A.8.12", "A.8.14", "A.8.15", "A.8.16", "A.8.20", "A.8.24", "A.8.28"],
         "compliance_score": 72.0,
         "findings": [
-            "NÃO-CONFORMIDADE A.8.20 (CRÍTICA): Regra de firewall fw-iso-noncompliant-open-ssh expõe porta 22 (SSH) para 0.0.0.0/0 no projeto fnlab-apps-8fa913 (afeta vm-payment-api); logging de tráfego desativado.",
-            "NÃO-CONFORMIDADE A.8.24 (CRÍTICA): Discos de boot das 5 instâncias (vm-legacy-crm, vm-payment-api, vm-ai-inference, vm-mgmt-bastion, vm-aispr-runner) sem chave gerenciada pelo cliente (CMEK); chave legada com rotação de 365 dias.",
-            "NÃO-CONFORMIDADE A.8.14 (ALTA): Frota de 5 VMs alocada em zona única us-central1-a com deletionProtection=false, sem MIG regional ou failover automático.",
-            "NÃO-CONFORMIDADE A.8.28 (CRÍTICA): Aplicação bancária na vm-payment-api possui BOLA (/api/v1/customers/{id}), vazamento de variáveis em /debug/env e vulnerabilidade de Prompt Injection em /api/v1/ai/chat.",
-            "NÃO-CONFORMIDADE A.5.23 (ALTA): Bucket bkt-iso-noncompliant-legacy com PAP herdado/desativado, single-region e sem criptografia CMEK.",
+            "MAJOR NON-CONFORMITY A.8.20 (CRITICAL): Firewall rule fw-iso-noncompliant-open-ssh exposes port 22 (SSH) to 0.0.0.0/0 in project fnlab-apps-8fa913 (affects vm-payment-api); flow logging disabled.",
+            "MAJOR NON-CONFORMITY A.8.24 (CRITICAL): Boot disks across 5 instances (vm-legacy-crm, vm-payment-api, vm-ai-inference, vm-mgmt-bastion, vm-aispr-runner) lack customer-managed encryption key (CMEK); legacy key has 365-day rotation.",
+            "NON-CONFORMITY A.8.14 (HIGH): Fleet of 5 VMs allocated in single zone us-central1-a with deletionProtection=false, lacking regional MIG or automated failover.",
+            "MAJOR NON-CONFORMITY A.8.28 (CRITICAL): Banking application on vm-payment-api contains BOLA (/api/v1/customers/{id}), config leak in /debug/env, and Prompt Injection in /api/v1/ai/chat.",
+            "NON-CONFORMITY A.5.23 (HIGH): Bucket bkt-iso-noncompliant-legacy with PAP inherited/disabled, single-region and lacks CMEK encryption.",
         ]
     }
 
     # Phase 3: Zero-Copy Governance & Organization Policies
     phase3_results = {
-        "phase": "Fase 3: Governança Zero-Copy & Políticas do SGSI (A.5)",
+        "phase": "Phase 3: Zero-Copy Governance & ISMS Policies (A.5)",
         "status": "COMPLETED",
         "governance_docs_verified": 6,
         "compliance_score": 88.0,
         "findings": [
-            "Políticas de Segurança da Informação (A.5.1): Aprovadas pela diretoria e indexadas com SHA-256 via Zero-Copy.",
-            "NÃO-CONFORMIDADE DE GOVERNANÇA: Ausência de restrição Organization Policy constraints/gcp.restrictCmekCryptoKeyProjects para forçar CMEK obrigatório em novos discos Compute Engine.",
-            "Model Armor: Proteção ativa na camada corporativa; endpoints internos de microsserviços requerem integração de guardrails.",
+            "Information Security Policies (A.5.1): Leadership approved and indexed with SHA-256 via Zero-Copy.",
+            "GOVERNANCE NON-CONFORMITY: Absence of Organization Policy constraint constraints/gcp.restrictCmekCryptoKeyProjects to enforce mandatory CMEK on new Compute Engine disks.",
+            "Model Armor: Active protection at corporate layer; internal microservice endpoints require guardrails integration.",
         ]
     }
 
     # Phase 4: Synthesis, Cryptographic Graph & Drift
     phase4_results = {
-        "phase": "Fase 4: Grafo Criptográfico & Scorecard Final",
+        "phase": "Phase 4: Cryptographic Graph & Final Scorecard",
         "status": "COMPLETED",
         "evidence_nodes_anchored": len(ci_res["scorecard"].get("findings", [])) + 9,
         "hash_algorithm": "SHA-256",
@@ -1254,10 +1259,10 @@ async def run_phased_audit(
         "rating": "QUALIFIED (ACTION REQUIRED - 9 CRITICAL FINDINGS)",
         "drift_trajectory": "DRIFT_DETECTED",
         "findings": [
-            "Grafo de Evidências imutável atualizado com 9 nós de não-conformidade selados em SHA-256.",
-            "Scorecard Consolidado: 78.5% de conformidade técnica (Opinião com Ressalvas / Ação Requerida).",
-            "Frota de VMs classificada como NÃO CONFORME devido a segredos em metadados, firewall aberto, falta de CMEK e zona única.",
-            "Trajetória de Drift: DESVIO DETECTADO - Ações corretivas enviadas para a fila Human-in-the-Loop (HITL).",
+            "Immutable Evidence Graph updated with 9 non-conformity nodes cryptographically sealed in SHA-256.",
+            "Consolidated Scorecard: 78.5% technical compliance (Qualified Opinion / Action Required).",
+            "VM fleet evaluated as NON-COMPLIANT due to credentials in metadata, open firewall, missing CMEK, and single-zone deployment.",
+            "Drift Trajectory: DRIFT DETECTED - Corrective actions dispatched to Human-in-the-Loop (HITL) queue.",
         ]
     }
 
@@ -1323,13 +1328,13 @@ async def remediate_phase(
 
     if phase_id == 1:
         remediation_details = {
-            "phase": "Fase 1: Descoberta de Ativos & IAM",
-            "action": "Ajuste de Menor Privilégio & Enforce de MFA (Recomendações Prescritivas)",
+            "phase": "Phase 1: Asset Discovery & IAM Assessment",
+            "action": "Least Privilege Adjustment & MFA Enforcement (Prescriptive Recommendations)",
             "remediated_controls": ["A.5.15", "A.8.2", "A.5.17"],
             "recommended_actions": [
-                f"1. [IAM Least Privilege] Executar comando para revogar papéis excessivos no projeto '{project_id}': gcloud projects remove-iam-policy-binding {project_id} --member='USER_OR_SA' --role='ROLE_NAME'",
-                "2. [MFA Enforcement] Ativar autenticação multifator mandatória no Cloud Identity / Google Workspace Admin Console para contas administrativas.",
-                f"3. [Service Account Keys] Inspecionar e rotacionar chaves de contas de serviço com mais de 90 dias: gcloud iam service-accounts keys list --iam-account=SA_EMAIL --project={project_id}",
+                f"1. [IAM Least Privilege] Run command to revoke excessive roles in project '{project_id}': gcloud projects remove-iam-policy-binding {project_id} --member='USER_OR_SA' --role='ROLE_NAME'",
+                "2. [MFA Enforcement] Enable mandatory multi-factor authentication in Cloud Identity / Google Workspace Admin Console for administrative accounts.",
+                f"3. [Service Account Keys] Inspect and rotate service account keys older than 90 days: gcloud iam service-accounts keys list --iam-account=SA_EMAIL --project={project_id}",
             ],
             "prescriptive_commands": [
                 f"gcloud projects remove-iam-policy-binding {project_id} --member='USER_OR_SA' --role='ROLE_NAME'",
@@ -1343,14 +1348,14 @@ async def remediate_phase(
         }
     elif phase_id == 2:
         remediation_details = {
-            "phase": "Fase 2: Auditoria Técnica Profunda & IaC",
-            "action": "Correção de IaC Terraform e Enforce de Criptografia (Recomendações Prescritivas)",
+            "phase": "Phase 2: Deep Technical Review & IaC Assessment",
+            "action": "Terraform IaC Hardening & Encryption Enforcement (Prescriptive Recommendations)",
             "remediated_controls": ["A.5.23", "A.8.12", "A.8.24", "A.8.9"],
             "recommended_actions": [
-                f"1. [Storage PAP] Ativar Public Access Prevention em buckets do projeto '{project_id}': gcloud storage buckets update gs://BUCKET_NAME --public-access-prevention",
-                f"2. [KMS Rotation] Configurar rotação automática <= 90 dias com nível HSM para chaves Cloud KMS: gcloud kms keys update KEY_NAME --location=LOCATION --keyring=RING_NAME --rotation-period=7776000s --project={project_id}",
-                f"3. [VPC-SC] Adicionar o projeto '{project_id}' ao perímetro de segurança VPC Service Controls corporativo.",
-                "4. [IaC Drift] Aplicar manifestos Terraform de remediação gerados no repositório de infraestrutura via pipeline CI/CD auditado.",
+                f"1. [Storage PAP] Enable Public Access Prevention on buckets in project '{project_id}': gcloud storage buckets update gs://BUCKET_NAME --public-access-prevention",
+                f"2. [KMS Rotation] Configure automatic rotation <= 90 days with HSM protection level for Cloud KMS keys: gcloud kms keys update KEY_NAME --location=LOCATION --keyring=RING_NAME --rotation-period=7776000s --project={project_id}",
+                f"3. [VPC-SC] Add project '{project_id}' to corporate VPC Service Controls security perimeter.",
+                "4. [IaC Drift] Apply prescriptive remediation Terraform manifests generated in infrastructure repository via reviewed CI/CD pipeline.",
             ],
             "prescriptive_commands": [
                 f"gcloud storage buckets update gs://BUCKET_NAME --public-access-prevention",
@@ -1364,13 +1369,13 @@ async def remediate_phase(
         }
     elif phase_id == 3:
         remediation_details = {
-            "phase": "Fase 3: Governança Zero-Copy & Políticas do SGSI",
-            "action": "Aplicação de Organization Policies e Ancoragem de Políticas (Recomendações Prescritivas)",
+            "phase": "Phase 3: Zero-Copy Governance & ISMS Policies",
+            "action": "Organization Policy Enforcement & Policy Anchoring (Prescriptive Recommendations)",
             "remediated_controls": ["A.5.1", "A.5.36", "A.5.28"],
             "recommended_actions": [
-                f"1. [Org Policy] Aplicar a Organization Policy 'constraints/gcp.resourceLocations' na organização/pasta do projeto '{project_id}'.",
-                "2. [SGSI Policies] Submeter políticas corporativas do SGSI para validação documental e aprovação formal no Google Drive com ancoragem Zero-Copy.",
-                "3. [HITL Review] Registrar aprovação formal da diretoria/CISO via endpoint /api/remediation/approve antes da auditoria externa.",
+                f"1. [Org Policy] Enforce Organization Policy 'constraints/gcp.resourceLocations' in organization/folder for project '{project_id}'.",
+                "2. [ISMS Policies] Submit corporate ISMS policies for document review and approval in Google Drive with Zero-Copy anchoring.",
+                "3. [HITL Review] Register formal leadership/CISO approval via /api/remediation/approve prior to external certification review.",
             ],
             "prescriptive_commands": [
                 f"gcloud resource-manager org-policies enable-enforce constraints/gcp.resourceLocations --project={project_id}",
@@ -1383,13 +1388,13 @@ async def remediate_phase(
         }
     elif phase_id == 4:
         remediation_details = {
-            "phase": "Fase 4: Grafo Criptográfico & Scorecard Final",
-            "action": "Reconciliação e Recálculo SHA-256 (Recomendações Prescritivas)",
+            "phase": "Phase 4: Cryptographic Graph & Final Scorecard",
+            "action": "Reconciliation & SHA-256 Recalculation (Prescriptive Recommendations)",
             "remediated_controls": ["A.5.28", "A.8.15"],
             "recommended_actions": [
-                "1. [Grafo SHA-256] Disparar recálculo de integridade criptográfica após a execução dos comandos prescritivos das Fases 1 a 3 pelo operador.",
-                "2. [Dossiê Executivo] Exportar o Relatório de Auditoria e Recibo Criptográfico de Conformidade Contínua com verificação de não-repúdio.",
-                "3. [Scorecard Final] Consolidar o scorecard executivo para atingimento do índice projetado de 100.0% (EXCELLENT).",
+                "1. [SHA-256 Graph] Trigger cryptographic integrity recalculation after operator executes prescriptive commands from Phases 1 to 3.",
+                "2. [Executive Dossier] Export Posture Assessment Report and Continuous Compliance Cryptographic Receipt with non-repudiation verification.",
+                "3. [Final Scorecard] Consolidate executive scorecard targeting projected index of 100.0% (EXCELLENT).",
             ],
             "prescriptive_commands": [
                 "curl -s -X POST http://localhost:8080/api/evidence/verify_integrity",
@@ -1401,7 +1406,7 @@ async def remediate_phase(
             "projected_score": 100.0,
         }
     else:
-        raise HTTPException(status_code=400, detail="Fase inválida. Escolha entre 1, 2, 3 ou 4.")
+        raise HTTPException(status_code=400, detail="Invalid phase. Choose from 1, 2, 3, or 4.")
 
     from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS, QuestionnaireAnswer
     now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
@@ -1447,63 +1452,63 @@ async def recommend_subagent(
     recommendations_by_industry = {
         "FINANCIAL_SERVICES": {
             "name": "Fintech & Banking Compliance Sentinel",
-            "role": "Consultor de Prontidão em Criptografia e Regulação Bancária",
+            "role": "Cryptographic & Banking Regulation Readiness Advisor",
             "target_controls": ["A.5.15", "A.5.23", "A.8.2", "A.8.12", "A.8.24"],
-            "description": f"Auditoria especializada para cargas críticas em {project_id}, focando em proteção de chaves HSM, segregação de ambientes e perímetros de dados contra exfiltração.",
-            "system_prompt": f"Você é o Fintech & Banking Compliance Sentinel de Google Cloud Security no projeto {project_id}. Avalie a prontidão com máximo rigor para chaves Cloud KMS HSM (A.8.24), perímetros de VPC Service Controls (A.8.12) e privilégio mínimo no IAM (A.5.15).",
+            "description": f"Specialized compliance readiness assessment for critical workloads in {project_id}, focusing on HSM key protection, environment segregation, and data perimeters against exfiltration.",
+            "system_prompt": f"You are the Fintech & Banking Compliance Sentinel from Google Cloud Security on project {project_id}. Assess readiness with maximum rigor for Cloud KMS HSM keys (A.8.24), VPC Service Controls perimeters (A.8.12), and IAM least privilege (A.5.15). Google Cloud does not perform formal audits or issue compliance certifications.",
             "tools": ["cloud_kms", "vpc_sc", "iam_recommender", "asset_inventory"],
             "model": "gemini-2.5-flash",
             "temperature": 0.1,
-            "industry_alignment": "Bacen Resolução 85, PCI-DSS v4.0 e ISO/IEC 27001:2022",
-            "reason": f"Detectamos que {project_id} opera workloads financeiras com exigência de HSM FIPS 140-2 Nível 3 e VPC Service Controls para prevenir exfiltração de dados sensíveis."
+            "industry_alignment": "Bacen Resolution 85, PCI-DSS v4.0, and ISO/IEC 27001:2022",
+            "reason": f"Workloads in {project_id} operate financial workloads requiring FIPS 140-2 Level 3 HSM and VPC Service Controls to prevent sensitive data exfiltration."
         },
         "HEALTHCARE": {
             "name": "HealthData Privacy & HIPAA Sentinel",
-            "role": "Consultor de Prontidão de Proteção de Dados de Saúde e Anonimização",
+            "role": "Health Data Privacy & Anonymization Readiness Advisor",
             "target_controls": ["A.5.12", "A.5.34", "A.8.10", "A.8.11", "A.8.24"],
-            "description": f"Inspeção de anonimização com Cloud DLP e criptografia de registros médicos em {project_id}.",
-            "system_prompt": f"Você é o HealthData Privacy Sentinel de Google Cloud Security. Avalie a prontidão na desidentificação de prontuários, retenção de dados e mascaramento no BigQuery.",
+            "description": f"Inspection of Cloud DLP anonymization and medical records encryption in {project_id}.",
+            "system_prompt": f"You are the HealthData Privacy Sentinel from Google Cloud Security. Assess readiness for medical records de-identification, data retention, and masking in BigQuery. Google Cloud does not perform audits or issue certifications.",
             "tools": ["asset_inventory", "cloud_kms", "zero_copy_drive"],
             "model": "gemini-2.5-flash",
             "temperature": 0.1,
-            "industry_alignment": "HIPAA, LGPD e ISO 27001",
-            "reason": f"Workloads em {project_id} requerem anonimização estrita de prontuários e registros de auditoria imutáveis."
+            "industry_alignment": "HIPAA, LGPD, and ISO/IEC 27001:2022",
+            "reason": f"Workloads in {project_id} require strict record anonymization and immutable log records."
         },
         "DEVSECOPS": {
             "name": "GKE & Container Security Guardian",
-            "role": "Especialista em Segurança de Contêineres e SLSA-3",
+            "role": "Container Security & SLSA-3 Specialist",
             "target_controls": ["A.5.21", "A.8.25", "A.8.28", "A.8.31"],
-            "description": f"Inspeção de Binary Authorization, imagens distroless e NetworkPolicies no GKE em {project_id}.",
-            "system_prompt": f"Você é o GKE Container Security Guardian de Google Cloud Security. Valide atestados de proveniência de contêineres e branch protection.",
+            "description": f"Inspection of Binary Authorization, distroless images, and NetworkPolicies on GKE in {project_id}.",
+            "system_prompt": f"You are the GKE Container Security Guardian from Google Cloud Security. Validate container provenance attestations and branch protection. Google Cloud does not perform audits or issue certifications.",
             "tools": ["iac_scanner", "asset_inventory", "iam_recommender"],
             "model": "gemini-2.5-flash",
             "temperature": 0.1,
-            "industry_alignment": "SLSA Nível 3, CIS GKE Benchmark e ISO 27001",
-            "reason": f"Cluster de contêineres detectado em {project_id} requer enforcement de Binary Authorization e isolamento de pods."
+            "industry_alignment": "SLSA Level 3, CIS GKE Benchmark, and ISO/IEC 27001:2022",
+            "reason": f"Container cluster detected in {project_id} requires Binary Authorization enforcement and pod isolation."
         },
         "ZEROTRUST": {
             "name": "Zero-Trust & Identity Governance Advisor",
-            "role": "Consultor de Prontidão de Identidade, MFA e Menor Privilégio",
+            "role": "Identity, MFA & Least Privilege Readiness Advisor",
             "target_controls": ["A.5.15", "A.5.16", "A.5.17", "A.8.5"],
-            "description": f"Avaliação contínua de prontidão de contas de serviço, MFA obrigatório e políticas de acesso contextual BeyondCorp em {project_id}.",
-            "system_prompt": f"Você é o Zero-Trust & Identity Governance Advisor de Google Cloud Security. Identifique privilégios excessivos e contas inativas.",
+            "description": f"Continuous readiness assessment of service accounts, mandatory MFA, and BeyondCorp contextual access policies in {project_id}.",
+            "system_prompt": f"You are the Zero-Trust & Identity Governance Advisor from Google Cloud Security. Identify excessive privileges and inactive accounts. Google Cloud does not perform audits or issue certifications.",
             "tools": ["iam_recommender", "asset_inventory"],
             "model": "gemini-2.5-flash",
             "temperature": 0.1,
-            "industry_alignment": "Zero-Trust Architecture & ISO 27001",
-            "reason": f"Controle estrito de privilégios e avaliação de credenciais administrativas em {project_id}."
+            "industry_alignment": "Zero-Trust Architecture & ISO/IEC 27001:2022",
+            "reason": f"Strict privilege control and administrative credentials assessment in {project_id}."
         },
         "FINOPS": {
             "name": "FinOps & Storage Lifecycle Sentinel",
-            "role": "Consultor de Prontidão de Retenção de Dados e Otimização de Custos",
+            "role": "Data Retention & Cost Optimization Readiness Advisor",
             "target_controls": ["A.5.9", "A.8.10", "A.8.13"],
-            "description": f"Inspeção de regras de ciclo de vida de dados (Object Lifecycle Management), WORM Bucket Lock e descarte seguro em {project_id}.",
-            "system_prompt": f"Você é o FinOps & Storage Lifecycle Sentinel de Google Cloud Security. Avalie retenção imutável e expiração de partições no BigQuery.",
+            "description": f"Inspection of Object Lifecycle Management rules, WORM Bucket Lock, and secure disposal in {project_id}.",
+            "system_prompt": f"You are the FinOps & Storage Lifecycle Sentinel from Google Cloud Security. Assess immutable retention and BigQuery partition expiration. Google Cloud does not perform audits or issue certifications.",
             "tools": ["asset_inventory", "zero_copy_drive"],
             "model": "gemini-2.5-flash",
             "temperature": 0.1,
-            "industry_alignment": "ISO 27001 A.8.10 e FinOps Governance",
-            "reason": f"Garantir conformidade com retenção WORM e eliminação segura de dados em {project_id}."
+            "industry_alignment": "ISO/IEC 27001:2022 A.8.10 & FinOps Governance",
+            "reason": f"Verify compliance with WORM retention and secure data disposal in {project_id}."
         }
     }
 
@@ -1876,34 +1881,37 @@ async def get_scorecard(
 
 
 # ---------------------------------------------------------------------------
-# Formal Audit Reporting: Methodology, Auditor Responsibility & Enriched Taxonomy
+# Formal Security & Compliance Readiness Reporting: Methodology & Responsibility
 # ---------------------------------------------------------------------------
 
 MANDATORY_REPORT_DISCLAIMER = (
-    "Este relatório é uma avaliação de prontidão gerada por ferramenta automatizada e não constitui uma auditoria formal "
-    "nem certificação ISO/IEC 27001, SOC 2 ou PCI-DSS. A Google não emite certificações de conformidade. "
-    "A certificação formal deve ser conduzida por um organismo certificador acreditado e independente."
+    "This report is a security and compliance posture readiness assessment generated by an automated evaluation system. "
+    "It does not constitute a formal audit, certification, or assurance engagement under ISO/IEC 27001, SOC 2, or PCI-DSS. "
+    "Google Cloud does not perform formal audits or issue compliance certifications. "
+    "Formal certifications must be conducted and issued by accredited, independent third-party certification bodies."
 )
 
 SHORTENED_CHAT_DISCLAIMER = (
-    "Avaliação de prontidão automatizada. Não constitui auditoria formal nem certificação ISO/IEC 27001, SOC 2 ou PCI-DSS. "
-    "A Google não emite certificações de conformidade."
+    "Automated readiness assessment. Does not constitute a formal audit or certification under ISO/IEC 27001, SOC 2, or PCI-DSS. "
+    "Google Cloud does not perform audits or issue compliance certifications."
 )
 
 REPORT_METHODOLOGY_TEXT = (
-    "A auditoria foi conduzida através de metodologia híbrida contínua, combinando inspeção "
-    "técnica automatizada de configurações de infraestrutura e serviços em nuvem (telemetria ao vivo via "
-    "APIs GCP de Asset Inventory, Cloud KMS, Cloud Storage, IAM e Cloud Run) com evidências documentais "
-    "e declaratórias autoatestadas (Self-Attested) coletadas por questionários estruturados de conformidade "
-    "por controle da norma ABNT NBR ISO/IEC 27001:2022 (93 controles do Anexo A). Cada achado é registrado "
-    "com carimbo temporal e hash SHA-256 no Grafo Criptográfico de Evidências, garantindo rastreabilidade "
-    "e não-repúdio de ponta a ponta."
+    "The compliance assessment was conducted using a continuous hybrid methodology, combining automated "
+    "technical inspection of cloud infrastructure and service configurations (live telemetry via "
+    "Google Cloud APIs for Asset Inventory, Cloud KMS, Cloud Storage, IAM, and Cloud Run) with documentary "
+    "and self-attested evidence collected through structured questionnaires for ISO/IEC 27001:2022 "
+    "(93 Annex A controls). Each finding is timestamped and cryptographically hashed (SHA-256) into the "
+    "Evidence Graph, ensuring end-to-end traceability and non-repudiation."
 )
 
 REPORT_TAXONOMY_DEFINITIONS = {
-    "NÃO CONFORMIDADE MAIOR": "Controle com desvio crítico e ausência total de evidência compensatória.",
-    "NÃO CONFORMIDADE MENOR": "Evidência parcial ou exclusivamente autoatestada para controle requerido, ou desvio técnico com mitigação parcial.",
-    "OPORTUNIDADE DE MELHORIA": "Controle conforme com recomendação técnica de otimização preventiva.",
+    "MAJOR NON-CONFORMITY": "Control with critical deviation and complete absence of compensating evidence.",
+    "MINOR NON-CONFORMITY": "Partial or self-attested-only evidence for a required control, or technical deviation with partial mitigation.",
+    "OPPORTUNITY FOR IMPROVEMENT": "Compliant control with technical recommendation for preventive optimization.",
+    "NÃO CONFORMIDADE MAIOR": "Control with critical deviation and complete absence of compensating evidence.",
+    "NÃO CONFORMIDADE MENOR": "Partial or self-attested-only evidence for a required control, or technical deviation with partial mitigation.",
+    "OPORTUNIDADE DE MELHORIA": "Compliant control with technical recommendation for preventive optimization.",
 }
 
 
@@ -1943,15 +1951,17 @@ def get_auditor_responsibility_declaration(scorecard: Dict[str, Any]) -> Dict[st
     verified_count = summary.get("verified_telemetry_count", 0)
     self_attested_count = summary.get("self_attested_count", 0)
     statement = (
-        "O sistema autônomo Agentic Compliance Readiness Accelerator (alimentado por Gemini 2.5 na Google Enterprise "
-        "Agent Platform) assume a responsabilidade técnica pela execução das rotinas de inspeção automatizada "
-        "e consolidação das avaliações de prontidão deste relatório. Registra-se formalmente que, do total de evidências catalogadas, "
-        f"{verified_count} nós correspondem a achados verificados por máquina (VERIFIED - telemetria ao vivo de APIs GCP), "
-        f"enquanto {self_attested_count} nós representam evidências autoatestadas (SELF_ATTESTED - respostas declaratórias a "
-        "questionários de conformidade). As conclusões automatizadas refletem estritamente os dados telemétricos e "
-        "documentais disponíveis até a data e hora de encerramento do período avaliado."
+        "The automated Agentic Compliance Readiness Accelerator (powered by Gemini 2.5 on Google Enterprise "
+        "Agent Platform) executes automated technical inspection routines and compiles readiness observations in this report. "
+        "It is formally recorded that of all cataloged evidence nodes, "
+        f"{verified_count} nodes correspond to machine-verified technical findings (VERIFIED - live telemetry from GCP APIs), "
+        f"while {self_attested_count} nodes represent self-attested evidence (SELF_ATTESTED - declared responses to "
+        "compliance questionnaires). Automated conclusions reflect technical telemetry and "
+        "documentation available as of the close of the evaluated window. Google Cloud does not conduct formal audits or issue certifications; "
+        "formal certification must be obtained through an accredited, independent third-party certification body."
     )
     return {
+        "lead_consultant": "Agentic Compliance Readiness Advisor (Gemini 2.5 / SPIFFE Verified)",
         "lead_auditor": "Agentic Compliance Readiness Advisor (Gemini 2.5 / SPIFFE Verified)",
         "readiness_advisor": "Agentic Compliance Readiness Advisor (Gemini 2.5 / SPIFFE Verified)",
         "responsible_party": "Google Cloud Security Practice - Agentic Compliance Readiness Accelerator",
@@ -1959,6 +1969,8 @@ def get_auditor_responsibility_declaration(scorecard: Dict[str, Any]) -> Dict[st
         "self_attested_findings_count": self_attested_count,
         "statement": statement,
     }
+
+get_assessment_responsibility_declaration = get_auditor_responsibility_declaration
 
 
 def get_audited_period(now_dt: Optional[datetime.datetime] = None) -> Dict[str, str]:
@@ -1969,8 +1981,8 @@ def get_audited_period(now_dt: Optional[datetime.datetime] = None) -> Dict[str, 
     return {
         "start": start_str,
         "end": end_str,
-        "window_description": "Ciclo Contínuo de Avaliação de 30 Dias",
-        "formatted": f"{start_str} a {end_str} (Ciclo Contínuo de 30 Dias)",
+        "window_description": "Continuous 30-Day Evaluation Cycle",
+        "formatted": f"{start_str} to {end_str} (Continuous 30-Day Cycle)",
     }
 
 
@@ -2000,7 +2012,7 @@ async def get_executive_dossier(
     if format.lower() == "json":
         return {
             "disclaimer": MANDATORY_REPORT_DISCLAIMER,
-            "document_title": "Google Cloud Security - Relatório de Avaliação de Prontidão Executiva (Executive Readiness Dossier)",
+            "document_title": "Google Cloud Security - Executive Posture & Readiness Assessment Dossier",
             "report_id": report_id,
             "generated_at": timestamp,
             "audited_period": audited_period,
@@ -2041,7 +2053,7 @@ async def get_executive_dossier(
     return scorecard
 
 
-@router.get("/api/reports/technical", summary="Get Technical Audit Report for External Auditors")
+@router.get("/api/reports/technical", summary="Get Technical Assessment Report for External Reviewers")
 async def get_technical_report_api(
     format: str = Query(default="json", description="json, html, or markdown"),
     projects: Optional[str] = Query(default=None),
@@ -2076,7 +2088,7 @@ async def get_technical_report_api(
 
         return {
             "disclaimer": MANDATORY_REPORT_DISCLAIMER,
-            "document_title": "Google Cloud Security - Relatório de Avaliação de Prontidão Técnica para Certificação (Technical Audit Report)",
+            "document_title": "Google Cloud Security - Technical Posture & Readiness Assessment Report",
             "report_id": report_id,
             "generated_at": timestamp,
             "audited_period": audited_period,
@@ -2138,14 +2150,14 @@ async def export_report(
     if format.lower() == "json":
         data = {
             "disclaimer": MANDATORY_REPORT_DISCLAIMER,
-            "document_title": "Google Cloud Security - Relatório de Avaliação de Prontidão para Certificação",
+            "document_title": "Google Cloud Security - Security Posture & Readiness Assessment Report",
             "organization": "Google Cloud Security",
             "practice": "Cybersecurity, Cloud Governance & Regulatory Compliance Practice",
             "report_id": f"GCS-GRC-ISO27001-{now_utc.strftime('%Y%m%d-%H%M%S')}",
             "generated_at": timestamp,
             "audited_period": audited_period,
-            "classification": "CONFIDENCIAL / AVALIAÇÃO DE PRONTIDÃO",
-            "standard": "ABNT NBR ISO/IEC 27001:2022 (Sistemas de Gestão de Segurança da Informação) + Amd 1:2024",
+            "classification": "CONFIDENTIAL / READINESS ASSESSMENT",
+            "standard": "ISO/IEC 27001:2022 (Information Security Management Systems) + Amd 1:2024",
             "projects_audited": project_list,
             "lead_auditor": auditor_resp["lead_auditor"],
             "platform": "Gemini Enterprise Agent Platform (GEAP)",
@@ -2501,11 +2513,11 @@ async def export_report(
         """
         projects_str = ", ".join(project_list)
         html_doc = f"""<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Cloud Security - Continuous Compliance & Audit Dossier</title>
+    <title>Google Cloud Security - Continuous Compliance & Assessment Dossier</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap">
     <style>
 {{css_styles}}
@@ -2513,7 +2525,7 @@ async def export_report(
 </head>
 <body>
     <div class="print-btn-bar">
-        <button class="btn-print" onclick="window.print()">Imprimir / Salvar em PDF</button>
+        <button class="btn-print" onclick="window.print()">Print / Save as PDF</button>
     </div>
 
     <div class="cloudstyle-doc-sheet">
@@ -2555,25 +2567,25 @@ async def export_report(
                 <td>ABNT NBR ISO/IEC 27001:2022 (Anexo A - 93 Controles) + Amd 1:2024 (Ação Climática)</td>
             </tr>
             <tr>
-                <td>Consultor de Prontidão Responsável</td>
+                <td>Lead Readiness Advisor</td>
                 <td>Agentic Compliance Readiness Accelerator (Vertex AI Gemini 2.5 Flash Autonomous Readiness Advisor)</td>
             </tr>
             <tr>
-                <td>Projetos no Escopo</td>
+                <td>In-Scope GCP Projects</td>
                 <td>{projects_str}</td>
             </tr>
             <tr>
-                <td>Garantia Criptográfica</td>
-                <td><span style="font-family: 'Roboto Mono', monospace; color: #137333; font-weight: 600;">Grafo de Evidências SHA-256 Imutável • Model Armor Ativo</span></td>
+                <td>Cryptographic Assurance</td>
+                <td><span style="font-family: 'Roboto Mono', monospace; color: #137333; font-weight: 600;">Immutable SHA-256 Evidence Graph • Active Model Armor</span></td>
             </tr>
         </table>
 
-        <div class="cloudstyle-heading-block">Metodologia de Auditoria</div>
+        <div class="cloudstyle-heading-block">Assessment Methodology</div>
         <p style="font-size: 13px; color: #3c4043; line-height: 1.6; margin-bottom: 20px;">
             {REPORT_METHODOLOGY_TEXT}
         </p>
 
-        <div class="cloudstyle-heading-block">Declaração de Responsabilidade do Auditor</div>
+        <div class="cloudstyle-heading-block">Assessment Scope & Responsibility Declaration</div>
         <p style="font-size: 13px; color: #3c4043; line-height: 1.6; margin-bottom: 20px;">
             {auditor_resp['statement']}
         </p>
@@ -2581,45 +2593,45 @@ async def export_report(
         <div class="cloudstyle-highlights-grid">
             <div class="cloudstyle-highlight-item">
                 <div class="cloudstyle-num-badge" style="color: #c5221f;">78.5%</div>
-                <div class="cloudstyle-num-title">Scorecard Global</div>
-                <div class="cloudstyle-num-desc"><strong>QUALIFIED (AÇÃO REQUERIDA)</strong>: 9 não-conformidades críticas identificadas na frota de cargas de trabalho.</div>
+                <div class="cloudstyle-num-title">Overall Scorecard</div>
+                <div class="cloudstyle-num-desc"><strong>QUALIFIED (ACTION REQUIRED)</strong>: 9 critical non-conformities identified across workload fleet.</div>
             </div>
             <div class="cloudstyle-highlight-item">
                 <div class="cloudstyle-num-badge" style="color: #c5221f;">05 VMs</div>
-                <div class="cloudstyle-num-title">Frota em Desvio Crítico</div>
-                <div class="cloudstyle-num-desc">Instâncias sem CMEK, portas SSH 0.0.0.0/0 abertas, zona única e credenciais estáticas em metadados.</div>
+                <div class="cloudstyle-num-title">Fleet Critical Deviations</div>
+                <div class="cloudstyle-num-desc">Instances without CMEK, open SSH 0.0.0.0/0 ports, single zone, and static credentials in metadata.</div>
             </div>
             <div class="cloudstyle-highlight-item">
                 <div class="cloudstyle-num-badge">03</div>
-                <div class="cloudstyle-num-title">Governança & Políticas</div>
-                <div class="cloudstyle-num-desc">Políticas corporativas auditadas via Zero-Copy; pendente restrição Organization Policy para CMEK compulsório.</div>
+                <div class="cloudstyle-num-title">Governance & Policies</div>
+                <div class="cloudstyle-num-desc">Corporate policies assessed via Zero-Copy; pending Organization Policy constraint for mandatory CMEK.</div>
             </div>
             <div class="cloudstyle-highlight-item">
                 <div class="cloudstyle-num-badge">04</div>
-                <div class="cloudstyle-num-title">Grafo SHA-256</div>
-                <div class="cloudstyle-num-desc">22 nós de evidência (incluindo falhas técnicas das VMs) selados criptograficamente na Merkle Chain.</div>
+                <div class="cloudstyle-num-title">SHA-256 Graph</div>
+                <div class="cloudstyle-num-desc">22 evidence nodes (including VM technical findings) cryptographically sealed on Merkle Chain.</div>
             </div>
         </div>
 
         <div class="cloudstyle-quote-callout" style="border-left-color: #c5221f; background: #fdf2f2;">
             <div class="cloudstyle-quote-text" style="color: #5f2120;">
-                “Com base na coleta automatizada de telemetria e auditoria profunda de configurações, a prática de Google Cloud Security emite uma <strong>OPINIÃO COM RESSALVAS (QUALIFIED OPINION - ACTION REQUIRED)</strong>, apontando <strong>9 NÃO-CONFORMIDADES TÉCNICAS CRÍTICAS</strong> na frota de máquinas virtuais (A.5.15, A.5.17, A.5.23, A.8.14, A.8.15, A.8.16, A.8.20, A.8.24, A.8.28), exigindo execução imediata dos playbooks de remediação.”
+                “Based on automated telemetry collection and in-depth configuration assessment, Google Cloud Security Practice issues a <strong>QUALIFIED OPINION (ACTION REQUIRED)</strong>, identifying <strong>9 CRITICAL TECHNICAL NON-CONFORMITIES</strong> across the virtual machine fleet (A.5.15, A.5.17, A.5.23, A.8.14, A.8.15, A.8.16, A.8.20, A.8.24, A.8.28), requiring immediate execution of remediation playbooks.”
             </div>
             <div class="cloudstyle-quote-author" style="color: #c5221f;">
-                — Agentic GRC Virtual Lead Auditor, Google Cloud Security Practice
+                — Agentic GRC Technical Assessment System, Google Cloud Security Practice
             </div>
         </div>
 
-        <div class="cloudstyle-heading-block" style="color: #c5221f;">1. Quadro de Cargas de Trabalho e VMs Auditadas (Desvios Críticos)</div>
+        <div class="cloudstyle-heading-block" style="color: #c5221f;">1. Evaluated Workloads & VM Fleet (Critical Deviations)</div>
         <table class="cloudstyle-table">
             <thead>
                 <tr>
-                    <th>Instância / VM</th>
-                    <th>Projeto GCP</th>
-                    <th>IP Privado</th>
-                    <th>Status ISO 27001</th>
-                    <th>Não-Conformidades e Vulnerabilidades Detectadas</th>
-                    <th>Ação de Remediação Requerida</th>
+                    <th>Instance / VM</th>
+                    <th>GCP Project</th>
+                    <th>Private IP</th>
+                    <th>ISO 27001 Status</th>
+                    <th>Detected Non-Conformities & Vulnerabilities</th>
+                    <th>Required Remediation Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -2627,113 +2639,113 @@ async def export_report(
                     <td><strong><code>vm-legacy-crm</code></strong></td>
                     <td><code>fnlab-apps-8fa913</code></td>
                     <td><code>10.20.10.2</code></td>
-                    <td><span class="cloudstyle-badge-danger">NÃO CONFORMIDADE MAIOR</span></td>
-                    <td><strong>A.5.17</strong>: Senha estática em metadados (<code>legacy-credentials</code>).<br><strong>A.8.24</strong>: Disco sem CMEK.<br><strong>A.8.14</strong>: Zona única sem failover.</td>
-                    <td>Remover metadados; migrar credenciais para Secret Manager; associar chave CMEK.</td>
+                    <td><span class="cloudstyle-badge-danger">MAJOR NON-CONFORMITY (NÃO CONFORMIDADE MAIOR)</span></td>
+                    <td><strong>A.5.17</strong>: Static password in metadata (<code>legacy-credentials</code>).<br><strong>A.8.24</strong>: Boot disk lacks CMEK.<br><strong>A.8.14</strong>: Single zone without failover.</td>
+                    <td>Remove metadata; migrate credentials to Secret Manager; attach CMEK key.</td>
                 </tr>
                 <tr>
                     <td><strong><code>vm-payment-api</code></strong></td>
                     <td><code>fnlab-apps-8fa913</code></td>
                     <td><code>10.20.10.3</code></td>
-                    <td><span class="cloudstyle-badge-danger">NÃO CONFORMIDADE MAIOR</span></td>
-                    <td><strong>A.8.20</strong>: Firewall aberto <code>0.0.0.0/0:22</code>.<br><strong>A.8.28</strong>: BOLA (API1), vazamento em <code>/debug/env</code> e Prompt Injection (LLM01).<br><strong>A.8.24</strong>: Sem CMEK.</td>
-                    <td>Excluir regra de firewall aberta; restringir ao IAP; aplicar Model Armor e autenticação JWT.</td>
+                    <td><span class="cloudstyle-badge-danger">MAJOR NON-CONFORMITY (NÃO CONFORMIDADE MAIOR)</span></td>
+                    <td><strong>A.8.20</strong>: Open firewall <code>0.0.0.0/0:22</code>.<br><strong>A.8.28</strong>: BOLA (API1), config leak in <code>/debug/env</code>, and Prompt Injection (LLM01).<br><strong>A.8.24</strong>: Lacks CMEK.</td>
+                    <td>Delete open firewall rule; restrict to IAP; enforce Model Armor and JWT authentication.</td>
                 </tr>
                 <tr>
                     <td><strong><code>vm-ai-inference</code></strong></td>
                     <td><code>fnlab-ai-data-8fa913</code></td>
                     <td><code>10.30.10.2</code></td>
-                    <td><span class="cloudstyle-badge-danger">NÃO CONFORMIDADE MAIOR</span></td>
-                    <td><strong>A.5.15</strong>: Conta de serviço possui papel primitivo <code>roles/editor</code>.<br><strong>A.8.24</strong>: Disco sem CMEK.<br><strong>A.8.14</strong>: Zona única.</td>
-                    <td>Revogar <code>roles/editor</code>; conceder papéis de menor privilégio (Vertex AI User); anexar CMEK.</td>
+                    <td><span class="cloudstyle-badge-danger">MAJOR NON-CONFORMITY (NÃO CONFORMIDADE MAIOR)</span></td>
+                    <td><strong>A.5.15</strong>: Service account has primitive role <code>roles/editor</code>.<br><strong>A.8.24</strong>: Disk lacks CMEK.<br><strong>A.8.14</strong>: Single zone.</td>
+                    <td>Revoke <code>roles/editor</code>; grant least privilege roles (Vertex AI User); attach CMEK.</td>
                 </tr>
                 <tr>
                     <td><strong><code>vm-mgmt-bastion</code></strong></td>
                     <td><code>fnlab-sec-mgmt-8fa913</code></td>
                     <td><code>10.10.10.2</code></td>
-                    <td><span class="cloudstyle-badge-danger">NÃO CONFORMIDADE MAIOR</span></td>
-                    <td><strong>A.5.15</strong>: Usa Conta de Serviço Compute padrão (privilégios amplos).<br><strong>A.8.24</strong>: Sem proteção por chave do KeyRing de conformidade.</td>
-                    <td>Criar conta de serviço dedicada e restrita; proteger disco de boot com <code>kms-key-fintech-compliant</code>.</td>
+                    <td><span class="cloudstyle-badge-danger">MAJOR NON-CONFORMITY (NÃO CONFORMIDADE MAIOR)</span></td>
+                    <td><strong>A.5.15</strong>: Uses default Compute Service Account.<br><strong>A.8.24</strong>: Boot disk lacks compliance KeyRing CMEK protection.<br><strong>A.8.14</strong>: <code>deletionProtection: false</code>.</td>
+                    <td>Create dedicated restricted service account; protect boot disk with <code>kms-key-fintech-compliant</code>.</td>
                 </tr>
                 <tr>
                     <td><strong><code>vm-aispr-runner</code></strong></td>
                     <td><code>aispr-core-1cab11</code></td>
                     <td><code>10.50.10.2</code></td>
-                    <td><span class="cloudstyle-badge-danger">NÃO CONFORMIDADE MAIOR</span></td>
-                    <td><strong>A.5.15</strong>: Escopo OAuth amplo <code>cloud-platform</code>.<br><strong>A.8.24</strong>: Sem CMEK no disco de auditoria de IA.<br><strong>A.8.14</strong>: Sem redundância multi-zona.</td>
-                    <td>Restringir escopos OAuth; converter em MIG regional; criptografar com chave KMS corporativa.</td>
+                    <td><span class="cloudstyle-badge-danger">MAJOR NON-CONFORMITY (NÃO CONFORMIDADE MAIOR)</span></td>
+                    <td><strong>A.5.15</strong>: Broad OAuth scope <code>cloud-platform</code>.<br><strong>A.8.24</strong>: Boot disk lacks CMEK encryption.<br><strong>A.8.14</strong>: Lacks multi-zone redundancy.</td>
+                    <td>Restrict OAuth scopes; migrate to regional MIG; encrypt with corporate KMS key.</td>
                 </tr>
             </tbody>
         </table>
 
-        <div class="cloudstyle-heading-block">2. Estrutura de Controles por Tema (ISO/IEC 27001:2022)</div>
+        <div class="cloudstyle-heading-block">2. Control Themes Structure (ISO/IEC 27001:2022)</div>
         <table class="cloudstyle-table">
             <thead>
                 <tr>
-                    <th style="width: 28%;">Tema Normativo</th>
-                    <th style="width: 18%;">Total de Controles</th>
-                    <th style="width: 20%;">Status Auditado</th>
-                    <th>Postura Técnica & Serviços Google Cloud</th>
+                    <th style="width: 28%;">Standard Theme</th>
+                    <th style="width: 18%;">Total Controls</th>
+                    <th style="width: 20%;">Evaluated Status</th>
+                    <th>Technical Posture & Google Cloud Services</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td><strong>A.5 Organizacional</strong></td>
-                    <td>37 controles</td>
-                    <td><span class="cloudstyle-badge-danger">3 NÃO CONFORMIDADES MAIORES (91.9%)</span></td>
-                    <td>A.5.15 (IAM excessivo), A.5.17 (Senha em metadados), A.5.23 (Bucket sem PAP/CMEK)</td>
+                    <td><strong>A.5 Organizational</strong></td>
+                    <td>37 controls</td>
+                    <td><span class="cloudstyle-badge-danger">3 MAJOR NON-CONFORMITIES (91.9%)</span></td>
+                    <td>A.5.15 (Excessive IAM), A.5.17 (Metadata password), A.5.23 (Bucket lacking PAP/CMEK)</td>
                 </tr>
                 <tr>
-                    <td><strong>A.6 Pessoas</strong></td>
-                    <td>8 controles</td>
-                    <td><span class="cloudstyle-badge-success">100% CONFORME</span></td>
-                    <td>Conscientização em segurança, termos de confidencialidade e offboarding</td>
+                    <td><strong>A.6 People</strong></td>
+                    <td>8 controls</td>
+                    <td><span class="cloudstyle-badge-success">100% COMPLIANT</span></td>
+                    <td>Security awareness, confidentiality agreements, and offboarding workflows</td>
                 </tr>
                 <tr>
-                    <td><strong>A.7 Físico</strong></td>
-                    <td>14 controles</td>
-                    <td><span class="cloudstyle-badge-success">100% CONFORME</span></td>
-                    <td>Perímetros físicos e segurança de Data Centers GCP (SOC 2 Tipo II, ISO 27001)</td>
+                    <td><strong>A.7 Physical</strong></td>
+                    <td>14 controls</td>
+                    <td><span class="cloudstyle-badge-success">100% COMPLIANT</span></td>
+                    <td>Physical security perimeters and Google Cloud Data Center protections (SOC 2 Type II, ISO 27001)</td>
                 </tr>
                 <tr>
-                    <td><strong>A.8 Tecnológico</strong></td>
-                    <td>34 controles</td>
-                    <td><span class="cloudstyle-badge-danger">6 NÃO CONFORMIDADES MAIORES (82.4%)</span></td>
-                    <td>A.8.14 (Zona única), A.8.15/16 (Logs), A.8.20 (Firewall 0.0.0.0/0), A.8.24 (Sem CMEK), A.8.28 (BOLA/LLM)</td>
+                    <td><strong>A.8 Technological</strong></td>
+                    <td>34 controls</td>
+                    <td><span class="cloudstyle-badge-danger">6 MAJOR NON-CONFORMITIES (82.4%)</span></td>
+                    <td>A.8.14 (Single zone), A.8.15/16 (Logging), A.8.20 (Open Firewall 0.0.0.0/0), A.8.24 (Missing CMEK), A.8.28 (BOLA/LLM)</td>
                 </tr>
                 <tr>
-                    <td><strong>Amd 1:2024 Ação Climática</strong></td>
-                    <td>Cláusulas 4.1 e 4.2</td>
-                    <td><span class="cloudstyle-badge-warning">NÃO CONFORMIDADE MENOR (A.8.14)</span></td>
-                    <td>Frota sem topologia multi-regional; ausência de avaliação de risco de desastres climáticos zonais</td>
+                    <td><strong>Amd 1:2024 Climate Action</strong></td>
+                    <td>Clauses 4.1 & 4.2</td>
+                    <td><span class="cloudstyle-badge-warning">MINOR NON-CONFORMITY (A.8.14)</span></td>
+                    <td>Fleet lacks multi-regional topology; absence of zonal climate disruption assessment</td>
                 </tr>
             </tbody>
         </table>
 
-        <div class="cloudstyle-heading-block">3. Taxonomia de Severidade de Achados</div>
+        <div class="cloudstyle-heading-block">3. Finding Severity Taxonomy</div>
         <table class="cloudstyle-table">
             <thead>
                 <tr>
-                    <th style="width: 28%;">Classificação</th>
-                    <th style="width: 48%;">Critério Metodológico</th>
-                    <th style="width: 24%;">Ação Requerida</th>
+                    <th style="width: 28%;">Classification</th>
+                    <th style="width: 48%;">Methodological Criteria</th>
+                    <th style="width: 24%;">Required Action</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td><span class="cloudstyle-badge-danger">NÃO CONFORMIDADE MAIOR</span></td>
-                    <td>Controle com desvio crítico e ausência total de evidência compensatória.</td>
-                    <td>Remediação prioritária imediata.</td>
+                    <td><span class="cloudstyle-badge-danger">MAJOR NON-CONFORMITY (NÃO CONFORMIDADE MAIOR)</span></td>
+                    <td>Control with critical deviation and complete absence of compensating evidence.</td>
+                    <td>Immediate priority remediation.</td>
                 </tr>
                 <tr>
-                    <td><span class="cloudstyle-badge-warning">NÃO CONFORMIDADE MENOR</span></td>
-                    <td>Evidência parcial ou exclusivamente autoatestada para controle requerido.</td>
-                    <td>Complementação com telemetria automatizada.</td>
+                    <td><span class="cloudstyle-badge-warning">MINOR NON-CONFORMITY (NÃO CONFORMIDADE MENOR)</span></td>
+                    <td>Partial or self-attested-only evidence for a required control.</td>
+                    <td>Supplement with automated telemetry.</td>
                 </tr>
                 <tr>
-                    <td><span class="cloudstyle-badge-opportunity">OPORTUNIDADE DE MELHORIA</span></td>
-                    <td>Controle formalmente conforme, com recomendação técnica de hardening preventivo.</td>
-                    <td>Aprimoramento contínuo em sprint de governança.</td>
+                    <td><span class="cloudstyle-badge-opportunity">OPPORTUNITY FOR IMPROVEMENT (OPORTUNIDADE DE MELHORIA)</span></td>
+                    <td>Formally compliant control with preventive technical recommendations.</td>
+                    <td>Continuous enhancement in governance sprint.</td>
                 </tr>
             </tbody>
         </table>
@@ -2763,93 +2775,95 @@ async def export_report(
 
     elif format.lower() == "markdown":
         md = f"""# GOOGLE CLOUD SECURITY
-## RELATÓRIO DE AVALIAÇÃO DE PRONTIDÃO PARA CERTIFICAÇÃO
+## SECURITY POSTURE & READINESS ASSESSMENT REPORT
 
-> **Aviso Legal / Disclaimer**: {MANDATORY_REPORT_DISCLAIMER}
+> **Notice / Disclaimer**: {MANDATORY_REPORT_DISCLAIMER}
 
-**Organização:** Google Cloud Security  
-**Prática Especializada:** Cybersecurity, Cloud Governance & Regulatory Compliance Advisory  
-**Código do Documento:** `GCS-GRC-ISO27001-{now_utc.strftime('%Y%m%d-%H%M%S')}`  
-**Data de Emissão:** {timestamp}  
-**Período Auditado:** {audited_period['formatted']}  
-**Classificação da Informação:** CONFIDENCIAL / AVALIAÇÃO DE PRONTIDÃO  
-**Consultor de Prontidão Responsável:** {auditor_resp['lead_auditor']}  
-**Plataforma de Execução:** Gemini Enterprise Agent Platform (GEAP)  
-**Projetos GCP no Escopo de Avaliação:** {', '.join(project_list)}  
-**Normas Auditadas:** ABNT NBR ISO/IEC 27001:2022 (Anexo A - 93 Controles)  
-**Selo de Integridade:** Hash Criptográfico SHA-256 Imutável Ancorado  
+**Organization:** Google Cloud Security  
+**Specialized Practice:** Cybersecurity, Cloud Governance & Regulatory Compliance Advisory  
+**Document Code:** `GCS-GRC-ISO27001-{now_utc.strftime('%Y%m%d-%H%M%S')}`  
+**Issue Date:** {timestamp}  
+**Evaluation Period:** {audited_period['formatted']}  
+**Information Classification:** CONFIDENTIAL / READINESS ASSESSMENT  
+**Lead Readiness Advisor:** {auditor_resp['lead_auditor']}  
+**Execution Platform:** Gemini Enterprise Agent Platform (GEAP)  
+**In-Scope GCP Projects:** {', '.join(project_list)}  
+**Evaluated Standards:** ISO/IEC 27001:2022 (Annex A - 93 Controls)  
+**Integrity Seal:** SHA-256 Immutable Evidence Chain Anchored  
 
 ---
 
-## 1. Avaliação de Prontidão (Readiness Assessment)
-A prática de **Google Cloud Security** realizou a auditoria contínua de conformidade e segurança da informação nos ambientes Google Cloud Platform especificados no escopo (`fnlab-apps-8fa913`, `fnlab-ai-data-8fa913`, `fnlab-sec-mgmt-8fa913`, `aispr-core-1cab11`, `agentic-grc-cd06`).
+## 1. Readiness Assessment Posture
+Google Cloud Security Practice conducted continuous information security and compliance assessment across in-scope Google Cloud Platform environments ({', '.join(project_list)}).
 
-Com base na coleta automatizada de telemetria, inspeção de configurações de instâncias e análise profunda de segurança, emitimos uma **OPINIÃO COM RESSALVAS (QUALIFIED OPINION - ACTION REQUIRED)**, com índice de conformidade global de **78.5%** e trajetória de drift **DESVIO DETECTADO**, apontando **9 NÃO-CONFORMIDADES TÉCNICAS CRÍTICAS** que requerem remediação prioritária.
+Notice: Google Cloud provides technical posture assessment and evidence readiness tools. Google Cloud does not perform audits or issue compliance certifications. Third-party accredited certification bodies must be engaged for official certifications.
 
-| Métrica de Avaliação | Resultado Auditado | Avaliação de Prontidão |
+Based on automated telemetry collection, instance configuration inspections, and in-depth security analysis, we issue a **QUALIFIED OPINION (ACTION REQUIRED)**, with an overall technical compliance score of **78.5%** and a drift trajectory of **DRIFT DETECTED**, pointing to **9 CRITICAL TECHNICAL NON-CONFORMITIES** that require prioritized remediation.
+
+| Assessment Metric | Evaluated Result | Posture Verdict |
 | :--- | :--- | :--- |
-| **Scorecard Global de Conformidade** | **78.5%** | **Qualificada / Ação Requerida** |
-| **Status da Frota de Máquinas Virtuais** | **5 VMs Auditadas** | **100% com Não-Conformidades Detectadas** |
-| **Controles ISO 27001 em Não-Conformidade** | **9 Controles Críticos** | A.5.15, A.5.17, A.5.23, A.8.14, A.8.15, A.8.16, A.8.20, A.8.24, A.8.28 |
-| **Governança & Políticas Organizacionais** | Organization Policies GCP | Parcial (CMEK Enforce Ausente) |
-| **Proteção de Borda & Governança IA** | Model Armor Ativo | Requer integração no endpoint interno |
-| **Cadeia de Evidências Criptográficas** | SHA-256 Merkle Chain | 22 nós imutáveis ancorados |
+| **Overall Compliance Scorecard** | **78.5%** | **Qualified / Action Required** |
+| **Virtual Machine Fleet Status** | **5 Evaluated VMs** | **100% with Detected Non-Conformities** |
+| **Non-Compliant ISO 27001 Controls** | **9 Critical Controls** | A.5.15, A.5.17, A.5.23, A.8.14, A.8.15, A.8.16, A.8.20, A.8.24, A.8.28 |
+| **Governance & Organizational Policies** | GCP Organization Policies | Partial (Mandatory CMEK Constraint Missing) |
+| **Edge Protection & AI Governance** | Active Model Armor | Requires internal endpoint integration |
+| **Cryptographic Evidence Chain** | SHA-256 Merkle Chain | 22 immutable anchored nodes |
 
 ---
 
-## 2. Metodologia de Auditoria
+## 2. Assessment Methodology
 {REPORT_METHODOLOGY_TEXT}
 
 ---
 
-## 3. Declaração de Responsabilidade do Auditor
+## 3. Assessment Scope & Responsibility Declaration
 {auditor_resp['statement']}
 
 ---
 
-## 4. Taxonomia de Severidade de Achados
-- **NÃO CONFORMIDADE MAIOR**: Controle com desvio crítico e ausência total de evidência compensatória.
-- **NÃO CONFORMIDADE MENOR**: Evidência parcial ou exclusivamente autoatestada para controle requerido.
-- **OPORTUNIDADE DE MELHORIA**: Controle formalmente conforme, com recomendação técnica preventiva.
-- **CONFORME**: Controle com verificação automatizada completa e sem apontamentos de desvio.
+## 4. Finding Severity Taxonomy
+- **MAJOR NON-CONFORMITY (NÃO CONFORMIDADE MAIOR)**: Control with critical deviation and complete absence of compensating evidence.
+- **MINOR NON-CONFORMITY (NÃO CONFORMIDADE MENOR)**: Partial or self-attested-only evidence for a required control.
+- **OPPORTUNITY FOR IMPROVEMENT (OPORTUNIDADE DE MELHORIA)**: Formally compliant control with preventive technical recommendations.
+- **COMPLIANT**: Fully automated verification with no detected deviations.
 
 ---
 
-## 5. Inventário de Cargas de Trabalho e VMs Auditadas (Desvios Críticos)
+## 5. Evaluated Workloads & VM Fleet (Critical Deviations)
 
-| Instância / VM | Projeto GCP | IP Privado | Status ISO 27001 | Desvios Críticos Identificados |
+| Instance / VM | GCP Project | Private IP | ISO 27001 Status | Identified Critical Deviations |
 | :--- | :--- | :--- | :--- | :--- |
-| **`vm-legacy-crm`** | `fnlab-apps-8fa913` | `10.20.10.2` | **NÃO CONFORMIDADE MAIOR** | **A.5.17**: Senha estática em metadados (`legacy-credentials: app_admin:StaticPasswordDemo2026`).<br>**A.8.24**: Disco de boot sem CMEK.<br>**A.8.14**: Zona única `us-central1-a` sem failover. |
-| **`vm-payment-api`** | `fnlab-apps-8fa913` | `10.20.10.3` | **NÃO CONFORMIDADE MAIOR** | **A.8.20**: Firewall aberto `0.0.0.0/0 -> tcp:22` (sem log).<br>**A.8.28**: Falhas BOLA (API1), vazamento em `/debug/env` e Prompt Injection (LLM01).<br>**A.8.24**: Sem CMEK. |
-| **`vm-ai-inference`** | `fnlab-ai-data-8fa913` | `10.30.10.2` | **NÃO CONFORMIDADE MAIOR** | **A.5.15**: Conta `sa-ai-pipeline-dev` com papel primitivo `roles/editor`.<br>**A.8.24**: Disco sem CMEK.<br>**A.8.14**: Zona única sem alta disponibilidade. |
-| **`vm-mgmt-bastion`** | `fnlab-sec-mgmt-8fa913` | `10.10.10.2` | **NÃO CONFORMIDADE MAIOR** | **A.5.15**: Usa Conta de Serviço Compute padrão.<br>**A.8.24**: Disco sem chave do KeyRing `kr-iso-compliance-mgmt`.<br>**A.8.14**: `deletionProtection: false`. |
-| **`vm-aispr-runner`** | `aispr-core-1cab11` | `10.50.10.2` | **NÃO CONFORMIDADE MAIOR** | **A.5.15**: Escopo OAuth amplo `cloud-platform`.<br>**A.8.24**: Disco do executor sem CMEK.<br>**A.8.14**: Sem redundância regional. |
+| **`vm-legacy-crm`** | `fnlab-apps-8fa913` | `10.20.10.2` | **MAJOR NON-CONFORMITY** | **A.5.17**: Static password in metadata (`legacy-credentials: app_admin:StaticPasswordDemo2026`).<br>**A.8.24**: Boot disk lacks CMEK.<br>**A.8.14**: Single zone `us-central1-a` without failover. |
+| **`vm-payment-api`** | `fnlab-apps-8fa913` | `10.20.10.3` | **MAJOR NON-CONFORMITY** | **A.8.20**: Open firewall `0.0.0.0/0 -> tcp:22` (no logging).<br>**A.8.28**: BOLA (API1), config leak in `/debug/env`, and Prompt Injection (LLM01).<br>**A.8.24**: Lacks CMEK. |
+| **`vm-ai-inference`** | `fnlab-ai-data-8fa913` | `10.30.10.2` | **MAJOR NON-CONFORMITY** | **A.5.15**: Account `sa-ai-pipeline-dev` has primitive role `roles/editor`.<br>**A.8.24**: Boot disk lacks CMEK.<br>**A.8.14**: Single zone without high availability. |
+| **`vm-mgmt-bastion`** | `fnlab-sec-mgmt-8fa913` | `10.10.10.2` | **MAJOR NON-CONFORMITY** | **A.5.15**: Uses default Compute Service Account.<br>**A.8.24**: Disk lacks compliance KeyRing `kr-iso-compliance-mgmt` CMEK key.<br>**A.8.14**: `deletionProtection: false`. |
+| **`vm-aispr-runner`** | `aispr-core-1cab11` | `10.50.10.2` | **MAJOR NON-CONFORMITY** | **A.5.15**: Broad OAuth scope `cloud-platform`.<br>**A.8.24**: Executor disk lacks CMEK.<br>**A.8.14**: Lacks regional redundancy. |
 
 ---
 
-## 6. Resultados por Fases de Auditoria
+## 6. Assessment Phase Results
 
-### Fase 1: Descoberta de Ativos & IAM
-- **Status:** CONFORME (100%)
-- Varredura de ativos via Cloud Asset Inventory API.
-- Gestão de acessos privilegiados com princípio do menor privilégio e segregação SoD.
+### Phase 1: Asset Discovery & IAM Assessment
+- **Status:** COMPLIANT (100%)
+- Asset discovery via Cloud Asset Inventory API.
+- Privileged access management with least privilege principle and SoD segregation.
 
-### Fase 2: Auditoria Técnica Profunda & IaC
-- **Status:** CONFORME (100%)
-- **Controle A.5.23 (Nuvem):** Public Access Prevention e UBLA 100% ativos nos buckets GCS.
-- **Controle A.8.12 (DLP):** Perímetro VPC Service Controls ativo em Storage e BigQuery.
-- **Controle A.8.24 (Criptografia):** Chaves Cloud KMS protegidas em HSM com rotação <= 60 dias.
-- **Controle A.8.9 (IaC):** Inspeção estática de Terraform/Ansible sem vulnerabilidades críticas.
+### Phase 2: Deep Technical Review & IaC Assessment
+- **Status:** COMPLIANT (100%)
+- **Control A.5.23 (Cloud):** Public Access Prevention and UBLA 100% active on GCS buckets.
+- **Control A.8.12 (DLP):** VPC Service Controls perimeter active in Storage and BigQuery.
+- **Control A.8.24 (Cryptography):** Cloud KMS keys protected in HSM with rotation <= 60 days.
+- **Control A.8.9 (IaC):** Static inspection of Terraform/Ansible with no critical vulnerabilities.
 
-### Fase 3: Governança Zero-Copy & Políticas Organizacionais
-- **Status:** CONFORME (100%)
-- **Controles Organizacionais (A.5):** Validação de políticas de segurança aprovadas pela diretoria.
-- **Organization Policies:** Restrições hierárquicas ativas no GCP sem deriva de conformidade.
-- **Conectores Zero-Copy:** Google Drive e SharePoint auditados na fonte sem duplicação de dados.
+### Phase 3: Zero-Copy Governance & ISMS Policies
+- **Status:** COMPLIANT (100%)
+- **Organizational Controls (A.5):** Validation of corporate security policies approved by leadership.
+- **Organization Policies:** Hierarchical constraints active in GCP without compliance drift.
+- **Zero-Copy Connectors:** Google Drive and SharePoint evaluated at source without data replication.
 
-### Fase 4: Grafo Criptográfico & Scorecard Final
-- **Status:** CONFORME (100%)
-- Todos os achados foram hashados em SHA-256 e registrados no Grafo de Evidências.
+### Phase 4: Cryptographic Graph & Final Scorecard
+- **Status:** COMPLIANT (100%)
+- All findings hashed with SHA-256 and recorded in the Evidence Graph.
 
 ---
 
@@ -2971,7 +2985,7 @@ async def onboard_new_client(
     expiry_iso = exp_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     projects = [p.strip() for p in req.projects if p.strip()] if req.projects else ["client-prod-01"]
-    contact_email = req.contact_email or (user_context.email if user_context and user_context.email and user_context.email != "auditor@client.corp" else "jsaccomani@google.com")
+    contact_email = req.contact_email or (user_context.email if user_context and user_context.email and user_context.email not in ("auditor@client.corp", "compliance.reviewer@client.corp", "reviewer@client.corp") else "jsaccomani@google.com")
     org_id = req.org_id or "31564119954"
     org_name = req.org_name or f"{client_name} Org"
 
@@ -2989,7 +3003,7 @@ async def onboard_new_client(
                 drive_folder_id = raw_df
 
     op_id = resolve_operator_id(user_context, x_operator_id)
-    owner_email = user_context.email if (user_context and user_context.email and user_context.email != "auditor@client.corp") else op_id
+    owner_email = op_id if x_operator_id else (user_context.email if (user_context and user_context.email and user_context.email not in ("auditor@client.corp", "compliance.reviewer@client.corp", "reviewer@client.corp")) else op_id)
     shared_ops = [s.strip() for s in req.shared_operators if s.strip()] if req.shared_operators else []
 
     record = {
@@ -3188,7 +3202,8 @@ def parse_onboard_txt_content(content: bytes, filename: str = "config.txt") -> T
             parsed["org_id"] = val
         elif key in ("org_name", "organization_name"):
             parsed["org_name"] = val
-        elif key in ("auditor_identity", "consultant_identity", "contact_email", "auditor_email"):
+        elif key in ("auditor_identity", "consultant_identity", "assessor_identity", "contact_email", "auditor_email", "consultant_email"):
+            parsed["consultant_identity"] = val
             parsed["auditor_identity"] = val
             parsed["contact_email"] = val
         elif key in ("cloud_provider", "cloud"):
@@ -3421,8 +3436,8 @@ async def handle_chat(
         finops_tracker.record_usage("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
         return _format_chat_response({
             "response": (
-                "Agentic Compliance Readiness Accelerator - GEAP Compliance & Continuous Audit Agent (Google Cloud Security)\n\n"
-                "Capacidades Principais de Auditoria:\n"
+                "Agentic Compliance Readiness Accelerator - GEAP Compliance & Continuous Assessment Advisor (Google Cloud Security)\n\n"
+                "Capacidades Principais de Avaliação:\n"
                 "1. Avaliação Contínua de Prontidão Executiva para ISO/IEC 27001:2022 (Controles A.5, A.6, A.7 e A.8).\n"
                 "2. Avaliação Contínua de Políticas Organizacionais e Governança do SGSI (Tema A.5).\n"
                 "3. Inspeção Estática de Infraestrutura como Código (Terraform .tf e Ansible .yml).\n"
@@ -3555,7 +3570,7 @@ async def handle_chat(
         usage = subagent_res.get("usage") or {}
         finops_tracker.record_usage(
             agent_id="lead-auditor",
-            name="Lead Auditor Orquestrador",
+            name="Lead Advisor Orquestrador",
             category="Orquestração Executiva",
             prompt_tokens=int(usage.get("prompt_token_count", 0)),
             completion_tokens=int(usage.get("candidates_token_count", 0)),
@@ -3572,7 +3587,7 @@ async def handle_chat(
         execution_mode = "error"
         finops_tracker.record_usage(
             agent_id="lead-auditor",
-            name="Lead Auditor Orquestrador",
+            name="Lead Advisor Orquestrador",
             category="Orquestração Executiva",
             prompt_tokens=0,
             completion_tokens=0,
@@ -4244,8 +4259,8 @@ def resolve_subagent_spec(
 
     if agent_id == "annex_a":
         return (
-            "Annex A Auditor Agent",
-            "Consultor Técnico de Criptografia & Controles Tecnológicos (A.8)",
+            "Annex A Security Assessor Agent",
+            "Technical Advisor for Cryptography & Technological Controls (A.8)",
             ANNEX_A_SYSTEM_PROMPT,
             ["A.5.23", "A.8.9", "A.8.12", "A.8.16", "A.8.24", "A.8.28"],
             annex_a_subagent.tools,
@@ -4502,24 +4517,24 @@ async def run_subagent_task(
 
     narrative_text = subagent_res.get("narrative", f"Inspeção técnica concluída pelo subagente {agent_name}.")
 
-    markdown_report = f"""### Relatório Executivo de Auditoria & Avaliação de Prontidão • {agent_name}
-**Função do Agente:** {agent_role}  
-**Projeto GCP Auditado:** `{target_project}`  
-**Classificação Normativa:** **{score_label}**  
-**Modo de Execução:** `{execution_mode}`  
-**Hash de Evidência SHA-256:** `{evidence_hash[:32]}...`  
+    markdown_report = f"""### Executive Security Posture Assessment Report • {agent_name}
+**Agent Role:** {agent_role}  
+**Evaluated GCP Project:** `{target_project}`  
+**Posture Verdict:** **{score_label}**  
+**Execution Mode:** `{execution_mode}`  
+**SHA-256 Evidence Hash:** `{evidence_hash[:32]}...`  
 
-#### 1. Avaliação de Prontidão da Inspeção
+#### 1. Technical Inspection Findings
 {narrative_text}
 
-#### 2. Evidências Técnicas & Ferramentas Acionadas
-| Controle ISO | Recurso Auditado | Ferramenta MCP | Status | Avaliação de Prontidão / Violações |
+#### 2. Technical Evidence & Executed Tools
+| ISO Control | Evaluated Resource | MCP Tool | Status | Findings / Violations |
 | :--- | :--- | :--- | :---: | :--- |
 {rows}
 
-#### 3. Governança & Rastreabilidade
-- **Não-Repúdio:** Nó de evidência imutável ancorado no Grafo Criptográfico com SHA-256.
-- **Auditoria Agêntica:** Execução fundamentada em chamadas determinísticas de ferramentas MCP.
+#### 3. Governance & Traceability
+- **Non-Repudiation:** Immutable evidence node anchored in Cryptographic Graph with SHA-256.
+- **Agentic Assessment:** Deterministic grounding based on empirical MCP tool execution.
 """
 
     scoped_ci_engine.evidence_graph.add_evidence(

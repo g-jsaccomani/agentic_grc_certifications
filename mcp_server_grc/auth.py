@@ -59,12 +59,12 @@ class WorkspaceUserContext(BaseModel):
 
 
 def create_mock_id_token(
-    email: str = "auditor@client.corp",
+    email: str = "compliance.reviewer@client.corp",
     hd: str = DEFAULT_WORKSPACE_DOMAIN,
     aud: str = DEFAULT_CLIENT_ID,
     iss: str = "https://accounts.google.com",
     sub: str = "109823471029",
-    name: str = "Corporate Lead Auditor",
+    name: str = "Lead Compliance Reviewer",
     expires_in: int = 3600,
 ) -> str:
     """Helper to generate structurally valid Google ID tokens (JWTs) for unit testing and local development."""
@@ -136,7 +136,7 @@ def clear_iap_keys_cache() -> None:
 
 
 def create_mock_iap_jwt(
-    email: str = "auditor@client.corp",
+    email: str = "compliance.reviewer@client.corp",
     sub: str = "accounts.google.com:1029384756",
     aud: Optional[str] = None,
     iss: str = GOOGLE_IAP_ISSUER,
@@ -531,7 +531,7 @@ async def get_current_workspace_user(
     # If ID token is provided, verify it strictly server-side
     if id_token_str:
         claims = verify_google_workspace_token(id_token_str)
-        email = claims.get("email", f"auditor@{expected_domain}")
+        email = claims.get("email", f"reviewer@{expected_domain}")
         hd = claims.get("hd", expected_domain)
         sub = claims.get("sub")
         name = claims.get("name")
@@ -551,7 +551,7 @@ async def get_current_workspace_user(
         # Check if token is shaped like a valid Google access token (ya29.) or mock token in dev
         if clean_token.startswith("ya29.") or clean_token.startswith("mock-") or allow_dev_bypass:
             return WorkspaceUserContext(
-                email=f"auditor@{expected_domain}",
+                email=f"reviewer@{expected_domain}",
                 hd=expected_domain,
                 access_token=clean_token,
                 is_demo=False,
@@ -560,7 +560,7 @@ async def get_current_workspace_user(
     # Local demo / unauthenticated fallback for /portal initial load and legacy unit tests
     if allow_dev_bypass or req_body.get("user_token") in (None, "portal-demo-user-token") or not req_body:
         return WorkspaceUserContext(
-            email=f"demo-auditor@{expected_domain}",
+            email=f"demo-reviewer@{expected_domain}",
             hd=expected_domain,
             access_token="ya29.portal-demo-user-token",
             is_demo=True,

@@ -834,7 +834,7 @@ def test_ai_consistency_validation_with_mocked_llm_compliant(monkeypatch):
     """When LLM is available and evaluates evidence as COMPLIANT."""
     from agent_orchestrator.llm_subagent import LLMSubAgent
     mock_run_result = {
-        "agent": "QuestionnaireConsistencyAuditor",
+        "agent": "QuestionnaireConsistencyReviewer",
         "status": "SUCCESS",
         "narrative": '{"verdict": "COMPLIANT", "reasoning": "Cryptographic key rotation logs confirm 60-day cycle."}',
         "execution_mode": "llm_function_calling",
@@ -861,7 +861,7 @@ def test_ai_consistency_validation_with_mocked_llm_non_compliant(monkeypatch):
     """When LLM is available and evaluates evidence as NON_COMPLIANT despite user claim."""
     from agent_orchestrator.llm_subagent import LLMSubAgent
     mock_run_result = {
-        "agent": "QuestionnaireConsistencyAuditor",
+        "agent": "QuestionnaireConsistencyReviewer",
         "status": "SUCCESS",
         "narrative": '{"verdict": "NON_COMPLIANT", "reasoning": "Submitted screenshot shows SSH port 22 open to 0.0.0.0/0, violating perimeter policy."}',
         "execution_mode": "llm_function_calling",

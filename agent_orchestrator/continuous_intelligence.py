@@ -1,6 +1,6 @@
 """Continuous Intelligence & Proactive Compliance Engine for GEAP.
 
-Acts as the persistent auditor and compliance implementer within a secure sandbox:
+Acts as the persistent compliance reviewer and posture assessor within a secure sandbox:
 - Orchestrates, scales, and governs enterprise compliance assistants.
 - Operates inside a secure sandbox with SPIFFE identity and Model Armor.
 - Maps logical evidence into an Evidence Graph.

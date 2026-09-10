@@ -132,17 +132,17 @@ class FinOpsTracker:
                 "cost_usd": 0.42,
             },
             "Fase 2: Telemetria Técnica GCP": {
-                "description": "Auditoria de IAM, Cloud KMS, SCC e Workload Identity",
+                "description": "Technical review of IAM, Cloud KMS, SCC and Workload Identity",
                 "tokens": 680000,
                 "cost_usd": 0.88,
             },
             "Fase 3: Testes de Eficácia & Drift": {
-                "description": "Verificação ativa de controles ISO 27001 e simulação",
+                "description": "Active verification of ISO 27001 controls and simulation",
                 "tokens": 390000,
                 "cost_usd": 0.54,
             },
             "Fase 4: Parecer Executivo & Selo": {
-                "description": "Orquestração executiva, síntese e assinatura criptográfica",
+                "description": "Executive orchestration, synthesis and cryptographic attestation",
                 "tokens": 352650,
                 "cost_usd": 1.64,
             },
@@ -150,12 +150,12 @@ class FinOpsTracker:
         self.seed_defaults()
 
     def seed_defaults(self):
-        """Initial realistic telemetry for continuous GRC audit runs."""
+        """Initial realistic telemetry for continuous GRC assessment runs."""
         initial_agents = [
             AgentFinOpsRecord(
-                agent_id="lead-auditor",
-                name="Lead Auditor Orquestrador",
-                category="Orquestração Executiva",
+                agent_id="compliance-advisor",
+                name="Lead Compliance & Security Advisor",
+                category="Executive Orchestration",
                 model_key="gemini-2.5-pro",
                 invocations=42,
                 prompt_tokens=480000,
@@ -321,11 +321,11 @@ class FinOpsTracker:
         else:
             tips.append({
                 "type": "context_caching",
-                "title": "Eficácia de Context Caching",
-                "description": "Context Caching está operando com alta taxa de acerto, reutilizando prompts e instruções de auditoria com eficácia.",
+                "title": "Context Caching Efficiency",
+                "description": "Context Caching is operating with a high hit rate, effectively reusing system prompts and assessment instructions.",
                 "potential_savings_usd": 0.0,
                 "severity": "INFO",
-                "metric": "Cache de contexto ativo",
+                "metric": "Active Context Cache",
             })
 
         # 3. Deterministic execution efficiency (Zero-Token Calls)

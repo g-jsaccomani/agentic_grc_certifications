@@ -88,9 +88,9 @@ def test_remediation_engine_hitl_gate():
     assert blocked_plan.execution_status == RemediationExecutionMode.BLOCKED_MISSING_APPROVAL
 
     # Execute with authenticated human approval token
-    approved_plan = engine.execute_remediation(plan, human_approval_token="HITL-APPROVED-lead-auditor-123")
+    approved_plan = engine.execute_remediation(plan, human_approval_token="HITL-APPROVED-lead-reviewer-123")
     assert approved_plan.execution_status == RemediationExecutionMode.PRODUCTION_APPLIED
-    assert approved_plan.approval_token_used == "HITL-APPROVED-lead-auditor-123"
+    assert approved_plan.approval_token_used == "HITL-APPROVED-lead-reviewer-123"
 
 
 def test_continuous_intelligence_end_to_end_cycle():
