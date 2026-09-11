@@ -3259,3 +3259,78 @@ During live QA security testing on the running Cloud Run service, four vulnerabi
   - `tests/test_agent_reliability.py`: 30/30 passed.
   - `tests/test_client_isolation.py`: 13/13 passed.
 
+---
+
+### Milestone 82: Cross-Tenant UI Staleness Bug Fix & Live GCP Org/Project Refresh
+
+#### 1. Problem Description & Root Cause Analysis
+- **Observed Behavior**:
+  When an operator switched the active client workspace in the portal (e.g. from `altostrat-ventures` to a newly onboarded client), the client card updated with the new client's name, but the live GCP Organization panel ("Organização GCP Conectada") and "Provedores Cloud" card continued displaying the previous client's GCP Organization name (`jsaccomani.altostrat.com`), Organization ID (`31564119954`), and all real GCP project names (`fnlab-apps-8fa913`, `hale-tractor-432100`, etc.).
+- **Root Causes Identified**:
+  1. `executeConfirmedClientSwitch()` in `mcp_server_grc/portal_html.py` invalidated chat sessions and updated the active card, but **never invoked `await loadProjects()`**. Consequently, `/api/projects` was never queried for the new client upon switching.
+  2. The organization label elements (`#scopeConnectedOrgName`, `#orgScopeDropdownOrgTitle`, `#homeMetaOrgName`, and `#providerActiveOrgName`) retained the values set during initial page load or hardcoded in template markup (`Altostrat Global Org`).
+  3. `#providerActiveOrgName` was not updated anywhere in `loadProjects()`.
+  4. In `loadProjects()`, the conditional check `if (orgNameEl && data.org_metadata.org_name && data.org_metadata.org_id)` was overly restrictive and failed to update the DOM if `org_id` was absent or null.
+  5. The global state variable `allOrgProjects` was never reset upon client switch. Because `renderOrgDropdown()` prioritized `allOrgProjects` (`projectsToDisplay = allOrgProjects.length > 0 ? allOrgProjects : activeProjects`), the previous client's organization projects continued to be rendered in the project selection dropdown even if `activeProjects` had changed.
+
+#### 2. Solution Implemented
+- **`mcp_server_grc/portal_html.py`**:
+  - In `executeConfirmedClientSwitch()`:
+    - Immediately resets project and organization state: `allOrgProjects = []; activeProjects = []; selectedProjectIds = new Set();` to purge previous tenant data from browser memory.
+    - Eagerly updates `#scopeConnectedOrgName`, `#orgScopeDropdownOrgTitle`, `#homeMetaOrgName`, and `#providerActiveOrgName` from `activeClient` metadata to eliminate visual flicker.
+    - Invokes `await loadProjects()` using authenticated headers (`X-Client-Id: currentActiveClientId`, `X-Session-Id: activeChatSessionId`) to fetch authoritative Cloud Resource Manager project and org metadata live from `/api/projects`.
+  - In `loadProjects()`:
+    - Correctly synchronizes `allOrgProjects = data.all_org_projects || data.projects || [];`.
+    - Updates `#providerActiveOrgName` alongside `#scopeConnectedOrgName`, `#orgScopeDropdownOrgTitle`, and `#homeMetaOrgName`.
+    - Handles cases where `data.org_metadata` or `data.client_name` are present, displaying `orgName` with or without `org_id` cleanly.
+    - Re-renders `#scopeProjectsList` and `#orgDropdownItemsList` via `renderScopeBox()` and `renderOrgDropdown()`.
+
+#### 3. Exact Before/After Project List for Simulated Client Switch
+
+```
+====================================================================================================
+CROSS-TENANT ISOLATION SIMULATION: CLIENT SWITCH AUDIT
+====================================================================================================
+
+[BEFORE SWITCH] Active Client: Alpha Enterprise (client-alpha-org)
+- Organization Name:        Alpha Enterprise Org
+- Organization ID:          111000111000
+- Connected Org Label:      Alpha Enterprise Org (111000111000)
+- Provider Org Label:       Alpha Enterprise Org
+- Total Org Projects:       3
+- Active In-Scope Projects: 2
+- Projects Displayed in UI:
+    1. [✓] alpha-workload-prod     (PROD)        in_scope: true
+    2. [✓] alpha-workload-stage    (PROD)        in_scope: true
+    3. [ ] alpha-internal-sandbox  (ORGANIZATION) in_scope: false
+- Beta Projects Present:    0 (NONE)
+
+----------------------------------------------------------------------------------------------------
+ACTION: POST /api/clients/active {"client_id": "client-beta-org"}
+        -> Invalidate sessions & execute executeConfirmedClientSwitch()
+        -> Reset allOrgProjects, activeProjects, selectedProjectIds
+        -> await loadProjects() live from /api/projects with X-Client-Id: client-beta-org
+----------------------------------------------------------------------------------------------------
+
+[AFTER SWITCH] Active Client: Beta Financial (client-beta-org)
+- Organization Name:        Beta Financial Org
+- Organization ID:          222000222000
+- Connected Org Label:      Beta Financial Org (222000222000)
+- Provider Org Label:       Beta Financial Org
+- Total Org Projects:       3
+- Active In-Scope Projects: 2
+- Projects Displayed in UI:
+    1. [✓] beta-banking-prod       (PROD)        in_scope: true
+    2. [✓] beta-vault              (PROD)        in_scope: true
+    3. [ ] beta-restricted-ledger  (ORGANIZATION) in_scope: false
+- Alpha Projects Present:   0 (STRICT ZERO-LEAKAGE: alpha-* completely absent)
+====================================================================================================
+```
+
+#### 4. Automated Verification & Quality Assurance
+- **Full Pytest Suite**: **239 passed, 0 failures, 2 warnings in 44.59s (100% pass rate)**.
+- **Client Isolation Tests (`tests/test_client_isolation.py`)**: **14/14 passed**:
+  - `test_switching_active_client_changes_projects_and_isolates_org_projects`: Validates live query to Cloud Resource Manager, verification of `org_metadata` (`org_id`, `org_name`), and strict cross-client project absence before and after switch.
+  - `test_portal_html_client_switch_refreshes_live_projects_and_org_elements`: Confirms portal HTML contains `await loadProjects()` inside `executeConfirmedClientSwitch`, project state resets (`allOrgProjects = [];`), and updates to all four org DOM indicators.
+
+

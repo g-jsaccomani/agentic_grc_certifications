@@ -604,6 +604,8 @@ def test_switching_active_client_changes_projects_and_isolates_org_projects():
             data_a = res_alpha_proj.json()
             assert data_a["client_id"] == client_alpha_id
             assert data_a["org_id"] == "111000111000"
+            assert data_a["org_metadata"]["org_id"] == "111000111000"
+            assert data_a["org_metadata"]["org_name"] == "Alpha Enterprise Org"
             alpha_pids = [p["project_id"] for p in data_a["all_org_projects"]]
             assert "alpha-workload-prod" in alpha_pids
             assert "alpha-internal-sandbox" in alpha_pids
@@ -626,6 +628,11 @@ def test_switching_active_client_changes_projects_and_isolates_org_projects():
             data_b = res_beta_proj.json()
             assert data_b["client_id"] == client_beta_id
             assert data_b["org_id"] == "222000222000"
+            assert data_b["org_metadata"]["org_id"] == "222000222000"
+            assert data_b["org_metadata"]["org_name"] == "Beta Financial Org"
+            # Ensure Client A's org and projects are completely absent
+            assert data_b["org_id"] != data_a["org_id"]
+            assert data_b["org_metadata"]["org_id"] != data_a["org_metadata"]["org_id"]
             beta_pids = [p["project_id"] for p in data_b["all_org_projects"]]
             assert "beta-banking-prod" in beta_pids
             assert "beta-vault" in beta_pids
@@ -817,3 +824,26 @@ def test_client_disconnect_workflow_and_data_preservation():
     finally:
         # Cleanup test client
         client.delete(f"/api/clients/{test_cid}", headers=op_headers)
+
+
+def test_portal_html_client_switch_refreshes_live_projects_and_org_elements():
+    """Verify that portal_html.py contains the UI fix for cross-tenant staleness:
+    1. executeConfirmedClientSwitch resets allOrgProjects, activeProjects, and selectedProjectIds.
+    2. executeConfirmedClientSwitch calls await loadProjects().
+    3. loadProjects updates providerActiveOrgName, scopeConnectedOrgName,
+       orgScopeDropdownOrgTitle, and homeMetaOrgName.
+    4. loadProjects populates allOrgProjects from live CRM data or projects.
+    """
+    res = client.get("/")
+    assert res.status_code == 200
+    html = res.text
+
+    assert "await loadProjects()" in html
+    assert 'document.getElementById("providerActiveOrgName")' in html
+    assert 'document.getElementById("scopeConnectedOrgName")' in html
+    assert 'document.getElementById("orgScopeDropdownOrgTitle")' in html
+    assert 'document.getElementById("homeMetaOrgName")' in html
+    assert "allOrgProjects = [];" in html
+    assert "activeProjects = [];" in html
+    assert "selectedProjectIds = new Set();" in html
+

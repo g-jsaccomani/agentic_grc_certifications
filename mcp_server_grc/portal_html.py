@@ -11717,9 +11717,33 @@ Formulário preenchido com o subagente recomendado!`);
                     // 2. Start fresh session UI
                     startNewConversation();
 
-                    // 3. Update active card & dropdown
+                    // 3. Reset project and organization scope state to prevent cross-tenant UI residue
+                    allOrgProjects = [];
+                    activeProjects = [];
+                    selectedProjectIds = new Set();
+
+                    // 4. Update active card & dropdown immediately
                     if (activeClient) {
                         renderActiveClientCard(activeClient);
+
+                        // Eagerly update organization indicators if activeClient has org details
+                        const cOrgName = activeClient.org_name || (activeClient.name ? `${activeClient.name} Org` : "Organização Conectada");
+                        const cOrgId = activeClient.org_id || "";
+                        const cOrgDisplay = cOrgId ? `${cOrgName} (${cOrgId})` : cOrgName;
+
+                        const orgNameEl = document.getElementById("scopeConnectedOrgName");
+                        if (orgNameEl) {
+                            orgNameEl.innerHTML = cOrgId
+                                ? `${escapeHtml(cOrgName)} <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(${escapeHtml(cOrgId)})</span>`
+                                : escapeHtml(cOrgName);
+                        }
+                        const orgTitleEl = document.getElementById("orgScopeDropdownOrgTitle");
+                        if (orgTitleEl) orgTitleEl.innerText = cOrgDisplay;
+                        const homeMetaOrgEl = document.getElementById("homeMetaOrgName");
+                        if (homeMetaOrgEl) homeMetaOrgEl.innerText = cOrgDisplay;
+                        const provOrgEl = document.getElementById("providerActiveOrgName");
+                        if (provOrgEl) provOrgEl.innerText = cOrgName;
+
                         if (activeClient.projects && activeClient.projects.length > 0) {
                             selectedProjectIds = new Set(activeClient.projects);
                             activeProjects = activeClient.projects.map(p => ({
@@ -11728,11 +11752,14 @@ Formulário preenchido com o subagente recomendado!`);
                                 status: "ACTIVE",
                                 in_scope: true
                             }));
-                            renderScopeBox();
-                            renderOrgDropdown();
                         }
+                        renderScopeBox();
+                        renderOrgDropdown();
                     }
                     renderClientDropdownList(onboardedClientsList, currentActiveClientId);
+
+                    // 5. Live reload projects and authoritative organization metadata from /api/projects
+                    await loadProjects();
 
                     appendLog(`[Workspace] Troca de cliente concluída com sucesso para '${activeClient ? activeClient.name : targetId}'. Sessão anterior invalidada.`, "success");
                 } else {
@@ -13712,26 +13739,31 @@ function openNewsModal(newsKey) {
                 const res = await fetch("/api/projects", { headers: getAuthHeaders() });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && data.projects && data.projects.length > 0) {
+                    if (data && data.projects) {
                         activeProjects = data.projects;
                         selectedProjectIds = new Set(activeProjects.map(p => p.project_id));
                     }
-                    if (data && data.all_org_projects) {
-                        allOrgProjects = data.all_org_projects;
+                    if (data && (data.all_org_projects || data.projects)) {
+                        allOrgProjects = data.all_org_projects || data.projects || [];
                     }
-                    if (data && data.org_metadata) {
+                    if (data && (data.org_metadata || data.client_name)) {
+                        const orgMeta = data.org_metadata || {};
+                        const orgName = orgMeta.org_name || (data.client_name ? `${data.client_name} Org` : "Organização Conectada");
+                        const orgId = orgMeta.org_id || data.org_id || "";
+                        const orgDisplay = orgId ? `${orgName} (${orgId})` : orgName;
+
                         const orgNameEl = document.getElementById("scopeConnectedOrgName");
-                        if (orgNameEl && data.org_metadata.org_name && data.org_metadata.org_id) {
-                            orgNameEl.innerHTML = `${escapeHtml(data.org_metadata.org_name)} <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(${escapeHtml(data.org_metadata.org_id)})</span>`;
+                        if (orgNameEl) {
+                            orgNameEl.innerHTML = orgId
+                                ? `${escapeHtml(orgName)} <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(${escapeHtml(orgId)})</span>`
+                                : escapeHtml(orgName);
                         }
                         const orgTitleEl = document.getElementById("orgScopeDropdownOrgTitle");
-                        if (orgTitleEl && data.org_metadata.org_name && data.org_metadata.org_id) {
-                            orgTitleEl.innerText = `${data.org_metadata.org_name} (${data.org_metadata.org_id})`;
-                        }
+                        if (orgTitleEl) orgTitleEl.innerText = orgDisplay;
                         const homeMetaOrgEl = document.getElementById("homeMetaOrgName");
-                        if (homeMetaOrgEl && data.org_metadata.org_name && data.org_metadata.org_id) {
-                            homeMetaOrgEl.innerText = `${data.org_metadata.org_name} (${data.org_metadata.org_id})`;
-                        }
+                        if (homeMetaOrgEl) homeMetaOrgEl.innerText = orgDisplay;
+                        const provOrgEl = document.getElementById("providerActiveOrgName");
+                        if (provOrgEl) provOrgEl.innerText = orgName;
                     }
                 }
             } catch (e) {
