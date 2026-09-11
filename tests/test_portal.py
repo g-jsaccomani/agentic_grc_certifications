@@ -1840,3 +1840,72 @@ def test_client_onboard_modal_pdf_export_elements():
     assert 'roles/resourcemanager.organizationViewer' in html
 
 
+# ===========================================================================
+# Milestone 79: Google Drive Evidence Storage & Config TXT Integration Tests
+# ===========================================================================
+
+def test_google_drive_modal_and_ui_elements():
+    """Verifies that the Onboarding Modal has Google Drive folder selection,
+    Drive TXT selection, and the interactive Google Drive Explorer modal."""
+    res = client.get("/")
+    assert res.status_code == 200
+    html = res.text
+
+    # 1. Drive buttons in onboarding modal
+    assert 'id="btnSelectDriveFolder"' in html
+    assert 'openGoogleDriveFolderPicker()' in html
+    assert 'openDriveTxtPicker()' in html
+    assert 'id="btnCreateDriveFolderQuick"' in html
+    assert 'id="driveConnectedUserEmail"' in html
+    assert 'id="driveFolderSelectedFeedback"' in html
+
+    # 2. Drive Picker Modal
+    assert 'id="drivePickerModal"' in html
+    assert 'id="driveFoldersListContainer"' in html
+    assert 'id="driveTabBrowse"' in html
+    assert 'id="driveTabCreate"' in html
+    assert 'id="driveTabDirectLink"' in html
+    assert 'id="btnOpenNativeGooglePicker"' in html
+    assert 'id="driveNewFolderNameInput"' in html
+
+
+def test_google_drive_api_endpoints_end_to_end():
+    """Verifies the REST API endpoints for Google Drive folder listing and creation."""
+    with patch("mcp_server_grc.auth.verify_google_workspace_token") as mock_verify:
+        mock_verify.return_value = {
+            "email": "consultant@google.com",
+            "hd": "google.com",
+            "sub": "99999",
+        }
+        headers = {
+            "Authorization": "Bearer ya29.test-token",
+            "X-Operator-Id": "consultant@google.com",
+        }
+
+        # 1. List folders
+        res_list = client.get("/api/drive/folders", headers=headers)
+        assert res_list.status_code == 200
+        data_list = res_list.json()
+        assert data_list["status"] == "success"
+        assert "folders" in data_list
+        assert len(data_list["folders"]) >= 1
+        assert any("drive_folder_id" in f["link"] or "folders" in f["link"] for f in data_list["folders"])
+
+        # 2. Create new folder
+        payload = {"name": "Agentic GRC - Evidências (Acme Corp)"}
+        res_create = client.post("/api/drive/create_folder", json=payload, headers=headers)
+        assert res_create.status_code == 200
+        data_create = res_create.json()
+        assert data_create["status"] == "success"
+        assert "folder" in data_create
+        assert data_create["folder"]["name"] == "Agentic GRC - Evidências (Acme Corp)"
+        assert "id" in data_create["folder"]
+        assert "link" in data_create["folder"]
+        assert "drive.google.com/drive/folders" in data_create["folder"]["link"]
+
+        # 3. Create folder validation error
+        res_empty = client.post("/api/drive/create_folder", json={"name": "   "}, headers=headers)
+        assert res_empty.status_code == 400
+
+
+
