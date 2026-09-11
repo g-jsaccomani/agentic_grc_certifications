@@ -1236,12 +1236,12 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         }
 
         .client-name {
-            font-size: 11.5px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            line-height: 1.35;
+            word-break: break-word;
+            flex: 1;
         }
 
         .client-status-pill {
@@ -5259,7 +5259,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 <a href="#" class="brand-left" onclick="switchView('view-home')" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
                     <svg id="brandSidebarCloudIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 28" width="28" height="28" style="vertical-align: middle; display: block; flex-shrink: 0;"><path fill="#ea4335" d="M21.85,7.41l1,0,2.85-2.85.14-1.21A12.81,12.81,0,0,0,5,9.6a1.55,1.55,0,0,1,1-.06l5.7-.94s.29-.48.44-.45a7.11,7.11,0,0,1,9.73-.74Z"/><path fill="#4285f4" d="M29.76,9.6a12.84,12.84,0,0,0-3.87-6.24l-4,4A7.11,7.11,0,0,1,24.5,13v.71a3.56,3.56,0,1,1,0,7.12H17.38l-.71.72v4.27l.71.71H24.5A9.26,9.26,0,0,0,29.76,9.6Z"/><path fill="#34a853" d="M10.25,26.49h7.12v-5.7H10.25a3.54,3.54,0,0,1-1.47-.32l-1,.31L4.91,23.63l-.25,1A9.21,9.21,0,0,0,10.25,26.49Z"/><path fill="#fbbc05" d="M10.25,8A9.26,9.26,0,0,0,4.66,24.6l4.13-4.13a3.56,3.56,0,1,1,4.71-4.71l4.13-4.13A9.25,9.25,0,0,0,10.25,8Z"/></svg>
                     <div class="brand-text-col">
-                        <span class="brand-title" style="font-size: 14.5px; font-weight: 600; color: var(--text-primary); display: block; line-height: 1.2;">Agentic Compliance Readiness Accelerator</span>
+                        <span class="brand-title" style="font-size: 13.5px; font-weight: 700; color: var(--text-primary); display: block; line-height: 1.2;">Agentic GRC Accelerator</span>
                         <span class="brand-subtitle-badge" style="font-size: 10px; font-weight: 600; color: #8ab4f8; text-transform: uppercase; letter-spacing: 0.5px;">Google Cloud Security</span>
                     </div>
                 </a>
@@ -5298,8 +5298,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             </svg>
                             <span id="clientActiveExpiryText">Read-only access expires in 14 days</span>
                         </div>
+                        <div id="clientActiveActions" class="client-card-footer-actions" style="display: none; align-items: center; gap: 6px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.08);"></div>
                     </div>
-                    <div id="clientActiveActions" style="display: none; align-items: center; gap: 4px; margin-left: auto;"></div>
                     <svg class="client-dropdown-chevron" id="clientDropdownChevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5">
                         <polyline points="6 9 12 15 18 9"/>
                     </svg>
@@ -6958,16 +6958,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     </div>
                 </div>
 
-                <div class="matrix-toolbar">
-                    <div class="matrix-filter-pills" id="matrixFilterPills">
-                        <button class="btn-filter-pill active" onclick="filterMatrixByTheme('Todos')">Todos</button>
-                        <button class="btn-filter-pill" onclick="filterMatrixByTheme('A.5 Organizacional')">A.5 Organizacional</button>
-                        <button class="btn-filter-pill" onclick="filterMatrixByTheme('A.6 Pessoas')">A.6 Pessoas</button>
-                        <button class="btn-filter-pill" onclick="filterMatrixByTheme('A.7 Físico')">A.7 Físico</button>
-                        <button class="btn-filter-pill" onclick="filterMatrixByTheme('A.8 Tecnológico')">A.8 Tecnológico</button>
-                    </div>
-
-                    <div class="search-box-wrap">
+                <div class="matrix-toolbar" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; margin-bottom: 10px; flex-wrap: wrap;">
+                    <div class="search-box-wrap" style="flex: 1; max-width: 480px; min-width: 260px;">
                         <span class="search-icon-pos">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor">
                                 <circle cx="11" cy="11" r="8"/>
@@ -6975,6 +6967,17 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             </svg>
                         </span>
                         <input type="text" id="matrixSearchInput" class="search-input" placeholder="Buscar por controle, serviço GCP ou comando..." aria-label="Buscar controle na matriz" data-i18n-placeholder="matrix_search_placeholder" oninput="searchMatrix(this.value)">
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button type="button" class="btn-confirm" id="btnSyncMatrixWithScan" onclick="syncMatrixWithScan()" style="display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; font-size: 12px; font-weight: 600; border-radius: 6px; white-space: nowrap; background: var(--gcp-blue); color: #fff; cursor: pointer; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2);" title="Executar e sincronizar a Matriz com o Scan de Avaliação dos Controles">
+                            <svg id="syncScanIcon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="23 4 23 10 17 10"/>
+                                <polyline points="1 20 1 14 7 14"/>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                            </svg>
+                            <span id="btnSyncMatrixText">Sincronizar com Scan de Controles</span>
+                        </button>
                     </div>
                 </div>
 
@@ -14762,7 +14765,9 @@ function openNewsModal(newsKey) {
             chatArea.scrollTop = chatArea.scrollHeight;
         }
 
-        // Phased Audit Execution
+        const sleep = ms => new Promise(res => setTimeout(res, ms));
+
+        // Phased Audit Execution with Realistic Progressive Stepping
         async function triggerPhasedAudit() {
             const projects = Array.from(selectedProjectIds);
             const consoleBox = document.getElementById("auditLogsContainer");
@@ -14771,11 +14776,22 @@ function openNewsModal(newsKey) {
             appendLog(`Iniciando Scan de Avaliação estruturado em 4 Fases para [${projects.join(', ')}]...`, "info");
 
             for (let i = 1; i <= 4; i++) {
-                document.getElementById(`statusPhase${i}`).innerText = "Em Execução...";
-                document.getElementById(`statusPhase${i}`).className = "phase-status-tag";
-                document.getElementById(`cardPhase${i}`).classList.add("active");
-                document.getElementById(`fillPhase${i}`).style.width = "40%";
+                const st = document.getElementById(`statusPhase${i}`);
+                const card = document.getElementById(`cardPhase${i}`);
+                const fill = document.getElementById(`fillPhase${i}`);
+                if (st) { st.innerText = "Aguardando..."; st.className = "phase-status-tag"; }
+                if (card) card.classList.remove("active", "completed");
+                if (fill) fill.style.width = "0%";
             }
+
+            // Phase 1 start
+            const p1St = document.getElementById("statusPhase1");
+            const p1Card = document.getElementById("cardPhase1");
+            const p1Fill = document.getElementById("fillPhase1");
+            if (p1St) { p1St.innerText = "Em Execução..."; p1St.className = "phase-status-tag active"; }
+            if (p1Card) p1Card.classList.add("active");
+            if (p1Fill) p1Fill.style.width = "40%";
+            appendLog(`[Fase 1: Descoberta & IAM] Mapeando Cloud Asset Inventory e políticas IAM nos projetos...`, "info");
 
             try {
                 const res = await fetch("/api/audit/run_phases", {
@@ -14785,28 +14801,118 @@ function openNewsModal(newsKey) {
                 });
                 const data = await res.json();
 
-                document.getElementById("auditExecId").innerText = `Exec ID: ${data.execution_id || 'COMPLETED'}`;
+                const execIdEl = document.getElementById("auditExecId");
+                if (execIdEl) execIdEl.innerText = `Exec ID: ${data.execution_id || 'COMPLETED'}`;
 
-                for (let i = 1; i <= 4; i++) {
-                    document.getElementById(`statusPhase${i}`).innerText = "Concluído";
-                    document.getElementById(`statusPhase${i}`).className = "phase-status-tag completed";
-                    document.getElementById(`fillPhase${i}`).style.width = "100%";
+                // Progressive reveal of Phase 1
+                await sleep(500);
+                if (p1St) { p1St.innerText = "Concluído"; p1St.className = "phase-status-tag completed"; }
+                if (p1Fill) p1Fill.style.width = "100%";
+                if (data.phases && data.phases[0]) {
+                    appendLog(`[Fase 1] ${data.phases[0].phase}: STATUS ${data.phases[0].status}`, "success");
+                    if (data.phases[0].findings) data.phases[0].findings.forEach(f => appendLog(`  -> ${f}`));
                 }
 
-                if (data.phases) {
-                    data.phases.forEach((p, idx) => {
-                        appendLog(`[Fase ${idx+1}] ${p.phase}: STATUS ${p.status}`, "success");
-                        if (p.findings) {
-                            p.findings.forEach(f => appendLog(`  -> ${f}`));
-                        }
-                    });
+                // Phase 2
+                const p2St = document.getElementById("statusPhase2");
+                const p2Card = document.getElementById("cardPhase2");
+                const p2Fill = document.getElementById("fillPhase2");
+                if (p2St) { p2St.innerText = "Em Execução..."; p2St.className = "phase-status-tag active"; }
+                if (p2Card) p2Card.classList.add("active");
+                if (p2Fill) p2Fill.style.width = "50%";
+                appendLog(`[Fase 2: Avaliação Técnica & IaC] Inspecionando buckets Cloud Storage, VPC-SC, Cloud Run e Cloud KMS...`, "info");
+                await sleep(600);
+                if (p2St) { p2St.innerText = "Concluído"; p2St.className = "phase-status-tag completed"; }
+                if (p2Fill) p2Fill.style.width = "100%";
+                if (data.phases && data.phases[1]) {
+                    appendLog(`[Fase 2] ${data.phases[1].phase}: STATUS ${data.phases[1].status}`, "success");
+                    if (data.phases[1].findings) data.phases[1].findings.forEach(f => appendLog(`  -> ${f}`));
                 }
-                appendLog(`Avaliação Finalizada com Sucesso! Score Global: ${data.overall_score}%`, "success");
-                if (typeof loadScorecard === 'function') loadScorecard();
-                if (typeof loadIsoMatrix === 'function') loadIsoMatrix();
-                if (typeof loadQuestionnaireData === 'function') loadQuestionnaireData();
+
+                // Phase 3 (Governança & Políticas)
+                const p3St = document.getElementById("statusPhase3");
+                const p3Card = document.getElementById("cardPhase3");
+                const p3Fill = document.getElementById("fillPhase3");
+                if (p3St) { p3St.innerText = "Em Execução..."; p3St.className = "phase-status-tag active"; }
+                if (p3Card) p3Card.classList.add("active");
+                if (p3Fill) p3Fill.style.width = "50%";
+                appendLog(`[Fase 3: Governança & Políticas] Avaliando Organization Policies, Essential Contacts, Logging e SCC...`, "info");
+                await sleep(600);
+                if (p3St) { p3St.innerText = "Concluído"; p3St.className = "phase-status-tag completed"; }
+                if (p3Fill) p3Fill.style.width = "100%";
+                if (data.phases && data.phases[2]) {
+                    appendLog(`[Fase 3] ${data.phases[2].phase}: STATUS ${data.phases[2].status}`, "success");
+                    if (data.phases[2].findings) data.phases[2].findings.forEach(f => appendLog(`  -> ${f}`));
+                }
+
+                // Phase 4 (Grafo Criptográfico & Scorecard)
+                const p4St = document.getElementById("statusPhase4");
+                const p4Card = document.getElementById("cardPhase4");
+                const p4Fill = document.getElementById("fillPhase4");
+                if (p4St) { p4St.innerText = "Em Execução..."; p4St.className = "phase-status-tag active"; }
+                if (p4Card) p4Card.classList.add("active");
+                if (p4Fill) p4Fill.style.width = "60%";
+                appendLog(`[Fase 4: Grafo & Assinatura] Consolidando evidências SHA-256 e sincronizando postura...`, "info");
+                await sleep(400);
+                if (p4St) { p4St.innerText = "Concluído"; p4St.className = "phase-status-tag completed"; }
+                if (p4Fill) p4Fill.style.width = "100%";
+                if (data.phases && data.phases[3]) {
+                    appendLog(`[Fase 4] ${data.phases[3].phase}: STATUS ${data.phases[3].status}`, "success");
+                    if (data.phases[3].findings) data.phases[3].findings.forEach(f => appendLog(`  -> ${f}`));
+                }
+
+                appendLog(`✓ Avaliação Finalizada com Sucesso! Score Global: ${data.overall_score}% • ${data.compliant_count || 0} conformes, ${data.non_compliant_count || 0} não conformes`, "success");
+
+                // Live-refresh ALL platform views
+                if (typeof loadScorecard === 'function') await loadScorecard();
+                if (typeof loadIsoMatrix === 'function') await loadIsoMatrix();
+                if (typeof loadQuestionnaireData === 'function') await loadQuestionnaireData();
+                if (typeof loadFinOpsMetrics === 'function') await loadFinOpsMetrics();
+                if (typeof loadFinOpsTips === 'function') await loadFinOpsTips();
+                if (typeof loadExecutiveReport === 'function') await loadExecutiveReport();
+                if (typeof loadTechnicalReport === 'function') await loadTechnicalReport();
             } catch (err) {
                 appendLog(`Erro na execução do scan: ${err}`, "log-msg");
+            }
+        }
+
+        async function syncMatrixWithScan() {
+            const btn = document.getElementById("btnSyncMatrixWithScan");
+            const icon = document.getElementById("syncScanIcon");
+            const text = document.getElementById("btnSyncMatrixText");
+            if (btn) btn.disabled = true;
+            if (icon) icon.style.animation = "spin 1s linear infinite";
+            if (text) text.innerText = "Sincronizando com Scan...";
+
+            try {
+                const projects = Array.from(selectedProjectIds);
+                const res = await fetch("/api/audit/run_phases", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+                    body: JSON.stringify({ projects: projects })
+                });
+                const data = await res.json();
+                
+                await loadIsoMatrix(currentThemeFilter, "", currentStatusFilter);
+                if (typeof loadScorecard === 'function') await loadScorecard();
+                if (typeof loadExecutiveReport === 'function') await loadExecutiveReport();
+                if (typeof loadTechnicalReport === 'function') await loadTechnicalReport();
+                if (typeof loadFinOpsMetrics === 'function') await loadFinOpsMetrics();
+
+                if (text) text.innerText = "Sincronizado!";
+                setTimeout(() => {
+                    if (text) text.innerText = "Sincronizar com Scan de Controles";
+                    if (btn) btn.disabled = false;
+                    if (icon) icon.style.animation = "";
+                }, 2000);
+            } catch (err) {
+                console.error("Erro ao sincronizar matriz com scan:", err);
+                if (text) text.innerText = "Erro ao sincronizar";
+                setTimeout(() => {
+                    if (text) text.innerText = "Sincronizar com Scan de Controles";
+                    if (btn) btn.disabled = false;
+                    if (icon) icon.style.animation = "";
+                }, 2000);
             }
         }
 

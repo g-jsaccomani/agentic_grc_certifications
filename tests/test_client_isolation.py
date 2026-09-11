@@ -1167,5 +1167,102 @@ def test_phased_audit_auth_headers_and_adc_handling(monkeypatch):
     assert "custom_google_access_token" in html
 
 
+def test_phase3_governance_scan_and_matrix_sync():
+    """Verify that Phase 3 executes real governance evaluation (not NOT_AUTOMATABLE) and synchronizes to client's matrix, scorecard, and reports."""
+    headers = {**AUTH_HEADER, "X-Operator-Id": "consultant-phased-test"}
+    # Onboard fresh client
+    client.post(
+        "/api/clients/onboard",
+        json={"name": "GovCorp Brasil", "client_id": "govcorp-br", "projects": ["govcorp-prod"], "days": 30, "is_shared": True},
+        headers=headers,
+    )
+    client_headers = {**headers, "X-Client-Id": "govcorp-br"}
+
+    try:
+        # Before scan: honest zeroed/pending state
+        m_before = client.get("/api/iso_matrix", headers=client_headers).json()
+        assert m_before["counts"]["pending"] == 93
+        assert m_before["counts"]["compliant"] == 0
+        assert m_before["counts"]["non_compliant"] == 0
+
+        sc_before = client.get("/api/scorecard", headers=client_headers).json()
+        assert sc_before["overall_score"] == 0.0
+        assert "NOT_AUDITED" in sc_before["rating"]
+
+        fin_before = client.get("/api/finops", headers=client_headers).json()
+        assert fin_before["summary"]["total_cost_usd"] == 0.0
+
+        # Execute Phased Scan
+        scan_res = client.post("/api/audit/run_phases", json={"projects": ["govcorp-prod"]}, headers=client_headers)
+        assert scan_res.status_code == 200
+        scan_data = scan_res.json()
+
+        # Verify Phase 3 is COMPLETED and evaluated real controls
+        phases = scan_data.get("phases", [])
+        assert len(phases) == 4
+        phase3 = phases[2]
+        assert phase3["phase"] == "Phase 3: Governança & Políticas (A.5)"
+        assert phase3["status"] == "COMPLETED"
+        assert "A.5.1" in phase3["controls_tested"]
+        assert "A.5.7" in phase3["controls_tested"]
+        assert len(phase3["findings"]) >= 6
+
+        # Verify scan overall score is computed and controls are synced
+        assert scan_data["overall_score"] > 0.0
+        assert scan_data["questionnaire_controls_synced"] > 0
+
+        # After scan: Matrix is updated with real statuses
+        m_after = client.get("/api/iso_matrix", headers=client_headers).json()
+        assert m_after["counts"]["compliant"] > 0
+        assert m_after["counts"]["pending"] < 93
+        controls_by_id = {c["id"]: c for c in m_after["controls"]}
+        assert controls_by_id["A.5.1"]["status"] == "COMPLIANT"
+        assert controls_by_id["A.5.5"]["status"] == "COMPLIANT"
+        assert controls_by_id["A.5.7"]["status"] == "COMPLIANT"
+
+        # After scan: Scorecard is updated
+        sc_after = client.get("/api/scorecard", headers=client_headers).json()
+        assert sc_after["overall_score"] > 0.0
+        assert sc_after["compliant_count"] > 0
+
+        # After scan: FinOps has accumulated usage for this client
+        fin_after = client.get("/api/finops", headers=client_headers).json()
+        assert fin_after["summary"]["total_tokens"] > 0
+
+        # After scan: Executive and Technical reports reflect client
+        exec_rep = client.get("/api/reports/executive?format=json", headers=client_headers).json()
+        assert exec_rep["client_name"] == "GovCorp Brasil"
+        assert exec_rep["overall_score"] > 0.0
+
+        tech_rep = client.get("/api/reports/technical?format=json", headers=client_headers).json()
+        assert tech_rep["overall_score"] > 0.0
+
+    finally:
+        client.delete("/api/clients/govcorp-br", headers=headers)
+
+
+def test_ui_sync_button_and_no_duplicate_menus():
+    """Verify HTML UI elements: sync button is present in matrix, duplicate filter pills are removed, and client name does not clip."""
+    res = client.get("/")
+    assert res.status_code == 200
+    html = res.text
+
+    # 1. Sync button is in matrix toolbar
+    assert 'id="btnSyncMatrixWithScan"' in html
+    assert 'onclick="syncMatrixWithScan()"' in html
+    assert "Sincronizar com Scan de Controles" in html
+
+    # 2. Duplicate matrixFilterPills is removed
+    assert 'id="matrixFilterPills"' not in html
+
+    # 3. Brand title is concise
+    assert "Agentic GRC Accelerator" in html
+
+    # 4. Client name CSS has word-break: break-word
+    assert ".client-name {" in html
+    assert "word-break: break-word;" in html
+
+
+
 
 

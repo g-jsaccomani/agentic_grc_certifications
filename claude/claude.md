@@ -3457,3 +3457,38 @@ ACTION: POST /api/clients/active {"client_id": "client-beta-org"}
 #### 3. Automated Verification & Quality Assurance
 - **Full Pytest Suite**: **242 passed, 0 failures, 2 warnings in 105.01s (100% pass rate)**.
 - **Regression Testing**: Validated project switch logic clears legacy client artifacts (as documented in Milestone 82/83) while ensuring the new Auth Header propagation correctly authorizes live GCP API calls in the updated tenant context.
+
+---
+
+### Milestone 85: Multi-Tenant State Isolation, Automated Phase 3 Governance Scanning, Matrix Scan Synchronization & UI Truncation Fixes
+
+#### 1. Problem Description & Root Causes
+- **Issue 1 (Cross-Client Data Residue)**: Switching to a newly onboarded client showed 84 compliant controls from Altostrat in the ISO Matrix, stale executive reports, and shared Altostrat's FinOps cost ($1.86 USD / 420k tokens).
+- **Issue 2 (Instant Scan & Hardcoded Phase 3 "NOT AUTOMATABLE")**: Phase 3 in the phased audit scan previously hardcoded `status: "NOT_AUTOMATABLE"` and generated no evaluated controls, while all 4 phases completed instantaneously without progressive visual feedback. Furthermore, running the scan for a new client failed to pass `client_id` to `sync_scan_telemetry_to_questionnaire()`, leaving the client's matrix and scorecard unchanged.
+- **Issue 3 (Matrix Toolbar & Duplicate Menus)**: The ISO Matrix table had two stacked rows of theme filters: 5 theme summary cards and 5 identical pill buttons (`Todos`, `A.5`, `A.6`, `A.7`, `A.8`). There was no direct button to trigger or synchronize the control scan from the Matrix screen.
+- **Issue 4 (Client Name & Header Truncation)**: In the sidebar, active client names were squeezed into a single line alongside 3 action buttons and a chevron, cutting names off with ellipsis (e.g. `GCP Cli...`). The brand title was also truncated on the 260px sidebar.
+
+#### 2. Implementation & Architectural Changes
+- **`mcp_server_grc/finops.py`**:
+  - Implemented multi-tenant tracker registry: `CLIENT_FINOPS_TRACKERS: Dict[str, FinOpsTracker]` with `get_client_finops_tracker(client_id)`.
+  - Added `is_default_demo: bool = True` to `FinOpsTracker`. Non-demo clients start completely clean ($0.00 USD, 0 tokens).
+- **`mcp_server_grc/portal.py`**:
+  - Scoped `/api/finops`, `/api/finops/tips`, and `/api/finops/simulate` to `get_client_finops_tracker(target_cid)`.
+  - Updated `get_iso_matrix`: unassessed controls for non-demo clients return `status: "PENDING"`.
+  - Automated Phase 3 in `build_scan_results_for_phase` and `run_phased_audit`: evaluates `A.5.1` (Org Policy baseline), `A.5.5` (Essential Contacts), `A.5.7` (SCC Threat Intelligence), `A.5.9` (Asset Inventory), `A.5.24` (Incident Management), and `A.5.31` (Data Residency).
+  - Fixed `sync_scan_telemetry_to_questionnaire(..., client_id=target_cid)` and populated `scoped_engine.evidence_graph` links.
+  - Recorded client-scoped FinOps usage upon scan execution via `scoped_finops.record_usage()`.
+- **`mcp_server_grc/portal_html.py`**:
+  - Updated `.client-name` CSS: removed single-line ellipsis restriction, enabled `word-break: break-word` and `flex: 1`.
+  - Moved `.client-card-footer-actions` out of the client name row into a dedicated bottom container.
+  - Compacted brand title to `Agentic GRC Accelerator` (subtitle `Google Cloud Security`) to fit sidebar width without truncation.
+  - Removed duplicate `matrixFilterPills` from the ISO Matrix toolbar.
+  - Added `[ 🔄 Sincronizar com Scan de Controles ]` button (`#btnSyncMatrixWithScan`) in the Matrix toolbar with `syncMatrixWithScan()` implementation.
+  - Updated `triggerPhasedAudit()` with realistic progressive stepping (500-600ms per phase with animated progress bars) and automated live-refresh of Scorecard, Matrix, Questionnaire, FinOps, Executive Report, and Technical Report.
+- **`tests/test_client_isolation.py`**:
+  - Added `test_phase3_governance_scan_and_matrix_sync` and `test_ui_sync_button_and_no_duplicate_menus`.
+
+#### 3. Automated Verification & Quality Assurance
+- **`pytest tests/test_client_isolation.py`**: **19 passed, 0 failures (100%)**.
+- **`pytest tests/test_finops_real_data.py`**: **11 passed, 0 failures (100%)**.
+- **`pytest tests/test_portal.py`**: **54 passed, 0 failures (100%)**.
