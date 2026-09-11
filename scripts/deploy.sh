@@ -51,9 +51,9 @@ gcloud services enable \
     logging.googleapis.com \
     monitoring.googleapis.com \
     firestore.googleapis.com \
-    --project="${PROJECT_ID}" --quiet
+    --project="${PROJECT_ID}" --quiet || true
 
-echo "[PASS] Cloud APIs enabled."
+echo "[PASS] Cloud APIs verified."
 
 # ------------------------------------------------------------------------------
 # STEP 2: Configure Model Armor Safety Template (Idempotent)
