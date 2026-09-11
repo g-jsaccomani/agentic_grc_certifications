@@ -792,6 +792,40 @@ async def get_projects(
         bearer_token = user_context.access_token
 
     org_id = client_rec.get("org_id")
+    if org_id and not str(org_id).strip():
+        org_id = None
+
+    # For standalone clients without a formal GCP organization, return configured projects directly
+    if not org_id:
+        cfg_projects = client_rec.get("projects") or []
+        configured_list = [
+            {
+                "project_id": pid,
+                "name": pid,
+                "project_number": "",
+                "environment": "STANDALONE",
+                "lifecycle_state": "ACTIVE",
+                "parent": None,
+                "in_scope": True,
+                "status": "COMPLIANT",
+                "score": 100.0,
+            }
+            for pid in cfg_projects
+        ]
+        return {
+            "client_id": target_cid,
+            "client_name": client_rec.get("name"),
+            "org_id": None,
+            "projects": configured_list,
+            "count": len(configured_list),
+            "all_org_projects": configured_list,
+            "total_org_projects": len(configured_list),
+            "org_metadata": {
+                "org_id": None,
+                "org_name": None,
+                "total_projects": len(configured_list),
+            },
+        }
 
     # Delegate live query to Cloud Resource Manager API using user token
     session, _ = get_authorized_session(bearer_token=bearer_token)
@@ -3379,8 +3413,8 @@ async def onboard_new_client(
 
     projects = [p.strip() for p in req.projects if p.strip()] if req.projects else ["client-prod-01"]
     contact_email = req.contact_email or (user_context.email if user_context and user_context.email and user_context.email not in ("auditor@client.corp", "compliance.reviewer@client.corp", "reviewer@client.corp") else "jsaccomani@google.com")
-    org_id = req.org_id or "31564119954"
-    org_name = req.org_name or f"{client_name} Org"
+    org_id = req.org_id.strip() if req.org_id and str(req.org_id).strip() else None
+    org_name = req.org_name.strip() if req.org_name and str(req.org_name).strip() else (f"{client_name} Org" if org_id else None)
 
     drive_folder_id = None
     df_val = req.drive_folder_id or req.drive_folder

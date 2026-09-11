@@ -11726,23 +11726,36 @@ Formulário preenchido com o subagente recomendado!`);
                     if (activeClient) {
                         renderActiveClientCard(activeClient);
 
-                        // Eagerly update organization indicators if activeClient has org details
-                        const cOrgName = activeClient.org_name || (activeClient.name ? `${activeClient.name} Org` : "Organização Conectada");
-                        const cOrgId = activeClient.org_id || "";
-                        const cOrgDisplay = cOrgId ? `${cOrgName} (${cOrgId})` : cOrgName;
+                        const isEn = (window.currentLanguage === 'en');
+                        const clientName = activeClient.name || (isEn ? "Client Workspace" : "Workspace do Cliente");
+                        const rawOrgId = activeClient.org_id || "";
+                        const cOrgId = String(rawOrgId || "").trim();
+                        const hasOrg = Boolean(cOrgId && cOrgId !== "null" && cOrgId !== "undefined");
 
                         const orgNameEl = document.getElementById("scopeConnectedOrgName");
-                        if (orgNameEl) {
-                            orgNameEl.innerHTML = cOrgId
-                                ? `${escapeHtml(cOrgName)} <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(${escapeHtml(cOrgId)})</span>`
-                                : escapeHtml(cOrgName);
-                        }
                         const orgTitleEl = document.getElementById("orgScopeDropdownOrgTitle");
-                        if (orgTitleEl) orgTitleEl.innerText = cOrgDisplay;
                         const homeMetaOrgEl = document.getElementById("homeMetaOrgName");
-                        if (homeMetaOrgEl) homeMetaOrgEl.innerText = cOrgDisplay;
                         const provOrgEl = document.getElementById("providerActiveOrgName");
-                        if (provOrgEl) provOrgEl.innerText = cOrgName;
+
+                        if (hasOrg) {
+                            const cOrgName = activeClient.org_name || `${clientName} Org`;
+                            const cOrgDisplay = `${cOrgName} (${cOrgId})`;
+                            if (orgNameEl) {
+                                orgNameEl.innerHTML = `${escapeHtml(cOrgName)} <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(${escapeHtml(cOrgId)})</span>`;
+                            }
+                            if (orgTitleEl) orgTitleEl.innerText = cOrgDisplay;
+                            if (homeMetaOrgEl) homeMetaOrgEl.innerText = cOrgDisplay;
+                            if (provOrgEl) provOrgEl.innerText = cOrgName;
+                        } else {
+                            const standaloneLabel = isEn ? "Standalone Projects (no GCP Organization)" : "Projetos Avulsos (sem Organização GCP)";
+                            const cOrgDisplay = `${clientName} — ${standaloneLabel}`;
+                            if (orgNameEl) {
+                                orgNameEl.innerHTML = `${escapeHtml(clientName)} <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(${escapeHtml(standaloneLabel)})</span>`;
+                            }
+                            if (orgTitleEl) orgTitleEl.innerText = cOrgDisplay;
+                            if (homeMetaOrgEl) homeMetaOrgEl.innerText = cOrgDisplay;
+                            if (provOrgEl) provOrgEl.innerText = `${clientName} (${isEn ? "Standalone" : "Avulso"})`;
+                        }
 
                         if (activeClient.projects && activeClient.projects.length > 0) {
                             selectedProjectIds = new Set(activeClient.projects);
@@ -13746,24 +13759,37 @@ function openNewsModal(newsKey) {
                     if (data && (data.all_org_projects || data.projects)) {
                         allOrgProjects = data.all_org_projects || data.projects || [];
                     }
-                    if (data && (data.org_metadata || data.client_name)) {
-                        const orgMeta = data.org_metadata || {};
-                        const orgName = orgMeta.org_name || (data.client_name ? `${data.client_name} Org` : "Organização Conectada");
-                        const orgId = orgMeta.org_id || data.org_id || "";
-                        const orgDisplay = orgId ? `${orgName} (${orgId})` : orgName;
+                    // Always update organization labels on every loadProjects() call
+                    const isEn = (window.currentLanguage === 'en');
+                    const orgMeta = (data && data.org_metadata) || {};
+                    const clientName = (data && data.client_name) || (typeof onboardedClientsList !== 'undefined' && (onboardedClientsList.find(c => c.client_id === currentActiveClientId) || {}).name) || (isEn ? "Client Workspace" : "Workspace do Cliente");
+                    const rawOrgId = orgMeta.org_id || (data && data.org_id) || "";
+                    const orgId = String(rawOrgId || "").trim();
+                    const hasOrg = Boolean(orgId && orgId !== "null" && orgId !== "undefined");
 
-                        const orgNameEl = document.getElementById("scopeConnectedOrgName");
+                    const orgNameEl = document.getElementById("scopeConnectedOrgName");
+                    const orgTitleEl = document.getElementById("orgScopeDropdownOrgTitle");
+                    const homeMetaOrgEl = document.getElementById("homeMetaOrgName");
+                    const provOrgEl = document.getElementById("providerActiveOrgName");
+
+                    if (hasOrg) {
+                        const orgName = orgMeta.org_name || `${clientName} Org`;
+                        const orgDisplay = `${orgName} (${orgId})`;
                         if (orgNameEl) {
-                            orgNameEl.innerHTML = orgId
-                                ? `${escapeHtml(orgName)} <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(${escapeHtml(orgId)})</span>`
-                                : escapeHtml(orgName);
+                            orgNameEl.innerHTML = `${escapeHtml(orgName)} <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(${escapeHtml(orgId)})</span>`;
                         }
-                        const orgTitleEl = document.getElementById("orgScopeDropdownOrgTitle");
                         if (orgTitleEl) orgTitleEl.innerText = orgDisplay;
-                        const homeMetaOrgEl = document.getElementById("homeMetaOrgName");
                         if (homeMetaOrgEl) homeMetaOrgEl.innerText = orgDisplay;
-                        const provOrgEl = document.getElementById("providerActiveOrgName");
                         if (provOrgEl) provOrgEl.innerText = orgName;
+                    } else {
+                        const standaloneLabel = isEn ? "Standalone Projects (no GCP Organization)" : "Projetos Avulsos (sem Organização GCP)";
+                        const orgDisplay = `${clientName} — ${standaloneLabel}`;
+                        if (orgNameEl) {
+                            orgNameEl.innerHTML = `${escapeHtml(clientName)} <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(${escapeHtml(standaloneLabel)})</span>`;
+                        }
+                        if (orgTitleEl) orgTitleEl.innerText = orgDisplay;
+                        if (homeMetaOrgEl) homeMetaOrgEl.innerText = orgDisplay;
+                        if (provOrgEl) provOrgEl.innerText = `${clientName} (${isEn ? "Standalone" : "Avulso"})`;
                     }
                 }
             } catch (e) {

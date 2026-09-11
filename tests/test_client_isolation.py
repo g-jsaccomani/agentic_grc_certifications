@@ -847,3 +847,127 @@ def test_portal_html_client_switch_refreshes_live_projects_and_org_elements():
     assert "activeProjects = [];" in html
     assert "selectedProjectIds = new Set();" in html
 
+
+def test_switching_to_client_with_no_org_id_updates_labels_to_standalone_state():
+    """Verify that switching to a client without a GCP organization (no org_id)
+    returns an honest 'no organization' state in /api/projects, does not retain
+    the previous client's org name or ID, and that the portal HTML includes
+    the honest standalone labels and unconditional update logic.
+    """
+    op_headers = {**AUTH_HEADER, "X-Operator-Id": "consultant-standalone-tester"}
+    client_with_org_id = "client-with-formal-org"
+    client_no_org_id = "client-standalone-no-org"
+
+    try:
+        # 1. Onboard Client A with a formal GCP Organization
+        client.post(
+            "/api/clients/onboard",
+            json={
+                "name": "Formal Org Corp",
+                "client_id": client_with_org_id,
+                "org_id": "987654321012",
+                "org_name": "Formal Org Corporation",
+                "projects": ["formal-prod-svc", "formal-db-svc"],
+            },
+            headers=op_headers,
+        )
+
+        # 2. Onboard Client B with NO organization (standalone projects only)
+        client.post(
+            "/api/clients/onboard",
+            json={
+                "name": "Standalone Startup",
+                "client_id": client_no_org_id,
+                "projects": ["startup-app-standalone", "startup-cache-standalone"],
+            },
+            headers=op_headers,
+        )
+
+        from unittest.mock import MagicMock, patch
+
+        mock_session = MagicMock()
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "projects": [
+                {
+                    "projectId": "formal-prod-svc",
+                    "name": "Formal Prod Svc",
+                    "projectNumber": "98701",
+                    "lifecycleState": "ACTIVE",
+                    "parent": {"type": "organization", "id": "987654321012"},
+                },
+                {
+                    "projectId": "formal-db-svc",
+                    "name": "Formal DB Svc",
+                    "projectNumber": "98702",
+                    "lifecycleState": "ACTIVE",
+                    "parent": {"type": "organization", "id": "987654321012"},
+                },
+            ]
+        }
+        mock_session.get.return_value = mock_resp
+
+        with patch("mcp_server_grc.portal.get_authorized_session", return_value=(mock_session, "test-target")):
+            # 3. Switch to Client A (with org)
+            res_sw_a = client.post(
+                "/api/clients/active",
+                json={"client_id": client_with_org_id},
+                headers=op_headers,
+            )
+            assert res_sw_a.status_code == 200
+
+            res_a_proj = client.get("/api/projects", headers=op_headers)
+            assert res_a_proj.status_code == 200
+            data_a = res_a_proj.json()
+            assert data_a["client_id"] == client_with_org_id
+            assert data_a["org_id"] == "987654321012"
+            assert data_a["org_metadata"]["org_id"] == "987654321012"
+            assert data_a["org_metadata"]["org_name"] == "Formal Org Corporation"
+
+            # 4. Switch to Client B (no org)
+            res_sw_b = client.post(
+                "/api/clients/active",
+                json={"client_id": client_no_org_id},
+                headers=op_headers,
+            )
+            assert res_sw_b.status_code == 200
+
+            res_b_proj = client.get("/api/projects", headers=op_headers)
+            assert res_b_proj.status_code == 200
+            data_b = res_b_proj.json()
+            assert data_b["client_id"] == client_no_org_id
+
+            # Must report honest 'no organization' state
+            assert data_b["org_id"] is None
+            assert data_b["org_metadata"]["org_id"] is None
+            assert data_b["org_metadata"]["org_name"] is None
+
+            # Verify standalone projects are present
+            pids_b = [p["project_id"] for p in data_b["projects"]]
+            assert "startup-app-standalone" in pids_b
+            assert "startup-cache-standalone" in pids_b
+
+            # Verify Client A's org name, org ID, and projects are completely absent
+            assert "987654321012" not in str(data_b)
+            assert "Formal Org" not in str(data_b)
+            assert "formal-prod-svc" not in pids_b
+
+        # 5. Verify the portal frontend markup contains the standalone fallback labels
+        portal_res = client.get("/")
+        assert portal_res.status_code == 200
+        html = portal_res.text
+
+        assert "Projetos Avulsos (sem Organização GCP)" in html
+        assert "Standalone Projects (no GCP Organization)" in html
+        assert "const hasOrg = Boolean(orgId" in html
+        assert "scopeConnectedOrgName" in html
+        assert "orgScopeDropdownOrgTitle" in html
+        assert "homeMetaOrgName" in html
+        assert "providerActiveOrgName" in html
+
+    finally:
+        client.delete(f"/api/clients/{client_with_org_id}", headers=op_headers)
+        client.delete(f"/api/clients/{client_no_org_id}", headers=op_headers)
+
+

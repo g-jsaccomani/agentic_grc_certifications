@@ -3328,9 +3328,42 @@ ACTION: POST /api/clients/active {"client_id": "client-beta-org"}
 ```
 
 #### 4. Automated Verification & Quality Assurance
-- **Full Pytest Suite**: **239 passed, 0 failures, 2 warnings in 44.59s (100% pass rate)**.
-- **Client Isolation Tests (`tests/test_client_isolation.py`)**: **14/14 passed**:
+- **Full Pytest Suite**: **240 passed, 0 failures, 2 warnings in 44.57s (100% pass rate)**.
+- **Client Isolation Tests (`tests/test_client_isolation.py`)**: **15/15 passed**:
   - `test_switching_active_client_changes_projects_and_isolates_org_projects`: Validates live query to Cloud Resource Manager, verification of `org_metadata` (`org_id`, `org_name`), and strict cross-client project absence before and after switch.
   - `test_portal_html_client_switch_refreshes_live_projects_and_org_elements`: Confirms portal HTML contains `await loadProjects()` inside `executeConfirmedClientSwitch`, project state resets (`allOrgProjects = [];`), and updates to all four org DOM indicators.
+  - `test_switching_to_client_with_no_org_id_updates_labels_to_standalone_state`: Confirms switching to a client with no `org_id` updates `/api/projects` and UI labels to the honest standalone state without retaining previous client's org name.
+
+---
+
+### Milestone 83: Standalone Client "No Organization" Honest Label Fallback
+
+#### 1. Problem Description & Root Cause
+- **Issue**: When an operator switched to a client whose GCP environment has no formal Cloud Resource Manager Organization (standalone projects only, without `org_id` — common for startups and smaller organizations without Cloud Identity / Google Workspace), the organization name labels in the sidebar and scope panels silently kept showing the PREVIOUS client's organization name instead of an honest "no organization" state.
+- **Root Cause**:
+  1. In `mcp_server_grc/portal_html.py`, `loadProjects()` and `executeConfirmedClientSwitch()` only updated `#scopeConnectedOrgName`, `#orgScopeDropdownOrgTitle`, and `#homeMetaOrgName` when `org_id` was present. When `org_id` was absent, the update was skipped entirely, leaving stale text from whichever client had been active earlier.
+  2. In `mcp_server_grc/portal.py`, `onboard_new_client()` previously defaulted `org_id` to `"31564119954"`, preventing standalone clients from legitimately registering without an organization. Additionally, `get_projects()` lacked an explicit path for standalone clients without an organization.
+
+#### 2. Fix Implementation
+- **`mcp_server_grc/portal_html.py`**:
+  - Unconditionally updates `#scopeConnectedOrgName`, `#orgScopeDropdownOrgTitle`, `#homeMetaOrgName`, and `#providerActiveOrgName` on **every** `loadProjects()` call and during `executeConfirmedClientSwitch()`.
+  - Added an explicit, bilingual fallback when `hasOrg` is false:
+    - PT: `"Projetos Avulsos (sem Organização GCP)"`
+    - EN: `"Standalone Projects (no GCP Organization)"`
+    - Sets `#scopeConnectedOrgName` to: `${escapeHtml(clientName)} <span style="font-weight: 400; color: var(--text-tertiary); font-size: 9.5px;">(${escapeHtml(standaloneLabel)})</span>`.
+    - Sets `#orgScopeDropdownOrgTitle` and `#homeMetaOrgName` to: `${clientName} — ${standaloneLabel}`.
+    - Sets `#providerActiveOrgName` to: `${clientName} (Avulso)` / `${clientName} (Standalone)`.
+- **`mcp_server_grc/portal.py`**:
+  - In `onboard_new_client()`: Preserves `org_id: None` and `org_name: None` when onboarding standalone clients without an organization.
+  - In `get_projects()`: If `not org_id`, directly returns the client's configured standalone projects with `org_id: None` and `org_metadata: {"org_id": None, "org_name": None, "total_projects": N}`, bypassing unneeded and invalid organization-level Cloud Resource Manager queries.
+
+#### 3. Automated Verification & Quality Assurance
+- **Full Pytest Suite**: **240 passed, 0 failures, 2 warnings in 44.57s (100% pass rate)**.
+- **Dedicated Test (`test_switching_to_client_with_no_org_id_updates_labels_to_standalone_state`)**:
+  - Confirms switching from Client A (`Formal Org Corp`, `org_id: 987654321012`) to Client B (`Standalone Startup`, no `org_id`) immediately clears Client A's org details.
+  - Confirms `/api/projects` returns `org_id: None`, `org_metadata.org_id: None`, and `org_metadata.org_name: None` for Client B.
+  - Confirms Client A's org name, org ID, and projects are strictly absent.
+  - Confirms portal HTML contains the honest fallback strings `"Projetos Avulsos (sem Organização GCP)"` and `"Standalone Projects (no GCP Organization)"`.
+
 
 
