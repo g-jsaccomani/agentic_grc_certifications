@@ -97,14 +97,6 @@ zero_copy_manager = ZeroCopyConnectorManager()
 # Client Workspaces & Multi-Tenant Session Isolation State
 # ---------------------------------------------------------------------------
 
-OPERATOR_ACTIVE_CLIENTS: Dict[str, str] = {}
-OPERATOR_SESSIONS: Dict[str, str] = {}
-CLIENT_CI_ENGINES: Dict[str, ContinuousIntelligenceEngine] = {
-    "altostrat-ventures": ci_engine,
-}
-SESSION_CLIENT_BINDINGS: Dict[str, str] = {}
-
-
 from mcp_server_grc.firestore_storage import (
     load_clients_from_store,
     save_clients_to_store,
@@ -114,7 +106,22 @@ from mcp_server_grc.firestore_storage import (
     get_questionnaire_token,
     revoke_questionnaire_token,
     get_clients_file_path,
+    save_operator_active_client_to_store,
+    load_operator_active_clients_from_store,
+    save_session_client_binding_to_store,
+    delete_session_client_binding_from_store,
+    load_session_client_bindings_from_store,
+    ScopedControlKey,
+    load_questionnaire_answers_from_store,
+    save_questionnaire_answer_to_store,
 )
+
+OPERATOR_ACTIVE_CLIENTS: Dict[str, str] = load_operator_active_clients_from_store()
+OPERATOR_SESSIONS: Dict[str, str] = {}
+CLIENT_CI_ENGINES: Dict[str, ContinuousIntelligenceEngine] = {
+    "altostrat-ventures": ci_engine,
+}
+SESSION_CLIENT_BINDINGS: Dict[str, str] = load_session_client_bindings_from_store()
 
 
 def save_onboarded_clients(clients: List[Dict[str, Any]]) -> str:
@@ -169,10 +176,10 @@ def resolve_operator_id(
     # 2. In local dev mode only (when ALLOW_DEV_AUTH_BYPASS is true), allow request headers/params fallback
     allow_dev_bypass = os.getenv("ALLOW_DEV_AUTH_BYPASS", "false").lower() == "true"
     if allow_dev_bypass:
-        if x_operator_id and str(x_operator_id).strip():
-            return str(x_operator_id).strip().lower()
-        if operator_id and str(operator_id).strip():
-            return str(operator_id).strip().lower()
+        if isinstance(x_operator_id, str) and x_operator_id.strip():
+            return x_operator_id.strip().lower()
+        if isinstance(operator_id, str) and operator_id.strip():
+            return operator_id.strip().lower()
 
     # 3. Otherwise, use user_context email if non-demo, or fallback to default
     if user_context and user_context.email and not getattr(user_context, "is_demo", False):
@@ -219,16 +226,24 @@ def get_operator_active_client(operator_id: str, user_context: Optional[Workspac
     accessible_cids = {c.get("client_id") for c in accessible}
 
     active = OPERATOR_ACTIVE_CLIENTS.get(operator_id)
+    if not active:
+        stored = load_operator_active_clients_from_store()
+        active = stored.get(operator_id)
+        if active:
+            OPERATOR_ACTIVE_CLIENTS[operator_id] = active
+
     if active and active in accessible_cids:
         return active
 
     if "altostrat-ventures" in accessible_cids:
         OPERATOR_ACTIVE_CLIENTS[operator_id] = "altostrat-ventures"
+        save_operator_active_client_to_store(operator_id, "altostrat-ventures")
         return "altostrat-ventures"
 
     if accessible:
         first_cid = accessible[0].get("client_id")
         OPERATOR_ACTIVE_CLIENTS[operator_id] = first_cid
+        save_operator_active_client_to_store(operator_id, first_cid)
         return first_cid
 
     return "altostrat-ventures"
@@ -639,6 +654,7 @@ def get_auditor_tools(bearer_token: Optional[str] = None) -> Dict[str, Any]:
     def _get_questionnaire_summary(framework: str = "ISO27001:2022", **kwargs):
         from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS, SOC2_CATALOG
         from mcp_server_grc.catalog import ISO_27001_CATALOG
+        client_scope = kwargs.get("client_id") or target_cid
         base_controls = ISO_27001_CATALOG if framework == "ISO27001:2022" else SOC2_CATALOG
         total = len(base_controls)
         answered = 0
@@ -647,10 +663,11 @@ def get_auditor_tools(bearer_token: Optional[str] = None) -> Dict[str, Any]:
         not_applicable = 0
         for c in base_controls:
             cid = c.get("id")
-            ans = QUESTIONNAIRE_ANSWERS.get((framework, cid))
+            ans = QUESTIONNAIRE_ANSWERS.get((framework, cid, client_scope)) or QUESTIONNAIRE_ANSWERS.get((framework, cid))
             if ans:
                 answered += 1
-                st = ans.status.upper()
+                st = getattr(ans, "status", None) or (ans.get("status") if isinstance(ans, dict) else "")
+                st = st.upper()
                 if st == "COMPLIANT":
                     compliant += 1
                 elif st == "NON_COMPLIANT":
@@ -1006,16 +1023,29 @@ async def get_iso_matrix(
     theme: Optional[str] = None,
     search: Optional[str] = None,
     status: Optional[str] = None,
+    x_operator_id: Optional[str] = Header(None),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    client_id: Optional[str] = Query(default=None),
     user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
     """Returns scalable full ISO/IEC 27001:2022 matrix with filtering capabilities."""
     from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
+    from mcp_server_grc.firestore_storage import load_questionnaire_answers_from_store
+
+    op_id = resolve_operator_id(user_context, x_operator_id)
+    target_cid = client_id or x_client_id or (SESSION_CLIENT_BINDINGS.get(x_session_id) if x_session_id else None) or get_operator_active_client(op_id, user_context)
 
     base_nc_ids = {"A.5.15", "A.5.17", "A.5.23", "A.8.14", "A.8.15", "A.8.16", "A.8.20", "A.8.24", "A.8.28"}
     resolved_nc_ids = set()
     for (fw, cid), ans in QUESTIONNAIRE_ANSWERS.items():
-        if fw == "ISO27001:2022" and ans.status == "COMPLIANT" and cid in base_nc_ids:
-            resolved_nc_ids.add(cid)
+        ans_cid = getattr(ans, "client_id", None) or (ans.get("client_id") if isinstance(ans, dict) else None)
+        if target_cid and ans_cid and ans_cid != target_cid:
+            continue
+        if fw == "ISO27001:2022":
+            st = getattr(ans, "status", None) or (ans.get("status") if isinstance(ans, dict) else "")
+            if st == "COMPLIANT" and cid in base_nc_ids:
+                resolved_nc_ids.add(cid)
 
     items = []
     for c in ISO_27001_CATALOG:
@@ -1712,14 +1742,17 @@ async def remediate_phase(
         raise HTTPException(status_code=400, detail="Invalid phase. Choose from 1, 2, 3, or 4.")
 
     from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS, QuestionnaireAnswer
+    from mcp_server_grc.firestore_storage import ScopedControlKey, save_questionnaire_answer_to_store
     now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
     for cid in remediation_details.get("remediated_controls", []):
         safe_cid = cid.lower().replace(".", "_")
-        existing_answer = QUESTIONNAIRE_ANSWERS.get(("ISO27001:2022", cid))
-        if not existing_answer or existing_answer.status != "COMPLIANT":
-            QUESTIONNAIRE_ANSWERS[("ISO27001:2022", cid)] = QuestionnaireAnswer(
+        key = ScopedControlKey("ISO27001:2022", cid, target_cid)
+        existing_answer = QUESTIONNAIRE_ANSWERS.get(key)
+        if not existing_answer or getattr(existing_answer, "status", "") != "COMPLIANT":
+            ans_obj = QuestionnaireAnswer(
                 control_id=cid,
                 framework="ISO27001:2022",
+                client_id=target_cid,
                 status="IN_PROGRESS",
                 justification=f"Recomendações prescritivas de remediação geradas para a Fase {phase_id} ({remediation_details.get('action')}). Implementação técnica pendente de execução pelo operador.",
                 evidence_text=f"Plano de remediação prescritivo gerado para o controle {cid} no projeto {project_id}. Nenhuma mutação de infraestrutura foi executada autonomamente.",
@@ -1729,6 +1762,13 @@ async def remediate_phase(
                 updated_at=now_ts,
                 ai_consistency_verdict="IN_PROGRESS",
                 ai_consistency_reasoning=f"Recomendações prescritivas para o controle {cid} registradas. Execução manual ou via pipeline requerida.",
+            )
+            QUESTIONNAIRE_ANSWERS[key] = ans_obj
+            save_questionnaire_answer_to_store(
+                "ISO27001:2022",
+                cid,
+                ans_obj.model_dump() if hasattr(ans_obj, "model_dump") else ans_obj.dict(),
+                client_id=target_cid,
             )
     scorecard_data = calculate_scorecard_data("ISO27001:2022", client_id=target_cid)
     remediation_details["current_score"] = scorecard_data.get("overall_score", 0.0)
@@ -2073,10 +2113,14 @@ def calculate_scorecard_data(framework: str = "ISO27001:2022", client_id: Option
 
     # 1. Update with questionnaire answers
     for (fw, cid), ans in QUESTIONNAIRE_ANSWERS.items():
+        ans_cid = getattr(ans, "client_id", None) or (ans.get("client_id") if isinstance(ans, dict) else None)
+        if client_id and ans_cid and ans_cid != client_id:
+            continue
         if fw == framework:
-            if ans.status == "COMPLIANT":
+            st = getattr(ans, "status", None) or (ans.get("status") if isinstance(ans, dict) else "")
+            if st == "COMPLIANT":
                 current_nc_set.discard(cid)
-            elif ans.status == "NON_COMPLIANT":
+            elif st == "NON_COMPLIANT":
                 current_nc_set.add(cid)
 
     # 2. Update with evidence graph links if any
@@ -3279,15 +3323,18 @@ async def switch_active_client(
     old_session_id = OPERATOR_SESSIONS.get(op_id)
     if old_session_id:
         SESSION_CLIENT_BINDINGS.pop(old_session_id, None)
+        delete_session_client_binding_from_store(old_session_id)
         reset_session_call_budget(session_id=old_session_id)
 
     # Bind new operator active client
     OPERATOR_ACTIVE_CLIENTS[op_id] = req.client_id
+    save_operator_active_client_to_store(op_id, req.client_id)
 
     # Initialize fresh session bound strictly to new client
     new_session_id = f"sess_{uuid.uuid4().hex[:12]}"
     OPERATOR_SESSIONS[op_id] = new_session_id
     SESSION_CLIENT_BINDINGS[new_session_id] = req.client_id
+    save_session_client_binding_to_store(new_session_id, req.client_id)
 
     # Ensure isolated ContinuousIntelligenceEngine is ready
     get_client_ci_engine(req.client_id)
@@ -3428,9 +3475,11 @@ async def onboard_new_client(
     # Set as active client for operator if operator is known
     op_id = resolve_operator_id(user_context, x_operator_id)
     OPERATOR_ACTIVE_CLIENTS[op_id] = client_id
+    save_operator_active_client_to_store(op_id, client_id)
     new_session_id = f"sess_{uuid.uuid4().hex[:12]}"
     OPERATOR_SESSIONS[op_id] = new_session_id
     SESSION_CLIENT_BINDINGS[new_session_id] = client_id
+    save_session_client_binding_to_store(new_session_id, client_id)
 
     return {
         "status": "success",
@@ -3608,9 +3657,11 @@ async def disconnect_onboarded_client(
     for op, bound_cid in list(OPERATOR_ACTIVE_CLIENTS.items()):
         if bound_cid == client_id:
             OPERATOR_ACTIVE_CLIENTS[op] = "altostrat-ventures"
+            save_operator_active_client_to_store(op, "altostrat-ventures")
     for sess, bound_cid in list(SESSION_CLIENT_BINDINGS.items()):
         if bound_cid == client_id:
             SESSION_CLIENT_BINDINGS.pop(sess, None)
+            delete_session_client_binding_from_store(sess)
 
     return {
         "status": "success",
@@ -3638,9 +3689,11 @@ async def delete_onboarded_client(
     for op, bound_cid in list(OPERATOR_ACTIVE_CLIENTS.items()):
         if bound_cid == client_id:
             OPERATOR_ACTIVE_CLIENTS[op] = "altostrat-ventures"
+            save_operator_active_client_to_store(op, "altostrat-ventures")
     for sess, bound_cid in list(SESSION_CLIENT_BINDINGS.items()):
         if bound_cid == client_id:
             SESSION_CLIENT_BINDINGS.pop(sess, None)
+            delete_session_client_binding_from_store(sess)
 
     return {"status": "success", "message": f"Client '{client_id}' deleted from data/clients.json."}
 
@@ -3779,12 +3832,14 @@ async def handle_chat(
                 detail=f"Cross-tenant access violation: Session '{req.session_id}' is bound to client '{bound_client}' and cannot access client '{active_cid}'. Please start a fresh session.",
             )
         SESSION_CLIENT_BINDINGS[req.session_id] = active_cid
+        save_session_client_binding_to_store(req.session_id, active_cid)
     else:
         current_sess = OPERATOR_SESSIONS.get(operator_id)
         if not current_sess or SESSION_CLIENT_BINDINGS.get(current_sess) != active_cid:
             current_sess = f"sess_{uuid.uuid4().hex[:12]}"
             OPERATOR_SESSIONS[operator_id] = current_sess
             SESSION_CLIENT_BINDINGS[current_sess] = active_cid
+            save_session_client_binding_to_store(current_sess, active_cid)
 
     scoped_ci = get_client_ci_engine(active_cid)
 

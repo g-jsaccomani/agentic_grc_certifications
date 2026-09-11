@@ -23,16 +23,42 @@ ID_TOKEN_HEADER = {"X-Goog-Id-Token": MOCK_ID_TOKEN}
 
 @pytest.fixture(autouse=True, scope="module")
 def isolate_questionnaire_module_state():
-    """Preserves and restores QUESTIONNAIRE_ANSWERS and evidence_graph to prevent cross-module test contamination."""
+    """Preserves and restores QUESTIONNAIRE_ANSWERS, storage files, and evidence_graph to prevent cross-module test contamination."""
     from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
+    from mcp_server_grc.firestore_storage import _ANSWERS_FILE_PATH, _EVIDENCE_METADATA_FILE_PATH
     saved_answers = dict(QUESTIONNAIRE_ANSWERS)
     saved_nodes = dict(ci_engine.evidence_graph.nodes)
     saved_links = list(ci_engine.evidence_graph.links)
+    saved_answers_file = None
+    if os.path.exists(_ANSWERS_FILE_PATH):
+        with open(_ANSWERS_FILE_PATH, "r", encoding="utf-8") as f:
+            saved_answers_file = f.read()
+    saved_ev_file = None
+    if os.path.exists(_EVIDENCE_METADATA_FILE_PATH):
+        with open(_EVIDENCE_METADATA_FILE_PATH, "r", encoding="utf-8") as f:
+            saved_ev_file = f.read()
+
+    QUESTIONNAIRE_ANSWERS.clear()
+    with open(_ANSWERS_FILE_PATH, "w", encoding="utf-8") as f:
+        f.write("{}")
+    with open(_EVIDENCE_METADATA_FILE_PATH, "w", encoding="utf-8") as f:
+        f.write("{}")
+
     yield
     QUESTIONNAIRE_ANSWERS.clear()
     QUESTIONNAIRE_ANSWERS.update(saved_answers)
     ci_engine.evidence_graph.nodes = saved_nodes
     ci_engine.evidence_graph.links = saved_links
+    if saved_answers_file is not None:
+        with open(_ANSWERS_FILE_PATH, "w", encoding="utf-8") as f:
+            f.write(saved_answers_file)
+    elif os.path.exists(_ANSWERS_FILE_PATH):
+        os.remove(_ANSWERS_FILE_PATH)
+    if saved_ev_file is not None:
+        with open(_EVIDENCE_METADATA_FILE_PATH, "w", encoding="utf-8") as f:
+            f.write(saved_ev_file)
+    elif os.path.exists(_EVIDENCE_METADATA_FILE_PATH):
+        os.remove(_EVIDENCE_METADATA_FILE_PATH)
 
 
 # ---------------------------------------------------------------------------

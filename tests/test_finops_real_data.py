@@ -329,6 +329,11 @@ def test_api_questionnaire_answer_records_tokens_on_evaluation():
         assert latest_event.completion_tokens == 300
         assert latest_event.cached_tokens == 500
 
+        from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS
+        from mcp_server_grc.firestore_storage import delete_questionnaire_answer_from_store
+        QUESTIONNAIRE_ANSWERS.pop(("ISO27001:2022", "A.5.1"), None)
+        delete_questionnaire_answer_from_store("ISO27001:2022", "A.5.1")
+
 
 def test_portal_html_contains_finops_tips_and_cloud_strip_updates():
     """Verify the portal HTML contains the updated cloud strip, scope tree chevron, and tips container."""

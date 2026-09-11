@@ -326,18 +326,160 @@ def get_data_dir() -> str:
     os.makedirs(d2, exist_ok=True)
     return d2
 
-# Local questionnaire answers and evidence nodes paths
+# Local storage fallback file paths
 _ANSWERS_FILE_PATH = os.path.join(get_data_dir(), "questionnaire_answers.json")
+_EVIDENCE_METADATA_FILE_PATH = os.path.join(get_data_dir(), "evidence_metadata.json")
+_OPERATOR_CLIENTS_FILE_PATH = os.path.join(get_data_dir(), "operator_active_clients.json")
+_SESSION_BINDINGS_FILE_PATH = os.path.join(get_data_dir(), "session_client_bindings.json")
 _EVIDENCE_NODES_FILE_PATH = os.path.join(get_data_dir(), "evidence_graph_nodes.json")
 
 
-def save_questionnaire_answer_to_store(framework: str, control_id: str, answer_data: Dict[str, Any]) -> None:
-    """Persists a questionnaire answer to Firestore with fallback to data/questionnaire_answers.json."""
+# ---------------------------------------------------------------------------
+# Scoped Control Key & Scoped Answers Dict (Multi-Client Collision Prevention)
+# ---------------------------------------------------------------------------
+
+class ScopedControlKey(tuple):
+    """A 2-tuple (framework, control_id) compatible key that carries client_id scope.
+
+    Unpacks as (framework, control_id) for backward compatibility with existing tests
+    and portal code, but implements __eq__ and __hash__ across (framework, control_id, client_id)
+    to prevent cross-client collision in memory and storage.
+    """
+    def __new__(cls, *args, client_id: str = "altostrat-ventures"):
+        if len(args) == 1 and isinstance(args[0], tuple):
+            args = args[0]
+        if len(args) >= 3:
+            fw, cid, cl = args[0], args[1], args[2]
+        elif len(args) == 2:
+            fw, cid, cl = args[0], args[1], client_id
+        else:
+            raise ValueError(f"Invalid arguments for ScopedControlKey: {args}")
+        obj = super().__new__(cls, (str(fw), str(cid)))
+        obj.framework = str(fw)
+        obj.control_id = str(cid)
+        obj.client_id = str(cl) if cl else "altostrat-ventures"
+        return obj
+
+    def __reduce__(self):
+        return (ScopedControlKey, (self.framework, self.control_id, self.client_id))
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, ScopedControlKey):
+            return (self.framework, self.control_id, self.client_id) == (other.framework, other.control_id, other.client_id)
+        if isinstance(other, tuple):
+            if len(other) == 3:
+                return (self.framework, self.control_id, self.client_id) == (str(other[0]), str(other[1]), str(other[2]))
+            if len(other) == 2:
+                return (self.framework, self.control_id) == (str(other[0]), str(other[1]))
+        return False
+
+    def __hash__(self) -> int:
+        return hash((self.framework, self.control_id, self.client_id))
+
+    def __repr__(self) -> str:
+        return f"ScopedControlKey('{self.framework}', '{self.control_id}', '{self.client_id}')"
+
+
+class ScopedAnswersDict(dict):
+    """Dictionary mapping ScopedControlKey to questionnaire answer.
+
+    Supports transparent lookup via:
+    - ScopedControlKey(fw, cid, client_id)
+    - 3-tuple (fw, cid, client_id)
+    - 2-tuple (fw, cid) [resolves against default or active client_id]
+    """
+    def _resolve_key(self, key: Any, fallback_client_id: Optional[str] = None) -> Any:
+        if isinstance(key, ScopedControlKey):
+            return key
+        if isinstance(key, tuple):
+            if len(key) == 3:
+                return ScopedControlKey(key[0], key[1], key[2])
+            elif len(key) == 2:
+                target_cid = fallback_client_id or "altostrat-ventures"
+                cand = ScopedControlKey(key[0], key[1], target_cid)
+                if cand in self:
+                    return cand
+                matching = [
+                    k for k in self.keys()
+                    if isinstance(k, ScopedControlKey) and k.framework == key[0] and k.control_id == key[1]
+                ]
+                if len(matching) == 1 and matching[0].client_id in ("altostrat-ventures", target_cid):
+                    return matching[0]
+                return cand
+        return key
+
+    def __getitem__(self, key: Any) -> Any:
+        resolved = self._resolve_key(key)
+        return super().__getitem__(resolved)
+
+    def get(self, key: Any, default: Any = None) -> Any:
+        resolved = self._resolve_key(key)
+        return super().get(resolved, default)
+
+    def __contains__(self, key: Any) -> bool:
+        resolved = self._resolve_key(key)
+        return super().__contains__(resolved)
+
+    def __setitem__(self, key: Any, value: Any) -> None:
+        if isinstance(value, dict):
+            try:
+                from mcp_server_grc.questionnaire import QuestionnaireAnswer
+                val_copy = dict(value)
+                if "control_id" not in val_copy and isinstance(key, tuple) and len(key) >= 2:
+                    val_copy["control_id"] = key[1]
+                if "framework" not in val_copy and isinstance(key, tuple) and len(key) >= 1:
+                    val_copy["framework"] = key[0]
+                if "status" not in val_copy:
+                    val_copy["status"] = "COMPLIANT"
+                if "justification" not in val_copy:
+                    val_copy["justification"] = "Answer recorded."
+                value = QuestionnaireAnswer(**val_copy)
+            except Exception:
+                pass
+        if not isinstance(key, ScopedControlKey):
+            if isinstance(key, tuple):
+                if len(key) == 3:
+                    key = ScopedControlKey(key[0], key[1], key[2])
+                elif len(key) == 2:
+                    cid = getattr(value, "client_id", None)
+                    if isinstance(value, dict):
+                        cid = cid or value.get("client_id")
+                    cid = cid or "altostrat-ventures"
+                    key = ScopedControlKey(key[0], key[1], cid)
+        super().__setitem__(key, value)
+
+    def update(self, *args: Any, **kwargs: Any) -> None:
+        for k, v in dict(*args, **kwargs).items():
+            self[k] = v
+
+    def pop(self, key: Any, *args: Any) -> Any:
+        resolved = self._resolve_key(key)
+        return super().pop(resolved, *args)
+
+
+# ---------------------------------------------------------------------------
+# Questionnaire Answers Persistence (Firestore Collection: questionnaire_answers)
+# Document ID: {framework}::{control_id}::{client_id}
+# ---------------------------------------------------------------------------
+
+def save_questionnaire_answer_to_store(
+    framework: str,
+    control_id: str,
+    answer_data: Dict[str, Any],
+    client_id: Optional[str] = None,
+) -> None:
+    """Persists a questionnaire answer to Firestore with client_id scoping and local JSON fallback."""
+    target_cid = client_id or answer_data.get("client_id") or "altostrat-ventures"
+    payload = dict(answer_data)
+    payload["framework"] = framework
+    payload["control_id"] = control_id
+    payload["client_id"] = target_cid
+
+    doc_id = f"{framework}::{control_id}::{target_cid}"
     client = get_firestore_client()
-    doc_id = f"{framework}_{control_id}".replace(":", "_").replace(".", "_")
     if client is not None:
         try:
-            client.collection("questionnaire_answers").document(doc_id).set(answer_data)
+            client.collection("questionnaire_answers").document(doc_id).set(payload)
         except Exception as e:
             logger.warning("Error saving questionnaire answer to Firestore: %s", e)
 
@@ -347,27 +489,55 @@ def save_questionnaire_answer_to_store(framework: str, control_id: str, answer_d
         if os.path.exists(_ANSWERS_FILE_PATH):
             with open(_ANSWERS_FILE_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
-        key = f"{framework}:{control_id}"
-        data[key] = answer_data
+        data[doc_id] = payload
         with open(_ANSWERS_FILE_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
+            json.dump(data, f, indent=2, ensure_ascii=False)
     except Exception as e:
         logger.warning("Error persisting questionnaire answer to local JSON: %s", e)
 
 
-def load_questionnaire_answers_from_store() -> Dict[Tuple[str, str], Dict[str, Any]]:
-    """Loads questionnaire answers from Firestore with fallback to data/questionnaire_answers.json."""
-    answers = {}
+def save_questionnaire_answers_to_store(
+    answers: Dict[Any, Any],
+    client_id: Optional[str] = None,
+) -> None:
+    """Batch saves multiple questionnaire answers to Firestore and local fallback."""
+    for key, val in answers.items():
+        if isinstance(val, dict):
+            fw = val.get("framework", "ISO27001:2022")
+            cid = val.get("control_id")
+            val_data = val
+        else:
+            fw = getattr(val, "framework", "ISO27001:2022")
+            cid = getattr(val, "control_id", None)
+            val_data = val.model_dump() if hasattr(val, "model_dump") else (val.dict() if hasattr(val, "dict") else dict(val))
+        if not cid:
+            continue
+        c_id = client_id or getattr(key, "client_id", None) or val_data.get("client_id")
+        save_questionnaire_answer_to_store(fw, cid, val_data, client_id=c_id)
+
+
+def load_questionnaire_answers_from_store(
+    client_id: Optional[str] = None,
+) -> ScopedAnswersDict:
+    """Loads questionnaire answers from Firestore with fallback to local JSON, scoped by client_id."""
+    answers = ScopedAnswersDict()
     client = get_firestore_client()
+
     if client is not None:
         try:
-            docs = client.collection("questionnaire_answers").stream()
+            coll_ref = client.collection("questionnaire_answers")
+            docs = coll_ref.stream()
             for d in docs:
                 data = d.to_dict()
                 fw = data.get("framework", "ISO27001:2022")
                 cid = data.get("control_id")
-                if cid:
-                    answers[(fw, cid)] = data
+                doc_cid = data.get("client_id") or "altostrat-ventures"
+                if not cid:
+                    continue
+                if client_id and doc_cid != client_id:
+                    continue
+                k = ScopedControlKey(fw, cid, doc_cid)
+                answers[k] = data
             if answers:
                 return answers
         except Exception as e:
@@ -378,15 +548,366 @@ def load_questionnaire_answers_from_store() -> Dict[Tuple[str, str], Dict[str, A
         try:
             with open(_ANSWERS_FILE_PATH, "r", encoding="utf-8") as f:
                 raw = json.load(f)
-            for k, val in raw.items():
-                if ":" in k:
-                    fw, cid = k.rsplit(":", 1)
-                    answers[(fw, cid)] = val
+            for k_str, val in raw.items():
+                if not isinstance(val, dict):
+                    continue
+                if "::" in k_str:
+                    parts = k_str.split("::")
+                    fw = parts[0]
+                    cid = parts[1]
+                    doc_cid = parts[2] if len(parts) > 2 else (val.get("client_id") or "altostrat-ventures")
+                elif ":" in k_str:
+                    fw, cid = k_str.rsplit(":", 1)
+                    doc_cid = val.get("client_id") or "altostrat-ventures"
+                else:
+                    fw = val.get("framework", "ISO27001:2022")
+                    cid = val.get("control_id")
+                    doc_cid = val.get("client_id") or "altostrat-ventures"
+                if not cid:
+                    continue
+                if client_id and doc_cid != client_id:
+                    continue
+                val["framework"] = fw
+                val["control_id"] = cid
+                val["client_id"] = doc_cid
+                answers[ScopedControlKey(fw, cid, doc_cid)] = val
         except Exception as e:
             logger.warning("Error loading questionnaire answers from local JSON: %s", e)
 
     return answers
 
+
+def delete_questionnaire_answer_from_store(
+    framework: str,
+    control_id: str,
+    client_id: Optional[str] = None,
+) -> None:
+    """Deletes a questionnaire answer from Firestore and local JSON."""
+    target_cid = client_id or "altostrat-ventures"
+    doc_id = f"{framework}::{control_id}::{target_cid}"
+    client = get_firestore_client()
+    if client is not None:
+        try:
+            client.collection("questionnaire_answers").document(doc_id).delete()
+        except Exception as e:
+            logger.warning("Error deleting questionnaire answer from Firestore: %s", e)
+
+    if os.path.exists(_ANSWERS_FILE_PATH):
+        try:
+            with open(_ANSWERS_FILE_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            data.pop(doc_id, None)
+            data.pop(f"{framework}:{control_id}", None)
+            with open(_ANSWERS_FILE_PATH, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            logger.warning("Error deleting questionnaire answer from local JSON: %s", e)
+
+
+def get_questionnaire_answer_from_store(
+    framework: str,
+    control_id: str,
+    client_id: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """Retrieves a single questionnaire answer from Firestore or local fallback."""
+    target_cid = client_id or "altostrat-ventures"
+    doc_id = f"{framework}::{control_id}::{target_cid}"
+    client = get_firestore_client()
+    if client is not None:
+        try:
+            doc = client.collection("questionnaire_answers").document(doc_id).get()
+            if doc.exists:
+                return doc.to_dict()
+        except Exception as e:
+            logger.warning("Error fetching questionnaire answer doc '%s' from Firestore: %s", doc_id, e)
+
+    if os.path.exists(_ANSWERS_FILE_PATH):
+        try:
+            with open(_ANSWERS_FILE_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if doc_id in data:
+                return data[doc_id]
+            legacy_id = f"{framework}:{control_id}"
+            if legacy_id in data:
+                return data[legacy_id]
+        except Exception:
+            pass
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Evidence Metadata Persistence (Firestore Collection: evidence_metadata)
+# Document ID: {file_id}
+# ---------------------------------------------------------------------------
+
+def save_evidence_metadata_to_store(
+    file_id_or_metadata: Any,
+    metadata: Optional[Dict[str, Any]] = None,
+    client_id: Optional[str] = None,
+) -> None:
+    """Persists evidence file metadata to Firestore and local JSON fallback."""
+    if isinstance(file_id_or_metadata, dict):
+        payload = dict(file_id_or_metadata)
+        file_id = str(payload.get("file_id") or "")
+        target_cid = client_id or payload.get("client_id") or "altostrat-ventures"
+    else:
+        file_id = str(file_id_or_metadata or "")
+        payload = dict(metadata or {})
+        target_cid = client_id or payload.get("client_id") or "altostrat-ventures"
+
+    if not file_id:
+        return
+    payload["file_id"] = file_id
+    payload["client_id"] = target_cid
+
+    client = get_firestore_client()
+    if client is not None:
+        try:
+            client.collection("evidence_metadata").document(file_id).set(payload)
+        except Exception as e:
+            logger.warning("Error saving evidence metadata to Firestore: %s", e)
+
+    # Local fallback
+    try:
+        data = {}
+        if os.path.exists(_EVIDENCE_METADATA_FILE_PATH):
+            with open(_EVIDENCE_METADATA_FILE_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        data[file_id] = payload
+        with open(_EVIDENCE_METADATA_FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        logger.warning("Error persisting evidence metadata to local JSON: %s", e)
+
+
+def load_evidence_metadata_from_store(
+    client_id: Optional[str] = None,
+) -> Dict[str, Dict[str, Any]]:
+    """Loads evidence metadata from Firestore with local fallback, optionally scoped by client_id."""
+    result: Dict[str, Dict[str, Any]] = {}
+    client = get_firestore_client()
+
+    if client is not None:
+        try:
+            docs = client.collection("evidence_metadata").stream()
+            for d in docs:
+                data = d.to_dict()
+                fid = data.get("file_id") or d.id
+                doc_cid = data.get("client_id") or "altostrat-ventures"
+                if client_id and doc_cid != client_id:
+                    continue
+                result[fid] = data
+            if result:
+                return result
+        except Exception as e:
+            logger.warning("Error loading evidence metadata from Firestore: %s", e)
+
+    if os.path.exists(_EVIDENCE_METADATA_FILE_PATH):
+        try:
+            with open(_EVIDENCE_METADATA_FILE_PATH, "r", encoding="utf-8") as f:
+                raw = json.load(f)
+            for fid, data in raw.items():
+                if not isinstance(data, dict):
+                    continue
+                doc_cid = data.get("client_id") or "altostrat-ventures"
+                if client_id and doc_cid != client_id:
+                    continue
+                result[fid] = data
+        except Exception as e:
+            logger.warning("Error reading evidence metadata from local JSON: %s", e)
+
+    return result
+
+
+def get_evidence_metadata_from_store(file_id: str) -> Optional[Dict[str, Any]]:
+    """Retrieves metadata for a specific evidence file from Firestore or local fallback."""
+    if not file_id:
+        return None
+    client = get_firestore_client()
+    if client is not None:
+        try:
+            doc = client.collection("evidence_metadata").document(file_id).get()
+            if doc.exists:
+                return doc.to_dict()
+        except Exception as e:
+            logger.warning("Error fetching evidence metadata doc '%s' from Firestore: %s", file_id, e)
+
+    if os.path.exists(_EVIDENCE_METADATA_FILE_PATH):
+        try:
+            with open(_EVIDENCE_METADATA_FILE_PATH, "r", encoding="utf-8") as f:
+                raw = json.load(f)
+            return raw.get(file_id)
+        except Exception:
+            pass
+    return None
+
+
+def delete_evidence_metadata_from_store(file_id: str) -> None:
+    """Deletes an evidence file metadata record from Firestore and local JSON."""
+    if not file_id:
+        return
+    client = get_firestore_client()
+    if client is not None:
+        try:
+            client.collection("evidence_metadata").document(file_id).delete()
+        except Exception as e:
+            logger.warning("Error deleting evidence metadata from Firestore: %s", e)
+
+    if os.path.exists(_EVIDENCE_METADATA_FILE_PATH):
+        try:
+            with open(_EVIDENCE_METADATA_FILE_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            data.pop(file_id, None)
+            with open(_EVIDENCE_METADATA_FILE_PATH, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            logger.warning("Error deleting evidence metadata from local JSON: %s", e)
+
+
+# ---------------------------------------------------------------------------
+# Operator Active Clients & Session Client Bindings Persistence
+# ---------------------------------------------------------------------------
+
+def save_operator_active_client_to_store(operator_id: str, client_id: str) -> None:
+    """Persists an operator's active client workspace to Firestore and local fallback."""
+    if not operator_id or not client_id:
+        return
+    client = get_firestore_client()
+    record = {
+        "operator_id": operator_id,
+        "client_id": client_id,
+        "updated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    }
+    if client is not None:
+        try:
+            client.collection("operator_active_clients").document(operator_id).set(record)
+        except Exception as e:
+            logger.warning("Error saving operator active client to Firestore: %s", e)
+
+    try:
+        data = {}
+        if os.path.exists(_OPERATOR_CLIENTS_FILE_PATH):
+            with open(_OPERATOR_CLIENTS_FILE_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        data[operator_id] = client_id
+        with open(_OPERATOR_CLIENTS_FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        logger.warning("Error saving operator active client to local file: %s", e)
+
+
+def load_operator_active_clients_from_store() -> Dict[str, str]:
+    """Loads operator active client bindings from Firestore or local fallback."""
+    bindings: Dict[str, str] = {"default_operator": "altostrat-ventures"}
+    client = get_firestore_client()
+    if client is not None:
+        try:
+            docs = client.collection("operator_active_clients").stream()
+            for d in docs:
+                data = d.to_dict()
+                cid = data.get("client_id")
+                if cid:
+                    bindings[d.id] = cid
+            if len(bindings) > 1:
+                return bindings
+        except Exception as e:
+            logger.warning("Error loading operator active clients from Firestore: %s", e)
+
+    if os.path.exists(_OPERATOR_CLIENTS_FILE_PATH):
+        try:
+            with open(_OPERATOR_CLIENTS_FILE_PATH, "r", encoding="utf-8") as f:
+                raw = json.load(f)
+                if isinstance(raw, dict):
+                    bindings.update(raw)
+        except Exception as e:
+            logger.warning("Error loading operator active clients from local JSON: %s", e)
+
+    return bindings
+
+
+def save_session_client_binding_to_store(session_id: str, client_id: str) -> None:
+    """Persists a session-to-client binding to Firestore and local fallback."""
+    if not session_id or not client_id:
+        return
+    client = get_firestore_client()
+    record = {
+        "session_id": session_id,
+        "client_id": client_id,
+        "updated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    }
+    if client is not None:
+        try:
+            client.collection("session_client_bindings").document(session_id).set(record)
+        except Exception as e:
+            logger.warning("Error saving session client binding to Firestore: %s", e)
+
+    try:
+        data = {}
+        if os.path.exists(_SESSION_BINDINGS_FILE_PATH):
+            with open(_SESSION_BINDINGS_FILE_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        data[session_id] = client_id
+        with open(_SESSION_BINDINGS_FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        logger.warning("Error saving session client binding to local file: %s", e)
+
+
+def delete_session_client_binding_from_store(session_id: str) -> None:
+    """Deletes a session-to-client binding from Firestore and local fallback."""
+    if not session_id:
+        return
+    client = get_firestore_client()
+    if client is not None:
+        try:
+            client.collection("session_client_bindings").document(session_id).delete()
+        except Exception as e:
+            logger.warning("Error deleting session client binding from Firestore: %s", e)
+
+    try:
+        if os.path.exists(_SESSION_BINDINGS_FILE_PATH):
+            with open(_SESSION_BINDINGS_FILE_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if session_id in data:
+                del data[session_id]
+                with open(_SESSION_BINDINGS_FILE_PATH, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2)
+    except Exception as e:
+        logger.warning("Error deleting session client binding from local file: %s", e)
+
+
+def load_session_client_bindings_from_store() -> Dict[str, str]:
+    """Loads session-to-client bindings from Firestore or local fallback."""
+    bindings: Dict[str, str] = {}
+    client = get_firestore_client()
+    if client is not None:
+        try:
+            docs = client.collection("session_client_bindings").stream()
+            for d in docs:
+                data = d.to_dict()
+                cid = data.get("client_id")
+                if cid:
+                    bindings[d.id] = cid
+            if bindings:
+                return bindings
+        except Exception as e:
+            logger.warning("Error loading session client bindings from Firestore: %s", e)
+
+    if os.path.exists(_SESSION_BINDINGS_FILE_PATH):
+        try:
+            with open(_SESSION_BINDINGS_FILE_PATH, "r", encoding="utf-8") as f:
+                raw = json.load(f)
+                if isinstance(raw, dict):
+                    bindings.update(raw)
+        except Exception as e:
+            logger.warning("Error reading session client bindings from local JSON: %s", e)
+
+    return bindings
+
+
+# ---------------------------------------------------------------------------
+# Evidence Nodes Persistence (EvidenceGraph)
+# ---------------------------------------------------------------------------
 
 def save_evidence_node_to_store(node_data: Dict[str, Any]) -> None:
     """Persists an evidence graph node to Firestore with fallback to data/evidence_graph_nodes.json."""

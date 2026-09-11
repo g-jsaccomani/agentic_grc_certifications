@@ -34,14 +34,33 @@ def enable_dev_auth(monkeypatch):
     monkeypatch.setenv("ALLOW_DEV_AUTH_BYPASS", "true")
     orig_answers = copy.deepcopy(QUESTIONNAIRE_ANSWERS)
     from mcp_server_grc.portal import get_client_ci_engine
+    from mcp_server_grc.firestore_storage import _ANSWERS_FILE_PATH, _EVIDENCE_METADATA_FILE_PATH
     engine = get_client_ci_engine("altostrat-ventures")
     orig_links = list(engine.evidence_graph.links)
     orig_nodes = dict(engine.evidence_graph.nodes)
+    saved_answers_file = None
+    if os.path.exists(_ANSWERS_FILE_PATH):
+        with open(_ANSWERS_FILE_PATH, "r", encoding="utf-8") as f:
+            saved_answers_file = f.read()
+    saved_ev_file = None
+    if os.path.exists(_EVIDENCE_METADATA_FILE_PATH):
+        with open(_EVIDENCE_METADATA_FILE_PATH, "r", encoding="utf-8") as f:
+            saved_ev_file = f.read()
     yield
     QUESTIONNAIRE_ANSWERS.clear()
     QUESTIONNAIRE_ANSWERS.update(orig_answers)
     engine.evidence_graph.links = orig_links
     engine.evidence_graph.nodes = orig_nodes
+    if saved_answers_file is not None:
+        with open(_ANSWERS_FILE_PATH, "w", encoding="utf-8") as f:
+            f.write(saved_answers_file)
+    elif os.path.exists(_ANSWERS_FILE_PATH):
+        os.remove(_ANSWERS_FILE_PATH)
+    if saved_ev_file is not None:
+        with open(_EVIDENCE_METADATA_FILE_PATH, "w", encoding="utf-8") as f:
+            f.write(saved_ev_file)
+    elif os.path.exists(_EVIDENCE_METADATA_FILE_PATH):
+        os.remove(_EVIDENCE_METADATA_FILE_PATH)
 
 
 def test_client_questionnaire_link_generation_and_access():
@@ -266,6 +285,148 @@ def test_firestore_durability_and_local_fallback():
     loaded_nodes = load_evidence_nodes_from_store()
     assert any(n.get("node_id") == "ev-test-node-1" for n in loaded_nodes)
 
-    # Clean up test client
-    from mcp_server_grc.firestore_storage import delete_client_from_store
+    # Clean up test client and answers
+    from mcp_server_grc.firestore_storage import delete_client_from_store, delete_questionnaire_answer_from_store
     delete_client_from_store("durability-test-client")
+    delete_questionnaire_answer_from_store("ISO27001:2022", "A.5.23")
+
+
+def test_questionnaire_answers_and_evidence_survive_in_memory_reset():
+    """Validates that questionnaire answers and evidence metadata survive a full in-memory reset,
+    simulating container restart/redeploy, and confirms strict multi-client isolation."""
+    from mcp_server_grc.questionnaire import QUESTIONNAIRE_ANSWERS, EVIDENCE_METADATA
+    from mcp_server_grc.firestore_storage import (
+        save_evidence_metadata_to_store,
+        load_evidence_metadata_from_store,
+        get_evidence_metadata_from_store,
+        load_questionnaire_answers_from_store,
+        save_operator_active_client_to_store,
+        load_operator_active_clients_from_store,
+        save_session_client_binding_to_store,
+        load_session_client_bindings_from_store,
+        delete_session_client_binding_from_store,
+        delete_questionnaire_answer_from_store,
+    )
+    from mcp_server_grc.portal import OPERATOR_ACTIVE_CLIENTS, SESSION_CLIENT_BINDINGS
+
+    client_a = "client-alpha-durability"
+    client_b = "client-beta-durability"
+
+    # 1. Submit answer for Client A (COMPLIANT)
+    ans_a_res = client.post(
+        "/api/questionnaire/A.5.15/answer",
+        json={
+            "control_id": "A.5.15",
+            "framework": "ISO27001:2022",
+            "status": "COMPLIANT",
+            "justification": "Client Alpha strict IAM control verified.",
+            "client_id": client_a,
+        },
+        headers={**AUTH_HEADER, "X-Client-Id": client_a},
+    )
+    assert ans_a_res.status_code == 200, ans_a_res.text
+    assert ans_a_res.json()["status"] == "COMPLIANT"
+
+    # 2. Submit answer for Client B on same control (NON_COMPLIANT)
+    ans_b_res = client.post(
+        "/api/questionnaire/A.5.15/answer",
+        json={
+            "control_id": "A.5.15",
+            "framework": "ISO27001:2022",
+            "status": "NON_COMPLIANT",
+            "justification": "Client Beta lacks MFA enforcement.",
+            "client_id": client_b,
+        },
+        headers={**AUTH_HEADER, "X-Client-Id": client_b},
+    )
+    assert ans_b_res.status_code == 200, ans_b_res.text
+    assert ans_b_res.json()["status"] == "NON_COMPLIANT"
+
+    # 3. Add evidence metadata for Client A
+    ev_data = {
+        "file_id": "ev_durability_file_999",
+        "client_id": client_a,
+        "filename": "iam_audit_log.pdf",
+        "content_type": "application/pdf",
+        "size_bytes": 1024,
+        "control_id": "A.5.15",
+        "framework": "ISO27001:2022",
+        "sha256": "abcdef0123456789durabilityhash",
+        "uploaded_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "storage_uri": "gs://test-bucket/ev_durability_file_999.pdf",
+    }
+    EVIDENCE_METADATA["ev_durability_file_999"] = ev_data
+    save_evidence_metadata_to_store(ev_data)
+
+    # 4. Bind operator & session to store
+    save_operator_active_client_to_store("op_durability_user", client_a)
+    save_session_client_binding_to_store("sess_durability_123", client_a)
+
+    # 5. SIMULATE CONTAINER RESTART / REDEPLOY: Complete wipe of all in-memory caches
+    QUESTIONNAIRE_ANSWERS.clear()
+    EVIDENCE_METADATA.clear()
+    OPERATOR_ACTIVE_CLIENTS.clear()
+    SESSION_CLIENT_BINDINGS.clear()
+
+    assert len(QUESTIONNAIRE_ANSWERS) == 0
+    assert len(EVIDENCE_METADATA) == 0
+    assert len(OPERATOR_ACTIVE_CLIENTS) == 0
+    assert len(SESSION_CLIENT_BINDINGS) == 0
+
+    # 6. Verify retrievability via loader functions directly
+    stored_answers = load_questionnaire_answers_from_store()
+    # Check Client A answer
+    key_a = ("ISO27001:2022", "A.5.15", client_a)
+    assert key_a in stored_answers
+    assert stored_answers[key_a]["status"] == "COMPLIANT"
+    assert "Client Alpha" in stored_answers[key_a]["justification"]
+
+    # Check Client B answer
+    key_b = ("ISO27001:2022", "A.5.15", client_b)
+    assert key_b in stored_answers
+    assert stored_answers[key_b]["status"] == "NON_COMPLIANT"
+    assert "Client Beta" in stored_answers[key_b]["justification"]
+
+    # Check evidence metadata survived
+    stored_ev = get_evidence_metadata_from_store("ev_durability_file_999")
+    assert stored_ev is not None
+    assert stored_ev["client_id"] == client_a
+    assert stored_ev["sha256"] == "abcdef0123456789durabilityhash"
+
+    all_ev = load_evidence_metadata_from_store()
+    assert "ev_durability_file_999" in all_ev
+    assert any(m.get("file_id") == "ev_durability_file_999" for m in all_ev.values())
+
+    # Check operator active client and session bindings survived
+    stored_ops = load_operator_active_clients_from_store()
+    assert stored_ops.get("op_durability_user") == client_a
+
+    stored_sess = load_session_client_bindings_from_store()
+    assert stored_sess.get("sess_durability_123") == client_a
+
+    # 7. Verify API endpoints reload from store after cache clear
+    api_get_a = client.get(
+        "/api/questionnaire?framework=ISO27001:2022",
+        headers={**AUTH_HEADER, "X-Client-Id": client_a},
+    )
+    assert api_get_a.status_code == 200
+    ctrl_a = next((c for c in api_get_a.json()["controls"] if c["id"] == "A.5.15"), None)
+    assert ctrl_a is not None
+    assert ctrl_a["status"] == "COMPLIANT"
+
+    api_get_b = client.get(
+        "/api/questionnaire?framework=ISO27001:2022",
+        headers={**AUTH_HEADER, "X-Client-Id": client_b},
+    )
+    assert api_get_b.status_code == 200
+    ctrl_b = next((c for c in api_get_b.json()["controls"] if c["id"] == "A.5.15"), None)
+    assert ctrl_b is not None
+    assert ctrl_b["status"] == "NON_COMPLIANT"
+
+    # Cleanup session binding, answers, and evidence metadata
+    delete_session_client_binding_from_store("sess_durability_123")
+    delete_questionnaire_answer_from_store("ISO27001:2022", "A.5.15", client_id=client_a)
+    delete_questionnaire_answer_from_store("ISO27001:2022", "A.5.15", client_id=client_b)
+    from mcp_server_grc.firestore_storage import delete_evidence_metadata_from_store
+    delete_evidence_metadata_from_store("ev_durability_file_999")
+

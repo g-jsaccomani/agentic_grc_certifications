@@ -98,29 +98,21 @@ def resolve_active_client_id(
                     )
             return token_cid
 
-    existing_cids = {c.get("client_id") for c in load_onboarded_clients()}
-
     if x_client_id and str(x_client_id).strip():
-        cid = str(x_client_id).strip()
-        if cid in existing_cids:
-            return cid
+        return str(x_client_id).strip()
 
     if client_id and str(client_id).strip():
-        cid = str(client_id).strip()
-        if cid in existing_cids:
-            return cid
+        return str(client_id).strip()
 
     sess_id = x_session_id
     if not sess_id and request:
         sess_id = request.headers.get("X-Session-Id") or request.query_params.get("session_id")
     if sess_id and sess_id in SESSION_CLIENT_BINDINGS:
-        cid = SESSION_CLIENT_BINDINGS[sess_id]
-        if cid in existing_cids:
-            return cid
+        return SESSION_CLIENT_BINDINGS[sess_id]
 
     if request:
         req_cid = request.headers.get("X-Client-Id") or request.query_params.get("client_id")
-        if req_cid and req_cid.strip() and req_cid.strip() in existing_cids:
+        if req_cid and req_cid.strip():
             return req_cid.strip()
 
     op_id = resolve_operator_id(user_context=user_context, x_operator_id=x_operator_id)
@@ -156,9 +148,85 @@ DISALLOWED_BINARY_PREFIXES: List[Tuple[bytes, str]] = [
 # Only controls with traceable cloud_inspector live technical check capability
 AUTOMATED_INSPECTION_CONTROLS = {"A.5.15", "A.5.18", "A.5.23", "A.8.20", "A.8.24"}
 
-# In-memory stores (can be seeded or persisted)
-QUESTIONNAIRE_ANSWERS: Dict[Tuple[str, str], "QuestionnaireAnswer"] = {}
+# In-memory stores (request-scoped caches backed by Firestore / local storage)
+from mcp_server_grc.firestore_storage import (
+    ScopedControlKey,
+    ScopedAnswersDict,
+    save_questionnaire_answer_to_store,
+    save_questionnaire_answers_to_store,
+    load_questionnaire_answers_from_store,
+    get_questionnaire_answer_from_store,
+    save_evidence_metadata_to_store,
+    load_evidence_metadata_from_store,
+    get_evidence_metadata_from_store,
+)
+
+QUESTIONNAIRE_ANSWERS: ScopedAnswersDict = ScopedAnswersDict()
 EVIDENCE_METADATA: Dict[str, Dict[str, Any]] = {}
+
+
+def get_cached_or_stored_answer(
+    framework: str,
+    control_id: str,
+    client_id: str = "altostrat-ventures",
+) -> Optional["QuestionnaireAnswer"]:
+    """Reads answer from in-memory cache, falling back to Firestore/local store."""
+    key = ScopedControlKey(framework, control_id, client_id)
+    if key in QUESTIONNAIRE_ANSWERS:
+        ans = QUESTIONNAIRE_ANSWERS[key]
+        if isinstance(ans, QuestionnaireAnswer):
+            return ans
+        if isinstance(ans, dict):
+            return QuestionnaireAnswer(**ans)
+        return ans
+    data = get_questionnaire_answer_from_store(framework, control_id, client_id=client_id)
+    if data:
+        if isinstance(data, QuestionnaireAnswer):
+            ans = data
+        elif isinstance(data, dict):
+            ans = QuestionnaireAnswer(**data)
+        else:
+            ans = data
+        QUESTIONNAIRE_ANSWERS[key] = ans
+        return ans
+    return None
+
+
+def get_cached_or_stored_evidence_metadata(file_id: str) -> Optional[Dict[str, Any]]:
+    """Reads evidence metadata from in-memory cache, falling back to Firestore/local store."""
+    if not file_id:
+        return None
+    if file_id in EVIDENCE_METADATA:
+        return EVIDENCE_METADATA[file_id]
+    meta = get_evidence_metadata_from_store(file_id)
+    if meta:
+        EVIDENCE_METADATA[file_id] = meta
+        return meta
+    return None
+
+
+def sync_answers_cache_from_store(client_id: Optional[str] = None) -> None:
+    """Synchronizes stored answers into in-memory cache."""
+    stored = load_questionnaire_answers_from_store(client_id=client_id)
+    for k, data in stored.items():
+        if k not in QUESTIONNAIRE_ANSWERS:
+            try:
+                if isinstance(data, QuestionnaireAnswer):
+                    QUESTIONNAIRE_ANSWERS[k] = data
+                elif isinstance(data, dict):
+                    QUESTIONNAIRE_ANSWERS[k] = QuestionnaireAnswer(**data)
+                else:
+                    QUESTIONNAIRE_ANSWERS[k] = data
+            except Exception as e:
+                logger.warning("Error caching answer for key %s: %s", k, e)
+
+
+def sync_evidence_metadata_cache_from_store(client_id: Optional[str] = None) -> None:
+    """Synchronizes stored evidence metadata into in-memory cache."""
+    stored = load_evidence_metadata_from_store(client_id=client_id)
+    for fid, data in stored.items():
+        if fid not in EVIDENCE_METADATA:
+            EVIDENCE_METADATA[fid] = data
 
 # Secondary starter catalog for multi-framework readiness testing (SOC 2 Trust Services Criteria)
 SOC2_CATALOG = [
@@ -208,6 +276,7 @@ SOC2_CATALOG = [
 class QuestionnaireAnswer(BaseModel):
     control_id: str = Field(..., description="Control ID (e.g. A.5.1 or CC6.1)")
     framework: str = Field(default="ISO27001:2022", description="Compliance framework identifier")
+    client_id: Optional[str] = Field(default="altostrat-ventures", description="Client workspace identifier")
     status: str = Field(..., description="COMPLIANT, NON_COMPLIANT, VERIFICAR, NOT_APPLICABLE, IN_PROGRESS, PARTIAL")
     justification: str = Field(..., description="Reviewer explanation or rationale")
     evidence_text: Optional[str] = Field(default=None, description="Extracted or textual evidence content")
@@ -219,6 +288,18 @@ class QuestionnaireAnswer(BaseModel):
     ai_consistency_verdict: Optional[str] = Field(default=None, description="AI consistency verdict: COMPLIANT, COMPLIANT_WITH_OBSERVATION, NON_COMPLIANT")
     ai_consistency_reasoning: Optional[str] = Field(default=None, description="AI reasoning for the consistency verdict")
     verification_tier: Optional[str] = Field(default=None, description="Verification tier: TELEMETRY, VERIFIED, SELF_ATTESTED")
+
+    def __getitem__(self, item: str) -> Any:
+        try:
+            return getattr(self, item)
+        except AttributeError:
+            raise KeyError(item)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return getattr(self, key, default)
+
+    def __contains__(self, key: str) -> bool:
+        return hasattr(self, key)
 
 
 class EvidenceFileUploadResponse(BaseModel):
@@ -246,6 +327,7 @@ def sync_scan_telemetry_to_questionnaire(
     framework: str = "ISO27001:2022",
     overwrite_self_attested: bool = False,
     scan_results: Optional[List[Dict[str, Any]]] = None,
+    client_id: str = "altostrat-ventures",
 ) -> int:
     """Synchronizes verified compliance telemetry from real scan executions into questionnaire answers.
 
@@ -288,7 +370,7 @@ def sync_scan_telemetry_to_questionnaire(
         if not status:
             continue
 
-        key = (framework, norm_cid)
+        key = ScopedControlKey(framework, norm_cid, client_id)
         existing = QUESTIONNAIRE_ANSWERS.get(key)
         # Preserve human self-attested answers if already present unless explicitly requested
         if existing and not overwrite_self_attested and existing.user_email and existing.user_email not in ("gcp-telemetry-scanner@client.corp", "cloud-inspector@gcp.audit"):
@@ -303,9 +385,10 @@ def sync_scan_telemetry_to_questionnaire(
         )
         safe_cid = norm_cid.lower().replace(".", "_")
 
-        QUESTIONNAIRE_ANSWERS[key] = QuestionnaireAnswer(
+        ans_obj = QuestionnaireAnswer(
             control_id=norm_cid,
             framework=framework,
+            client_id=client_id,
             status=status,
             justification=justification,
             evidence_text=ev_text,
@@ -315,6 +398,13 @@ def sync_scan_telemetry_to_questionnaire(
             verification_tier=item.get("verification_tier") or EvidenceVerificationTier.TELEMETRY.value,
             ai_consistency_verdict=status if status in ("COMPLIANT", "NON_COMPLIANT") else "COMPLIANT_WITH_OBSERVATION",
             ai_consistency_reasoning="GCP telemetry evidence verified via real scan and validated by compliance reviewer.",
+        )
+        QUESTIONNAIRE_ANSWERS[key] = ans_obj
+        save_questionnaire_answer_to_store(
+            framework,
+            norm_cid,
+            ans_obj.model_dump() if hasattr(ans_obj, "model_dump") else ans_obj.dict(),
+            client_id=client_id,
         )
         synced_count += 1
 
@@ -628,6 +718,7 @@ async def upload_evidence_file(
             "uploaded_at": uploaded_at,
         }
         EVIDENCE_METADATA[file_id] = metadata
+        save_evidence_metadata_to_store(file_id, metadata, client_id=active_client_id)
 
         return EvidenceFileUploadResponse(
             file_id=file_id,
@@ -673,6 +764,7 @@ async def upload_evidence_file(
             "uploaded_at": uploaded_at,
         }
         EVIDENCE_METADATA[file_id] = metadata
+        save_evidence_metadata_to_store(file_id, metadata, client_id=active_client_id)
 
         return EvidenceFileUploadResponse(
             file_id=file_id,
@@ -712,7 +804,7 @@ async def get_evidence_file(
         user_context=user_context,
     )
 
-    meta = EVIDENCE_METADATA.get(file_id)
+    meta = get_cached_or_stored_evidence_metadata(file_id)
     if not meta or meta.get("control_id") != control_id:
         raise HTTPException(status_code=404, detail="Evidence file not found.")
 
@@ -920,9 +1012,25 @@ def evaluate_answer_ai_consistency(
 async def submit_questionnaire_answer(
     control_id: str,
     answer: QuestionnaireAnswer,
+    request: Request,
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    x_operator_id: Optional[str] = Header(None),
+    client_id: Optional[str] = Query(default=None),
     user_context: WorkspaceUserContext = Depends(require_questionnaire_authorized_user),
 ):
     """Records questionnaire answer with framework support and anchors to EvidenceGraph as SELF_ATTESTED."""
+    active_client_id = resolve_active_client_id(
+        request=request,
+        x_client_id=x_client_id,
+        x_session_id=x_session_id,
+        x_operator_id=x_operator_id,
+        client_id=client_id or (answer.client_id if (answer and answer.client_id and answer.client_id != "altostrat-ventures") else None),
+        user_context=user_context,
+    )
+    target_client_id = active_client_id or answer.client_id or "altostrat-ventures"
+    answer.client_id = target_client_id
+
     # 1. Model Armor Ingress Validation on text fields
     try:
         from mcp_server_grc.portal import model_armor_gateway
@@ -950,12 +1058,13 @@ async def submit_questionnaire_answer(
     answer.verification_tier = EvidenceVerificationTier.SELF_ATTESTED.value
 
     # If linked to an uploaded file, enrich with metadata
-    if answer.file_id and answer.file_id in EVIDENCE_METADATA:
-        f_meta = EVIDENCE_METADATA[answer.file_id]
-        if not answer.original_filename:
-            answer.original_filename = f_meta.get("original_filename")
-        if not answer.evidence_text and f_meta.get("extracted_text"):
-            answer.evidence_text = f_meta.get("extracted_text")
+    if answer.file_id:
+        f_meta = get_cached_or_stored_evidence_metadata(answer.file_id)
+        if f_meta:
+            if not answer.original_filename:
+                answer.original_filename = f_meta.get("original_filename")
+            if not answer.evidence_text and f_meta.get("extracted_text"):
+                answer.evidence_text = f_meta.get("extracted_text")
 
     # Evaluate AI Consistency ("Análise & Scoring via Gemini 2.5")
     verdict, reasoning = evaluate_answer_ai_consistency(
@@ -970,7 +1079,14 @@ async def submit_questionnaire_answer(
     answer.ai_consistency_verdict = verdict
     answer.ai_consistency_reasoning = reasoning
 
-    QUESTIONNAIRE_ANSWERS[(answer.framework, control_id)] = answer
+    key = ScopedControlKey(answer.framework, control_id, target_client_id)
+    QUESTIONNAIRE_ANSWERS[key] = answer
+    save_questionnaire_answer_to_store(
+        answer.framework,
+        control_id,
+        answer.model_dump() if hasattr(answer, "model_dump") else answer.dict(),
+        client_id=target_client_id,
+    )
 
     # Anchor to EvidenceGraph strictly as SELF_ATTESTED (never conflated with machine telemetry)
     ci = get_ci_engine()
@@ -1012,11 +1128,25 @@ async def submit_questionnaire_answer(
     summary="List controls and answers for a specific compliance framework and language",
 )
 async def get_questionnaire(
+    request: Request,
     framework: str = Query("ISO27001:2022", description="Target compliance framework"),
     lang: str = Query("pt", description="Language code ('pt', 'en', 'es')"),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    x_operator_id: Optional[str] = Header(None),
+    client_id: Optional[str] = Query(default=None),
     user_context: WorkspaceUserContext = Depends(require_questionnaire_authorized_user),
 ):
     """Returns controls and answers for the requested compliance framework and language."""
+    active_client_id = resolve_active_client_id(
+        request=request,
+        x_client_id=x_client_id,
+        x_session_id=x_session_id,
+        x_operator_id=x_operator_id,
+        client_id=client_id,
+        user_context=user_context,
+    )
+
     norm_lang = (lang or "pt").lower().strip()
     if norm_lang not in ("pt", "en", "es"):
         norm_lang = "pt"
@@ -1025,7 +1155,10 @@ async def get_questionnaire(
         base_controls = get_localized_catalog(framework, lang=norm_lang)
         themes = get_localized_themes(framework, lang=norm_lang)
     else:
-        matching = [ans for (fw, cid), ans in QUESTIONNAIRE_ANSWERS.items() if fw == framework]
+        matching = [
+            ans for (fw, cid), ans in QUESTIONNAIRE_ANSWERS.items()
+            if fw == framework and (getattr(ans, "client_id", None) == active_client_id or getattr(ans, "client_id", None) == "altostrat-ventures")
+        ]
         base_controls = [
             {
                 "id": a.control_id,
@@ -1061,11 +1194,13 @@ async def get_questionnaire(
     answered_count = 0
     for c in base_controls:
         cid = c.get("id")
-        ans = QUESTIONNAIRE_ANSWERS.get((framework, cid))
+        ans = get_cached_or_stored_answer(framework, cid, client_id=active_client_id)
+        if not ans and active_client_id == "altostrat-ventures":
+            ans = QUESTIONNAIRE_ANSWERS.get((framework, cid))
         if ans:
             answered_count += 1
-            ans_dict = ans.model_dump() if hasattr(ans, "model_dump") else ans.dict()
-            status = ans.status
+            ans_dict = ans.model_dump() if hasattr(ans, "model_dump") else (ans.dict() if hasattr(ans, "dict") else dict(ans))
+            status = getattr(ans, "status", "NOT_ANSWERED")
         else:
             ans_dict = None
             status = "NOT_ANSWERED"
@@ -1108,16 +1243,33 @@ async def get_questionnaire(
     summary="Get summary metrics for questionnaire completion by framework",
 )
 async def get_questionnaire_summary(
+    request: Request = None,
     framework: str = Query("ISO27001:2022", description="Target compliance framework"),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    x_operator_id: Optional[str] = Header(None),
+    client_id: Optional[str] = Query(default=None),
     user_context: WorkspaceUserContext = Depends(require_questionnaire_authorized_user),
 ):
     """Computes completion and compliance statistics for the requested framework."""
+    active_client_id = resolve_active_client_id(
+        request=request,
+        x_client_id=x_client_id,
+        x_session_id=x_session_id,
+        x_operator_id=x_operator_id,
+        client_id=client_id,
+        user_context=user_context,
+    )
+
     if framework == "ISO27001:2022":
         base_controls = ISO_27001_CATALOG
     elif framework == "SOC2":
         base_controls = SOC2_CATALOG
     else:
-        matching = [ans for (fw, cid), ans in QUESTIONNAIRE_ANSWERS.items() if fw == framework]
+        matching = [
+            ans for (fw, cid), ans in QUESTIONNAIRE_ANSWERS.items()
+            if fw == framework and (getattr(ans, "client_id", None) == active_client_id or getattr(ans, "client_id", None) == "altostrat-ventures")
+        ]
         base_controls = [{"id": a.control_id} for a in matching]
 
     total = len(base_controls)
@@ -1128,10 +1280,11 @@ async def get_questionnaire_summary(
 
     for c in base_controls:
         cid = c.get("id")
-        ans = QUESTIONNAIRE_ANSWERS.get((framework, cid))
+        ans = QUESTIONNAIRE_ANSWERS.get((framework, cid, active_client_id)) or QUESTIONNAIRE_ANSWERS.get((framework, cid))
         if ans:
             answered += 1
-            st = ans.status.upper()
+            st = getattr(ans, "status", None) or (ans.get("status") if isinstance(ans, dict) else "")
+            st = str(st).upper()
             if st == "COMPLIANT":
                 compliant += 1
             elif st == "NON_COMPLIANT":
@@ -1287,6 +1440,7 @@ async def verify_control_via_scan(
     answer = QuestionnaireAnswer(
         control_id=norm_cid,
         framework=framework,
+        client_id=active_cid,
         status="VERIFICAR",
         justification=justification,
         evidence_text=ev_text,
@@ -1297,7 +1451,14 @@ async def verify_control_via_scan(
         ai_consistency_verdict="COMPLIANT_WITH_OBSERVATION",
         ai_consistency_reasoning=f"Automated technical check completed with preliminary verdict {prelim_verdict}. Requires explicit human auditor confirmation.",
     )
-    QUESTIONNAIRE_ANSWERS[(framework, norm_cid)] = answer
+    key = ScopedControlKey(framework, norm_cid, active_cid)
+    QUESTIONNAIRE_ANSWERS[key] = answer
+    save_questionnaire_answer_to_store(
+        framework,
+        norm_cid,
+        answer.model_dump() if hasattr(answer, "model_dump") else answer.dict(),
+        client_id=active_cid,
+    )
 
     # Anchor to evidence graph with status VERIFICAR
     ci = get_ci_engine()
@@ -1335,6 +1496,11 @@ async def verify_control_via_scan(
 async def confirm_control_verification(
     control_id: str,
     req: VerificationConfirmationRequest,
+    request: Request,
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    x_operator_id: Optional[str] = Header(None),
+    client_id: Optional[str] = Query(default=None),
     user_context: WorkspaceUserContext = Depends(require_questionnaire_authorized_user),
 ):
     """Requires explicit human action to finalize a VERIFICAR status into COMPLIANT or NON_COMPLIANT."""
@@ -1346,8 +1512,17 @@ async def confirm_control_verification(
             detail="Decision must be explicitly 'COMPLIANT' or 'NON_COMPLIANT'.",
         )
 
-    key = (req.framework, norm_cid)
-    existing = QUESTIONNAIRE_ANSWERS.get(key)
+    active_client_id = resolve_active_client_id(
+        request=request,
+        x_client_id=x_client_id,
+        x_session_id=x_session_id,
+        x_operator_id=x_operator_id,
+        client_id=client_id,
+        user_context=user_context,
+    )
+
+    key = ScopedControlKey(req.framework, norm_cid, active_client_id)
+    existing = get_cached_or_stored_answer(req.framework, norm_cid, client_id=active_client_id)
     if not existing:
         raise HTTPException(
             status_code=404,
@@ -1366,8 +1541,15 @@ async def confirm_control_verification(
     existing.updated_at = time.time()
     existing.user_email = user_context.email
     existing.ai_consistency_verdict = decision
+    existing.client_id = active_client_id
 
     QUESTIONNAIRE_ANSWERS[key] = existing
+    save_questionnaire_answer_to_store(
+        req.framework,
+        norm_cid,
+        existing.model_dump() if hasattr(existing, "model_dump") else existing.dict(),
+        client_id=active_client_id,
+    )
 
     # Update evidence graph link
     ci = get_ci_engine()

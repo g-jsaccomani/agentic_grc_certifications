@@ -51,3 +51,6 @@ data/evidence_uploads/
 data/*.bin
 data/evidence_graph_nodes.json
 data/questionnaire_answers.json
+data/evidence_metadata.json
+data/operator_active_clients.json
+data/session_client_bindings.json
