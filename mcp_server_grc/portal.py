@@ -3968,8 +3968,9 @@ async def read_google_drive_txt(
 
     m = re.search(r"folders/([a-zA-Z0-9_-]+)", raw) or re.search(r"files/([a-zA-Z0-9_-]+)", raw) or re.search(r"d/([a-zA-Z0-9_-]+)", raw) or re.search(r"[?&]id=([a-zA-Z0-9_-]+)", raw)
     file_id = m.group(1) if m else raw
-
     raw_token = x_google_access_token or (authorization.replace("Bearer ", "").strip() if authorization and authorization.startswith("Bearer ") else "")
+
+    # 1. If live OAuth token provided, query Google Drive API v3
     if raw_token and raw_token.startswith("ya29.") and "mock" not in raw_token:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
@@ -3988,7 +3989,28 @@ async def read_google_drive_txt(
         except Exception as e:
             logger.warning(f"Could not read file from Google Drive API: {e}")
 
-    raise HTTPException(status_code=404, detail="Não foi possível baixar o arquivo do Google Drive. Verifique se o link/ID está correto e compartilhado com sua conta.")
+    # 2. Public / shared link download fallback
+    if file_id and "\n" not in file_id and " " not in file_id:
+        try:
+            async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+                res = await client.get(f"https://drive.google.com/uc?export=download&id={file_id}")
+                if res.status_code == 200 and (b"client_name" in res.content or b"=" in res.content):
+                    success, data, err = parse_onboard_txt_content(res.content, f"{file_id}.txt")
+                    if success:
+                        return {"status": "success", "file_id": file_id, "data": data}
+        except Exception as e:
+            logger.warning(f"Direct export download failed: {e}")
+
+    # 3. Direct raw content fallback (if user pasted the file content directly into the input)
+    if "=" in raw and ("client_name" in raw.lower() or "projects" in raw.lower()):
+        success, data, err = parse_onboard_txt_content(raw.encode("utf-8"), "pasted_config.txt")
+        if success:
+            return {"status": "success", "file_id": "pasted", "data": data}
+
+    raise HTTPException(
+        status_code=400,
+        detail="Não foi possível ler o arquivo do Google Drive. Se o arquivo estiver com acesso restrito, certifique-se de compartilhar o link ou utilize o botão de carregar o .txt do computador.",
+    )
 
 
 
