@@ -12,6 +12,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Marked.js for Executive Markdown Rendering -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Google API & Picker Client -->
+    <script src="https://apis.google.com/js/api.js"></script>
     <!-- Google Identity Services (GIS) for Google Workspace Authentication -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
@@ -8705,16 +8707,15 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     </div>
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <input type="file" id="onboardTxtFileInput" accept=".txt" style="display: none;" onchange="handleOnboardTxtFileUpload(this)">
-                        <button type="button" class="btn-primary" style="padding: 5px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;" onclick="document.getElementById('onboardTxtFileInput').click()" title="Selecionar grc_onboarding_config.txt do computador">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                        <button type="button" class="btn-primary" style="padding: 7px 11px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px;" onclick="document.getElementById('onboardTxtFileInput').click()" title="Carregar grc_onboarding_config.txt do computador">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                                 <polyline points="17 8 12 3 7 8"/>
                                 <line x1="12" y1="3" x2="12" y2="15"/>
                             </svg>
-                            <span data-i18n="onboard_choose_file">Upload .txt</span>
                         </button>
-                        <button type="button" class="btn-cancel" style="padding: 5px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; color: #1a73e8; border-color: rgba(66, 133, 244, 0.4);" onclick="openDriveDirectly('txt')" title="Abrir Google Drive diretamente para buscar o arquivo">
-                            <svg viewBox="0 0 87.3 78" width="13" height="12" fill="none">
+                        <button type="button" class="btn-cancel" style="padding: 7px 11px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #1a73e8; border-color: rgba(66, 133, 244, 0.4); border-radius: 6px;" onclick="pickFromGoogleDrive('txt')" title="Selecionar grc_onboarding_config.txt no Google Drive / Drives Compartilhados">
+                            <svg viewBox="0 0 87.3 78" width="15" height="14" fill="none">
                                 <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
                                 <path d="M43.65 25 29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44A9.06 9.06 0 0 0 0 53h27.5z" fill="#00ac47"/>
                                 <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l6.1 10.55z" fill="#ea4335"/>
@@ -8722,7 +8723,6 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <path d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z" fill="#2684fc"/>
                                 <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25 59.8 53h27.5c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
                             </svg>
-                            <span>Abrir Drive</span>
                         </button>
                     </div>
                 </div>
@@ -8784,8 +8784,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     </div>
                     <div style="display: flex; gap: 6px; align-items: center;">
                         <input type="text" id="onboardClientDriveFolderInput" class="form-input" placeholder="ID ou URL da pasta no Google Drive" oninput="updateOnboardScriptPreview(); checkDriveFolderFeedback();" style="font-size: 12px; padding: 6px 8px; flex: 1;">
-                        <button type="button" class="btn-cancel" id="btnSelectDriveFolder" onclick="openDriveFolderDirectly()" style="padding: 6px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; cursor: pointer; color: #1a73e8; border-color: rgba(66, 133, 244, 0.4);" title="Abrir pasta diretamente no Google Drive">
-                            <svg viewBox="0 0 87.3 78" width="13" height="12" fill="none">
+                        <button type="button" class="btn-cancel" id="btnSelectDriveFolder" onclick="pickFromGoogleDrive('folder')" style="padding: 7px 11px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #1a73e8; border-color: rgba(66, 133, 244, 0.4); border-radius: 6px;" title="Selecionar pasta no Google Drive / Drives Compartilhados">
+                            <svg viewBox="0 0 87.3 78" width="15" height="14" fill="none">
                                 <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
                                 <path d="M43.65 25 29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44A9.06 9.06 0 0 0 0 53h27.5z" fill="#00ac47"/>
                                 <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l6.1 10.55z" fill="#ea4335"/>
@@ -8793,7 +8793,6 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <path d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z" fill="#2684fc"/>
                                 <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25 59.8 53h27.5c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
                             </svg>
-                            <span>Abrir no Drive</span>
                         </button>
                         <button type="button" class="btn-cancel" onclick="autoAssignDriveFolder()" id="btnCreateDriveFolderQuick" title="Definir pasta de evidências automaticamente" style="padding: 6px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
                             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
@@ -12861,7 +12860,10 @@ echo -e "\${NC}================================================================\
         window.drivePickerMode = 'folder'; // 'folder' | 'txt'
         let cachedDriveFolders = [];
 
-        function checkDriveFolderFeedback() {
+        const GOOGLE_PICKER_KEY = "AIzaSyA3pDow4SRFN2Y96uIOI5fbfJwlASn3_os";
+        const GOOGLE_APP_ID = "938078169010";
+
+        function checkDriveFolderFeedback(optionalName) {
             const input = document.getElementById("onboardClientDriveFolderInput");
             const feedback = document.getElementById("driveFolderSelectedFeedback");
             if (!input || !feedback) return;
@@ -12874,6 +12876,7 @@ echo -e "\${NC}================================================================\
 
             const m = raw.match(/folders\/([a-zA-Z0-9_-]+)/) || raw.match(/[?&]id=([a-zA-Z0-9_-]+)/);
             const folderId = m ? m[1] : raw;
+            const displayName = optionalName || folderId;
             feedback.style.display = "flex";
             feedback.style.background = "rgba(52, 168, 83, 0.08)";
             feedback.style.border = "1px solid rgba(52, 168, 83, 0.25)";
@@ -12882,7 +12885,7 @@ echo -e "\${NC}================================================================\
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
-                <span>Pasta vinculada: <code>${escapeHtml(folderId)}</code> • Armazenamento Zero-Copy ativo na conta do consultor</span>
+                <span>Pasta vinculada: <strong>${escapeHtml(displayName)}</strong> (<code>${escapeHtml(folderId)}</code>) • Armazenamento Zero-Copy</span>
             `;
         }
 
@@ -12897,43 +12900,123 @@ echo -e "\${NC}================================================================\
             }
         }
 
-        function openDriveDirectly(mode = 'txt') {
-            // 1. If native Google Picker is available, launch it directly without custom screens
-            if (window.google && window.google.picker && window.currentUserToken) {
-                try {
-                    launchDirectGooglePicker(mode);
+        async function pickFromGoogleDrive(mode = 'folder') {
+            window.drivePickerMode = mode;
+
+            // Ensure Google API client and Picker library are loaded
+            if (window.gapi) {
+                if (!window.google || !window.google.picker) {
+                    window.gapi.load('picker', {
+                        callback: () => {
+                            launchConfiguredGooglePicker(mode);
+                        },
+                        onerror: () => {
+                            fallbackDirectPicker(mode);
+                        }
+                    });
                     return;
-                } catch (e) {
-                    console.warn("[Google Drive] Native picker error, opening Google Drive window directly:", e);
                 }
+                launchConfiguredGooglePicker(mode);
+                return;
             }
-            // 2. Open Google Drive directly in a new window/tab on user account
-            window.open("https://drive.google.com/drive/my-drive", "_blank");
+
+            fallbackDirectPicker(mode);
         }
 
-        function openDriveFolderDirectly() {
-            const input = document.getElementById("onboardClientDriveFolderInput");
-            const raw = (input?.value || "").trim();
-            if (raw) {
-                const m = raw.match(/folders\/([a-zA-Z0-9_-]+)/) || raw.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-                const folderId = m ? m[1] : raw;
-                if (folderId.startsWith("http")) {
-                    window.open(folderId, "_blank");
+        function launchConfiguredGooglePicker(mode) {
+            try {
+                if (!window.google || !window.google.picker) {
+                    fallbackDirectPicker(mode);
+                    return;
+                }
+
+                const token = window.currentUserToken || sessionStorage.getItem("google_access_token") || localStorage.getItem("custom_google_access_token");
+
+                const builder = new google.picker.PickerBuilder()
+                    .setDeveloperKey(GOOGLE_PICKER_KEY)
+                    .setAppId(GOOGLE_APP_ID)
+                    .enableFeature(google.picker.Feature.SUPPORT_DRIVES)
+                    .enableFeature(google.picker.Feature.SUPPORT_TEAM_DRIVES);
+
+                if (token && token.startsWith("ya29.") && !token.includes("mock")) {
+                    builder.setOAuthToken(token);
+                }
+
+                if (mode === 'folder') {
+                    builder.setTitle("Selecionar Pasta no Google Drive (Meu Drive ou Drives Compartilhados)");
+                    const folderView = new google.picker.DocsView(google.picker.ViewId.FOLDERS)
+                        .setSelectFolderEnabled(true)
+                        .setIncludeFolders(true)
+                        .setEnableDrives(true);
+                    builder.addView(folderView);
                 } else {
-                    window.open(`https://drive.google.com/drive/folders/${encodeURIComponent(folderId)}`, "_blank");
+                    builder.setTitle("Selecionar grc_onboarding_config.txt (Meu Drive ou Drives Compartilhados)");
+                    const txtView = new google.picker.DocsView()
+                        .setMimeTypes("text/plain")
+                        .setIncludeFolders(true)
+                        .setEnableDrives(true);
+                    builder.addView(txtView);
+                }
+
+                builder.setCallback(async (data) => {
+                    if (data.action === google.picker.Action.PICKED) {
+                        const doc = data.docs[0];
+                        if (!doc) return;
+                        if (mode === 'folder') {
+                            const input = document.getElementById("onboardClientDriveFolderInput");
+                            if (input) input.value = doc.id;
+                            checkDriveFolderFeedback(doc.name);
+                            updateOnboardScriptPreview();
+                        } else {
+                            await readTxtDirectFromDrive(doc.id, doc.name);
+                        }
+                    }
+                });
+
+                const picker = builder.build();
+                picker.setVisible(true);
+            } catch (err) {
+                console.warn("[Google Picker] Launch exception, opening fallback selector:", err);
+                fallbackDirectPicker(mode);
+            }
+        }
+
+        async function fallbackDirectPicker(mode) {
+            if (mode === 'folder') {
+                const currentVal = document.getElementById("onboardClientDriveFolderInput")?.value || "";
+                const entered = prompt("Google Drive — Cole o link ou ID da pasta / Drive Compartilhado a ser vinculado:", currentVal);
+                if (entered !== null && entered.trim()) {
+                    const input = document.getElementById("onboardClientDriveFolderInput");
+                    if (input) {
+                        input.value = entered.trim();
+                        checkDriveFolderFeedback();
+                        updateOnboardScriptPreview();
+                    }
                 }
             } else {
-                window.open("https://drive.google.com/drive/my-drive", "_blank");
+                const currentVal = "";
+                const entered = prompt("Google Drive — Cole o link ou ID do arquivo grc_onboarding_config.txt no Drive Compartilhado:", currentVal);
+                if (entered !== null && entered.trim()) {
+                    await readTxtDirectFromDrive(entered.trim());
+                }
             }
         }
 
         // Aliases for seamless backward compatibility
+        function openDriveDirectly(mode = 'txt') {
+            pickFromGoogleDrive(mode);
+        }
+
+        function openDriveFolderDirectly() {
+            pickFromGoogleDrive('folder');
+        }
+
         function openGoogleDriveFolderPicker() {
-            openDriveFolderDirectly();
+            pickFromGoogleDrive('folder');
         }
 
         function openDriveTxtPicker() {
-            openDriveDirectly('txt');
+            pickFromGoogleDrive('txt');
         }
 
         async function createAutoDriveFolderForClient() {
@@ -12964,7 +13047,7 @@ echo -e "\${NC}================================================================\
                     const data = await res.json();
                     const fid = data.folder?.id || data.id;
                     if (input) input.value = fid;
-                    checkDriveFolderFeedback();
+                    checkDriveFolderFeedback(folderName);
                     updateOnboardScriptPreview();
                     return;
                 }
@@ -12980,43 +13063,19 @@ echo -e "\${NC}================================================================\
             // Fallback: Agentic ID generation
             const fid = "1grc_" + Math.random().toString(36).substring(2, 12);
             if (input) input.value = fid;
-            checkDriveFolderFeedback();
+            checkDriveFolderFeedback(folderName);
             updateOnboardScriptPreview();
         }
 
-        function launchDirectGooglePicker(mode = 'txt') {
-            const token = window.currentUserToken || sessionStorage.getItem("google_access_token") || localStorage.getItem("custom_google_access_token");
-            if (!token || !window.google || !window.google.picker) {
-                window.open("https://drive.google.com/drive/my-drive", "_blank");
-                return;
+        async function readTxtDirectFromDrive(fileId, fileName) {
+            const statusEl = document.getElementById("onboardTxtFileStatus");
+            if (statusEl) {
+                statusEl.style.display = "block";
+                statusEl.style.background = "rgba(66, 133, 244, 0.08)";
+                statusEl.style.color = "var(--gcp-blue)";
+                statusEl.innerHTML = `Carregando configurações do Google Drive...`;
             }
 
-            const view = (mode === 'txt')
-                ? new google.picker.DocsView().setMimeTypes("text/plain")
-                : new google.picker.DocsView(google.picker.ViewId.FOLDERS).setMimeTypes("application/vnd.google-apps.folder").setSelectFolderEnabled(true);
-
-            const builder = new google.picker.PickerBuilder()
-                .addView(view)
-                .setOAuthToken(token)
-                .setCallback((data) => {
-                    if (data.action === google.picker.Action.PICKED) {
-                        const doc = data.docs[0];
-                        if (mode === 'folder') {
-                            const input = document.getElementById("onboardClientDriveFolderInput");
-                            if (input) input.value = doc.id;
-                            checkDriveFolderFeedback();
-                            updateOnboardScriptPreview();
-                        } else {
-                            readTxtDirectFromDrive(doc.id);
-                        }
-                    }
-                });
-
-            const picker = builder.build();
-            picker.setVisible(true);
-        }
-
-        async function readTxtDirectFromDrive(fileId) {
             try {
                 const headers = getAuthHeaders();
                 headers["Content-Type"] = "application/json";
@@ -13029,10 +13088,27 @@ echo -e "\${NC}================================================================\
                     const data = await res.json();
                     if (data.data) {
                         applyParsedOnboardData(data.data);
+                        if (statusEl) {
+                            statusEl.style.background = "rgba(52, 168, 83, 0.1)";
+                            statusEl.style.border = "1px solid rgba(52, 168, 83, 0.3)";
+                            statusEl.style.color = "var(--gcp-green)";
+                            statusEl.innerHTML = `✓ Configuração carregada do Google Drive: <strong>${escapeHtml(fileName || fileId)}</strong>`;
+                        }
+                    }
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    if (statusEl) {
+                        statusEl.style.background = "rgba(234, 67, 53, 0.1)";
+                        statusEl.style.border = "1px solid rgba(234, 67, 53, 0.3)";
+                        statusEl.style.color = "#f28b82";
+                        statusEl.innerHTML = `⚠️ ${escapeHtml(err.detail || "Erro ao ler arquivo do Drive.")}`;
                     }
                 }
             } catch (e) {
                 console.warn("[Drive] read txt direct error:", e);
+                if (statusEl) {
+                    statusEl.style.display = "none";
+                }
             }
         }
 

@@ -3820,13 +3820,17 @@ async def list_google_drive_folders(
     if raw_token and raw_token.startswith("ya29.") and "mock" not in raw_token:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
+                # 1. Query folders across all drives (personal and Shared Drives)
                 res = await client.get(
                     "https://www.googleapis.com/drive/v3/files",
                     params={
                         "q": "mimeType = 'application/vnd.google-apps.folder' and trashed = false",
-                        "fields": "files(id, name, webViewLink, modifiedTime, shared)",
+                        "fields": "files(id, name, webViewLink, modifiedTime, shared, driveId)",
                         "pageSize": "50",
                         "orderBy": "modifiedTime desc",
+                        "supportsAllDrives": "true",
+                        "includeItemsFromAllDrives": "true",
+                        "corpora": "allDrives",
                     },
                     headers={"Authorization": f"Bearer {raw_token}"},
                 )
@@ -3839,6 +3843,23 @@ async def list_google_drive_folders(
                             "link": f.get("webViewLink") or f"https://drive.google.com/drive/folders/{f.get('id')}",
                             "modified_time": f.get("modifiedTime"),
                         })
+
+                # 2. Also list Shared Drives (Drives Compartilhados) as selectable root folders
+                drives_res = await client.get(
+                    "https://www.googleapis.com/drive/v3/drives",
+                    params={"pageSize": "20"},
+                    headers={"Authorization": f"Bearer {raw_token}"},
+                )
+                if drives_res.status_code == 200:
+                    for d in drives_res.json().get("drives", []):
+                        folders.append({
+                            "id": d.get("id"),
+                            "name": f"🏢 Drive Compartilhado: {d.get('name')}",
+                            "link": f"https://drive.google.com/drive/folders/{d.get('id')}",
+                            "modified_time": None,
+                        })
+
+                if folders:
                     return {
                         "status": "success",
                         "source": "google_drive_api",
@@ -3953,7 +3974,7 @@ async def read_google_drive_txt(
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 res = await client.get(
-                    f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media",
+                    f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media&supportsAllDrives=true",
                     headers={"Authorization": f"Bearer {raw_token}"},
                 )
                 if res.status_code == 200:

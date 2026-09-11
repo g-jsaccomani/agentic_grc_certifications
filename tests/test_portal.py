@@ -1853,11 +1853,12 @@ def test_google_drive_modal_and_ui_elements():
 
     # 1. Drive buttons in onboarding modal
     assert 'id="btnSelectDriveFolder"' in html
-    assert 'openDriveFolderDirectly()' in html
-    assert "openDriveDirectly('txt')" in html
+    assert "pickFromGoogleDrive('folder')" in html
+    assert "pickFromGoogleDrive('txt')" in html
     assert 'id="btnCreateDriveFolderQuick"' in html
     assert 'id="driveConnectedUserEmail"' in html
     assert 'id="driveFolderSelectedFeedback"' in html
+    assert 'GOOGLE_PICKER_KEY' in html
 
     # 2. Verify no secondary in-app modal (direct Google Drive experience)
     assert 'id="drivePickerModal"' not in html
