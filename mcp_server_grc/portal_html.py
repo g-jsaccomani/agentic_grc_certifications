@@ -5228,6 +5228,13 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         Permite autenticação nativa do Chrome (Google One-Tap) com seu perfil ativo. Deixe em branco para autenticação interna isolada por e-mail.
                     </span>
                 </div>
+                <div class="quest-form-field">
+                    <label class="quest-form-label" for="corporateAccessTokenInput">GCP Access Token (Opcional — via 'gcloud auth print-access-token'):</label>
+                    <input type="password" id="corporateAccessTokenInput" class="quest-input" placeholder="ya29.a0..." autocomplete="off">
+                    <span style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px; line-height: 1.4; display: block;">
+                        Permite delegar credenciais do auditor via CLI para inspeção de recursos no GCP. Deixe em branco para utilizar a Service Account do Cloud Run.
+                    </span>
+                </div>
             </div>
             <div class="modal-footer" style="padding: 12px 24px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-subtle);">
                 <button type="button" class="btn-cancel" onclick="closeCorporateIdentityModal()">Cancelar</button>
@@ -10109,7 +10116,7 @@ window.currentLanguage = 'en';
             try {
                 const res = await fetch("/api/audit/run_phases", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
                     body: JSON.stringify({ projects: projects, phase: phaseNum })
                 });
                 const data = await res.json();
@@ -10174,7 +10181,7 @@ window.currentLanguage = 'en';
             try {
                 const res = await fetch("/api/audit/remediate_phase", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
                     body: JSON.stringify({ phase: phaseNum, project_id: project })
                 });
                 const data = await res.json();
@@ -11184,6 +11191,13 @@ Formulário preenchido com o subagente recomendado!`);
                 if (clientIdInput) clientIdInput.value = savedClientId;
             }
 
+            const savedAccessToken = localStorage.getItem("custom_google_access_token") || sessionStorage.getItem("google_access_token");
+            if (savedAccessToken && savedAccessToken.startsWith("ya29.")) {
+                window.currentUserToken = savedAccessToken;
+                const tokenInput = document.getElementById("corporateAccessTokenInput");
+                if (tokenInput) tokenInput.value = savedAccessToken;
+            }
+
             // Restore existing session if cached and app shell mounted
             if (window.currentUserEmail && window.currentUserHd) {
                 renderWorkspaceUserUI(window.currentUserEmail, window.currentUserHd);
@@ -11307,6 +11321,14 @@ Formulário preenchido com o subagente recomendado!`);
             localStorage.setItem("grc_user_email", email);
             const domain = email.includes("@") ? email.split("@")[1].trim() : GOOGLE_WORKSPACE_CONFIG.expectedDomain;
             GOOGLE_WORKSPACE_CONFIG.expectedDomain = domain;
+
+            const tokenInput = document.getElementById("corporateAccessTokenInput");
+            const rawToken = tokenInput ? tokenInput.value.trim() : "";
+            if (rawToken && rawToken.startsWith("ya29.")) {
+                window.currentUserToken = rawToken;
+                sessionStorage.setItem("google_access_token", rawToken);
+                localStorage.setItem("custom_google_access_token", rawToken);
+            }
 
             const displayEl = document.getElementById("loginGateAuditorDisplay");
             if (displayEl) displayEl.innerText = email;
@@ -14333,7 +14355,7 @@ function openNewsModal(newsKey) {
             try {
                 const res = await fetch("/api/audit/run_phases", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
                     body: JSON.stringify({ projects: projects })
                 });
                 const data = await res.json();

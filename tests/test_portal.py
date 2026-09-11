@@ -975,6 +975,8 @@ def test_no_delegated_token_in_non_test_context_returns_undetermined(monkeypatch
     # Simulate non-test production context
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
     monkeypatch.delenv("TESTING", raising=False)
+    monkeypatch.delenv("ALLOW_DEV_AUTH_BYPASS", raising=False)
+    monkeypatch.delenv("ENABLE_ADC_FALLBACK", raising=False)
 
     # 1. get_authorized_session returns (None, proj) and does NOT fall back to ADC
     session, proj = get_authorized_session(bearer_token=None, project_id="prod-project-123")

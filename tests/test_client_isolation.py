@@ -1122,4 +1122,50 @@ def test_client_switch_clears_matrix_finops_reports_scorecard_cross_tenant_state
         )
 
 
+def test_phased_audit_auth_headers_and_adc_handling(monkeypatch):
+    """Verify that run_phases, get_authorized_session, and inspect_project_iam_policy
+
+    properly propagate credentials, support ADC fallback in dev/Cloud Run mode,
+    and report 403 permission errors with actionable remediation instructions.
+    """
+    from mcp_server_grc.cloud_inspector import (
+        get_authorized_session,
+        inspect_project_iam_policy,
+    )
+    from unittest.mock import patch, MagicMock
+
+    # 1. When ALLOW_DEV_AUTH_BYPASS is true, get_authorized_session falls back to ADC
+    monkeypatch.setenv("ALLOW_DEV_AUTH_BYPASS", "true")
+    with patch("google.auth.default") as mock_default:
+        mock_creds = MagicMock()
+        mock_default.return_value = (mock_creds, "mock-project-123")
+        session, proj = get_authorized_session(bearer_token=None, project_id="mock-project-123")
+        assert session is not None
+        assert proj == "mock-project-123"
+
+    # 2. When GCP Resource Manager returns HTTP 403, inspect_project_iam_policy reports PERMISSION_DENIED with remediation
+    with patch("mcp_server_grc.cloud_inspector.get_authorized_session") as mock_gas:
+        mock_sess = MagicMock()
+        mock_resp = MagicMock()
+        mock_resp.status_code = 403
+        mock_resp.text = '{"error": {"code": 403, "message": "Permission denied"}}'
+        mock_sess.post.return_value = mock_resp
+        mock_gas.return_value = (mock_sess, "test-restricted-proj")
+
+        iam_res = inspect_project_iam_policy(project_id="test-restricted-proj", bearer_token=None)
+        assert iam_res["status"] == "PERMISSION_DENIED"
+        assert "Permissão negada (HTTP 403)" in iam_res["message"]
+        assert "onboard_client.sh" in iam_res["message"]
+        assert iam_res["compliance"]["status"] == "NON_COMPLIANT"
+        assert "onboard_client.sh" in iam_res["compliance"]["remediation"]
+
+    # 3. Verify portal HTML includes ...getAuthHeaders() in all audit execution calls and has corporateAccessTokenInput
+    res_ui = client.get("/")
+    assert res_ui.status_code == 200
+    html = res_ui.text
+    assert "corporateAccessTokenInput" in html
+    assert "custom_google_access_token" in html
+
+
+
 

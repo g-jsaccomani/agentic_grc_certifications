@@ -194,10 +194,11 @@ def get_authorized_session(
                 logger.warning(f"Error creating AuthorizedSession from user token: {exc}")
 
     # 2. Application Default Credentials (ADC / Cloud Run Service Account)
-    # Strictly restricted to test execution environments. Real requests without a valid delegated token
-    # must be denied live inspection to enforce per-user impersonation and least privilege.
+    # Allowed in test environments OR when ALLOW_DEV_AUTH_BYPASS / ENABLE_ADC_FALLBACK is enabled
+    # (e.g. deployed on Cloud Run where the service account holds roles/viewer or roles/securityReviewer).
     is_test = bool("PYTEST_CURRENT_TEST" in os.environ or os.getenv("TESTING") == "true")
-    if not is_test:
+    allow_adc = is_test or os.getenv("ALLOW_DEV_AUTH_BYPASS", "false").lower() == "true" or os.getenv("ENABLE_ADC_FALLBACK", "false").lower() == "true"
+    if not allow_adc:
         return None, target_project
 
     try:
@@ -745,6 +746,32 @@ def inspect_project_iam_policy(
                     ),
                 },
                 "bindings": bindings,
+            }
+        elif resp.status_code == 403:
+            logger.warning(f"Permission denied (403) getting IAM policy for {proj}: {resp.text}")
+            return {
+                "status": "PERMISSION_DENIED",
+                "project_id": proj,
+                "message": f"Permissão negada (HTTP 403) no projeto '{proj}'. Conceda roles/viewer e roles/securityReviewer executando scripts/onboard_client.sh.",
+                "bindings": [],
+                "compliance": {
+                    "status": "NON_COMPLIANT",
+                    "control": "ISO/IEC 27001:2022 A.5.15",
+                    "violations": [f"Permissão negada (HTTP 403) ao consultar política IAM de '{proj}'."],
+                    "remediation": f"Conceda permissão de leitura executando: scripts/onboard_client.sh --client=\"{client_id or 'client'}\" --projects=\"{proj}\"",
+                },
+            }
+        elif resp.status_code == 404:
+            return {
+                "status": "NOT_FOUND",
+                "project_id": proj,
+                "message": f"Projeto '{proj}' não encontrado no GCP (HTTP 404).",
+                "bindings": [],
+                "compliance": {
+                    "status": "UNDETERMINED",
+                    "control": "ISO/IEC 27001:2022 A.5.15",
+                    "violations": [f"Projeto '{proj}' inexistente ou inacessível."],
+                },
             }
     except Exception as exc:
         if isinstance(exc, TimeoutError) or any(t in str(exc).lower() for t in ["timeout", "timed out"]):
