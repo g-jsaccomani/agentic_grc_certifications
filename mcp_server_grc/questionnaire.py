@@ -22,7 +22,7 @@ import zipfile
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import APIRouter, File, UploadFile, Request, Response, HTTPException, Depends, Query, Header
+from fastapi import APIRouter, File, UploadFile, Request, Response, HTTPException, Depends, Query, Header, Form, Body
 from pydantic import BaseModel, Field
 
 from mcp_server_grc.auth import (
@@ -68,6 +68,7 @@ def resolve_active_client_id(
     x_operator_id: Optional[str] = None,
     client_id: Optional[str] = None,
     user_context: Optional[WorkspaceUserContext] = None,
+    payload_client_id: Optional[str] = None,
 ) -> str:
     """Resolves active client workspace ID from request headers, query params, session bindings, or operator context."""
     from mcp_server_grc.portal import (
@@ -81,28 +82,35 @@ def resolve_active_client_id(
     # 0. Narrow Token Guest Isolation: token holders can ONLY access their bound client
     if user_context and getattr(user_context, "is_token_guest", False):
         token_cid = getattr(user_context, "token_client_id", None)
-        if token_cid:
-            requested_cids = [c for c in (x_client_id, client_id) if c and str(c).strip()]
-            if request:
-                r_hdr = request.headers.get("X-Client-Id")
-                r_qp = request.query_params.get("client_id")
-                if r_hdr and str(r_hdr).strip():
-                    requested_cids.append(str(r_hdr).strip())
-                if r_qp and str(r_qp).strip():
-                    requested_cids.append(str(r_qp).strip())
-            for req_c in requested_cids:
-                if req_c != token_cid:
-                    raise HTTPException(
-                        status_code=403,
-                        detail=f"Access denied: Token is scoped exclusively to client '{token_cid}' and cannot access client '{req_c}'.",
-                    )
-            return token_cid
+        if not token_cid:
+            raise HTTPException(
+                status_code=403,
+                detail="Access denied: Questionnaire token is not bound to a valid client.",
+            )
+        requested_cids = [str(c).strip() for c in (x_client_id, client_id, payload_client_id) if c and str(c).strip()]
+        if request:
+            r_hdr = request.headers.get("x-client-id") or request.headers.get("X-Client-Id")
+            r_qp = request.query_params.get("client_id")
+            if r_hdr and str(r_hdr).strip():
+                requested_cids.append(str(r_hdr).strip())
+            if r_qp and str(r_qp).strip():
+                requested_cids.append(str(r_qp).strip())
+        for req_c in requested_cids:
+            if req_c != token_cid:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Access denied: Token is scoped exclusively to client '{token_cid}' and cannot access client '{req_c}'.",
+                )
+        return token_cid
 
     if x_client_id and str(x_client_id).strip():
         return str(x_client_id).strip()
 
     if client_id and str(client_id).strip():
         return str(client_id).strip()
+
+    if payload_client_id and str(payload_client_id).strip():
+        return str(payload_client_id).strip()
 
     sess_id = x_session_id
     if not sess_id and request:
@@ -276,7 +284,7 @@ SOC2_CATALOG = [
 class QuestionnaireAnswer(BaseModel):
     control_id: str = Field(..., description="Control ID (e.g. A.5.1 or CC6.1)")
     framework: str = Field(default="ISO27001:2022", description="Compliance framework identifier")
-    client_id: Optional[str] = Field(default="altostrat-ventures", description="Client workspace identifier")
+    client_id: Optional[str] = Field(default=None, description="Client workspace identifier")
     status: str = Field(..., description="COMPLIANT, NON_COMPLIANT, VERIFICAR, NOT_APPLICABLE, IN_PROGRESS, PARTIAL")
     justification: str = Field(..., description="Reviewer explanation or rationale")
     evidence_text: Optional[str] = Field(default=None, description="Extracted or textual evidence content")
@@ -619,6 +627,7 @@ async def upload_evidence_file(
     x_session_id: Optional[str] = Header(None),
     x_operator_id: Optional[str] = Header(None),
     client_id: Optional[str] = Query(default=None),
+    form_client_id: Optional[str] = Form(default=None, alias="client_id"),
     user_context: WorkspaceUserContext = Depends(require_questionnaire_authorized_user),
 ):
     """Uploads and strictly validates evidence files by actual content.
@@ -642,6 +651,7 @@ async def upload_evidence_file(
         x_session_id=x_session_id,
         x_operator_id=x_operator_id,
         client_id=client_id,
+        payload_client_id=form_client_id,
         user_context=user_context,
     )
 
@@ -1025,11 +1035,12 @@ async def submit_questionnaire_answer(
         x_client_id=x_client_id,
         x_session_id=x_session_id,
         x_operator_id=x_operator_id,
-        client_id=client_id or (answer.client_id if (answer and answer.client_id and answer.client_id != "altostrat-ventures") else None),
+        client_id=client_id,
+        payload_client_id=answer.client_id,
         user_context=user_context,
     )
-    target_client_id = active_client_id or answer.client_id or "altostrat-ventures"
-    answer.client_id = target_client_id
+    answer.client_id = active_client_id
+    target_client_id = active_client_id
 
     # 1. Model Armor Ingress Validation on text fields
     try:
@@ -1040,7 +1051,7 @@ async def submit_questionnaire_answer(
         ]:
             if text_val and str(text_val).strip():
                 verdict = model_armor_gateway.inspect_ingress(str(text_val).strip())
-                if verdict.is_blocked:
+                if not verdict.allowed:
                     msg = model_armor_gateway.format_block_message(verdict.violations, locale="pt")
                     raise HTTPException(
                         status_code=400,
@@ -1061,6 +1072,9 @@ async def submit_questionnaire_answer(
     if answer.file_id:
         f_meta = get_cached_or_stored_evidence_metadata(answer.file_id)
         if f_meta:
+            file_cid = f_meta.get("client_id")
+            if file_cid and file_cid != active_client_id:
+                raise HTTPException(status_code=404, detail="Evidence file not found.")
             if not answer.original_filename:
                 answer.original_filename = f_meta.get("original_filename")
             if not answer.evidence_text and f_meta.get("extracted_text"):
@@ -1350,6 +1364,12 @@ class VerificationConfirmationRequest(BaseModel):
     decision: str = Field(..., description="Explicit human decision: COMPLIANT or NON_COMPLIANT")
     justification: Optional[str] = Field(default=None, description="Auditor/reviewer justification notes")
     framework: str = Field(default="ISO27001:2022")
+    client_id: Optional[str] = Field(default=None, description="Optional target client identifier")
+
+
+class VerifyScanRequest(BaseModel):
+    client_id: Optional[str] = Field(default=None, description="Optional target client identifier")
+    framework: Optional[str] = Field(default=None, description="Compliance framework identifier")
 
 
 @router.post(
@@ -1360,6 +1380,7 @@ class VerificationConfirmationRequest(BaseModel):
 async def verify_control_via_scan(
     control_id: str,
     request: Request,
+    req: Optional[VerifyScanRequest] = Body(default=None),
     framework: str = Query(default="ISO27001:2022"),
     client_id: Optional[str] = Query(default=None),
     x_client_id: Optional[str] = Header(default=None),
@@ -1387,6 +1408,7 @@ async def verify_control_via_scan(
         x_session_id=x_session_id,
         x_operator_id=x_operator_id,
         client_id=client_id,
+        payload_client_id=req.client_id if req else None,
         user_context=user_context,
     )
 
@@ -1518,6 +1540,7 @@ async def confirm_control_verification(
         x_session_id=x_session_id,
         x_operator_id=x_operator_id,
         client_id=client_id,
+        payload_client_id=req.client_id if req else None,
         user_context=user_context,
     )
 
