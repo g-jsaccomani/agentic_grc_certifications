@@ -1846,27 +1846,22 @@ def test_client_onboard_modal_pdf_export_elements():
 
 def test_google_drive_modal_and_ui_elements():
     """Verifies that the Onboarding Modal has Google Drive folder selection,
-    Drive TXT selection, and the interactive Google Drive Explorer modal."""
+    direct Google Drive opening (without secondary in-app modal), and auto-create."""
     res = client.get("/")
     assert res.status_code == 200
     html = res.text
 
     # 1. Drive buttons in onboarding modal
     assert 'id="btnSelectDriveFolder"' in html
-    assert 'openGoogleDriveFolderPicker()' in html
-    assert 'openDriveTxtPicker()' in html
+    assert 'openDriveFolderDirectly()' in html
+    assert "openDriveDirectly('txt')" in html
     assert 'id="btnCreateDriveFolderQuick"' in html
     assert 'id="driveConnectedUserEmail"' in html
     assert 'id="driveFolderSelectedFeedback"' in html
 
-    # 2. Drive Picker Modal
-    assert 'id="drivePickerModal"' in html
-    assert 'id="driveFoldersListContainer"' in html
-    assert 'id="driveTabBrowse"' in html
-    assert 'id="driveTabCreate"' in html
-    assert 'id="driveTabDirectLink"' in html
-    assert 'id="btnOpenNativeGooglePicker"' in html
-    assert 'id="driveNewFolderNameInput"' in html
+    # 2. Verify no secondary in-app modal (direct Google Drive experience)
+    assert 'id="drivePickerModal"' not in html
+    assert 'id="driveFoldersListContainer"' not in html
 
 
 def test_google_drive_api_endpoints_end_to_end():

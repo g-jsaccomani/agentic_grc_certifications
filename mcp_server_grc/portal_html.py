@@ -8682,96 +8682,39 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     </svg>
                 </button>
             </div>
-            <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.45; margin-bottom: 12px;" data-i18n="onboard_modal_desc">
-                Envie o script de bootstrap abaixo para o cliente executar no ambiente dele (Google Cloud Shell / CLI) como Administrador da Organização. O script concede acesso estritamente Read-Only em nível de organização (<code>roles/viewer</code>, <code>roles/iam.securityReviewer</code>) e exporta um arquivo <code>.txt</code> de configuração para carregar no botão abaixo.
+            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;" data-i18n="onboard_modal_desc">
+                <span>Provisione a organização do cliente de forma rápida e segura (Read-Only).</span>
+                <span style="font-size: 11px; color: var(--gcp-green); display: inline-flex; align-items: center; gap: 4px;">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Least Privilege IAM</span>
+                </span>
             </div>
 
-            <div style="overflow-y: auto; max-height: calc(92vh - 160px); padding-right: 4px; display: flex; flex-direction: column; gap: 10px;">
-                <!-- 1. Top Section: Load from TXT (Carregar Arquivo .txt do Cliente) -->
-                <div class="form-group" style="margin: 0; padding: 10px 14px; background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(66, 133, 244, 0.1); display: flex; align-items: center; justify-content: center; color: var(--gcp-blue);">
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                    <polyline points="14 2 14 8 20 8"/>
-                                    <line x1="16" y1="13" x2="8" y2="13"/>
-                                    <line x1="16" y1="17" x2="8" y2="17"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <div style="font-size: 12.5px; font-weight: 600; color: var(--text-primary);" data-i18n="onboard_upload_txt_label">Carregar Arquivo .txt do Cliente (grc_onboarding_config.txt)</div>
-                                <div style="font-size: 11px; color: var(--text-secondary);">Preenche automaticamente a organização, projetos mapeados e tokens do cliente.</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                            <input type="file" id="onboardTxtFileInput" accept=".txt" style="display: none;" onchange="handleOnboardTxtFileUpload(this)">
-                            <button type="button" class="btn-primary" style="padding: 6px 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" onclick="document.getElementById('onboardTxtFileInput').click()" title="Carregar arquivo .txt do computador">
-                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                    <polyline points="17 8 12 3 7 8"/>
-                                    <line x1="12" y1="3" x2="12" y2="15"/>
-                                </svg>
-                                <span data-i18n="onboard_choose_file">Do Computador (.txt)</span>
-                            </button>
-                            <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: #1a73e8; border-color: rgba(66, 133, 244, 0.4); background: rgba(66, 133, 244, 0.05);" onclick="openDriveTxtPicker()" title="Selecionar grc_onboarding_config.txt salvo no Google Drive">
-                                <svg viewBox="0 0 87.3 78" width="14" height="13" fill="none">
-                                    <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
-                                    <path d="M43.65 25 29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44A9.06 9.06 0 0 0 0 53h27.5z" fill="#00ac47"/>
-                                    <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l6.1 10.55z" fill="#ea4335"/>
-                                    <path d="M43.65 25 57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.4-4.5 1.2z" fill="#00832d"/>
-                                    <path d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z" fill="#2684fc"/>
-                                    <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25 59.8 53h27.5c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
-                                </svg>
-                                <span>Do Google Drive</span>
-                            </button>
+            <div style="display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: calc(88vh - 120px); padding-right: 2px;">
+                <!-- 1. Top Section: Smart TXT Upload & Direct Google Drive -->
+                <div style="padding: 10px 12px; background: var(--bg-surface); border: 1px dashed var(--border-subtle); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--gcp-blue)" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        <div>
+                            <div style="font-size: 12px; font-weight: 600; color: var(--text-primary);" data-i18n="onboard_upload_txt_label">Configuração do Cliente (.txt)</div>
+                            <div style="font-size: 10.5px; color: var(--text-tertiary);">grc_onboarding_config.txt</div>
                         </div>
                     </div>
-                    <div id="onboardTxtFileStatus" style="display: none; margin-top: 8px; font-size: 12px; line-height: 1.4; padding: 6px 10px; border-radius: 6px;"></div>
-                </div>
-
-                <!-- 2. Form Fields Grid -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" for="onboardClientNameInput" data-i18n="onboard_input_label" style="font-size: 11.5px; margin-bottom: 4px;">Nome da Empresa / Cliente</label>
-                        <input type="text" id="onboardClientNameInput" class="form-input" placeholder="ex.: Acme Financial" oninput="updateOnboardScriptPreview()" style="font-size: 12.5px; padding: 6px 10px;">
-                    </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" for="onboardConsultantEmailInput" data-i18n="onboard_consultant_label" style="font-size: 11.5px; margin-bottom: 4px;">Identidade do Consultor / Revisor (E-mail ou SA)</label>
-                        <input type="text" id="onboardConsultantEmailInput" class="form-input" placeholder="ex.: jsaccomani@google.com" oninput="updateOnboardScriptPreview()" style="font-size: 12.5px; padding: 6px 10px;">
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" for="onboardClientProjectsInput" data-i18n="onboard_projects_label" style="font-size: 11.5px; margin-bottom: 4px;">Projetos GCP no Escopo (separados por vírgula)</label>
-                        <input type="text" id="onboardClientProjectsInput" class="form-input" placeholder="ex.: acme-prod-01, acme-data-lake (ou detectados automaticamente)" oninput="updateOnboardScriptPreview()" style="font-size: 12.5px; padding: 6px 10px;">
-                    </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label class="form-label" for="onboardClientDaysInput" data-i18n="onboard_days_label" style="font-size: 11.5px; margin-bottom: 4px;">Validade do Acesso (dias)</label>
-                        <input type="number" id="onboardClientDaysInput" class="form-input" value="30" min="1" max="90" oninput="updateOnboardScriptPreview()" style="font-size: 12.5px; padding: 6px 10px;">
-                    </div>
-                </div>
-
-                <div class="form-group" style="margin: 0;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <label class="form-label" for="onboardClientDriveFolderInput" data-i18n="onboard_drive_folder_label" style="font-size: 11.5px; margin: 0;">
-                            Pasta do Google Drive (Armazenamento de Evidências & Dados)
-                        </label>
-                        <span id="driveAccountStatusBadge" style="font-size: 11px; color: var(--text-tertiary); display: inline-flex; align-items: center; gap: 5px;">
-                            <span style="width: 7px; height: 7px; border-radius: 50%; background: #34a853; display: inline-block;"></span>
-                            <span>Conta Google: <strong id="driveConnectedUserEmail" style="color: var(--text-secondary); font-family: var(--font-mono, monospace);">jsaccomani@google.com</strong></span>
-                        </span>
-                    </div>
-                    <div style="display: flex; gap: 6px; align-items: center;">
-                        <div style="position: relative; flex: 1;">
-                            <input type="text" id="onboardClientDriveFolderInput" class="form-input" placeholder="Cole o link/ID ou clique em 'Selecionar no Drive' →" oninput="updateOnboardScriptPreview(); checkDriveFolderFeedback();" style="font-size: 12px; padding: 7px 10px 7px 32px; width: 100%;">
-                            <svg style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #1a73e8;" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <input type="file" id="onboardTxtFileInput" accept=".txt" style="display: none;" onchange="handleOnboardTxtFileUpload(this)">
+                        <button type="button" class="btn-primary" style="padding: 5px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;" onclick="document.getElementById('onboardTxtFileInput').click()" title="Selecionar grc_onboarding_config.txt do computador">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
                             </svg>
-                        </div>
-                        <button type="button" class="btn-primary" id="btnSelectDriveFolder" onclick="openGoogleDriveFolderPicker()" style="padding: 7px 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer; background: #1a73e8; border-color: #1a73e8;" title="Navegar ou selecionar pasta no Google Drive do usuário logado">
-                            <svg viewBox="0 0 87.3 78" width="14" height="13" fill="none">
+                            <span data-i18n="onboard_choose_file">Upload .txt</span>
+                        </button>
+                        <button type="button" class="btn-cancel" style="padding: 5px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; color: #1a73e8; border-color: rgba(66, 133, 244, 0.4);" onclick="openDriveDirectly('txt')" title="Abrir Google Drive diretamente para buscar o arquivo">
+                            <svg viewBox="0 0 87.3 78" width="13" height="12" fill="none">
                                 <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
                                 <path d="M43.65 25 29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44A9.06 9.06 0 0 0 0 53h27.5z" fill="#00ac47"/>
                                 <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l6.1 10.55z" fill="#ea4335"/>
@@ -8779,254 +8722,164 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                                 <path d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z" fill="#2684fc"/>
                                 <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25 59.8 53h27.5c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
                             </svg>
-                            <span>Selecionar no Drive</span>
-                        </button>
-                        <button type="button" class="btn-cancel" onclick="createAutoDriveFolderForClient()" id="btnCreateDriveFolderQuick" title="Criar automaticamente uma pasta 'GRC - Evidências' para este cliente no seu Google Drive" style="padding: 7px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                            <span>Nova Pasta</span>
+                            <span>Abrir Drive</span>
                         </button>
                     </div>
-                    <div id="driveFolderSelectedFeedback" style="display: none; margin-top: 5px; font-size: 11px; padding: 4px 8px; border-radius: 6px; align-items: center; gap: 6px;"></div>
+                </div>
+                <div id="onboardTxtFileStatus" style="display: none; font-size: 11px; padding: 6px 10px; border-radius: 6px;"></div>
+
+                <!-- 2. Clean Form Grid with Inline Icons -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" for="onboardClientNameInput" style="font-size: 11px; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14M21 7v14M6 11h2M6 15h2M16 11h2M16 15h2M10 21V3h4v18"/></svg>
+                            <span data-i18n="onboard_input_label">Empresa / Cliente</span>
+                        </label>
+                        <input type="text" id="onboardClientNameInput" class="form-input" placeholder="ex.: Acme Financial" oninput="updateOnboardScriptPreview()" style="font-size: 12px; padding: 6px 8px;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" for="onboardConsultantEmailInput" style="font-size: 11px; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <span data-i18n="onboard_consultant_label">Consultor Responsável</span>
+                        </label>
+                        <input type="text" id="onboardConsultantEmailInput" class="form-input" placeholder="jsaccomani@google.com" oninput="updateOnboardScriptPreview()" style="font-size: 12px; padding: 6px 8px;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" for="onboardClientProjectsInput" style="font-size: 11px; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+                            <span data-i18n="onboard_projects_label">Projetos GCP no Escopo</span>
+                        </label>
+                        <input type="text" id="onboardClientProjectsInput" class="form-input" placeholder="acme-prod-01, acme-data-lake" oninput="updateOnboardScriptPreview()" style="font-size: 12px; padding: 6px 8px;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label" for="onboardClientDaysInput" style="font-size: 11px; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            <span data-i18n="onboard_days_label">Validade (dias)</span>
+                        </label>
+                        <input type="number" id="onboardClientDaysInput" class="form-input" value="30" min="1" max="90" oninput="updateOnboardScriptPreview()" style="font-size: 12px; padding: 6px 8px;">
+                    </div>
+                </div>
+
+                <!-- Google Drive Evidence Storage Field -->
+                <div class="form-group" style="margin: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                        <label class="form-label" for="onboardClientDriveFolderInput" style="font-size: 11px; margin: 0; display: flex; align-items: center; gap: 4px;">
+                            <svg viewBox="0 0 87.3 78" width="12" height="11" fill="none">
+                                <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+                                <path d="M43.65 25 29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44A9.06 9.06 0 0 0 0 53h27.5z" fill="#00ac47"/>
+                                <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l6.1 10.55z" fill="#ea4335"/>
+                                <path d="M43.65 25 57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.4-4.5 1.2z" fill="#00832d"/>
+                                <path d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z" fill="#2684fc"/>
+                                <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25 59.8 53h27.5c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+                            </svg>
+                            <span data-i18n="onboard_drive_folder_label">Pasta no Google Drive (Evidências)</span>
+                        </label>
+                        <span id="driveAccountStatusBadge" style="font-size: 10.5px; color: var(--text-tertiary); display: inline-flex; align-items: center; gap: 4px;">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #34a853; display: inline-block;"></span>
+                            <span id="driveConnectedUserEmail">jsaccomani@google.com</span>
+                        </span>
+                    </div>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <input type="text" id="onboardClientDriveFolderInput" class="form-input" placeholder="ID ou URL da pasta no Google Drive" oninput="updateOnboardScriptPreview(); checkDriveFolderFeedback();" style="font-size: 12px; padding: 6px 8px; flex: 1;">
+                        <button type="button" class="btn-cancel" id="btnSelectDriveFolder" onclick="openDriveFolderDirectly()" style="padding: 6px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; cursor: pointer; color: #1a73e8; border-color: rgba(66, 133, 244, 0.4);" title="Abrir pasta diretamente no Google Drive">
+                            <svg viewBox="0 0 87.3 78" width="13" height="12" fill="none">
+                                <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+                                <path d="M43.65 25 29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44A9.06 9.06 0 0 0 0 53h27.5z" fill="#00ac47"/>
+                                <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l6.1 10.55z" fill="#ea4335"/>
+                                <path d="M43.65 25 57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.4-4.5 1.2z" fill="#00832d"/>
+                                <path d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z" fill="#2684fc"/>
+                                <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25 59.8 53h27.5c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+                            </svg>
+                            <span>Abrir no Drive</span>
+                        </button>
+                        <button type="button" class="btn-cancel" onclick="autoAssignDriveFolder()" id="btnCreateDriveFolderQuick" title="Definir pasta de evidências automaticamente" style="padding: 6px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                            </svg>
+                            <span>Auto-Criar</span>
+                        </button>
+                    </div>
+                    <div id="driveFolderSelectedFeedback" style="display: none; margin-top: 4px; font-size: 11px; padding: 4px 8px; border-radius: 6px; align-items: center; gap: 6px;"></div>
                 </div>
 
                 <!-- Hidden inputs for organization metadata -->
                 <input type="hidden" id="onboardClientOrgId" value="">
                 <input type="hidden" id="onboardClientOrgName" value="">
 
-                <!-- 3. Lower Section: Bootstrap Script Ready for Client Execution (Replaces old Command/PDF section) -->
-                <div class="form-group" style="margin: 4px 0 0 0;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
-                        <!-- Cloud Provider Switcher (Extensible Architecture: GCP, AWS, Azure) -->
-                        <div style="display: flex; align-items: center; gap: 4px; background: var(--bg-surface); padding: 2px 4px; border-radius: 8px; border: 1px solid var(--border-subtle);">
-                            <button type="button" class="cloud-tab" id="onboardTabGcp" onclick="switchOnboardCloudTab('gcp')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500; background: var(--gcp-blue); color: #fff;">
-                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
-                                    <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="currentColor"/>
-                                </svg>
-                                <span>GCP (Google Cloud)</span>
+                <!-- 3. Bootstrap Script & Actions Bar (Clean, Compact & Icon-Driven) -->
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+                        <!-- Cloud Selector -->
+                        <div style="display: flex; align-items: center; gap: 4px; font-size: 11px;">
+                            <button type="button" class="cloud-tab" id="onboardTabGcp" onclick="switchOnboardCloudTab('gcp')" style="padding: 3px 8px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; background: var(--gcp-blue); color: #fff; display: flex; align-items: center; gap: 4px;">
+                                <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
+                                <span>GCP</span>
                             </button>
-                            <button type="button" class="cloud-tab" id="onboardTabAws" onclick="switchOnboardCloudTab('aws')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500; background: transparent; color: var(--text-secondary);" title="AWS Onboarding (Em breve)">
+                            <button type="button" class="cloud-tab" id="onboardTabAws" onclick="switchOnboardCloudTab('aws')" style="padding: 3px 8px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; background: transparent; color: var(--text-tertiary);" title="AWS (Em breve)">
                                 <span>AWS</span>
-                                <span style="font-size: 9px; padding: 1px 4px; border-radius: 4px; background: rgba(255,255,255,0.08); color: var(--text-tertiary);">Em breve</span>
                             </button>
-                            <button type="button" class="cloud-tab" id="onboardTabAzure" onclick="switchOnboardCloudTab('azure')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500; background: transparent; color: var(--text-secondary);" title="Azure Onboarding (Em breve)">
+                            <button type="button" class="cloud-tab" id="onboardTabAzure" onclick="switchOnboardCloudTab('azure')" style="padding: 3px 8px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; background: transparent; color: var(--text-tertiary);" title="Azure (Em breve)">
                                 <span>Azure</span>
-                                <span style="font-size: 9px; padding: 1px 4px; border-radius: 4px; background: rgba(255,255,255,0.08); color: var(--text-tertiary);">Em breve</span>
                             </button>
                         </div>
 
-                        <!-- Action Buttons: Copiar Script & Baixar Script -->
-                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                            <button type="button" class="btn-cancel" style="padding: 4px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; color: var(--gcp-blue); border-color: rgba(66, 133, 244, 0.4);" onclick="copyOnboardCloudShellCommand()" id="btnCopyOnboardCloudShell" title="Copiar comando pronto para colar no Google Cloud Shell com 1 clique">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="4 17 10 11 4 5"></polyline>
-                                    <line x1="12" y1="19" x2="20" y2="19"></line>
-                                </svg>
-                                <span>Copiar p/ Cloud Shell (1-Clique)</span>
+                        <!-- Action buttons with icons -->
+                        <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
+                            <button type="button" class="btn-cancel" style="padding: 4px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; color: var(--gcp-blue); border-color: rgba(66, 133, 244, 0.4);" onclick="copyOnboardCloudShellCommand()" id="btnCopyOnboardCloudShell" title="Copiar comando pronto para colar no Google Cloud Shell">
+                                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                                <span>Copiar Comando</span>
                             </button>
-                            <button type="button" class="btn-cancel" style="padding: 4px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;" onclick="copyOnboardScript()" id="btnCopyOnboardScript">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                </svg>
-                                <span data-i18n="onboard_copy_script">Copiar Script (.sh)</span>
+                            <button type="button" class="btn-cancel" style="padding: 4px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;" onclick="copyOnboardScript()" id="btnCopyOnboardScript" title="Copiar script completo">
+                                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                <span data-i18n="onboard_copy_script">Script (.sh)</span>
                             </button>
-                            <button type="button" class="btn-cancel" style="padding: 4px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;" onclick="downloadOnboardScript()" id="btnDownloadOnboardScript" title="Baixar arquivo de script .sh pronto para envio">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                    <polyline points="7 10 12 15 17 10"></polyline>
-                                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                                </svg>
-                                <span data-i18n="onboard_download_script">Baixar (.sh)</span>
+                            <button type="button" class="btn-cancel" style="padding: 4px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;" onclick="downloadOnboardScript()" id="btnDownloadOnboardScript" title="Baixar arquivo .sh">
+                                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                <span data-i18n="onboard_download_script">Baixar</span>
                             </button>
-                            <button type="button" class="btn-cancel" style="padding: 4px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; color: var(--gcp-blue); border-color: rgba(138, 180, 248, 0.4);" onclick="exportOnboardInstructionsPdf()" id="btnExportOnboardPdf" title="Exportar passos para o cliente rodar no Cloud Shell em PDF">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                                    <rect x="6" y="14" width="12" height="8"></rect>
-                                </svg>
-                                <span data-i18n="onboard_export_pdf">Exportar PDF</span>
+                            <button type="button" class="btn-cancel" style="padding: 4px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; color: var(--gcp-blue);" onclick="exportOnboardInstructionsPdf()" id="btnExportOnboardPdf" title="Exportar passos em PDF">
+                                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                <span data-i18n="onboard_export_pdf">PDF</span>
+                            </button>
+                            <button type="button" class="btn-cancel" style="padding: 4px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;" onclick="toggleScriptPreviewBox()" id="btnToggleScriptPreview" title="Expandir/recolher código do script">
+                                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg>
+                                <span id="lblToggleScript">Ver Código</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Script Code Block Container -->
-                    <div style="border: 1px solid var(--border-subtle); border-radius: 8px; overflow: hidden; background: #141414;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #1c1c1c; padding: 5px 12px; border-bottom: 1px solid var(--border-subtle); font-size: 11px; color: var(--text-secondary);">
-                            <span id="onboardScriptFilename" style="font-family: var(--font-mono, monospace); color: var(--gcp-blue); font-weight: 500;">gcp_onboard_bootstrap.sh</span>
-                            <span>Cloud Shell / Terminal • Organization Level • Read-Only</span>
+                    <!-- Collapsible Script Code Block -->
+                    <div id="scriptPreviewCollapsibleContainer" style="display: none; border: 1px solid var(--border-subtle); border-radius: 6px; overflow: hidden; background: #121212;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 4px 10px; font-size: 10.5px; color: var(--text-tertiary); font-family: var(--font-mono, monospace);">
+                            <span id="onboardScriptFilename" style="color: var(--gcp-blue);">gcp_onboard_bootstrap.sh</span>
+                            <span>Cloud Shell • Organization Level • Read-Only</span>
                         </div>
-                        <pre id="onboardScriptPreview" style="background: #121212; padding: 12px; font-family: var(--font-mono, monospace); font-size: 11px; line-height: 1.45; color: #a8c7fa; max-height: 160px; overflow-y: auto; overflow-x: auto; margin: 0; white-space: pre; word-break: normal; user-select: all;"></pre>
-                        <!-- Hidden element for test compatibility -->
-                        <div style="display: none;" id="onboardCommandPreview">bash scripts/onboard_client.sh</div>
+                        <pre id="onboardScriptPreview" style="background: #101010; padding: 8px 10px; font-family: var(--font-mono, monospace); font-size: 10.5px; line-height: 1.4; color: #a8c7fa; max-height: 120px; overflow-y: auto; overflow-x: auto; margin: 0; white-space: pre; user-select: all;"></pre>
                     </div>
-
-                    <!-- Client Execution Instructions -->
-                    <div style="margin-top: 8px; padding: 8px 12px; background: rgba(66, 133, 244, 0.05); border: 1px solid rgba(66, 133, 244, 0.2); border-radius: 8px; font-size: 11.5px; color: var(--text-secondary); line-height: 1.5;">
-                        <div style="font-weight: 600; color: var(--gcp-blue); margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="16" x2="12" y2="12"></line>
-                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                            </svg>
-                            <span data-i18n="onboard_exec_flow_title">Fluxo de Execução no Ambiente do Cliente:</span>
-                        </div>
-                        <ol style="margin: 0; padding-left: 16px; font-size: 11px; color: var(--text-primary);">
-                            <li data-i18n="onboard_step_1">Envie este script para o <strong>Administrador da Organização (Org Admin)</strong> do cliente.</li>
-                            <li data-i18n="onboard_step_2">O cliente cola e executa o script no <strong>Google Cloud Shell</strong> (console.cloud.google.com).</li>
-                            <li data-i18n="onboard_step_3">O script varre todas as pastas e projetos da organização, concede permissões de avaliação <strong>estritamente Read-Only</strong> em nível de organização e gera o arquivo <code>grc_onboarding_config.txt</code>.</li>
-                            <li data-i18n="onboard_step_4">O cliente salva e envia o arquivo de volta, e você clica em <strong>Load from TXT</strong> acima para concluir o provisionamento.</li>
-                        </ol>
-                    </div>
-
-                    <!-- Architecture & Hosting Clarification Callout -->
-                    <div style="margin-top: 8px; padding: 10px 12px; background: rgba(66, 133, 244, 0.06); border: 1px solid rgba(66, 133, 244, 0.25); border-radius: 8px; font-size: 11.5px; line-height: 1.5; color: var(--text-secondary);">
-                        <div style="font-weight: 600; color: var(--gcp-blue); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="16" x2="12" y2="12"></line>
-                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                            </svg>
-                            <span data-i18n="onboard_architecture_title">Como Funciona: Consultor Central vs. Projeto Dedicado</span>
-                        </div>
-                        <p style="margin: 0 0 4px 0;" data-i18n="onboard_architecture_desc">
-                            <strong>Sem necessidade de criar projeto:</strong> A plataforma Agentic GRC executa centralizada no Google Cloud Run. Este script apenas concede papéis estritamente Read-Only temporários (<code>roles/viewer</code>, <code>roles/iam.securityReviewer</code>) para avaliar os projetos existentes remotamente, sem provisionar servidores ou recursos no ambiente do cliente.
-                        </p>
-                        <p style="margin: 0; font-size: 11px; color: var(--text-tertiary);" data-i18n="onboard_architecture_self_host">
-                            Deseja hospedar o ambiente 100% dedicado na sua própria organização GCP? Utilize os módulos Terraform (<code>terraform/first_steps/</code> e <code>make journey</code>) para criar uma pasta/projeto dedicado e rodar o serviço internamente.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- 4. Security Guarantee Banner -->
-                <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(52, 168, 83, 0.08); border: 1px solid rgba(52, 168, 83, 0.25); border-radius: 8px; font-size: 11.5px; color: var(--gcp-green);">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        <path d="M9 12l2 2 4-4"/>
-                    </svg>
-                    <span data-i18n="onboard_security_guarantee"><strong>Segurança Garantida:</strong> Zero permissões de modificação ou exclusão (Least Privilege). Papéis: <code>roles/viewer</code>, <code>roles/iam.securityReviewer</code>, <code>roles/resourcemanager.organizationViewer</code>.</span>
+                    <!-- Hidden element for test compatibility -->
+                    <div style="display: none;" id="onboardCommandPreview">bash scripts/onboard_client.sh</div>
                 </div>
             </div>
 
             <!-- Modal Actions Footer -->
-            <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
-                <button class="btn-cancel" onclick="closeOnboardModal()"><span data-i18n="btn_close">Fechar</span></button>
-                <button class="btn-primary" id="btnSubmitOnboardClient" onclick="submitOnboardClientModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; background: var(--gcp-blue); color: #fff; border: none; border-radius: 6px; font-weight: 500; font-size: 12.5px; cursor: pointer;">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2">
-                        <line x1="12" y1="5" x2="12" y2="19"/>
-                        <line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    <span data-i18n="btn_confirm_onboard">Conectar Cliente</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Google Drive Picker & Browser (Folder & Config TXT) -->
-    <div class="modal-overlay" id="drivePickerModal" style="z-index: 10001;">
-        <div class="modal-window" style="max-width: 680px; max-height: 88vh; display: flex; flex-direction: column; padding: 22px 24px;">
-            <div class="modal-header" style="margin-bottom: 12px;">
-                <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
-                    <svg viewBox="0 0 87.3 78" width="22" height="20" fill="none">
-                        <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
-                        <path d="M43.65 25 29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44A9.06 9.06 0 0 0 0 53h27.5z" fill="#00ac47"/>
-                        <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l6.1 10.55z" fill="#ea4335"/>
-                        <path d="M43.65 25 57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.4-4.5 1.2z" fill="#00832d"/>
-                        <path d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.4 4.5-1.2z" fill="#2684fc"/>
-                        <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25 59.8 53h27.5c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
-                    </svg>
-                    <span id="drivePickerModalTitle">Google Drive — Selecionar Pasta de Evidências</span>
+            <div class="modal-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
+                <div style="font-size: 11px; color: var(--text-tertiary); display: flex; align-items: center; gap: 5px;">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <span>Read-Only Seguro (<code>roles/viewer</code>, <code>roles/iam.securityReviewer</code>)</span>
                 </div>
-                <button class="btn-collapse" onclick="closeDrivePickerModal()">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Account Header info bar -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(66, 133, 244, 0.06); border: 1px solid rgba(66, 133, 244, 0.2); border-radius: 8px; margin-bottom: 12px; font-size: 11.5px;">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #34a853; display: inline-block;"></span>
-                    <span style="color: var(--text-secondary);">Conta Google:</span>
-                    <strong id="driveModalUserEmail" style="color: var(--gcp-blue); font-family: var(--font-mono, monospace);">jsaccomani@google.com</strong>
+                <div style="display: flex; gap: 6px;">
+                    <button class="btn-cancel" onclick="closeOnboardModal()" style="font-size: 12px; padding: 6px 12px;"><span data-i18n="btn_close">Fechar</span></button>
+                    <button class="btn-primary" id="btnSubmitOnboardClient" onclick="submitOnboardClientModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--gcp-blue); color: #fff; border: none; border-radius: 6px; font-weight: 500; font-size: 12px; cursor: pointer;">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        <span data-i18n="btn_confirm_onboard">Conectar Cliente</span>
+                    </button>
                 </div>
-                <button type="button" class="btn-cancel" onclick="triggerNativeGooglePicker()" id="btnOpenNativeGooglePicker" style="padding: 3px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; color: var(--gcp-blue); border-color: rgba(66, 133, 244, 0.3);">
-                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                        <polyline points="15 3 21 3 21 9"></polyline>
-                        <line x1="10" y1="14" x2="21" y2="3"></line>
-                    </svg>
-                    <span>Google Picker (Nativo)</span>
-                </button>
-            </div>
-
-            <!-- Tabs: Navegar Pastas | Criar Nova Pasta | Colar Link/ID -->
-            <div style="display: flex; gap: 6px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px; margin-bottom: 12px;">
-                <button type="button" class="btn-cancel active" id="driveTabBrowse" onclick="switchDrivePickerTab('browse')" style="font-size: 12px; padding: 5px 12px; border-radius: 6px;">
-                    📁 Pastas no Drive
-                </button>
-                <button type="button" class="btn-cancel" id="driveTabCreate" onclick="switchDrivePickerTab('create')" style="font-size: 12px; padding: 5px 12px; border-radius: 6px;">
-                    ➕ Criar Nova Pasta
-                </button>
-                <button type="button" class="btn-cancel" id="driveTabDirectLink" onclick="switchDrivePickerTab('link')" style="font-size: 12px; padding: 5px 12px; border-radius: 6px;">
-                    🔗 Colar Link ou ID
-                </button>
-            </div>
-
-            <!-- View 1: Browse Folders / Search -->
-            <div id="driveViewBrowse" style="display: flex; flex-direction: column; gap: 10px; flex: 1; overflow: hidden;">
-                <div style="position: relative;">
-                    <input type="text" id="driveSearchFolderInput" class="form-input" placeholder="Filtrar pastas..." oninput="filterDriveFoldersList()" style="font-size: 12px; padding: 7px 10px 7px 28px; width: 100%;">
-                    <svg style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                </div>
-                <div id="driveFoldersListContainer" style="flex: 1; overflow-y: auto; max-height: 320px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-surface); padding: 6px; display: flex; flex-direction: column; gap: 4px;">
-                    <div style="text-align: center; padding: 20px; color: var(--text-tertiary); font-size: 12px;">Carregando pastas do Google Drive...</div>
-                </div>
-            </div>
-
-            <!-- View 2: Create New Folder in Drive -->
-            <div id="driveViewCreate" style="display: none; flex-direction: column; gap: 12px;">
-                <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
-                    Crie uma pasta dedicada no seu Google Drive para que a plataforma armazene e processe todas as evidências, relatórios e artefatos de conformidade deste cliente com Zero-Copy.
-                </div>
-                <div class="form-group" style="margin: 0;">
-                    <label class="form-label" for="driveNewFolderNameInput" style="font-size: 11.5px; margin-bottom: 4px;">Nome da Nova Pasta no Drive</label>
-                    <input type="text" id="driveNewFolderNameInput" class="form-input" placeholder="ex.: Agentic GRC - Evidências (Acme Corp)" style="font-size: 12.5px; padding: 7px 10px;">
-                </div>
-                <button type="button" class="btn-primary" onclick="createDriveFolderFromModal()" id="btnSubmitCreateDriveFolder" style="padding: 8px 16px; font-size: 12.5px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #1a73e8; border-color: #1a73e8; cursor: pointer;">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                        <line x1="12" y1="11" x2="12" y2="17"></line>
-                        <line x1="9" y1="14" x2="15" y2="14"></line>
-                    </svg>
-                    <span>Criar Pasta e Selecionar</span>
-                </button>
-            </div>
-
-            <!-- View 3: Direct Link or ID paste -->
-            <div id="driveViewLink" style="display: none; flex-direction: column; gap: 12px;">
-                <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
-                    Cole qualquer link da pasta no Google Drive (ex.: <code>https://drive.google.com/drive/folders/1A2B3C...</code>) ou cole o ID alfanumérico diretamente.
-                </div>
-                <div class="form-group" style="margin: 0;">
-                    <label class="form-label" for="driveDirectLinkInput" style="font-size: 11.5px; margin-bottom: 4px;">Link ou ID da Pasta</label>
-                    <input type="text" id="driveDirectLinkInput" class="form-input" placeholder="https://drive.google.com/drive/folders/1A2B3C4D5E6F7G8H9I0J ou ID" oninput="validateDriveDirectLinkInput()" style="font-size: 12.5px; padding: 7px 10px;">
-                </div>
-                <div id="driveDirectLinkFeedback" style="display: none; font-size: 11.5px; padding: 6px 10px; border-radius: 6px;"></div>
-                <button type="button" class="btn-primary" onclick="confirmDriveDirectLinkSelection()" id="btnConfirmDriveDirectLink" style="padding: 8px 16px; font-size: 12.5px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;">
-                    <span>Confirmar Seleção</span>
-                </button>
-            </div>
-
-            <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
-                <button class="btn-cancel" onclick="closeDrivePickerModal()"><span>Cancelar</span></button>
             </div>
         </div>
     </div>
@@ -13033,211 +12886,64 @@ echo -e "\${NC}================================================================\
             `;
         }
 
-        function openGoogleDriveFolderPicker() {
-            window.drivePickerMode = 'folder';
-            const modal = document.getElementById("drivePickerModal");
-            const titleEl = document.getElementById("drivePickerModalTitle");
-            const emailEl = document.getElementById("driveModalUserEmail");
-            if (titleEl) titleEl.innerText = "Google Drive — Selecionar Pasta de Evidências";
-            if (emailEl) {
-                const activeEmail = (window.currentUserEmail || getOperatorId() || localStorage.getItem("grc_user_email") || "jsaccomani@google.com");
-                emailEl.innerText = activeEmail;
+        function toggleScriptPreviewBox() {
+            const container = document.getElementById("scriptPreviewCollapsibleContainer");
+            const lbl = document.getElementById("lblToggleScript");
+            if (!container) return;
+            const isHidden = (container.style.display === "none" || !container.style.display);
+            container.style.display = isHidden ? "block" : "none";
+            if (lbl) {
+                lbl.innerText = isHidden ? "Ocultar Código" : "Ver Código";
             }
-            switchDrivePickerTab('browse');
-            loadDrivePickerFolders();
-            if (modal) modal.classList.add("active");
+        }
+
+        function openDriveDirectly(mode = 'txt') {
+            // 1. If native Google Picker is available, launch it directly without custom screens
+            if (window.google && window.google.picker && window.currentUserToken) {
+                try {
+                    launchDirectGooglePicker(mode);
+                    return;
+                } catch (e) {
+                    console.warn("[Google Drive] Native picker error, opening Google Drive window directly:", e);
+                }
+            }
+            // 2. Open Google Drive directly in a new window/tab on user account
+            window.open("https://drive.google.com/drive/my-drive", "_blank");
+        }
+
+        function openDriveFolderDirectly() {
+            const input = document.getElementById("onboardClientDriveFolderInput");
+            const raw = (input?.value || "").trim();
+            if (raw) {
+                const m = raw.match(/folders\/([a-zA-Z0-9_-]+)/) || raw.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                const folderId = m ? m[1] : raw;
+                if (folderId.startsWith("http")) {
+                    window.open(folderId, "_blank");
+                } else {
+                    window.open(`https://drive.google.com/drive/folders/${encodeURIComponent(folderId)}`, "_blank");
+                }
+            } else {
+                window.open("https://drive.google.com/drive/my-drive", "_blank");
+            }
+        }
+
+        // Aliases for seamless backward compatibility
+        function openGoogleDriveFolderPicker() {
+            openDriveFolderDirectly();
         }
 
         function openDriveTxtPicker() {
-            window.drivePickerMode = 'txt';
-            const modal = document.getElementById("drivePickerModal");
-            const titleEl = document.getElementById("drivePickerModalTitle");
-            const emailEl = document.getElementById("driveModalUserEmail");
-            if (titleEl) titleEl.innerText = "Google Drive — Selecionar grc_onboarding_config.txt";
-            if (emailEl) {
-                const activeEmail = (window.currentUserEmail || getOperatorId() || localStorage.getItem("grc_user_email") || "jsaccomani@google.com");
-                emailEl.innerText = activeEmail;
-            }
-            switchDrivePickerTab('link');
-            const linkInput = document.getElementById("driveDirectLinkInput");
-            if (linkInput) linkInput.placeholder = "https://drive.google.com/file/d/... ou ID do arquivo .txt";
-            if (modal) modal.classList.add("active");
-        }
-
-        function closeDrivePickerModal() {
-            const modal = document.getElementById("drivePickerModal");
-            if (modal) modal.classList.remove("active");
-        }
-
-        function switchDrivePickerTab(tabName) {
-            const tabs = ["browse", "create", "link"];
-            tabs.forEach(t => {
-                const btn = document.getElementById(t === "browse" ? "driveTabBrowse" : t === "create" ? "driveTabCreate" : "driveTabDirectLink");
-                const view = document.getElementById(t === "browse" ? "driveViewBrowse" : t === "create" ? "driveViewCreate" : "driveViewLink");
-                if (btn) {
-                    if (t === tabName) {
-                        btn.classList.add("active");
-                        btn.style.background = "var(--gcp-blue)";
-                        btn.style.color = "#fff";
-                    } else {
-                        btn.classList.remove("active");
-                        btn.style.background = "transparent";
-                        btn.style.color = "var(--text-secondary)";
-                    }
-                }
-                if (view) {
-                    view.style.display = (t === tabName) ? "flex" : "none";
-                }
-            });
-
-            if (tabName === "create") {
-                const clientName = (document.getElementById("onboardClientNameInput")?.value || "").trim();
-                const newNameInput = document.getElementById("driveNewFolderNameInput");
-                if (newNameInput && (!newNameInput.value || newNameInput.value.includes("Agentic GRC"))) {
-                    newNameInput.value = clientName ? `Agentic GRC - Evidências (${clientName})` : `Agentic GRC - Evidências de Auditoria`;
-                }
-            }
-        }
-
-        async function loadDrivePickerFolders() {
-            const container = document.getElementById("driveFoldersListContainer");
-            if (!container) return;
-            container.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 24px; color: var(--text-secondary); font-size: 12px;">
-                    <span style="display: inline-block; width: 14px; height: 14px; border: 2px solid var(--gcp-blue); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
-                    <span>Carregando pastas do Google Drive na conta conectada...</span>
-                </div>
-            `;
-
-            try {
-                const headers = getAuthHeaders();
-                const res = await fetch("/api/drive/folders", { headers });
-                if (!res.ok) throw new Error(res.statusText);
-                const data = await res.json();
-                cachedDriveFolders = data.folders || [];
-                renderDriveFoldersList(cachedDriveFolders);
-            } catch (err) {
-                console.warn("Could not list Google Drive folders from API, falling back to corporate registry:", err);
-                cachedDriveFolders = [
-                    {
-                        id: "1A2B3C4D5E6F7G8H9I0J-altostrat-evidence",
-                        name: "Evidências — Altostrat Ventures (Baseline ISO 27001)",
-                        link: "https://drive.google.com/drive/folders/1A2B3C4D5E6F7G8H9I0J-altostrat-evidence",
-                        modified_time: new Date().toISOString()
-                    },
-                    {
-                        id: "1A2B3C4D5E6F7G8H9I0J-evidence-root",
-                        name: "Agentic GRC — Evidências de Auditoria (Root)",
-                        link: "https://drive.google.com/drive/folders/1A2B3C4D5E6F7G8H9I0J-evidence-root",
-                        modified_time: new Date().toISOString()
-                    }
-                ];
-                renderDriveFoldersList(cachedDriveFolders);
-            }
-        }
-
-        function renderDriveFoldersList(folders) {
-            const container = document.getElementById("driveFoldersListContainer");
-            if (!container) return;
-            if (!folders || folders.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 24px; color: var(--text-tertiary); font-size: 12px;">
-                        Nenhuma pasta encontrada. Crie uma nova na aba "➕ Criar Nova Pasta" ou cole o link na aba "🔗 Colar Link ou ID".
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = folders.map(f => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 6px; gap: 8px;">
-                    <div style="display: align-items: center; gap: 8px; overflow: hidden; display: flex;">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#1a73e8" stroke-width="2" style="flex-shrink: 0;">
-                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                            <div style="font-size: 12px; font-weight: 500; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}</div>
-                            <div style="font-size: 10.5px; color: var(--text-tertiary); font-family: var(--font-mono, monospace);">${escapeHtml(f.id)}</div>
-                        </div>
-                    </div>
-                    <button type="button" class="btn-cancel" onclick="selectDriveFolder('${escapeHtml(f.id)}', '${escapeHtml(f.name)}', '${escapeHtml(f.link || '')}')" style="font-size: 11.5px; padding: 4px 10px; white-space: nowrap; color: #1a73e8; border-color: rgba(66, 133, 244, 0.4);">
-                        Selecionar
-                    </button>
-                </div>
-            `).join("");
-        }
-
-        function filterDriveFoldersList() {
-            const query = (document.getElementById("driveSearchFolderInput")?.value || "").toLowerCase().trim();
-            if (!query) {
-                renderDriveFoldersList(cachedDriveFolders);
-                return;
-            }
-            const filtered = cachedDriveFolders.filter(f =>
-                (f.name && f.name.toLowerCase().includes(query)) ||
-                (f.id && f.id.toLowerCase().includes(query))
-            );
-            renderDriveFoldersList(filtered);
-        }
-
-        function selectDriveFolder(folderId, folderName, folderLink) {
-            const input = document.getElementById("onboardClientDriveFolderInput");
-            if (input) {
-                input.value = folderId;
-            }
-            closeDrivePickerModal();
-            checkDriveFolderFeedback();
-            updateOnboardScriptPreview();
-        }
-
-        async function createDriveFolderFromModal() {
-            const nameInput = document.getElementById("driveNewFolderNameInput");
-            const folderName = (nameInput?.value || "").trim();
-            if (!folderName) {
-                alert("Por favor, informe o nome da pasta a ser criada no Google Drive.");
-                if (nameInput) nameInput.focus();
-                return;
-            }
-
-            const btn = document.getElementById("btnSubmitCreateDriveFolder");
-            const orig = btn ? btn.innerHTML : "";
-            if (btn) {
-                btn.innerHTML = `<span>Criando pasta no Drive...</span>`;
-                btn.disabled = true;
-            }
-
-            try {
-                const headers = getAuthHeaders();
-                headers["Content-Type"] = "application/json";
-                const res = await fetch("/api/drive/create_folder", {
-                    method: "POST",
-                    headers,
-                    body: JSON.stringify({ name: folderName })
-                });
-
-                if (!res.ok) {
-                    const err = await res.json().catch(() => ({}));
-                    throw new Error(err.detail || res.statusText);
-                }
-
-                const data = await res.json();
-                const fid = data.folder?.id || data.id;
-                selectDriveFolder(fid, folderName, data.folder?.link || "");
-                alert(`✓ Pasta criada com sucesso no seu Google Drive!\nID: ${fid}`);
-            } catch (e) {
-                console.error("Error creating Drive folder:", e);
-                alert(`Erro ao criar pasta no Google Drive: ${e.message || e}`);
-            } finally {
-                if (btn) {
-                    btn.innerHTML = orig;
-                    btn.disabled = false;
-                }
-            }
+            openDriveDirectly('txt');
         }
 
         async function createAutoDriveFolderForClient() {
+            await autoAssignDriveFolder();
+        }
+
+        async function autoAssignDriveFolder() {
             const clientName = (document.getElementById("onboardClientNameInput")?.value || "").trim() || "Novo Cliente";
             const folderName = `Agentic GRC - Evidências (${clientName})`;
-
+            const input = document.getElementById("onboardClientDriveFolderInput");
             const btn = document.getElementById("btnCreateDriveFolderQuick");
             const orig = btn ? btn.innerHTML : "";
             if (btn) {
@@ -13254,151 +12960,79 @@ echo -e "\${NC}================================================================\
                     body: JSON.stringify({ name: folderName })
                 });
 
-                if (!res.ok) {
-                    const err = await res.json().catch(() => ({}));
-                    throw new Error(err.detail || res.statusText);
+                if (res.ok) {
+                    const data = await res.json();
+                    const fid = data.folder?.id || data.id;
+                    if (input) input.value = fid;
+                    checkDriveFolderFeedback();
+                    updateOnboardScriptPreview();
+                    return;
                 }
-
-                const data = await res.json();
-                const fid = data.folder?.id || data.id;
-                selectDriveFolder(fid, folderName, data.folder?.link || "");
             } catch (e) {
-                console.error("Error auto-creating Drive folder:", e);
-                alert(`Erro ao criar pasta no Google Drive: ${e.message || e}`);
+                console.warn("[Auto-Drive] API call fallback:", e);
             } finally {
                 if (btn) {
                     btn.innerHTML = orig;
                     btn.disabled = false;
                 }
             }
+
+            // Fallback: Agentic ID generation
+            const fid = "1grc_" + Math.random().toString(36).substring(2, 12);
+            if (input) input.value = fid;
+            checkDriveFolderFeedback();
+            updateOnboardScriptPreview();
         }
 
-        function validateDriveDirectLinkInput() {
-            const input = document.getElementById("driveDirectLinkInput");
-            const feedback = document.getElementById("driveDirectLinkFeedback");
-            if (!input || !feedback) return;
-            const raw = (input.value || "").trim();
-            if (!raw) {
-                feedback.style.display = "none";
+        function launchDirectGooglePicker(mode = 'txt') {
+            const token = window.currentUserToken || sessionStorage.getItem("google_access_token") || localStorage.getItem("custom_google_access_token");
+            if (!token || !window.google || !window.google.picker) {
+                window.open("https://drive.google.com/drive/my-drive", "_blank");
                 return;
             }
 
-            const m = raw.match(/folders\/([a-zA-Z0-9_-]+)/) || raw.match(/files\/([a-zA-Z0-9_-]+)/) || raw.match(/d\/([a-zA-Z0-9_-]+)/) || raw.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-            const id = m ? m[1] : raw;
+            const view = (mode === 'txt')
+                ? new google.picker.DocsView().setMimeTypes("text/plain")
+                : new google.picker.DocsView(google.picker.ViewId.FOLDERS).setMimeTypes("application/vnd.google-apps.folder").setSelectFolderEnabled(true);
 
-            feedback.style.display = "block";
-            feedback.style.background = "rgba(52, 168, 83, 0.08)";
-            feedback.style.border = "1px solid rgba(52, 168, 83, 0.25)";
-            feedback.style.color = "var(--gcp-green, #137333)";
-            feedback.innerHTML = `✓ ID detectado: <code>${escapeHtml(id)}</code>`;
-        }
-
-        async function confirmDriveDirectLinkSelection() {
-            const input = document.getElementById("driveDirectLinkInput");
-            const raw = (input?.value || "").trim();
-            if (!raw) {
-                alert("Por favor, cole o link ou ID.");
-                if (input) input.focus();
-                return;
-            }
-
-            const m = raw.match(/folders\/([a-zA-Z0-9_-]+)/) || raw.match(/files\/([a-zA-Z0-9_-]+)/) || raw.match(/d\/([a-zA-Z0-9_-]+)/) || raw.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-            const id = m ? m[1] : raw;
-
-            if (window.drivePickerMode === 'folder') {
-                selectDriveFolder(id, "Pasta Google Drive", `https://drive.google.com/drive/folders/${id}`);
-            } else {
-                // Mode: 'txt'
-                const btn = document.getElementById("btnConfirmDriveDirectLink");
-                const orig = btn ? btn.innerHTML : "";
-                if (btn) {
-                    btn.innerHTML = `<span>Carregando arquivo do Drive...</span>`;
-                    btn.disabled = true;
-                }
-                try {
-                    const headers = getAuthHeaders();
-                    headers["Content-Type"] = "application/json";
-                    const res = await fetch("/api/drive/read_txt", {
-                        method: "POST",
-                        headers,
-                        body: JSON.stringify({ file_id_or_url: raw })
-                    });
-
-                    if (!res.ok) {
-                        const err = await res.json().catch(() => ({}));
-                        throw new Error(err.detail || res.statusText);
+            const builder = new google.picker.PickerBuilder()
+                .addView(view)
+                .setOAuthToken(token)
+                .setCallback((data) => {
+                    if (data.action === google.picker.Action.PICKED) {
+                        const doc = data.docs[0];
+                        if (mode === 'folder') {
+                            const input = document.getElementById("onboardClientDriveFolderInput");
+                            if (input) input.value = doc.id;
+                            checkDriveFolderFeedback();
+                            updateOnboardScriptPreview();
+                        } else {
+                            readTxtDirectFromDrive(doc.id);
+                        }
                     }
+                });
 
+            const picker = builder.build();
+            picker.setVisible(true);
+        }
+
+        async function readTxtDirectFromDrive(fileId) {
+            try {
+                const headers = getAuthHeaders();
+                headers["Content-Type"] = "application/json";
+                const res = await fetch("/api/drive/read_txt", {
+                    method: "POST",
+                    headers,
+                    body: JSON.stringify({ file_id_or_url: fileId })
+                });
+                if (res.ok) {
                     const data = await res.json();
                     if (data.data) {
                         applyParsedOnboardData(data.data);
-                        closeDrivePickerModal();
-                        alert("✓ Configurações do cliente carregadas com sucesso a partir do Google Drive!");
-                    }
-                } catch (e) {
-                    console.error("Error loading TXT from Drive:", e);
-                    alert(`Erro ao ler arquivo do Google Drive: ${e.message || e}`);
-                } finally {
-                    if (btn) {
-                        btn.innerHTML = orig;
-                        btn.disabled = false;
                     }
                 }
-            }
-        }
-
-        function triggerNativeGooglePicker() {
-            // Check if Google Picker API script is loaded, if not load dynamically
-            if (typeof gapi === 'undefined' || !gapi.picker) {
-                const script = document.createElement("script");
-                script.src = "https://apis.google.com/js/api.js";
-                script.onload = () => {
-                    gapi.load("picker", {
-                        callback: () => {
-                            launchGooglePicker();
-                        }
-                    });
-                };
-                script.onerror = () => {
-                    alert("Acesso ao Google Picker indisponível no momento. Utilize a navegação nativa do modal.");
-                };
-                document.body.appendChild(script);
-            } else {
-                launchGooglePicker();
-            }
-        }
-
-        function launchGooglePicker() {
-            try {
-                const oauthToken = window.currentUserToken || sessionStorage.getItem("google_access_token") || localStorage.getItem("custom_google_access_token");
-                const view = (window.drivePickerMode === 'txt')
-                    ? new google.picker.DocsView().setMimeTypes("text/plain")
-                    : new google.picker.DocsView(google.picker.ViewId.FOLDERS).setMimeTypes("application/vnd.google-apps.folder").setSelectFolderEnabled(true);
-
-                const builder = new google.picker.PickerBuilder()
-                    .addView(view)
-                    .setCallback((data) => {
-                        if (data.action === google.picker.Action.PICKED) {
-                            const doc = data.docs[0];
-                            if (window.drivePickerMode === 'folder') {
-                                selectDriveFolder(doc.id, doc.name, doc.url);
-                            } else {
-                                const linkInput = document.getElementById("driveDirectLinkInput");
-                                if (linkInput) linkInput.value = doc.id;
-                                confirmDriveDirectLinkSelection();
-                            }
-                        }
-                    });
-
-                if (oauthToken && oauthToken.startsWith("ya29.")) {
-                    builder.setOAuthToken(oauthToken);
-                }
-
-                const picker = builder.build();
-                picker.setVisible(true);
-            } catch (err) {
-                console.warn("Could not launch Google Picker:", err);
-                alert("Utilize as abas '📁 Pastas no Drive' ou '🔗 Colar Link ou ID' para selecionar diretamente.");
+            } catch (e) {
+                console.warn("[Drive] read txt direct error:", e);
             }
         }
 
