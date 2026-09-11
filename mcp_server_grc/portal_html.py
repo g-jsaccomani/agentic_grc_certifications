@@ -8666,6 +8666,15 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     </svg>
                     <span>Conectar Novo Workspace de Cliente (Read-Only)</span>
                 </div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-left: auto; margin-right: 10px;">
+                    <button type="button" class="btn-cancel" id="btnPopulateActiveClient" style="font-size: 11px; padding: 3px 10px; display: none; align-items: center; gap: 5px; color: var(--gcp-blue); border-color: rgba(66, 133, 244, 0.4);" onclick="populateOnboardWithCurrentClient()" title="Preencher formulário e script com os dados do cliente atualmente selecionado">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                        <span>Usar Cliente Ativo (<span id="populateActiveClientName"></span>)</span>
+                    </button>
+                </div>
                 <button class="btn-collapse" onclick="closeOnboardModal()">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">
                         <line x1="18" y1="6" x2="6" y2="18"/>
@@ -8764,13 +8773,20 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         </div>
 
                         <!-- Action Buttons: Copiar Script & Baixar Script -->
-                        <div style="display: flex; gap: 6px; align-items: center;">
+                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                            <button type="button" class="btn-cancel" style="padding: 4px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; color: var(--gcp-blue); border-color: rgba(66, 133, 244, 0.4);" onclick="copyOnboardCloudShellCommand()" id="btnCopyOnboardCloudShell" title="Copiar comando pronto para colar no Google Cloud Shell com 1 clique">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="4 17 10 11 4 5"></polyline>
+                                    <line x1="12" y1="19" x2="20" y2="19"></line>
+                                </svg>
+                                <span>Copiar p/ Cloud Shell (1-Clique)</span>
+                            </button>
                             <button type="button" class="btn-cancel" style="padding: 4px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;" onclick="copyOnboardScript()" id="btnCopyOnboardScript">
                                 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
                                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                                 </svg>
-                                <span data-i18n="onboard_copy_script">Copiar Script</span>
+                                <span data-i18n="onboard_copy_script">Copiar Script (.sh)</span>
                             </button>
                             <button type="button" class="btn-cancel" style="padding: 4px 10px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;" onclick="downloadOnboardScript()" id="btnDownloadOnboardScript" title="Baixar arquivo de script .sh pronto para envio">
                                 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
@@ -12071,6 +12087,18 @@ Formulário preenchido com o subagente recomendado!`);
                 consultantInput.value = activeEmail;
             }
 
+            const btnPop = document.getElementById("btnPopulateActiveClient");
+            const popNameEl = document.getElementById("populateActiveClientName");
+            if (btnPop && popNameEl) {
+                const activeClient = (onboardedClientsList || []).find(c => c.client_id === currentActiveClientId);
+                if (activeClient && activeClient.client_id !== "altostrat-ventures") {
+                    popNameEl.innerText = activeClient.name || activeClient.client_id;
+                    btnPop.style.display = "inline-flex";
+                } else {
+                    btnPop.style.display = "none";
+                }
+            }
+
             const txtFileInput = document.getElementById("onboardTxtFileInput");
             if (txtFileInput) txtFileInput.value = "";
             const txtStatus = document.getElementById("onboardTxtFileStatus");
@@ -12086,6 +12114,27 @@ Formulário preenchido com o subagente recomendado!`);
             if (modal) modal.classList.add("active");
         }
 
+        function populateOnboardWithCurrentClient() {
+            const active = (onboardedClientsList || []).find(c => c.client_id === currentActiveClientId);
+            if (!active) return;
+            const nameInput = document.getElementById("onboardClientNameInput");
+            const projectsInput = document.getElementById("onboardClientProjectsInput");
+            const driveFolderInput = document.getElementById("onboardClientDriveFolderInput");
+            const orgIdInput = document.getElementById("onboardClientOrgId");
+            const orgNameInput = document.getElementById("onboardClientOrgName");
+            const daysInput = document.getElementById("onboardClientDaysInput");
+
+            if (nameInput) nameInput.value = active.name || "";
+            if (projectsInput) projectsInput.value = (active.projects || []).join(", ");
+            if (driveFolderInput) driveFolderInput.value = active.drive_folder_id || "";
+            if (orgIdInput) orgIdInput.value = active.org_id || "";
+            if (orgNameInput) orgNameInput.value = active.org_name || "";
+            if (daysInput && active.read_only_access_days_remaining) {
+                daysInput.value = active.read_only_access_days_remaining;
+            }
+            updateOnboardScriptPreview();
+        }
+
         function closeOnboardModal() {
             const modal = document.getElementById("onboardClientModal");
             if (modal) modal.classList.remove("active");
@@ -12094,6 +12143,7 @@ Formulário preenchido com o subagente recomendado!`);
         function updateOnboardScriptPreview() {
             const name = (document.getElementById("onboardClientNameInput")?.value || "").trim();
             const consultantEmail = (document.getElementById("onboardConsultantEmailInput")?.value || "").trim() || (window.currentUserEmail || getOperatorId() || "jsaccomani@google.com");
+            const rawProjects = (document.getElementById("onboardClientProjectsInput")?.value || "").trim();
             const days = parseInt(document.getElementById("onboardClientDaysInput")?.value || "30", 10) || 30;
             const provider = window.currentOnboardCloud || "gcp";
 
@@ -12197,159 +12247,148 @@ echo "INSTRUÇÃO FINAL:"
 echo "Salve o arquivo de saída gerado (\${OUTPUT_FILE}) e envie-o de volta ao consultor."
 echo "=================================================================="`;
             } else {
-                // Default: GCP Organization Level
+                // Default: GCP (Google Cloud)
                 filenameText = "gcp_onboard_bootstrap.sh";
+
+                const projList = rawProjects ? rawProjects.split(",").map(p => p.trim()).filter(Boolean) : [];
+                let projectsBashDeclaration = "";
+                let revokeLoopProjects = "";
+
+                if (projList.length > 0) {
+                    projectsBashDeclaration = `PROJECTS=(\n` + projList.map(p => `    "${p}"`).join("\n") + `\n)`;
+                    revokeLoopProjects = `for proj in "\${PROJECTS[@]}"; do\n    echo "gcloud projects remove-iam-policy-binding \${proj} --member=\\"serviceAccount:\${SA_PLATAFORMA}\\" --role=\\"roles/viewer\\" --quiet"\n    echo "gcloud projects remove-iam-policy-binding \${proj} --member=\\"serviceAccount:\${SA_PLATAFORMA}\\" --role=\\"roles/iam.securityReviewer\\" --quiet"\n    if [ -n "\${CONSULTOR_USER}" ]; then\n        echo "gcloud projects remove-iam-policy-binding \${proj} --member=\\"user:\${CONSULTOR_USER}\\" --role=\\"roles/viewer\\" --quiet"\n        echo "gcloud projects remove-iam-policy-binding \${proj} --member=\\"user:\${CONSULTOR_USER}\\" --role=\\"roles/iam.securityReviewer\\" --quiet"\n    fi\ndone`;
+                } else {
+                    projectsBashDeclaration = `# [Projetos]: Detecção automática de projetos ativos na conta/organização
+PROJECTS_RAW="\$(gcloud projects list --filter='lifecycleState:ACTIVE' --format='value(projectId)' 2>/dev/null | paste -sd ' ' - || gcloud config get-value project 2>/dev/null)"
+read -ra PROJECTS <<< "\${PROJECTS_RAW}"`;
+                    revokeLoopProjects = `for proj in "\${PROJECTS[@]}"; do\n    echo "gcloud projects remove-iam-policy-binding \${proj} --member=\\"serviceAccount:\${SA_PLATAFORMA}\\" --role=\\"roles/viewer\\" --quiet"\n    echo "gcloud projects remove-iam-policy-binding \${proj} --member=\\"serviceAccount:\${SA_PLATAFORMA}\\" --role=\\"roles/iam.securityReviewer\\" --quiet"\n    if [ -n "\${CONSULTOR_USER}" ]; then\n        echo "gcloud projects remove-iam-policy-binding \${proj} --member=\\"user:\${CONSULTOR_USER}\\" --role=\\"roles/viewer\\" --quiet"\n        echo "gcloud projects remove-iam-policy-binding \${proj} --member=\\"user:\${CONSULTOR_USER}\\" --role=\\"roles/iam.securityReviewer\\" --quiet"\n    fi\ndone`;
+                }
+
                 scriptText = `#!/usr/bin/env bash
 # ==============================================================================
-# AGENTIC GRC: ORGANIZATION-LEVEL READ-ONLY READINESS REVIEWER BOOTSTRAP (GCP)
-# Location / Reference: scripts/onboard_client.sh
-# Execution: Run in Google Cloud Shell or Terminal as Organization Admin
-# Mandate: Strictly READ-ONLY permissions (Principle of Least Privilege)
-#          Zero write/delete permissions granted.
-# Roles Granted:
-#   - roles/viewer
-#   - roles/iam.securityReviewer
-#   - roles/resourcemanager.organizationViewer
+# AGENTIC GRC: ONBOARDING READ-ONLY PARA AVALIAÇÃO DE CONFORMIDADE ISO 27001
+# Cliente:              ${name || "Novo Cliente"}
+# Mandato de Segurança: STRICTLY READ-ONLY (Princípio do Menor Privilégio)
+# Nenhuma permissão de escrita, alteração ou deleção de recursos é concedida.
+#
+# Como executar:
+# Abra o Google Cloud Shell (https://shell.cloud.google.com) ou terminal com gcloud
+# e execute este script.
 # ==============================================================================
 set -euo pipefail
-
-CONSULTANT_IDENTITY="${consultantEmail}"
-EXPIRY_DAYS="${days}"
-OUTPUT_CONFIG_FILE="grc_onboarding_config.txt"
 
 BOLD="\\033[1m"
 GREEN="\\033[0;32m"
 BLUE="\\033[0;34m"
 YELLOW="\\033[1;33m"
+CYAN="\\033[0;36m"
 NC="\\033[0m"
 
 echo -e "\${BOLD}\${BLUE}================================================================\${NC}"
-echo -e "\${BOLD}\${BLUE}   AGENTIC GRC: GCP ORGANIZATION READINESS REVIEWER BOOTSTRAP (READ-ONLY)  \${NC}"
+echo -e "\${BOLD}\${BLUE}   AGENTIC GRC: CONCESSÃO DE ACESSO READ-ONLY (AVALIAÇÃO GRC)   \${NC}"
 echo -e "\${BOLD}\${BLUE}================================================================\${NC}"
-echo -e "Reviewer / Consultant: \${BOLD}\${GREEN}\${CONSULTANT_IDENTITY}\${NC}"
-echo -e "Access Duration:      \${EXPIRY_DAYS} days"
-echo -e "Enforcement:          Strictly READ-ONLY (roles/viewer, roles/iam.securityReviewer)"
-echo -e "Execution Scope:      Organization Level (All child folders and projects)\\n"
+echo -e "Organização/Cliente: \${BOLD}\${GREEN}${name || "Workspace de Auditoria"}\${NC}"
+echo -e "Finalidade:          Auditoria Automatizada de Conformidade ISO 27001 / SOC 2"
+echo -e "Nível de Acesso:     \${BOLD}\${GREEN}SOMENTE LEITURA (Least Privilege)\${NC}"
+echo -e "Perfis Concedidos:   roles/viewer, roles/iam.securityReviewer"
+echo -e "Validade do Acesso:  ${days} dias"
+echo -e "----------------------------------------------------------------\\n"
 
-PLATFORM_SA="938078169010-compute@developer.gserviceaccount.com"
+# Identidades autorizadas para a auditoria:
+# 1. Service Account da plataforma Cloud Run (para varreduras automáticas)
+SA_PLATAFORMA="938078169010-compute@developer.gserviceaccount.com"
 
-if [[ "\${CONSULTANT_IDENTITY}" == *"gserviceaccount.com"* ]]; then
-    MEMBER="serviceAccount:\${CONSULTANT_IDENTITY}"
-else
-    MEMBER="user:\${CONSULTANT_IDENTITY}"
-fi
+# 2. Usuário consultor/auditor responsável (para login delegado no portal)
+CONSULTOR_USER="${consultantEmail}"
 
-# [1/4] Detect Google Cloud Organization
-echo -e "[1/4] Detecting Google Cloud Organization context..."
-ORG_ID="\$(gcloud organizations list --format='value(ID)' 2>/dev/null | head -n 1 || true)"
-ORG_NAME="\$(gcloud organizations list --format='value(DISPLAY_NAME)' 2>/dev/null | head -n 1 || true)"
+# Projetos no escopo da avaliação:
+${projectsBashDeclaration}
 
-if [ -z "\${ORG_ID}" ]; then
-    CURRENT_PROJECT="\$(gcloud config get-value project 2>/dev/null || true)"
-    if [ -n "\${CURRENT_PROJECT}" ]; then
-        ORG_ID="\$(gcloud projects describe "\${CURRENT_PROJECT}" --format='value(parent.id)' 2>/dev/null || true)"
-    fi
-fi
-
-if [ -z "\${ORG_NAME}" ]; then
-    ORG_NAME="${name || 'GCP Organization \${ORG_ID:-Workspace}'}"
-fi
-
-echo -e "  ✓ Organization ID:   \${BOLD}\${ORG_ID:-'Not detected (using project fallback)'}\${NC}"
-echo -e "  ✓ Organization Name: \${BOLD}\${ORG_NAME}\${NC}"
-
-# [2/4] Grant Organization-Level Read-Only IAM Roles
-echo -e "\\n[2/4] Granting strictly Read-Only IAM roles (Least Privilege)..."
 ROLES=(
     "roles/viewer"
     "roles/iam.securityReviewer"
-    "roles/resourcemanager.organizationViewer"
 )
 
+# [1/4] Verificar autenticação no gcloud
+echo -e "[1/4] Verificando sessão ativa do gcloud..."
+ACTIVE_ACCOUNT="\$(gcloud config get-value account 2>/dev/null || echo '')"
+if [ -z "\${ACTIVE_ACCOUNT}" ]; then
+    echo -e "\${YELLOW}Nenhuma conta ativa detectada. Por favor, execute: gcloud auth login\${NC}"
+    exit 1
+fi
+echo -e "  ✓ Autenticado como: \${BOLD}\${ACTIVE_ACCOUNT}\${NC}"
+
+# [2/4] Detectar Organização GCP (opcional)
+echo -e "\\n[2/4] Verificando hierarquia da Organização..."
+ORG_ID="\$(gcloud organizations list --format='value(ID)' 2>/dev/null | head -n 1 || true)"
+ORG_NAME="\$(gcloud organizations list --format='value(DISPLAY_NAME)' 2>/dev/null | head -n 1 || true)"
 if [ -n "\${ORG_ID}" ]; then
-    for role in "\${ROLES[@]}"; do
-        echo -e "  - Applying \${role} on Organization \${ORG_ID} to \${MEMBER}..."
-        gcloud organizations add-iam-policy-binding "\${ORG_ID}" \\
-            --member="\${MEMBER}" \\
-            --role="\${role}" \\
-            --condition=None \\
-            --quiet >/dev/null 2>&1 || true
-        gcloud organizations add-iam-policy-binding "\${ORG_ID}" \\
-            --member="serviceAccount:\${PLATFORM_SA}" \\
-            --role="\${role}" \\
-            --condition=None \\
-            --quiet >/dev/null 2>&1 || true
+    echo -e "  ✓ Organização detectada: \${BOLD}\${ORG_NAME} (\${ORG_ID})\${NC}"
+    for role in "roles/viewer" "roles/iam.securityReviewer" "roles/resourcemanager.organizationViewer"; do
+        gcloud organizations add-iam-policy-binding "\${ORG_ID}" --member="serviceAccount:\${SA_PLATAFORMA}" --role="\${role}" --quiet >/dev/null 2>&1 || true
+        if [ -n "\${CONSULTOR_USER}" ]; then
+            gcloud organizations add-iam-policy-binding "\${ORG_ID}" --member="user:\${CONSULTOR_USER}" --role="\${role}" --quiet >/dev/null 2>&1 || true
+        fi
     done
+else
+    echo -e "  - Sem privilégio de Org Admin ou sem Organização central (aplicando diretamente nos projetos)."
 fi
 
-# [3/4] Discover Active Projects in Scope
-echo -e "\n[3/4] Discovering active projects in scope (all folders and hierarchy)..."
-PROJECTS_LIST=""
-if [ -n "\${ORG_ID}" ]; then
-    # 1. Search across all folders in organization using Cloud Asset Inventory
-    PROJECTS_LIST="\$(gcloud asset search-all-resources --scope=\"organizations/\${ORG_ID}\" --asset-types=\"cloudresourcemanager.googleapis.com/Project\" --query=\"state:ACTIVE\" --format=\"value(name)\" 2>/dev/null | awk -F'/' '{print \$NF}' | paste -sd \",\" - || true)"
-fi
+# [3/4] Conceder permissões de leitura nos projetos
+echo -e "\\n[3/4] Concedendo permissões de leitura nos projetos..."
+PROJECTS_CSV=""
+for proj in "\${PROJECTS[@]}"; do
+    echo -e "\\n  \${CYAN}▶ Configurando projeto: \${BOLD}\${proj}\${NC}"
+    PROJECTS_CSV="\${PROJECTS_CSV:+\${PROJECTS_CSV},}\${proj}"
+    for r in "\${ROLES[@]}"; do
+        echo -n "    - Concedendo \${r} para a Plataforma Cloud Run... "
+        if gcloud projects add-iam-policy-binding "\${proj}" --member="serviceAccount:\${SA_PLATAFORMA}" --role="\${r}" --quiet >/dev/null 2>&1; then
+            echo -e "\${GREEN}OK\${NC}"
+        else
+            echo -e "\${YELLOW}Aviso: verifique se você tem permissão de Admin de IAM no projeto.\${NC}"
+        fi
 
-# 2. If Asset Inventory is unavailable or empty, list all active projects accessible to user
-if [ -z "\${PROJECTS_LIST}" ]; then
-    PROJECTS_LIST="\$(gcloud projects list --filter=\"lifecycleState:ACTIVE\" --format=\"value(projectId)\" 2>/dev/null | paste -sd \",\" - || true)"
-fi
-
-if [ -z "\${PROJECTS_LIST}" ]; then
-    PROJECTS_LIST="\$(gcloud projects list --filter="lifecycleState:ACTIVE" --format="value(projectId)" 2>/dev/null | paste -sd "," - || true)"
-fi
-
-if [ -z "\${PROJECTS_LIST}" ]; then
-    PROJECTS_LIST="\$(gcloud config get-value project 2>/dev/null || echo "client-prod-scope")"
-fi
-
-PROJECT_COUNT=\$(echo "\${PROJECTS_LIST}" | tr ',' '\\n' | grep -v '^$' | wc -l | tr -d ' ')
-echo -e "  ✓ Mapped \${PROJECT_COUNT} active project(s): \${BOLD}\${PROJECTS_LIST}\${NC}"
-
-# If Org ID wasn't available, bind directly to discovered projects
-if [ -z "\${ORG_ID}" ]; then
-    IFS=',' read -ra PROJ_ARR <<< "\${PROJECTS_LIST}"
-    for p in "\${PROJ_ARR[@]}"; do
-        echo -e "  - Binding read-only assessment permissions to project: \${BOLD}\${p}\${NC}"
-        gcloud projects add-iam-policy-binding "\${p}" --member="\${MEMBER}" --role="roles/viewer" --quiet >/dev/null 2>&1 || true
-        gcloud projects add-iam-policy-binding "\${p}" --member="\${MEMBER}" --role="roles/securityReviewer" --quiet >/dev/null 2>&1 || true
-        gcloud projects add-iam-policy-binding "\${p}" --member="serviceAccount:\${PLATFORM_SA}" --role="roles/viewer" --quiet >/dev/null 2>&1 || true
-        gcloud projects add-iam-policy-binding "\${p}" --member="serviceAccount:\${PLATFORM_SA}" --role="roles/securityReviewer" --quiet >/dev/null 2>&1 || true
+        if [ -n "\${CONSULTOR_USER}" ]; then
+            echo -n "    - Concedendo \${r} para o Consultor (\${CONSULTOR_USER})... "
+            if gcloud projects add-iam-policy-binding "\${proj}" --member="user:\${CONSULTOR_USER}" --role="\${r}" --quiet >/dev/null 2>&1; then
+                echo -e "\${GREEN}OK\${NC}"
+            else
+                echo -e "\${YELLOW}Aviso: verifique se você tem permissão de Admin de IAM no projeto.\${NC}"
+            fi
+        fi
     done
-fi
+done
 
-# [4/4] Export Environment Context to .txt File
-echo -e "\\n[4/4] Exporting environment context to \${OUTPUT_CONFIG_FILE}..."
+# [4/4] Exportar Recibo de Onboarding
+OUTPUT_CONFIG_FILE="grc_onboarding_config.txt"
 NOW_ISO="\$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-
 cat <<EOF > "\${OUTPUT_CONFIG_FILE}"
 # =====================================================================
 # AGENTIC GRC - CLIENT WORKSPACE ONBOARDING CONFIGURATION
-# Generated automatically by client bootstrap script
 # =====================================================================
 cloud_provider=gcp
-client_name=\${ORG_NAME}
-org_id=\${ORG_ID}
-org_name=\${ORG_NAME}
-projects=\${PROJECTS_LIST}
-access_days=\${EXPIRY_DAYS}
-consultant_identity=\${CONSULTANT_IDENTITY}
-auditor_identity=\${CONSULTANT_IDENTITY}
+client_name=${name || "GCP Client Workspace"}
+org_id=\${ORG_ID:-}
+org_name=\${ORG_NAME:-${name || "Client"}}
+projects=\${PROJECTS_CSV}
+access_days=${days}
+consultant_identity=\${CONSULTOR_USER}
+auditor_identity=\${SA_PLATAFORMA}
 generated_at=\${NOW_ISO}
 EOF
 
 echo -e "\\n\${BOLD}\${GREEN}================================================================\${NC}"
-echo -e "\${BOLD}\${GREEN}        BOOTSTRAP EXECUTADO COM SUCESSO!                        \${NC}"
+echo -e "\${BOLD}\${GREEN}     ACESSO READ-ONLY CONFIGURADO COM SUCESSO!                  \${NC}"
 echo -e "\${BOLD}\${GREEN}================================================================\${NC}"
-echo -e "Arquivo gerado:      \${BOLD}\${OUTPUT_CONFIG_FILE}\${NC}"
-echo -e "Organização:         \${ORG_NAME} (\${ORG_ID:-N/A})"
-echo -e "Projetos no escopo:  \${PROJECT_COUNT} projeto(s)"
-echo -e "Permissões:          READ-ONLY concedidas a \${CONSULTANT_IDENTITY}"
+echo -e "Arquivo de recibo gerado: \${BOLD}\${OUTPUT_CONFIG_FILE}\${NC}"
+echo -e "Projetos vinculados:      \${PROJECTS_CSV}"
 echo -e "----------------------------------------------------------------"
-echo -e "\${BOLD}\${YELLOW}>>> INSTRUÇÃO FINAL PARA O CLIENTE: <<<\${NC}"
-echo -e "\${BOLD}Salve o arquivo de saída gerado (\${OUTPUT_CONFIG_FILE})"
-echo -e "e envie-o de volta ao consultor.\${NC}"
-echo -e "================================================================\\n"`;
+echo -e "\${BOLD}\${YELLOW}>>> COMO REVOGAR O ACESSO NO FINAL DOS TESTES: <<<\${NC}"
+echo -e "Quando o período de testes terminar, basta rodar o comando abaixo para remover"
+echo -e "integralmente os acessos concedidos:"
+echo -e "\${CYAN}"
+${revokeLoopProjects}
+echo -e "\${NC}================================================================\\n"`;
             }
 
             const previewEl = document.getElementById("onboardScriptPreview");
@@ -12366,6 +12405,27 @@ echo -e "================================================================\\n"`;
 
         // Backward-compatible alias
         const updateOnboardCommandPreview = updateOnboardScriptPreview;
+
+        function copyOnboardCloudShellCommand() {
+            const previewEl = document.getElementById("onboardScriptPreview");
+            if (!previewEl) return;
+            const text = previewEl.innerText;
+            const cloudShellBlock = `cat << 'EOF' > onboard_agentic_grc.sh\n${text}\nEOF\nbash onboard_agentic_grc.sh\n`;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(cloudShellBlock).then(() => {
+                    const btn = document.getElementById("btnCopyOnboardCloudShell");
+                    if (btn) {
+                        const orig = btn.innerHTML;
+                        btn.innerHTML = `<span>✓ Copiado p/ Cloud Shell!</span>`;
+                        setTimeout(() => { btn.innerHTML = orig; }, 2500);
+                    }
+                }).catch(() => {
+                    alert("Comando Cloud Shell copiado para a área de transferência.");
+                });
+            } else {
+                alert("Comando Cloud Shell copiado para a área de transferência.");
+            }
+        }
 
         function copyOnboardScript() {
             const previewEl = document.getElementById("onboardScriptPreview");
