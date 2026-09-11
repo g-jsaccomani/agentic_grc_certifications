@@ -2675,9 +2675,16 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .status-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; display: inline-flex; align-items: center; gap: 4px; }
         .status-badge.compliant { background: rgba(129, 201, 149, 0.15); color: var(--gcp-green); border: 1px solid rgba(52, 168, 83, 0.25); }
         .status-badge.non-compliant { background: rgba(234, 67, 53, 0.15); color: var(--gcp-red); border: 1px solid rgba(234, 67, 53, 0.35); }
+        .status-badge.pending { background: rgba(251, 188, 4, 0.15); color: #f9ab00; border: 1px solid rgba(251, 188, 4, 0.35); }
         .ctrl-id-badge.non-compliant { color: var(--gcp-red); background: rgba(234, 67, 53, 0.12); border: 1px solid rgba(234, 67, 53, 0.3); }
+        .ctrl-id-badge.pending { color: #f9ab00; background: rgba(251, 188, 4, 0.12); border: 1px solid rgba(251, 188, 4, 0.3); }
         .ctrl-main-row.row-non-compliant { background: rgba(234, 67, 53, 0.02); }
         .ctrl-main-row.row-non-compliant:hover { background: rgba(234, 67, 53, 0.06) !important; }
+        .ctrl-main-row.row-pending { background: rgba(251, 188, 4, 0.02); }
+        .ctrl-main-row.row-pending:hover { background: rgba(251, 188, 4, 0.06) !important; }
+        .tech-stat-card.amber { border-color: rgba(251, 188, 4, 0.35) !important; background: rgba(251, 188, 4, 0.04) !important; }
+        .tech-stat-card.amber .tech-stat-code { color: #f9ab00 !important; }
+        .tech-stat-card.amber .tech-stat-val { color: #f9ab00 !important; }
 
         .btn-status-pill {
             background: var(--bg-surface-elevated, #202124);
@@ -2697,6 +2704,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
         .btn-status-pill.active { background: rgba(66, 133, 244, 0.15); border-color: var(--gcp-blue); color: var(--gcp-blue); font-weight: 600; }
         .btn-status-pill.compliant.active { background: rgba(52, 168, 83, 0.18); border-color: var(--gcp-green); color: var(--gcp-green); }
         .btn-status-pill.non-compliant.active { background: rgba(234, 67, 53, 0.18); border-color: var(--gcp-red); color: var(--gcp-red); }
+        .btn-status-pill.pending.active { background: rgba(251, 188, 4, 0.18); border-color: #f9ab00; color: #f9ab00; }
         .btn-status-pill .badge-count { font-size: 11px; opacity: 0.8; }
 
         .btn-expand-ctrl {
@@ -6976,6 +6984,10 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-red); vertical-align: middle;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                             <span data-i18n="matrix_status_non_compliant">Não Conformes (Non-Compliant)</span> <span class="badge-count" id="countStatusNonCompliant">(9)</span>
                         </button>
+                        <button type="button" class="btn-status-pill pending" id="filterStatusPending" onclick="filterMatrixByStatus('PENDING')">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #f9ab00; vertical-align: middle;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <span data-i18n="matrix_status_pending">Pendentes (Pending)</span> <span class="badge-count" id="countStatusPending">(0)</span>
+                        </button>
                     </div>
                 </div>
 
@@ -7387,7 +7399,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     <table class="cloudstyle-meta-box">
                         <tr>
                             <td data-i18n="meta_org">Organização / Cliente</td>
-                            <td>Google Cloud Security & Workload Projects</td>
+                            <td><span id="docClientOrg">Google Cloud Security & Workload Projects</span></td>
                         </tr>
                         <tr>
                             <td data-i18n="meta_doc_code">Código do Documento</td>
@@ -7416,7 +7428,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <div class="cloudstyle-highlight-item">
                             <div class="cloudstyle-card-num">01</div>
                             <div class="cloudstyle-card-title">Conformidade Global</div>
-                            <div class="cloudstyle-card-text"><strong>100.0% (EXCELLENT)</strong> de aderência aos 93 controles do Anexo A avaliados continuamente.</div>
+                            <div class="cloudstyle-card-text"><strong id="docHighlightScore">100.0% (EXCELLENT)</strong> de aderência aos 93 controles do Anexo A avaliados continuamente.</div>
                         </div>
                         <div class="cloudstyle-highlight-item">
                             <div class="cloudstyle-card-num">02</div>
@@ -7431,13 +7443,13 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <div class="cloudstyle-highlight-item">
                             <div class="cloudstyle-card-num">04</div>
                             <div class="cloudstyle-card-title">Grafo SHA-256</div>
-                            <div class="cloudstyle-card-text">Nós de evidência selados com garantia matemática de integridade, trilha de rastreabilidade (Cloud Audit Logs) e não-repúdio.</div>
+                            <div class="cloudstyle-card-text"><span id="docHighlightNodes">22 nós</span> de evidência selados com garantia matemática de integridade, trilha de rastreabilidade (Cloud Audit Logs) e não-repúdio.</div>
                         </div>
                     </div>
 
                     <!-- Executive Quote / Opinion Callout -->
                     <div class="cloudstyle-quote-callout">
-                        <div class="cloudstyle-quote-text">
+                        <div class="cloudstyle-quote-text" id="docExecutiveOpinion">
                             “Com base na coleta automatizada de telemetria, inspeção contínua de configurações e análise de infraestrutura como código (IaC), a prática de Google Cloud Security emite uma <strong>OPINIÃO LIMPA E SEM RESSALVAS (UNQUALIFIED OPINION)</strong>, atestando conformidade plena com os 93 requisitos do Anexo A da ISO/IEC 27001:2022.”
                         </div>
                         <div class="cloudstyle-quote-author">
@@ -7664,8 +7676,8 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                         <tr>
                             <td data-i18n="tech_meta_conclusion">Parecer Técnico Conclusivo</td>
                             <td>
-                                <span class="cloudstyle-badge-success" style="background: #e6f4ea; color: #137333; font-weight: 700;">
-                                    <span data-i18n="tech_meta_opinion_badge">RECOMENDAÇÃO DE CERTIFICAÇÃO SEM RESSALVAS (UNQUALIFIED CLEAN OPINION)</span>
+                                <span class="cloudstyle-badge-success" id="techOpinionBadgeContainer" style="background: #e6f4ea; color: #137333; font-weight: 700;">
+                                    <span id="techOpinionBadge" data-i18n="tech_meta_opinion_badge">RECOMENDAÇÃO DE CERTIFICAÇÃO SEM RESSALVAS (UNQUALIFIED CLEAN OPINION)</span>
                                 </span>
                             </td>
                         </tr>
@@ -7673,7 +7685,7 @@ PORTAL_HTML = r"""<!DOCTYPE html>
 
                     <!-- Parecer Técnico do Consultor Líder -->
                     <div class="cloudstyle-quote-callout">
-                        <div class="cloudstyle-quote-text" data-i18n="tech_quote_text">
+                        <div class="cloudstyle-quote-text" id="techQuoteText" data-i18n="tech_quote_text">
                             "Com base nos testes de desenho e de eficácia operacional contínua executados sobre 100% da infraestrutura em nuvem, certificamos que os controles do SGSI descritos na Declaração de Aplicabilidade (SoA) estão plenamente implementados, operando de forma autônoma e mitigando os riscos cibernéticos em estrita conformidade com os requisitos da norma ISO/IEC 27001:2022. Não foram identificadas Não-Conformidades Maiores ou Menores remanescentes."
                         </div>
                         <div class="cloudstyle-quote-author">
@@ -7690,25 +7702,25 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                     </p>
 
                     <div class="tech-stat-grid">
-                        <div class="tech-stat-card green">
+                        <div class="tech-stat-card green" id="techCardA5">
                             <div class="tech-stat-code">Domínio A.5</div>
-                            <div class="tech-stat-val">37 / 37</div>
-                            <div class="tech-stat-desc">Controles Organizacionais<br><strong>100% Conforme</strong> (Políticas, Inventário, Gestão de Acessos)</div>
+                            <div class="tech-stat-val" id="techStatA5">37 / 37</div>
+                            <div class="tech-stat-desc" id="techDescA5">Controles Organizacionais<br><strong>100% Conforme</strong> (Políticas, Inventário, Gestão de Acessos)</div>
                         </div>
-                        <div class="tech-stat-card green">
+                        <div class="tech-stat-card green" id="techCardA6">
                             <div class="tech-stat-code">Domínio A.6</div>
-                            <div class="tech-stat-val">8 / 8</div>
-                            <div class="tech-stat-desc">Controles de Pessoas<br><strong>100% Conforme</strong> (Termos, Conscientização, Desligamento)</div>
+                            <div class="tech-stat-val" id="techStatA6">8 / 8</div>
+                            <div class="tech-stat-desc" id="techDescA6">Controles de Pessoas<br><strong>100% Conforme</strong> (Termos, Conscientização, Desligamento)</div>
                         </div>
-                        <div class="tech-stat-card green">
+                        <div class="tech-stat-card green" id="techCardA7">
                             <div class="tech-stat-code">Domínio A.7</div>
-                            <div class="tech-stat-val">14 / 14</div>
-                            <div class="tech-stat-desc">Controles Físicos & Ambientais<br><strong>100% Conforme</strong> (Datacenters GCP com ISO 27001/SOC 2)</div>
+                            <div class="tech-stat-val" id="techStatA7">14 / 14</div>
+                            <div class="tech-stat-desc" id="techDescA7">Controles Físicos & Ambientais<br><strong>100% Conforme</strong> (Datacenters GCP com ISO 27001/SOC 2)</div>
                         </div>
-                        <div class="tech-stat-card green">
+                        <div class="tech-stat-card green" id="techCardA8">
                             <div class="tech-stat-code">Domínio A.8</div>
-                            <div class="tech-stat-val">34 / 34</div>
-                            <div class="tech-stat-desc">Controles Tecnológicos<br><strong>100% Conforme</strong> (KMS HSM, VPC-SC, DLP, IAM, WAF)</div>
+                            <div class="tech-stat-val" id="techStatA8">34 / 34</div>
+                            <div class="tech-stat-desc" id="techDescA8">Controles Tecnológicos<br><strong>100% Conforme</strong> (KMS HSM, VPC-SC, DLP, IAM, WAF)</div>
                         </div>
                     </div>
 
@@ -8933,6 +8945,10 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 
                 matrix_title: "Matriz de Controles ISO/IEC 27001:2022 & Declaração de Aplicabilidade (SoA)",
                 matrix_subtitle: "Catálogo consolidado de 93 controles do Anexo A estruturado rigorosamente nos 4 temas da ISO/IEC 27001:2022 com taxonomia de 5 atributos.",
+                matrix_status_all: "Todos",
+                matrix_status_compliant: "Conformes (Compliant)",
+                matrix_status_non_compliant: "Não Conformes (Non-Compliant)",
+                matrix_status_pending: "Pendentes (Pending)",
                 theme_all: "Todos os Controles",
                 theme_all_scope: "Visão consolidada dos 93 controles do Anexo A para a Declaração de Aplicabilidade (SoA).",
                 theme_a5: "A.5 Organizacionais",
@@ -9289,6 +9305,10 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 
                 matrix_title: "ISO/IEC 27001:2022 Controls Matrix & Statement of Applicability (SoA)",
                 matrix_subtitle: "Consolidated catalog of 93 Annex A controls rigorously structured across 4 ISO/IEC 27001:2022 themes with 5-attribute taxonomy.",
+                matrix_status_all: "All",
+                matrix_status_compliant: "Compliant",
+                matrix_status_non_compliant: "Non-Compliant",
+                matrix_status_pending: "Pending (Unassessed)",
                 theme_all: "All Controls",
                 theme_all_scope: "Consolidated view of 93 Annex A controls for Statement of Applicability (SoA).",
                 theme_a5: "A.5 Organizational",
@@ -9645,6 +9665,10 @@ PORTAL_HTML = r"""<!DOCTYPE html>
                 
                 matrix_title: "Matriz de Controles ISO/IEC 27001:2022 y Declaración de Aplicabilidad (SoA)",
                 matrix_subtitle: "Catálogo consolidado de 93 controles del Anexo A estructurado en los 4 temas ISO/IEC 27001:2022 con taxonomía de 5 atributos.",
+                matrix_status_all: "Todos",
+                matrix_status_compliant: "Conformes (Compliant)",
+                matrix_status_non_compliant: "No Conformes (Non-Compliant)",
+                matrix_status_pending: "Pendientes (Pending)",
                 theme_all: "Todos los Controles",
                 theme_all_scope: "Visión consolidada de los 93 controles del Anexo A para la Declaración de Aplicabilidad (SoA).",
                 theme_a5: "A.5 Organizacionales",
@@ -11771,8 +11795,17 @@ Formulário preenchido com o subagente recomendado!`);
                     }
                     renderClientDropdownList(onboardedClientsList, currentActiveClientId);
 
-                    // 5. Live reload projects and authoritative organization metadata from /api/projects
+                    // 5. Live reload all platform tabs and authoritative organization metadata for the new client
                     await loadProjects();
+                    await loadScorecard();
+                    await loadIsoMatrix();
+                    await loadFinOpsMetrics();
+                    await loadFinOpsTips();
+                    await loadExecutiveReport();
+                    await loadTechnicalReport();
+                    if (typeof loadQuestionnaireData === 'function') {
+                        await loadQuestionnaireData();
+                    }
 
                     appendLog(`[Workspace] Troca de cliente concluída com sucesso para '${activeClient ? activeClient.name : targetId}'. Sessão anterior invalidada.`, "success");
                 } else {
@@ -13034,15 +13067,9 @@ echo -e "================================================================\\n"`;
             if (tabName === 'scorecard') {
                 loadScorecard();
             } else if (tabName === 'exec') {
-                const el = document.getElementById("docProjectsAudited");
-                if (el) el.innerText = Array.from(selectedProjectIds).join(", ") || "agentic-grc-cd06";
+                loadExecutiveReport();
             } else if (tabName === 'tech') {
-                const projEl = document.getElementById("techProjectsAudited");
-                if (projEl) projEl.innerText = Array.from(selectedProjectIds).join(", ") || "agentic-grc-cd06";
-                const dateEl = document.getElementById("techGeneratedAt");
-                if (dateEl) dateEl.innerText = new Date().toUTCString();
-                const sealEl = document.getElementById("techSealDate");
-                if (sealEl) sealEl.innerText = new Date().toUTCString();
+                loadTechnicalReport();
             }
         }
 
@@ -13074,9 +13101,16 @@ echo -e "================================================================\\n"`;
             const target = document.getElementById(viewId);
             if (target) target.classList.add("active");
 
-            // If entering questionnaire, load data
+            // Dynamic data loading scoped to active client
             if (viewId === "view-questionnaire") {
                 loadQuestionnaireData();
+            }
+            if (viewId === "view-matrix") {
+                loadIsoMatrix();
+            }
+            if (viewId === "view-finops") {
+                loadFinOpsMetrics();
+                loadFinOpsTips();
             }
             if (viewId === "view-scorecard" || viewId === "view-reports" || viewId === "view-home") {
                 if (typeof loadScorecard === 'function') loadScorecard();
@@ -14361,9 +14395,11 @@ function openNewsModal(newsKey) {
                     const allElem = document.getElementById("countStatusAll");
                     const compElem = document.getElementById("countStatusCompliant");
                     const ncElem = document.getElementById("countStatusNonCompliant");
+                    const pendingElem = document.getElementById("countStatusPending");
                     if (allElem) allElem.innerText = `(${data.counts.total ?? 93})`;
-                    if (compElem) compElem.innerText = `(${data.counts.compliant ?? 84})`;
-                    if (ncElem) ncElem.innerText = `(${data.counts.non_compliant ?? 9})`;
+                    if (compElem) compElem.innerText = `(${data.counts.compliant ?? 0})`;
+                    if (ncElem) ncElem.innerText = `(${data.counts.non_compliant ?? 0})`;
+                    if (pendingElem) pendingElem.innerText = `(${data.counts.pending ?? 0})`;
                 }
             } catch (e) {
                 console.error("Error loading matrix", e);
@@ -14383,6 +14419,9 @@ function openNewsModal(newsKey) {
                 if (b) b.classList.add("active");
             } else if (status === "NON_COMPLIANT") {
                 const b = document.getElementById("filterStatusNonCompliant");
+                if (b) b.classList.add("active");
+            } else if (status === "PENDING") {
+                const b = document.getElementById("filterStatusPending");
                 if (b) b.classList.add("active");
             }
             const searchVal = document.getElementById("matrixSearchInput") ? document.getElementById("matrixSearchInput").value : "";
@@ -14425,10 +14464,13 @@ function openNewsModal(newsKey) {
                 const rowId = `ctrl_row_${safeId}`;
                 const detailId = `ctrl_detail_${safeId}`;
                 const isNonCompliant = (c.status === 'NON_COMPLIANT');
+                const isPending = (c.status === 'PENDING');
+                const badgeClass = isNonCompliant ? 'non-compliant' : (isPending ? 'pending' : 'compliant');
+                const rowClass = isNonCompliant ? 'row-non-compliant' : (isPending ? 'row-pending' : '');
 
                 // Main Row
                 const tr = document.createElement("tr");
-                tr.className = `ctrl-main-row ${isNonCompliant ? 'row-non-compliant' : ''}`;
+                tr.className = `ctrl-main-row ${rowClass}`;
                 tr.id = rowId;
                 tr.onclick = (e) => {
                     if (!e.target.closest("button")) {
@@ -14436,20 +14478,46 @@ function openNewsModal(newsKey) {
                     }
                 };
 
+                const idIconSvg = isNonCompliant ? `
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-red); vertical-align: -1px; margin-right: 3px;">
+                        <circle cx="12" cy="12" r="10" stroke="var(--gcp-red)"/>
+                        <line x1="15" y1="9" x2="9" y2="15" stroke="var(--gcp-red)"/>
+                        <line x1="9" y1="9" x2="15" y2="15" stroke="var(--gcp-red)"/>
+                    </svg>
+                ` : (isPending ? `
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #f9ab00; vertical-align: -1px; margin-right: 3px;">
+                        <circle cx="12" cy="12" r="10" stroke="#f9ab00"/>
+                        <polyline points="12 6 12 12 16 14" stroke="#f9ab00"/>
+                    </svg>
+                ` : `
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-green); vertical-align: -1px; margin-right: 3px;">
+                        <polyline points="20 6 9 17 4 12" stroke="var(--gcp-green)"/>
+                    </svg>
+                `);
+
+                const statusIconSvg = isNonCompliant ? `
+                    <svg class="status-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-red); vertical-align: middle; margin-right: 3px;">
+                        <circle cx="12" cy="12" r="10" stroke="var(--gcp-red)"/>
+                        <line x1="15" y1="9" x2="9" y2="15" stroke="var(--gcp-red)"/>
+                        <line x1="9" y1="9" x2="15" y2="15" stroke="var(--gcp-red)"/>
+                    </svg>
+                ` : (isPending ? `
+                    <svg class="status-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #f9ab00; vertical-align: middle; margin-right: 3px;">
+                        <circle cx="12" cy="12" r="10" stroke="#f9ab00"/>
+                        <polyline points="12 6 12 12 16 14" stroke="#f9ab00"/>
+                    </svg>
+                ` : `
+                    <svg class="status-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-green); vertical-align: middle; margin-right: 3px;">
+                        <polyline points="20 6 9 17 4 12" stroke="var(--gcp-green)"/>
+                    </svg>
+                `);
+
+                const sevColor = (isNonCompliant || c.severity === 'CRITICAL') ? 'var(--gcp-red)' : (isPending ? '#f9ab00' : 'var(--text-secondary)');
+
                 tr.innerHTML = `
                     <td>
-                        <span class="ctrl-id-badge ${isNonCompliant ? 'non-compliant' : 'compliant'}">
-                            ${isNonCompliant ? `
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-red); vertical-align: -1px; margin-right: 3px;">
-                                    <circle cx="12" cy="12" r="10" stroke="var(--gcp-red)"/>
-                                    <line x1="15" y1="9" x2="9" y2="15" stroke="var(--gcp-red)"/>
-                                    <line x1="9" y1="9" x2="15" y2="15" stroke="var(--gcp-red)"/>
-                                </svg>
-                            ` : `
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-green); vertical-align: -1px; margin-right: 3px;">
-                                    <polyline points="20 6 9 17 4 12" stroke="var(--gcp-green)"/>
-                                </svg>
-                            `}
+                        <span class="ctrl-id-badge ${badgeClass}">
+                            ${idIconSvg}
                             ${c.id}
                         </span>
                     </td>
@@ -14457,22 +14525,12 @@ function openNewsModal(newsKey) {
                     <td style="color: var(--text-secondary);">${escapeHtml(c.theme)}</td>
                     <td style="line-height: 1.5;">${escapeHtml(c.gcp_mapping)}</td>
                     <td>
-                        <span class="status-badge ${isNonCompliant ? 'non-compliant' : 'compliant'}">
-                            ${isNonCompliant ? `
-                                <svg class="status-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-red); vertical-align: middle; margin-right: 3px;">
-                                    <circle cx="12" cy="12" r="10" stroke="var(--gcp-red)"/>
-                                    <line x1="15" y1="9" x2="9" y2="15" stroke="var(--gcp-red)"/>
-                                    <line x1="9" y1="9" x2="15" y2="15" stroke="var(--gcp-red)"/>
-                                </svg>
-                            ` : `
-                                <svg class="status-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--gcp-green); vertical-align: middle; margin-right: 3px;">
-                                    <polyline points="20 6 9 17 4 12" stroke="var(--gcp-green)"/>
-                                </svg>
-                            `}
+                        <span class="status-badge ${badgeClass}">
+                            ${statusIconSvg}
                             ${c.status}
                         </span>
                     </td>
-                    <td><span style="font-size: 11px; color: ${isNonCompliant || c.severity === 'CRITICAL' ? 'var(--gcp-red)' : 'var(--text-secondary)'}">${c.severity}</span></td>
+                    <td><span style="font-size: 11px; color: ${sevColor}">${c.severity}</span></td>
                     <td style="text-align: center;">
                         <button class="btn-expand-ctrl" onclick="toggleControlRow('${detailId}')">
                             <span id="label_${detailId}">${dict.btn_view_details || "Ver Detalhes"}</span>
@@ -14690,7 +14748,11 @@ function openNewsModal(newsKey) {
 
                 // 3. Update Evidence Nodes Display
                 const nodesElem = document.getElementById("evidenceNodesDisplay");
-                const totalNodes = (data.evidence_nodes && data.evidence_nodes.length) || (data.evidence_graph_nodes) || 24;
+                const totalNodes = (data.evidence_nodes && data.evidence_nodes.length !== undefined)
+                    ? data.evidence_nodes.length
+                    : ((data.evidence_graph_nodes !== undefined)
+                        ? data.evidence_graph_nodes
+                        : (data.evidence_graph_summary?.total_evidence_nodes ?? (data.overall_score === 0 ? 0 : 24)));
                 if (nodesElem) {
                     nodesElem.innerText = totalNodes;
                 }
@@ -14699,7 +14761,15 @@ function openNewsModal(newsKey) {
                 const homeKpiPosture = document.getElementById("homeKpiPosture");
                 if (homeKpiPosture) {
                     homeKpiPosture.innerText = `${data.overall_score.toFixed(1)}%`;
-                    homeKpiPosture.style.color = data.overall_score >= 90.0 ? "var(--gcp-green)" : "var(--gcp-yellow)";
+                    if (data.overall_score >= 90.0) {
+                        homeKpiPosture.style.color = "var(--gcp-green)";
+                    } else if (data.overall_score >= 75.0) {
+                        homeKpiPosture.style.color = "var(--gcp-yellow)";
+                    } else if (data.overall_score === 0.0) {
+                        homeKpiPosture.style.color = "var(--text-secondary)";
+                    } else {
+                        homeKpiPosture.style.color = "var(--gcp-red)";
+                    }
                 }
                 const homeKpiNodes = document.getElementById("homeKpiNodes");
                 if (homeKpiNodes) {
@@ -14719,6 +14789,25 @@ function openNewsModal(newsKey) {
             if (!container) return;
 
             const ncCount = data.non_compliant_count ?? 0;
+            const isPendingAssessment = (data.overall_score === 0.0 || (data.compliant_count === 0 && ncCount === 0));
+
+            if (isPendingAssessment) {
+                if (badge) {
+                    badge.innerText = "Avaliação Pendente (0 / 93)";
+                    badge.className = "status-badge pending";
+                }
+                container.innerHTML = `
+                    <div style="background: rgba(251, 188, 4, 0.08); border: 1px solid rgba(251, 188, 4, 0.3); border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; gap: 12px;">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #f9ab00; flex-shrink: 0;"><circle cx="12" cy="12" r="10" stroke="#f9ab00"/><polyline points="12 6 12 12 16 14" stroke="#f9ab00"/></svg>
+                        <div>
+                            <strong style="color: #b06000; font-size: 13px;">Workspace em Estado Inicial — Avaliação Pendente</strong>
+                            <p style="margin: 3px 0 0 0; font-size: 12px; color: var(--text-secondary); line-height: 1.45;">Nenhum controle técnico ou resposta de questionário foi auditado para este cliente ainda. Execute o Scan por Fases ou preencha o Questionário para estabelecer o baseline de conformidade.</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
             if (badge) {
                 badge.innerText = ncCount > 0 ? `${ncCount} Não-Conformidades Ativas` : `100% Conforme`;
                 badge.className = `status-badge ${ncCount > 0 ? 'non-compliant' : 'compliant'}`;
@@ -14773,6 +14862,139 @@ function openNewsModal(newsKey) {
             });
             html += `</div>`;
             container.innerHTML = html;
+        }
+
+        async function loadExecutiveReport() {
+            try {
+                const res = await fetch("/api/reports/executive?format=json", { headers: getAuthHeaders() });
+                if (!res.ok) return;
+                const data = await res.json();
+
+                const clientOrgEl = document.getElementById("docClientOrg");
+                if (clientOrgEl) clientOrgEl.innerText = data.client_name || "Cliente";
+
+                const projEl = document.getElementById("docProjectsAudited");
+                if (projEl) {
+                    const projs = (data.projects_audited && data.projects_audited.length > 0)
+                        ? data.projects_audited.join(", ")
+                        : (Array.from(selectedProjectIds).join(", ") || "agentic-grc-cd06");
+                    projEl.innerText = projs;
+                }
+
+                const repIdEl = document.getElementById("docReportId");
+                if (repIdEl && data.report_id) repIdEl.innerText = data.report_id;
+
+                const scoreEl = document.getElementById("docHighlightScore");
+                if (scoreEl) {
+                    scoreEl.innerText = `${Number(data.overall_score || 0).toFixed(1)}% (${data.rating || 'PENDING'})`;
+                }
+
+                const nodesEl = document.getElementById("docHighlightNodes");
+                if (nodesEl) {
+                    const totalNodes = data.evidence_summary?.total_evidence_nodes ?? 0;
+                    nodesEl.innerText = `${totalNodes} nós`;
+                }
+
+                const opinionEl = document.getElementById("docExecutiveOpinion");
+                if (opinionEl && data.executive_opinion) {
+                    opinionEl.innerHTML = `“${escapeHtml(data.executive_opinion)}”`;
+                }
+            } catch (err) {
+                console.error("Error loading executive report:", err);
+            }
+        }
+
+        async function loadTechnicalReport() {
+            try {
+                const res = await fetch("/api/reports/technical?format=json", { headers: getAuthHeaders() });
+                if (!res.ok) return;
+                const data = await res.json();
+
+                const projEl = document.getElementById("techProjectsAudited");
+                if (projEl) {
+                    const projs = (data.projects_audited && data.projects_audited.length > 0)
+                        ? data.projects_audited.join(", ")
+                        : (Array.from(selectedProjectIds).join(", ") || "agentic-grc-cd06");
+                    projEl.innerText = projs;
+                }
+
+                const dateEl = document.getElementById("techGeneratedAt");
+                if (dateEl) dateEl.innerText = data.generated_at || new Date().toUTCString();
+                const sealEl = document.getElementById("techSealDate");
+                if (sealEl) sealEl.innerText = data.generated_at || new Date().toUTCString();
+
+                const badgeContainer = document.getElementById("techOpinionBadgeContainer");
+                const badgeEl = document.getElementById("techOpinionBadge");
+                const quoteEl = document.getElementById("techQuoteText");
+
+                const score = Number(data.overall_score || 0);
+                const isPending = score === 0.0 || (data.rating && (data.rating.includes("NOT_AUDITED") || data.rating.includes("PENDING")));
+
+                if (isPending) {
+                    if (badgeEl) badgeEl.innerText = "AVALIAÇÃO PENDENTE DE TELEMETRIA E EVIDÊNCIAS (PENDING ASSESSMENT)";
+                    if (badgeContainer) {
+                        badgeContainer.style.background = "#fef7e0";
+                        badgeContainer.style.color = "#b06000";
+                    }
+                    if (quoteEl) {
+                        quoteEl.innerText = "O workspace do cliente encontra-se em estado inicial pendente (0.0% de conformidade avaliada). Nenhuma evidência de telemetria ou resposta de questionário foi registrada ainda para este escopo. Execute a varredura contínua ou submeta as respostas do questionário para certificar a eficácia operacional dos controles.";
+                    }
+                } else if (score >= 90.0) {
+                    if (badgeEl) badgeEl.innerText = "RECOMENDAÇÃO DE CERTIFICAÇÃO SEM RESSALVAS (UNQUALIFIED CLEAN OPINION)";
+                    if (badgeContainer) {
+                        badgeContainer.style.background = "#e6f4ea";
+                        badgeContainer.style.color = "#137333";
+                    }
+                    if (quoteEl) {
+                        quoteEl.innerText = "Com base nos testes de desenho e de eficácia operacional contínua executados sobre a infraestrutura em nuvem, certificamos que os controles do SGSI descritos na Declaração de Aplicabilidade (SoA) estão plenamente implementados, operando de forma autônoma e mitigando os riscos cibernéticos em estrita conformidade com os requisitos da norma ISO/IEC 27001:2022. Não foram identificadas Não-Conformidades Maiores ou Menores remanescentes.";
+                    }
+                } else {
+                    const ncCount = data.scorecard?.non_compliant_count ?? (data.non_compliant_controls?.length ?? 0);
+                    if (badgeEl) badgeEl.innerText = `RECOMENDAÇÃO COM RESSALVAS (${ncCount} NÃO-CONFORMIDADES IDENTIFICADAS)`;
+                    if (badgeContainer) {
+                        badgeContainer.style.background = "#fce8e6";
+                        badgeContainer.style.color = "#c5221f";
+                    }
+                    if (quoteEl) {
+                        quoteEl.innerText = `A infraestrutura avaliada apresenta controles em conformidade parcial (${score.toFixed(1)}%). Foram detectadas ${ncCount} não-conformidades técnicas que requerem plano de ação corretivo antes da recomendação formal de certificação.`;
+                    }
+                }
+
+                // Update category breakdown cards (A.5, A.6, A.7, A.8)
+                const breakdown = data.scorecard?.category_breakdown || {};
+                const cats = [
+                    { id: "A5", key: "A.5", name: "Controles Organizacionais", sub: "(Políticas, Inventário, Gestão de Acessos)", total: 37 },
+                    { id: "A6", key: "A.6", name: "Controles de Pessoas", sub: "(Termos, Conscientização, Desligamento)", total: 8 },
+                    { id: "A7", key: "A.7", name: "Controles Físicos & Ambientais", sub: "(Datacenters GCP com ISO 27001/SOC 2)", total: 14 },
+                    { id: "A8", key: "A.8", name: "Controles Tecnológicos", sub: "(KMS HSM, VPC-SC, DLP, IAM, WAF)", total: 34 }
+                ];
+
+                cats.forEach(c => {
+                    const info = breakdown[c.key] || { compliant: 0, total: c.total, percentage: 0.0 };
+                    const card = document.getElementById(`techCard${c.id}`);
+                    const stat = document.getElementById(`techStat${c.id}`);
+                    const desc = document.getElementById(`techDesc${c.id}`);
+
+                    if (stat) stat.innerText = `${info.compliant} / ${info.total}`;
+                    if (desc) {
+                        const pct = Number(info.percentage || 0).toFixed(0);
+                        const statusLabel = isPending ? "Pendente" : `${pct}% Conforme`;
+                        desc.innerHTML = `${c.name}<br><strong>${statusLabel}</strong> ${c.sub}`;
+                    }
+                    if (card) {
+                        card.classList.remove("green", "amber", "red");
+                        if (isPending || info.compliant === 0) {
+                            card.classList.add("amber");
+                        } else if (info.compliant === info.total) {
+                            card.classList.add("green");
+                        } else {
+                            card.classList.add("amber");
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error("Error loading technical report:", err);
+            }
         }
 
         async function triggerSubagent(subagent, target) {

@@ -44,7 +44,7 @@ from mcp_server_grc.questionnaire_catalog import (
     get_localized_themes,
     THEMES_I18N,
 )
-from mcp_server_grc.finops import finops_tracker
+from mcp_server_grc.finops import finops_tracker, get_client_finops_tracker
 
 
 logger = logging.getLogger("questionnaire")
@@ -863,6 +863,7 @@ def evaluate_answer_ai_consistency(
     evidence_text: Optional[str] = None,
     evidence_uri: Optional[str] = None,
     original_filename: Optional[str] = None,
+    client_id: Optional[str] = None,
 ) -> Tuple[str, str]:
     """Evaluates consistency between declared status and submitted evidence using LLMSubAgent.
     
@@ -910,6 +911,12 @@ def evaluate_answer_ai_consistency(
         "4. 'reasoning' must provide a concise, factual explanation."
     )
 
+    def _record_q_finops(**kwargs):
+        tracker = get_client_finops_tracker(client_id)
+        tracker.record_usage(**kwargs)
+        if (client_id is None or client_id == "altostrat-ventures") and tracker is not finops_tracker:
+            finops_tracker.record_usage(**kwargs)
+
     try:
         subagent = LLMSubAgent(
             name="QuestionnaireConsistencyReviewer",
@@ -918,7 +925,7 @@ def evaluate_answer_ai_consistency(
         )
     except Exception as exc:
         logger.warning("Failed to initialize LLMSubAgent for consistency validation: %s", exc)
-        finops_tracker.record_usage(
+        _record_q_finops(
             agent_id="questionnaire-consistency",
             name="Questionnaire Consistency Reviewer",
             category="Response Consistency",
@@ -934,7 +941,7 @@ def evaluate_answer_ai_consistency(
 
     # If client is None (Vertex AI / Gemini unreachable or disabled)
     if subagent.client is None:
-        finops_tracker.record_usage(
+        _record_q_finops(
             agent_id="questionnaire-consistency",
             name="Questionnaire Consistency Reviewer",
             category="Response Consistency",
@@ -966,7 +973,7 @@ def evaluate_answer_ai_consistency(
         narrative = res.get("narrative", "")
         usage = res.get("usage") or {}
 
-        finops_tracker.record_usage(
+        _record_q_finops(
             agent_id="questionnaire-consistency",
             name="Questionnaire Consistency Reviewer",
             category="Response Consistency",
@@ -999,7 +1006,7 @@ def evaluate_answer_ai_consistency(
 
     except Exception as exc:
         logger.warning("LLMSubAgent execution error in consistency evaluation: %s", exc)
-        finops_tracker.record_usage(
+        _record_q_finops(
             agent_id="questionnaire-consistency",
             name="Questionnaire Consistency Reviewer",
             category="Response Consistency",
@@ -1089,6 +1096,7 @@ async def submit_questionnaire_answer(
         evidence_text=answer.evidence_text,
         evidence_uri=answer.evidence_uri,
         original_filename=answer.original_filename,
+        client_id=target_client_id,
     )
     answer.ai_consistency_verdict = verdict
     answer.ai_consistency_reasoning = reasoning

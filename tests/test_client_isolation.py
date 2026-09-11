@@ -971,3 +971,155 @@ def test_switching_to_client_with_no_org_id_updates_labels_to_standalone_state()
         client.delete(f"/api/clients/{client_no_org_id}", headers=op_headers)
 
 
+def test_client_switch_clears_matrix_finops_reports_scorecard_cross_tenant_state():
+    """Verify that switching to a new unassessed client returns honest zeroed/pending state
+    across ISO Matrix, FinOps, Scorecard, Executive Dossier, and Technical Report,
+    and switching back to Altostrat restores Altostrat's baseline without state leakage.
+    """
+    op_headers = {**AUTH_HEADER, "X-Operator-Id": "consultant-isolation-e2e"}
+    new_cid = "new-tenant-corp"
+
+    try:
+        # 1. Verify Altostrat baseline
+        res_alto_finops = client.get("/api/finops", headers=op_headers)
+        assert res_alto_finops.status_code == 200
+        alto_finops = res_alto_finops.json()["summary"]
+        assert alto_finops["total_cost_usd"] > 0
+        assert alto_finops["total_tokens"] > 0
+
+        res_alto_matrix = client.get("/api/iso_matrix", headers=op_headers)
+        assert res_alto_matrix.status_code == 200
+        alto_matrix = res_alto_matrix.json()
+        assert alto_matrix["counts"]["compliant"] >= 80
+        assert alto_matrix["counts"]["pending"] == 0
+
+        res_alto_score = client.get("/api/scorecard", headers=op_headers)
+        assert res_alto_score.status_code == 200
+        alto_score = res_alto_score.json()
+        assert alto_score["overall_score"] > 50.0
+        assert alto_score["compliant_count"] >= 80
+
+        res_alto_exec = client.get("/api/reports/executive?format=json", headers=op_headers)
+        assert res_alto_exec.status_code == 200
+        alto_exec = res_alto_exec.json()
+        assert alto_exec["client_id"] == "altostrat-ventures"
+        assert alto_exec["overall_score"] > 50.0
+
+        # 2. Onboard new client
+        onboard_res = client.post(
+            "/api/clients/onboard",
+            json={
+                "name": "New Tenant Corp",
+                "client_id": new_cid,
+                "projects": ["new-tenant-prod-01"],
+                "days": 30,
+            },
+            headers=op_headers,
+        )
+        assert onboard_res.status_code == 200
+
+        # 3. Switch active client to new tenant
+        sw_res = client.post(
+            "/api/clients/active",
+            json={"client_id": new_cid},
+            headers=op_headers,
+        )
+        assert sw_res.status_code == 200
+        assert sw_res.json()["active_client_id"] == new_cid
+
+        # 4. Verify FinOps is completely zeroed (nova, zerada)
+        res_new_finops = client.get("/api/finops", headers=op_headers)
+        assert res_new_finops.status_code == 200
+        new_finops = res_new_finops.json()["summary"]
+        assert new_finops["total_cost_usd"] == 0.0
+        assert new_finops["total_tokens"] == 0
+        assert new_finops["total_invocations"] == 0
+        assert new_finops["total_events"] == 0
+        assert res_new_finops.json()["agents"] == []
+
+        # 5. Verify ISO Matrix shows honest pending state (0 compliant, 93 pending)
+        res_new_matrix = client.get("/api/iso_matrix", headers=op_headers)
+        assert res_new_matrix.status_code == 200
+        new_matrix = res_new_matrix.json()
+        assert new_matrix["counts"]["compliant"] == 0
+        assert new_matrix["counts"]["pending"] == 93
+        assert new_matrix["counts"]["non_compliant"] == 0
+        for ctrl in new_matrix["controls"]:
+            assert ctrl["status"] == "PENDING"
+
+        # 6. Verify Scorecard shows 0.0% / NOT_AUDITED
+        res_new_score = client.get("/api/scorecard", headers=op_headers)
+        assert res_new_score.status_code == 200
+        new_score = res_new_score.json()
+        assert new_score["overall_score"] == 0.0
+        assert new_score["rating"] == "NOT_AUDITED (PENDING ASSESSMENT)"
+        assert new_score["compliant_count"] == 0
+        assert new_score["non_compliant_count"] == 0
+        for cat_k, cat_data in new_score["category_breakdown"].items():
+            assert cat_data["compliant"] == 0
+            assert cat_data["percentage"] == 0.0
+
+        # 7. Verify Executive Dossier is scoped to New Tenant Corp with pending opinion
+        res_new_exec = client.get("/api/reports/executive?format=json", headers=op_headers)
+        assert res_new_exec.status_code == 200
+        new_exec = res_new_exec.json()
+        assert new_exec["client_id"] == new_cid
+        assert new_exec["client_name"] == "New Tenant Corp"
+        assert new_exec["overall_score"] == 0.0
+        assert new_exec["rating"] == "NOT_AUDITED (PENDING ASSESSMENT)"
+        assert "pending assessment" in new_exec["executive_opinion"].lower()
+
+        # 8. Verify Technical Report is scoped to New Tenant Corp with 0 compliant controls
+        res_new_tech = client.get("/api/reports/technical?format=json", headers=op_headers)
+        assert res_new_tech.status_code == 200
+        new_tech = res_new_tech.json()
+        assert new_tech["client_id"] == new_cid
+        assert new_tech["client_name"] == "New Tenant Corp"
+        assert new_tech["overall_score"] == 0.0
+        assert new_tech["rating"] == "NOT_AUDITED (PENDING ASSESSMENT)"
+
+        # 9. Switch back to Altostrat Ventures and verify baseline is fully restored
+        sw_back_res = client.post(
+            "/api/clients/active",
+            json={"client_id": "altostrat-ventures"},
+            headers=op_headers,
+        )
+        assert sw_back_res.status_code == 200
+
+        res_restored_finops = client.get("/api/finops", headers=op_headers)
+        assert res_restored_finops.status_code == 200
+        restored_finops = res_restored_finops.json()["summary"]
+        assert restored_finops["total_cost_usd"] > 0
+        assert restored_finops["total_tokens"] > 0
+
+        res_restored_matrix = client.get("/api/iso_matrix", headers=op_headers)
+        assert res_restored_matrix.status_code == 200
+        restored_matrix = res_restored_matrix.json()
+        assert restored_matrix["counts"]["compliant"] >= 80
+
+        res_restored_score = client.get("/api/scorecard", headers=op_headers)
+        assert res_restored_score.status_code == 200
+        assert res_restored_score.json()["overall_score"] > 50.0
+
+        # 10. Verify portal HTML contains pending controls UI and dynamic reload calls
+        res_ui = client.get("/")
+        assert res_ui.status_code == 200
+        html = res_ui.text
+        assert "filterStatusPending" in html
+        assert "countStatusPending" in html
+        assert "matrix_status_pending" in html
+        assert "loadExecutiveReport" in html
+        assert "loadTechnicalReport" in html
+        assert "techOpinionBadge" in html
+        assert "docClientOrg" in html
+
+    finally:
+        client.delete(f"/api/clients/{new_cid}", headers=op_headers)
+        client.post(
+            "/api/clients/active",
+            json={"client_id": "altostrat-ventures"},
+            headers=op_headers,
+        )
+
+
+

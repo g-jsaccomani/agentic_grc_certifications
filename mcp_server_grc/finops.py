@@ -122,32 +122,58 @@ class FinOpsUsageEvent:
 
 
 class FinOpsTracker:
-    def __init__(self):
+    def __init__(self, client_id: Optional[str] = None, is_default_demo: bool = True):
+        self.client_id = client_id
+        self.is_default_demo = is_default_demo
         self.records: Dict[str, AgentFinOpsRecord] = {}
         self.events: List[FinOpsUsageEvent] = []
-        self.phase_metrics: Dict[str, Dict[str, Any]] = {
-            "Fase 1: Triagem Zero-Copy": {
-                "description": "Ingestão semântica e mapeamento documental",
-                "tokens": 420000,
-                "cost_usd": 0.42,
-            },
-            "Fase 2: Telemetria Técnica GCP": {
-                "description": "Technical review of IAM, Cloud KMS, SCC and Workload Identity",
-                "tokens": 680000,
-                "cost_usd": 0.88,
-            },
-            "Fase 3: Testes de Eficácia & Drift": {
-                "description": "Active verification of ISO 27001 controls and simulation",
-                "tokens": 390000,
-                "cost_usd": 0.54,
-            },
-            "Fase 4: Parecer Executivo & Selo": {
-                "description": "Executive orchestration, synthesis and cryptographic attestation",
-                "tokens": 352650,
-                "cost_usd": 1.64,
-            },
-        }
-        self.seed_defaults()
+        if is_default_demo:
+            self.phase_metrics: Dict[str, Dict[str, Any]] = {
+                "Fase 1: Triagem Zero-Copy": {
+                    "description": "Ingestão semântica e mapeamento documental",
+                    "tokens": 420000,
+                    "cost_usd": 0.42,
+                },
+                "Fase 2: Telemetria Técnica GCP": {
+                    "description": "Technical review of IAM, Cloud KMS, SCC and Workload Identity",
+                    "tokens": 680000,
+                    "cost_usd": 0.88,
+                },
+                "Fase 3: Testes de Eficácia & Drift": {
+                    "description": "Active verification of ISO 27001 controls and simulation",
+                    "tokens": 390000,
+                    "cost_usd": 0.54,
+                },
+                "Fase 4: Parecer Executivo & Selo": {
+                    "description": "Executive orchestration, synthesis and cryptographic attestation",
+                    "tokens": 352650,
+                    "cost_usd": 1.64,
+                },
+            }
+            self.seed_defaults()
+        else:
+            self.phase_metrics = {
+                "Fase 1: Triagem Zero-Copy": {
+                    "description": "Ingestão semântica e mapeamento documental",
+                    "tokens": 0,
+                    "cost_usd": 0.0,
+                },
+                "Fase 2: Telemetria Técnica GCP": {
+                    "description": "Technical review of IAM, Cloud KMS, SCC and Workload Identity",
+                    "tokens": 0,
+                    "cost_usd": 0.0,
+                },
+                "Fase 3: Testes de Eficácia & Drift": {
+                    "description": "Active verification of ISO 27001 controls and simulation",
+                    "tokens": 0,
+                    "cost_usd": 0.0,
+                },
+                "Fase 4: Parecer Executivo & Selo": {
+                    "description": "Executive orchestration, synthesis and cryptographic attestation",
+                    "tokens": 0,
+                    "cost_usd": 0.0,
+                },
+            }
 
     def seed_defaults(self):
         """Initial realistic telemetry for continuous GRC assessment runs."""
@@ -400,4 +426,23 @@ class FinOpsTracker:
         }
 
 
-finops_tracker = FinOpsTracker()
+CLIENT_FINOPS_TRACKERS: Dict[str, FinOpsTracker] = {}
+
+
+def get_client_finops_tracker(client_id: Optional[str] = None) -> FinOpsTracker:
+    """Returns or provisions an isolated FinOpsTracker for the specific client workspace."""
+    cid = client_id or "altostrat-ventures"
+    if cid not in CLIENT_FINOPS_TRACKERS:
+        is_demo = (cid == "altostrat-ventures")
+        CLIENT_FINOPS_TRACKERS[cid] = FinOpsTracker(client_id=cid, is_default_demo=is_demo)
+    return CLIENT_FINOPS_TRACKERS[cid]
+
+
+def reset_client_finops_trackers():
+    """Resets client finops trackers cache (useful for test isolation)."""
+    global CLIENT_FINOPS_TRACKERS, finops_tracker
+    CLIENT_FINOPS_TRACKERS.clear()
+    finops_tracker = get_client_finops_tracker("altostrat-ventures")
+
+
+finops_tracker = get_client_finops_tracker("altostrat-ventures")

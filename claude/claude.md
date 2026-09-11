@@ -1,3 +1,67 @@
+# Engineering Milestone Handoff: Cross-Client Multi-Tenant State Isolation Across ISO Matrix, FinOps, Scorecard & Reports
+
+**Target Audience:** Architecture Reviewers, Security Practice & GRC Operations  
+**Repository:** `agentic_grc_certifications`  
+**Execution Date:** 2026-09-11  
+**Status:** COMPLETE & VERIFIED (241/241 Pytest Suite Passing, 100% Multi-Tenant Isolation)  
+
+---
+
+## 1. Executive Summary: Elimination of Cross-Client State Leakage
+
+A key operational requirement was reported: when an auditor or customer switches client workspaces (`/api/clients/active`), all views across the platform must reflect the newly selected client in an honest, clean state. A brand new, unassessed client must start with a fresh database ("base de dados nova, zerada"):
+- **Compliance Matrix (`view-matrix` / `/api/iso_matrix`)**: Must NOT show Altostrat's 84 compliant controls. For unassessed clients, all 93 Annex A controls show an honest pending posture (`PENDING` badge in amber with clock icon, 0 compliant, 93 pending).
+- **FinOps (`view-finops` / `/api/finops`)**: Must NOT share Altostrat's $1.86 USD / 420k tokens. Each client receives a dedicated, isolated `FinOpsTracker` starting at $0.00 USD, 0 tokens, and 0 events.
+- **Executive Dossier & Technical Report (`view-reports` / `/api/reports/executive`, `/api/reports/technical`)**: Must NOT display hardcoded Altostrat text or 100% EXCELLENT ratings. Dossiers dynamically reflect the active client's name, assigned projects, and actual compliance score (0.0% / "NOT_AUDITED (PENDING ASSESSMENT)" if unassessed).
+- **Scorecard & Findings (`view-scorecard` / `/api/scorecard`)**: Must NOT display "100% Conforme" or fall back to 24 evidence nodes for unassessed clients. Accurately reports 0 nodes and "Avaliação Pendente (0 / 93)".
+- **Client Switch Lifecycle (`executeConfirmedClientSwitch()`)**: Invalidates prior state and reloads all tabs live (`loadProjects()`, `loadScorecard()`, `loadIsoMatrix()`, `loadFinOpsMetrics()`, `loadFinOpsTips()`, `loadExecutiveReport()`, `loadTechnicalReport()`, `loadQuestionnaireData()`).
+- **Bidirectional Integrity**: Switching back to `altostrat-ventures` immediately restores Altostrat's seeded data ($1.86 USD, 420k tokens, 84 compliant controls, 78.5% score).
+
+---
+
+## 2. Technical Changes & Architecture
+
+1. **Multi-Tenant FinOps Registry (`mcp_server_grc/finops.py`)**:
+   - Added `CLIENT_FINOPS_TRACKERS: Dict[str, FinOpsTracker] = {}` and `get_client_finops_tracker(client_id)`.
+   - Initialized with `is_default_demo: bool = True` for Altostrat (seeded demo metrics) and `is_default_demo=False` for any new tenant (empty records, $0.00 cost, 0 tokens).
+   - Scoped `/api/finops`, `/api/finops/tips`, `/api/finops/simulate`, chat, and subagents to the caller's active `client_id`.
+
+2. **Compliance Matrix Scoping (`mcp_server_grc/portal.py`)**:
+   - `get_iso_matrix()` checks `is_demo = (target_cid is None or target_cid == "altostrat-ventures")`.
+   - For non-demo clients without linked CI telemetry or answered questions, controls are marked `status: "PENDING"`.
+   - Returned `counts` includes `"pending": pending_in_scope`.
+
+3. **Dynamic Scorecard & Reports Scoping (`mcp_server_grc/portal.py`)**:
+   - `calculate_scorecard_data()` returns `overall_score = 0.0`, `rating = "NOT_AUDITED (PENDING ASSESSMENT)"`, `compliant_count = 0`, `non_compliant_count = 0`, and 0% across categories A.5–A.8 when unassessed.
+   - `/api/reports/executive` and `/api/reports/technical` include `client_id`, `client_name`, and contextual opinion for pending state.
+   - Removed artificial `or 22` and `or 24` node fallbacks in export and frontend rendering.
+
+4. **Portal Frontend Multi-Tab Dynamic Reload (`mcp_server_grc/portal_html.py`)**:
+   - Added `filterStatusPending` button with amber styling and clock icon to the ISO matrix toolbar.
+   - Updated `renderMatrixTable()` to render `PENDING` controls with `.ctrl-id-badge.pending` and `.status-badge.pending`.
+   - Added `loadExecutiveReport()` and `loadTechnicalReport()` fetching JSON endpoints with `getAuthHeaders()` and dynamically updating DOM elements (`docClientOrg`, `docProjectsAudited`, `docHighlightScore`, `docHighlightNodes`, `docExecutiveOpinion`, `techOpinionBadge`, `techQuoteText`, `techCardA5/6/7/8`, `techStatA5/6/7/8`, `techDescA5/6/7/8`).
+   - Updated `switchReportsTab()`, `switchView()`, and `executeConfirmedClientSwitch()` to trigger live reloads across all tabs on client switch.
+   - Added `matrix_status_pending` to i18n dictionary (pt, en, es).
+
+---
+
+## 3. Test Verification Matrix
+
+All 241 tests in the test suite pass with 100% success rate:
+- `test_client_switch_clears_matrix_finops_reports_scorecard_cross_tenant_state` in `tests/test_client_isolation.py`:
+  - Asserts Altostrat baseline ($1.86 USD, 420k tokens, >=80 compliant controls, >50% score).
+  - Onboards new client `new-tenant-corp`, switches active workspace, queries all endpoints:
+    - FinOps: $0.00 USD, 0 tokens, 0 invocations, 0 events, empty agents list.
+    - ISO Matrix: 0 compliant, 93 pending, all 93 controls returned with `status: "PENDING"`.
+    - Scorecard: 0.0% score, "NOT_AUDITED (PENDING ASSESSMENT)", 0 compliant, 0 NCs.
+    - Executive Report: scoped to `new-tenant-corp` with 0.0% score and pending opinion.
+    - Technical Report: scoped to `new-tenant-corp` with 0 compliant controls across A.5–A.8.
+  - Switches back to `altostrat-ventures` and verifies baseline is completely restored without leakage.
+  - Verifies portal HTML includes pending controls UI, translations, and dynamic reload functions.
+- **Suite Result**: `241 passed, 2 warnings in 124.73s`.
+
+---
+
 # Engineering Milestone Handoff: Model Armor Enforcement & Payload-Level Cross-Tenant Isolation for Questionnaire Guest Links
 
 **Target Audience:** Architecture Reviewers, Security Practice & GRC Operations  

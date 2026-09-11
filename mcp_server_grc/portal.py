@@ -65,7 +65,7 @@ from mcp_server_grc.catalog import (
     ISO_27001_CATALOG,
     THEMES_STRUCTURE,
 )
-from mcp_server_grc.finops import finops_tracker
+from mcp_server_grc.finops import finops_tracker, get_client_finops_tracker
 from mcp_server_grc.portal_html import PORTAL_HTML
 from mcp_server_grc.assets_b64 import (
     GOOGLE_CLOUD_WORDMARK_URI,
@@ -983,25 +983,46 @@ async def toggle_project_scope(
 
 @router.get("/api/finops")
 async def get_finops_metrics(
+    x_operator_id: Optional[str] = Header(None),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    client_id: Optional[str] = Query(default=None),
     user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
-    """Returns real-time FinOps token metering, cost breakdown, and Context Caching ROI."""
-    return finops_tracker.get_summary()
+    """Returns real-time FinOps token metering, cost breakdown, and Context Caching ROI scoped to active client."""
+    op_id = resolve_operator_id(user_context, x_operator_id)
+    target_cid = client_id or x_client_id or (SESSION_CLIENT_BINDINGS.get(x_session_id) if x_session_id else None) or get_operator_active_client(op_id, user_context)
+    tracker = get_client_finops_tracker(target_cid)
+    return tracker.get_summary()
 
 
 @router.get("/api/finops/tips")
 async def get_finops_token_saving_tips(
+    x_operator_id: Optional[str] = Header(None),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    client_id: Optional[str] = Query(default=None),
     user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
-    """Computes and returns algorithmic token-saving tips based on empirical recorded usage."""
-    return {"tips": finops_tracker.get_token_saving_tips()}
+    """Computes and returns algorithmic token-saving tips based on empirical recorded usage scoped to active client."""
+    op_id = resolve_operator_id(user_context, x_operator_id)
+    target_cid = client_id or x_client_id or (SESSION_CLIENT_BINDINGS.get(x_session_id) if x_session_id else None) or get_operator_active_client(op_id, user_context)
+    tracker = get_client_finops_tracker(target_cid)
+    return {"tips": tracker.get_token_saving_tips()}
 
 
 @router.post("/api/finops/simulate")
 async def simulate_finops_audit(
+    x_operator_id: Optional[str] = Header(None),
+    x_client_id: Optional[str] = Header(None),
+    x_session_id: Optional[str] = Header(None),
+    client_id: Optional[str] = Query(default=None),
     user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
-    """Runs real subagent audit passes and records empirical usage telemetry."""
+    """Runs real subagent audit passes and records empirical usage telemetry scoped to active client."""
+    op_id = resolve_operator_id(user_context, x_operator_id)
+    target_cid = client_id or x_client_id or (SESSION_CLIENT_BINDINGS.get(x_session_id) if x_session_id else None) or get_operator_active_client(op_id, user_context)
+    tracker = get_client_finops_tracker(target_cid)
     for ag_id, model_name in [("lead-auditor", "gemini-2.5-pro"), ("subagent-a8", "gemini-2.5-flash"), ("gcp-telemetry", "gemini-2.5-flash")]:
         sub = LLMSubAgent(
             name=ag_id,
@@ -1011,14 +1032,14 @@ async def simulate_finops_audit(
         )
         res = sub.run("Verificar conformidade com baseline ISO 27001", max_turns=1)
         u = res.get("usage") or {}
-        finops_tracker.record_usage(
+        tracker.record_usage(
             agent_id=ag_id,
             prompt_tokens=int(u.get("prompt_token_count", 0)),
             completion_tokens=int(u.get("candidates_token_count", 0)),
             cached_tokens=int(u.get("cached_content_token_count", 0)),
             model_key=model_name,
         )
-    return finops_tracker.get_summary()
+    return tracker.get_summary()
 
 
 @router.post("/api/projects/add")
@@ -1069,25 +1090,58 @@ async def get_iso_matrix(
 
     op_id = resolve_operator_id(user_context, x_operator_id)
     target_cid = client_id or x_client_id or (SESSION_CLIENT_BINDINGS.get(x_session_id) if x_session_id else None) or get_operator_active_client(op_id, user_context)
+    is_demo = (target_cid is None or target_cid == "altostrat-ventures")
 
     base_nc_ids = {"A.5.15", "A.5.17", "A.5.23", "A.8.14", "A.8.15", "A.8.16", "A.8.20", "A.8.24", "A.8.28"}
-    resolved_nc_ids = set()
+
+    client_answers = {}
     for (fw, cid), ans in QUESTIONNAIRE_ANSWERS.items():
         ans_cid = getattr(ans, "client_id", None) or (ans.get("client_id") if isinstance(ans, dict) else None)
-        if target_cid and ans_cid and ans_cid != target_cid:
-            continue
-        if fw == "ISO27001:2022":
+        if is_demo:
+            if not ans_cid or ans_cid == "altostrat-ventures":
+                if fw == "ISO27001:2022":
+                    client_answers[cid] = ans
+        else:
+            if ans_cid == target_cid and fw == "ISO27001:2022":
+                client_answers[cid] = ans
+
+    scoped_engine = get_client_ci_engine(target_cid)
+    client_links = {link.control_id: link.status for link in scoped_engine.evidence_graph.links if link.framework == "ISO27001:2022"}
+
+    items = []
+    if is_demo:
+        resolved_nc_ids = set()
+        for cid, ans in client_answers.items():
             st = getattr(ans, "status", None) or (ans.get("status") if isinstance(ans, dict) else "")
             if st == "COMPLIANT" and cid in base_nc_ids:
                 resolved_nc_ids.add(cid)
+        for cid, link_st in client_links.items():
+            if link_st == "COMPLIANT" and cid in base_nc_ids:
+                resolved_nc_ids.add(cid)
 
-    items = []
-    for c in ISO_27001_CATALOG:
-        c_copy = dict(c)
-        cid = c_copy.get("id")
-        if cid in resolved_nc_ids:
-            c_copy["status"] = "COMPLIANT"
-        items.append(c_copy)
+        for c in ISO_27001_CATALOG:
+            c_copy = dict(c)
+            cid = c_copy.get("id")
+            if cid in resolved_nc_ids:
+                c_copy["status"] = "COMPLIANT"
+            items.append(c_copy)
+    else:
+        for c in ISO_27001_CATALOG:
+            c_copy = dict(c)
+            cid = c_copy.get("id")
+            if cid in client_answers:
+                ans = client_answers[cid]
+                st = getattr(ans, "status", None) or (ans.get("status") if isinstance(ans, dict) else "")
+                c_copy["status"] = st if st in ("COMPLIANT", "NON_COMPLIANT") else "PENDING"
+                just = getattr(ans, "justification", None) or (ans.get("justification") if isinstance(ans, dict) else None)
+                if just:
+                    c_copy["finding"] = just
+            elif cid in client_links:
+                c_copy["status"] = client_links[cid]
+            else:
+                c_copy["status"] = "PENDING"
+                c_copy["finding"] = "Controle pendente de avaliação de telemetria ou questionário para este cliente."
+            items.append(c_copy)
 
     if theme and theme != "Todos":
         items = [c for c in items if c["theme"] == theme]
@@ -1106,6 +1160,7 @@ async def get_iso_matrix(
     total_in_scope = len(items)
     compliant_in_scope = sum(1 for c in items if c.get("status") == "COMPLIANT")
     nc_in_scope = sum(1 for c in items if c.get("status") == "NON_COMPLIANT")
+    pending_in_scope = sum(1 for c in items if c.get("status") in ("PENDING", "NOT_ASSESSED"))
 
     if status and status.upper() not in ("ALL", "TODOS"):
         items = [c for c in items if c.get("status", "").upper() == status.upper()]
@@ -1120,6 +1175,7 @@ async def get_iso_matrix(
             "total": total_in_scope,
             "compliant": compliant_in_scope,
             "non_compliant": nc_in_scope,
+            "pending": pending_in_scope,
         },
     }
 
@@ -2143,47 +2199,97 @@ def calculate_scorecard_data(framework: str = "ISO27001:2022", client_id: Option
     total_controls = len(base_controls)  # 93 ISO controls
     base_nc_ids = {"A.5.15", "A.5.17", "A.5.23", "A.8.14", "A.8.15", "A.8.16", "A.8.20", "A.8.24", "A.8.28"}
 
-    current_nc_set = set(base_nc_ids)
+    is_demo = (client_id is None or client_id == "altostrat-ventures")
 
-    # 1. Update with questionnaire answers
+    # Collect answers for this client
+    client_answers = {}
     for (fw, cid), ans in QUESTIONNAIRE_ANSWERS.items():
         ans_cid = getattr(ans, "client_id", None) or (ans.get("client_id") if isinstance(ans, dict) else None)
-        if client_id and ans_cid and ans_cid != client_id:
-            continue
-        if fw == framework:
+        if is_demo:
+            if not ans_cid or ans_cid == "altostrat-ventures":
+                if fw == framework:
+                    client_answers[cid] = ans
+        else:
+            if ans_cid == client_id and fw == framework:
+                client_answers[cid] = ans
+
+    client_links = [link for link in scoped_engine.evidence_graph.links if link.framework == framework]
+
+    if is_demo:
+        current_nc_set = set(base_nc_ids)
+        for cid, ans in client_answers.items():
             st = getattr(ans, "status", None) or (ans.get("status") if isinstance(ans, dict) else "")
             if st == "COMPLIANT":
                 current_nc_set.discard(cid)
             elif st == "NON_COMPLIANT":
                 current_nc_set.add(cid)
 
-    # 2. Update with evidence graph links if any
-    for link in scoped_engine.evidence_graph.links:
-        if link.framework == framework:
+        for link in client_links:
             if link.status == "COMPLIANT":
                 current_nc_set.discard(link.control_id)
             elif link.status == "NON_COMPLIANT":
                 current_nc_set.add(link.control_id)
 
-    current_nc_count = len(current_nc_set)
-    compliant_count = total_controls - current_nc_count
+        current_nc_count = len(current_nc_set)
+        compliant_count = total_controls - current_nc_count
 
-    # Baseline 78.5% with 9 NCs; cascades dynamically as answers are submitted
-    if current_nc_count == 9 and not QUESTIONNAIRE_ANSWERS and not scoped_engine.evidence_graph.links:
-        overall_score = 78.5
+        if current_nc_count == 9 and not client_answers and not client_links:
+            overall_score = 78.5
+        else:
+            overall_score = round(100.0 - (current_nc_count / 9.0) * 21.5, 1) if current_nc_count <= 9 else round((compliant_count / total_controls) * 100.0, 1)
+
+        overall_score = max(0.0, min(100.0, overall_score))
+
+        if overall_score >= 90.0:
+            rating = "EXCELLENT (CERTIFICATION READY)"
+        elif overall_score >= 75.0:
+            rating = f"QUALIFIED (ACTION REQUIRED - {current_nc_count} FINDINGS DETECTED)"
+        elif overall_score >= 50.0:
+            rating = "NEEDS_IMPROVEMENT"
+        else:
+            rating = "CRITICAL_NON_COMPLIANCE"
     else:
-        overall_score = round(100.0 - (current_nc_count / 9.0) * 21.5, 1) if current_nc_count <= 9 else round((compliant_count / total_controls) * 100.0, 1)
+        if not client_answers and not client_links:
+            overall_score = 0.0
+            rating = "NOT_AUDITED (PENDING ASSESSMENT)"
+            compliant_count = 0
+            current_nc_count = 0
+            current_nc_set = set()
+            evaluated_compliant = set()
+        else:
+            evaluated_compliant = set()
+            evaluated_nc = set()
+            for cid, ans in client_answers.items():
+                st = getattr(ans, "status", None) or (ans.get("status") if isinstance(ans, dict) else "")
+                if st == "COMPLIANT":
+                    evaluated_compliant.add(cid)
+                elif st == "NON_COMPLIANT":
+                    evaluated_nc.add(cid)
+            for link in client_links:
+                if link.status == "COMPLIANT":
+                    evaluated_compliant.add(link.control_id)
+                    evaluated_nc.discard(link.control_id)
+                elif link.status == "NON_COMPLIANT":
+                    evaluated_nc.add(link.control_id)
+                    evaluated_compliant.discard(link.control_id)
 
-    overall_score = max(0.0, min(100.0, overall_score))
-
-    if overall_score >= 90.0:
-        rating = "EXCELLENT (CERTIFICATION READY)"
-    elif overall_score >= 75.0:
-        rating = f"QUALIFIED (ACTION REQUIRED - {current_nc_count} FINDINGS DETECTED)"
-    elif overall_score >= 50.0:
-        rating = "NEEDS_IMPROVEMENT"
-    else:
-        rating = "CRITICAL_NON_COMPLIANCE"
+            compliant_count = len(evaluated_compliant)
+            current_nc_count = len(evaluated_nc)
+            current_nc_set = evaluated_nc
+            evaluated_total = compliant_count + current_nc_count
+            if evaluated_total > 0:
+                overall_score = round((compliant_count / evaluated_total) * 100.0, 1)
+                if overall_score >= 90.0:
+                    rating = "EXCELLENT (CERTIFICATION READY)"
+                elif overall_score >= 75.0:
+                    rating = f"QUALIFIED (ACTION REQUIRED - {current_nc_count} FINDINGS DETECTED)"
+                elif overall_score >= 50.0:
+                    rating = "NEEDS_IMPROVEMENT"
+                else:
+                    rating = "CRITICAL_NON_COMPLIANCE"
+            else:
+                overall_score = 0.0
+                rating = "NOT_AUDITED (PENDING ASSESSMENT)"
 
     # Evidence graph breakdown
     summary = scoped_engine.evidence_graph.get_summary()
@@ -2236,16 +2342,28 @@ def calculate_scorecard_data(framework: str = "ISO27001:2022", client_id: Option
         "A.7": {"name": "Físico", "prefix": "A.7.", "total": 0, "compliant": 0, "nc": 0},
         "A.8": {"name": "Tecnológico", "prefix": "A.8.", "total": 0, "compliant": 0, "nc": 0},
     }
-    for c in base_controls:
-        cid = c.get("id", "")
-        for k, info in cat_counts.items():
-            if cid.startswith(info["prefix"]):
-                info["total"] += 1
-                if cid in current_nc_set:
-                    info["nc"] += 1
-                else:
-                    info["compliant"] += 1
-                break
+    if is_demo:
+        for c in base_controls:
+            cid = c.get("id", "")
+            for k, info in cat_counts.items():
+                if cid.startswith(info["prefix"]):
+                    info["total"] += 1
+                    if cid in current_nc_set:
+                        info["nc"] += 1
+                    else:
+                        info["compliant"] += 1
+                    break
+    else:
+        for c in base_controls:
+            cid = c.get("id", "")
+            for k, info in cat_counts.items():
+                if cid.startswith(info["prefix"]):
+                    info["total"] += 1
+                    if cid in current_nc_set:
+                        info["nc"] += 1
+                    elif cid in evaluated_compliant:
+                        info["compliant"] += 1
+                    break
 
     category_breakdown = {}
     for k, info in cat_counts.items():
@@ -2428,6 +2546,16 @@ async def get_executive_dossier(
     auditor_resp = get_auditor_responsibility_declaration(scorecard)
 
     if format.lower() == "json":
+        client_name = client_rec.get("name") or target_cid
+        exec_opinion = (
+            f"Overall Compliance Score is {scorecard['overall_score']}% ({scorecard['rating']}). "
+            f"Evidence Graph contains {scorecard['evidence_graph_summary']['total_evidence_nodes']} cryptographic nodes: "
+            f"{scorecard['evidence_graph_summary']['verified_telemetry_count']} verified via live GCP telemetry and "
+            f"{scorecard['evidence_graph_summary']['self_attested_count']} self-attested questionnaire answers."
+        ) if scorecard["overall_score"] > 0 else (
+            f"Workspace for '{client_name}' is currently in a pending assessment state (Overall Score: 0.0% - NOT_AUDITED). "
+            "Telemetry scanners and questionnaire assessments have not yet been executed for this client scope."
+        )
         return {
             "disclaimer": MANDATORY_REPORT_DISCLAIMER,
             "document_title": "Google Cloud Security - Executive Posture & Readiness Assessment Dossier",
@@ -2436,6 +2564,8 @@ async def get_executive_dossier(
             "audited_period": audited_period,
             "classification": "CONFIDENTIAL / EXECUTIVE DOSSIER",
             "standard": "ABNT NBR ISO/IEC 27001:2022 (Annex A) + Amd 1:2024",
+            "client_id": target_cid,
+            "client_name": client_name,
             "projects_audited": project_list,
             "lead_auditor": auditor_resp["lead_auditor"],
             "methodology": REPORT_METHODOLOGY_TEXT,
@@ -2451,12 +2581,7 @@ async def get_executive_dossier(
                 "verification_tiers": scorecard["evidence_graph_summary"]["verification_tiers"],
                 "nodes": scorecard["evidence_nodes"],
             },
-            "executive_opinion": (
-                f"Overall Compliance Score is {scorecard['overall_score']}% ({scorecard['rating']}). "
-                f"Evidence Graph contains {scorecard['evidence_graph_summary']['total_evidence_nodes']} cryptographic nodes: "
-                f"{scorecard['evidence_graph_summary']['verified_telemetry_count']} verified via live GCP telemetry and "
-                f"{scorecard['evidence_graph_summary']['self_attested_count']} self-attested questionnaire answers."
-            ),
+            "executive_opinion": exec_opinion,
         }
     elif format.lower() in ("html", "markdown"):
         return await export_report(
@@ -2504,6 +2629,7 @@ async def get_technical_report_api(
                 "taxonomy_severity": classify_audit_finding_severity(nc),
             })
 
+        client_name = client_rec.get("name") or target_cid
         return {
             "disclaimer": MANDATORY_REPORT_DISCLAIMER,
             "document_title": "Google Cloud Security - Technical Posture & Readiness Assessment Report",
@@ -2511,6 +2637,8 @@ async def get_technical_report_api(
             "generated_at": timestamp,
             "audited_period": audited_period,
             "standard": "ABNT NBR ISO/IEC 27001:2022 + Amd 1:2024 (93 Controls)",
+            "client_id": target_cid,
+            "client_name": client_name,
             "projects_audited": project_list,
             "lead_auditor": auditor_resp["lead_auditor"],
             "methodology": REPORT_METHODOLOGY_TEXT,
@@ -2576,6 +2704,8 @@ async def export_report(
             "audited_period": audited_period,
             "classification": "CONFIDENTIAL / READINESS ASSESSMENT",
             "standard": "ISO/IEC 27001:2022 (Information Security Management Systems) + Amd 1:2024",
+            "client_id": target_cid,
+            "client_name": client_rec.get("name") or target_cid,
             "projects_audited": project_list,
             "lead_auditor": auditor_resp["lead_auditor"],
             "platform": "Gemini Enterprise Agent Platform (GEAP)",
@@ -2584,7 +2714,7 @@ async def export_report(
             "finding_severity_taxonomy": REPORT_TAXONOMY_DEFINITIONS,
             "overall_score": scorecard["overall_score"],
             "rating": scorecard["rating"],
-            "evidence_nodes_count": scorecard["evidence_graph_summary"]["total_evidence_nodes"] or 22,
+            "evidence_nodes_count": scorecard["evidence_graph_summary"]["total_evidence_nodes"],
             "verification_tiers": scorecard["evidence_graph_summary"]["verification_tiers"],
             "evidence_chain": scorecard["evidence_nodes"],
             "cryptographic_seal": "SHA-256 Immutable Evidence Chain",
@@ -3876,6 +4006,28 @@ async def handle_chat(
             save_session_client_binding_to_store(current_sess, active_cid)
 
     scoped_ci = get_client_ci_engine(active_cid)
+    scoped_finops = get_client_finops_tracker(active_cid)
+
+    def _record_chat_finops(agent_id: str, prompt_tokens: int = 0, completion_tokens: int = 0, cached_tokens: int = 0, model_key: str = "gemini-2.5-pro", name: Optional[str] = None, category: Optional[str] = None):
+        scoped_finops.record_usage(
+            agent_id=agent_id,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            cached_tokens=cached_tokens,
+            model_key=model_key,
+            name=name,
+            category=category,
+        )
+        if (active_cid is None or active_cid == "altostrat-ventures") and scoped_finops is not finops_tracker:
+            finops_tracker.record_usage(
+                agent_id=agent_id,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                cached_tokens=cached_tokens,
+                model_key=model_key,
+                name=name,
+                category=category,
+            )
 
     def _format_chat_response(data: Dict[str, Any]) -> Dict[str, Any]:
         if is_new_session and "response" in data and isinstance(data["response"], str):
@@ -3902,7 +4054,7 @@ async def handle_chat(
     # 1. Model Armor Perimeter Ingress Guardrail
     ingress_verdict = model_armor_gateway.inspect_ingress(msg)
     if not ingress_verdict.allowed:
-        finops_tracker.record_usage(
+        _record_chat_finops(
             "model-armor-interception",
             prompt_tokens=0,
             completion_tokens=0,
@@ -3934,7 +4086,7 @@ async def handle_chat(
 
     # Deterministic Subagent Test Triggers
     if lower_msg == "audit kms cryptography a.8.24":
-        finops_tracker.record_usage("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
+        _record_chat_finops("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
         finding = annex_a_subagent.audit_cryptography_a824(
             "key-client-primary",
             {"rotation_period_seconds": 5184000, "protection_level": "HSM", "require_hsm": True}
@@ -3950,7 +4102,7 @@ async def handle_chat(
         return _format_chat_response({"response": response_text, "subagent_used": "AnnexASubAgent"})
 
     elif lower_msg == "horizon scanning regulatory update":
-        finops_tracker.record_usage("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
+        _record_chat_finops("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
         updates = horizon_scanner_subagent.scan_regulatory_updates()
         proposal = horizon_scanner_subagent.generate_policy_amendment_proposal(updates[0], "Current policy")
         response_text = (
@@ -3970,7 +4122,7 @@ async def handle_chat(
         })
 
     elif lower_msg == "execute proactive audit":
-        finops_tracker.record_usage("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
+        _record_chat_finops("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
         sample_assets = [
             {
                 "target_control": "ISO/IEC 27001:2022 A.5.23",
@@ -4012,7 +4164,7 @@ async def handle_chat(
             "subagent_used": "ContinuousIntelligenceEngine",
         })
     elif "capability" in lower_msg or "capacidade" in lower_msg or lower_msg == "what is your capability?":
-        finops_tracker.record_usage("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
+        _record_chat_finops("lead-auditor", prompt_tokens=0, completion_tokens=0, cached_tokens=0, model_key="deterministic-trigger")
         return _format_chat_response({
             "response": (
                 "Agentic Compliance Readiness Accelerator - GEAP Compliance & Continuous Assessment Advisor (Google Cloud Security)\n\n"
@@ -4147,7 +4299,7 @@ async def handle_chat(
         tool_evidence = subagent_res.get("tool_evidence", [])
         execution_mode = subagent_res.get("execution_mode", "unknown")
         usage = subagent_res.get("usage") or {}
-        finops_tracker.record_usage(
+        _record_chat_finops(
             agent_id="lead-auditor",
             name="Lead Advisor Orquestrador",
             category="Orquestração Executiva",
@@ -4164,7 +4316,7 @@ async def handle_chat(
         ai_response = ""
         tool_evidence = []
         execution_mode = "error"
-        finops_tracker.record_usage(
+        _record_chat_finops(
             agent_id="lead-auditor",
             name="Lead Advisor Orquestrador",
             category="Orquestração Executiva",
@@ -5020,7 +5172,8 @@ async def run_subagent_task(
         subagent_res["fallback_reason"] = str(exc)
 
     usage = subagent_res.get("usage") or {}
-    finops_tracker.record_usage(
+    scoped_finops = get_client_finops_tracker(active_cid)
+    scoped_finops.record_usage(
         agent_id=agent_id,
         name=agent_name,
         category="Subagente sob Demanda",
@@ -5029,6 +5182,16 @@ async def run_subagent_task(
         cached_tokens=int(usage.get("cached_content_token_count", 0)),
         model_key=model_id or "gemini-2.5-flash",
     )
+    if (active_cid is None or active_cid == "altostrat-ventures") and scoped_finops is not finops_tracker:
+        finops_tracker.record_usage(
+            agent_id=agent_id,
+            name=agent_name,
+            category="Subagente sob Demanda",
+            prompt_tokens=int(usage.get("prompt_token_count", 0)),
+            completion_tokens=int(usage.get("candidates_token_count", 0)),
+            cached_tokens=int(usage.get("cached_content_token_count", 0)),
+            model_key=model_id or "gemini-2.5-flash",
+        )
 
     tool_evidence = subagent_res.get("tool_evidence", [])
     execution_mode = subagent_res.get("execution_mode", "deterministic_fallback")
