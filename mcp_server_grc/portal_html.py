@@ -11220,10 +11220,10 @@ Formulário preenchido com o subagente recomendado!`);
         }
         window.mountAppShell = mountAppShell;
 
-        function initAppShell() {
+        async function initAppShell() {
             renderWorkspaceUserUI(window.currentUserEmail, window.currentUserHd);
             setLanguage(window.currentLanguage || detectUserLanguage());
-            loadOnboardedClients();
+            await loadOnboardedClients();
             loadProjects();
             loadFinOpsMetrics();
             loadIsoMatrix();
@@ -11239,9 +11239,9 @@ Formulário preenchido com o subagente recomendado!`);
         }
         window.initAppShell = initAppShell;
 
-        function mountAndInitAppShell() {
+        async function mountAndInitAppShell() {
             mountAppShell();
-            initAppShell();
+            await initAppShell();
         }
         window.mountAndInitAppShell = mountAndInitAppShell;
 
@@ -11533,10 +11533,32 @@ Formulário preenchido com o subagente recomendado!`);
         }
 
         async function loadOnboardedClients() {
+            // 1. Optimistic instant restore from localStorage cache to prevent UI disappearance on refresh
+            try {
+                const cachedClientsStr = localStorage.getItem("grc_cached_clients");
+                if (cachedClientsStr) {
+                    const cached = JSON.parse(cachedClientsStr);
+                    if (Array.isArray(cached) && cached.length > 0) {
+                        onboardedClientsList = cached;
+                        const savedActiveCid = localStorage.getItem("grc_active_client_id");
+                        if (savedActiveCid && onboardedClientsList.some(c => c.client_id === savedActiveCid)) {
+                            currentActiveClientId = savedActiveCid;
+                        }
+                        const activeClient = onboardedClientsList.find(c => c.client_id === currentActiveClientId) || onboardedClientsList[0];
+                        if (activeClient) renderActiveClientCard(activeClient);
+                        renderClientDropdownList(onboardedClientsList, currentActiveClientId);
+                    }
+                }
+            } catch (e) {
+                console.warn("Failed to parse cached clients from localStorage:", e);
+            }
+
             try {
                 const opId = getOperatorId();
                 const headers = {};
                 if (opId) headers["X-Operator-Id"] = opId;
+                const savedActiveCid = localStorage.getItem("grc_active_client_id") || currentActiveClientId;
+                if (savedActiveCid) headers["X-Client-Id"] = savedActiveCid;
                 if (window.currentUserIdToken) headers["X-Goog-Id-Token"] = window.currentUserIdToken;
                 if (window.currentUserToken) {
                     headers["Authorization"] = `Bearer ${window.currentUserToken}`;
@@ -11553,9 +11575,58 @@ Formulário preenchido com o subagente recomendado!`);
                 }
                 if (res.ok) {
                     const data = await res.json();
-                    onboardedClientsList = data.clients || [];
-                    currentActiveClientId = data.active_client_id || "altostrat-ventures";
-                    const activeClient = data.active_client || onboardedClientsList.find(c => c.client_id === currentActiveClientId) || onboardedClientsList[0];
+                    let serverClients = data.clients || [];
+
+                    // Auto-heal / re-sync any client from localStorage if server restarted or container was redeployed
+                    try {
+                        const cachedClientsStr = localStorage.getItem("grc_cached_clients");
+                        if (cachedClientsStr) {
+                            const cached = JSON.parse(cachedClientsStr);
+                            const serverCids = new Set(serverClients.map(c => c.client_id));
+                            const missingClients = cached.filter(c => c.client_id && !serverCids.has(c.client_id));
+                            for (const mc of missingClients) {
+                                try {
+                                    await fetch("/api/clients/onboard", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+                                        body: JSON.stringify({
+                                            name: mc.name,
+                                            client_id: mc.client_id,
+                                            projects: mc.projects || [],
+                                            days: mc.read_only_access_days_remaining || 30,
+                                            org_id: mc.org_id || null,
+                                            org_name: mc.org_name || null,
+                                            contact_email: mc.contact_email || null,
+                                            drive_folder_id: mc.drive_folder_id || null,
+                                            is_shared: true
+                                        })
+                                    });
+                                    serverClients.push(mc);
+                                } catch (syncErr) {
+                                    console.warn("Failed to auto-resync client to server:", mc.client_id, syncErr);
+                                }
+                            }
+                        }
+                    } catch (syncErr) {
+                        console.warn("Error during client auto-heal sync:", syncErr);
+                    }
+
+                    onboardedClientsList = serverClients;
+                    try {
+                        localStorage.setItem("grc_cached_clients", JSON.stringify(onboardedClientsList));
+                    } catch (e) {}
+
+                    const targetCid = localStorage.getItem("grc_active_client_id");
+                    if (targetCid && onboardedClientsList.some(c => c.client_id === targetCid)) {
+                        currentActiveClientId = targetCid;
+                    } else {
+                        currentActiveClientId = data.active_client_id || (onboardedClientsList[0] ? onboardedClientsList[0].client_id : "altostrat-ventures");
+                        try {
+                            localStorage.setItem("grc_active_client_id", currentActiveClientId);
+                        } catch (e) {}
+                    }
+
+                    const activeClient = onboardedClientsList.find(c => c.client_id === currentActiveClientId) || data.active_client || onboardedClientsList[0];
                     if (activeClient) {
                         renderActiveClientCard(activeClient);
                     }
@@ -11833,6 +11904,9 @@ Formulário preenchido com o subagente recomendado!`);
                 if (res.ok) {
                     const data = await res.json();
                     currentActiveClientId = data.active_client_id;
+                    try {
+                        localStorage.setItem("grc_active_client_id", currentActiveClientId);
+                    } catch (e) {}
                     const activeClient = data.active_client || onboardedClientsList.find(c => c.client_id === currentActiveClientId);
 
                     // 1. Invalidate previous client-scoped session state
@@ -12036,6 +12110,12 @@ Formulário preenchido com o subagente recomendado!`);
                 });
 
                 if (res.ok) {
+                    try {
+                        let cached = JSON.parse(localStorage.getItem("grc_cached_clients") || "[]");
+                        const c = cached.find(x => x.client_id === clientId);
+                        if (c) c.status = "disconnected";
+                        localStorage.setItem("grc_cached_clients", JSON.stringify(cached));
+                    } catch (e) {}
                     closeDisconnectClientModal();
                     if (currentActiveClientId === clientId) {
                         await switchActiveClient("altostrat-ventures", false);
@@ -12082,6 +12162,14 @@ Formulário preenchido com o subagente recomendado!`);
                 });
 
                 if (res.ok) {
+                    try {
+                        let cached = JSON.parse(localStorage.getItem("grc_cached_clients") || "[]");
+                        cached = cached.filter(c => c.client_id !== clientId);
+                        localStorage.setItem("grc_cached_clients", JSON.stringify(cached));
+                        if (localStorage.getItem("grc_active_client_id") === clientId) {
+                            localStorage.setItem("grc_active_client_id", "altostrat-ventures");
+                        }
+                    } catch (e) {}
                     if (currentActiveClientId === clientId) {
                         await switchActiveClient("altostrat-ventures", false);
                     }
@@ -13287,7 +13375,8 @@ echo -e "\${NC}================================================================\
                         org_id: orgId || null,
                         org_name: orgName || null,
                         contact_email: consultantEmail || null,
-                        drive_folder_id: driveFolder || null
+                        drive_folder_id: driveFolder || null,
+                        is_shared: true
                     })
                 });
 
@@ -13301,6 +13390,16 @@ echo -e "\${NC}================================================================\
                 if (res.ok) {
                     const data = await res.json();
                     closeOnboardModal();
+                    if (data.client) {
+                        try {
+                            let cached = [];
+                            try { cached = JSON.parse(localStorage.getItem("grc_cached_clients") || "[]"); } catch (e) {}
+                            cached = cached.filter(c => c.client_id !== data.client.client_id);
+                            cached.push(data.client);
+                            localStorage.setItem("grc_cached_clients", JSON.stringify(cached));
+                            localStorage.setItem("grc_active_client_id", data.client.client_id);
+                        } catch (e) {}
+                    }
                     await loadOnboardedClients();
                     if (data.client && data.client.client_id) {
                         await switchActiveClient(data.client.client_id, false);
@@ -15925,8 +16024,11 @@ function openNewsModal(newsKey) {
             const headers = {};
             const opId = (typeof getOperatorId === 'function') ? getOperatorId() : localStorage.getItem("grc_operator_id");
             if (opId) headers["X-Operator-Id"] = opId;
-            if (typeof currentActiveClientId !== 'undefined' && currentActiveClientId) {
-                headers["X-Client-Id"] = currentActiveClientId;
+            const activeCid = (typeof currentActiveClientId !== 'undefined' && currentActiveClientId)
+                ? currentActiveClientId
+                : localStorage.getItem("grc_active_client_id");
+            if (activeCid) {
+                headers["X-Client-Id"] = activeCid;
             }
             if (typeof activeChatSessionId !== 'undefined' && activeChatSessionId) {
                 headers["X-Session-Id"] = activeChatSessionId;

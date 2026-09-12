@@ -3577,14 +3577,24 @@ Based on automated telemetry collection, instance configuration inspections, and
 @router.get("/api/clients")
 async def get_clients_list(
     x_operator_id: Optional[str] = Header(None),
+    x_client_id: Optional[str] = Header(None),
     operator_id: Optional[str] = Query(None),
+    client_id: Optional[str] = Query(None),
     user_context: WorkspaceUserContext = Depends(require_authenticated_workspace_user),
 ):
     """Returns list of onboarded client workspaces and active selection for the requesting operator."""
     op_id = resolve_operator_id(user_context, x_operator_id, operator_id)
     all_clients = load_onboarded_clients()
     clients = [c for c in all_clients if is_client_accessible_by_operator(c, op_id, user_context)]
-    active_cid = get_operator_active_client(op_id, user_context)
+
+    preferred_cid = x_client_id or client_id
+    if preferred_cid and any(c.get("client_id") == preferred_cid for c in clients):
+        active_cid = preferred_cid
+        OPERATOR_ACTIVE_CLIENTS[op_id] = active_cid
+        save_operator_active_client_to_store(op_id, active_cid)
+    else:
+        active_cid = get_operator_active_client(op_id, user_context)
+
     active_client = next((c for c in clients if c.get("client_id") == active_cid), clients[0] if clients else None)
     return {
         "clients": clients,
@@ -3719,17 +3729,8 @@ async def onboard_new_client(
         "is_shared": bool(req.is_shared),
     }
 
-    # Load existing clients directly from file or fallback
-    file_path = get_clients_file_path()
-    existing_clients: List[Dict[str, Any]] = []
-    if os.path.exists(file_path):
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                existing_clients = json.load(f)
-        except Exception as e:
-            logger.warning(f"Could not load {file_path} for onboarding write: {e}")
-            existing_clients = []
-
+    # Load existing clients using store layer with fallback
+    existing_clients = load_onboarded_clients()
     if not existing_clients:
         existing_clients = [
             {
@@ -3753,6 +3754,7 @@ async def onboard_new_client(
                 "read_only_access_expires_at": "2026-09-23T16:00:00Z",
                 "read_only_access_days_remaining": 14,
                 "status": "active",
+                "is_shared": True,
             }
         ]
 
