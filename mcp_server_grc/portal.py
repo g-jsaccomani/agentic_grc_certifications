@@ -1188,7 +1188,12 @@ def build_scan_results_for_phase(
     client_id: Optional[str] = None,
     user_email: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """Builds scan results ONLY for controls with a real, traceable technical check via cloud_inspector.py — never fabricates coverage for controls with no live inspection capability."""
+    """Builds scan results ONLY for controls with a real, traceable technical check via cloud_inspector.py — never fabricates coverage for controls with no live inspection capability.
+
+    DO NOT add a result here for any control without a matching real function in cloud_inspector.py —
+    see tests/test_anti_fabrication_guardrail.py, which enforces this and has been violated and
+    reverted twice before.
+    """
     from mcp_server_grc.cloud_inspector import (
         inspect_project_iam_policy,
         inspect_cloud_storage_bucket,
@@ -1480,88 +1485,8 @@ def build_scan_results_for_phase(
                 "user_email": user_email or "cloud-inspector@gcp.audit",
             })
 
-    # 3. Phase 3: Zero-Copy Governance & Organization Policies (A.5)
-    if target_phase is None or target_phase == 3:
-        for p in target_projects:
-            # A.5.1: Policies for Information Security (Org Policy Baseline)
-            results.append({
-                "control_id": "A.5.1",
-                "status": "COMPLIANT",
-                "justification": f"Políticas de segurança organizacional verificadas no projeto '{p}': restrição de criação de chaves SA e bloqueio de porta serial ativos.",
-                "evidence_text": f"GCP Organization Policy baseline validated for '{p}': constraints/compute.disableSerialPortAccess and constraints/iam.disableServiceAccountKeyCreation enforced.",
-                "evidence_uri": f"gcp://orgpolicy/{p}/baseline",
-                "phase": "Phase 3: Governança & Políticas",
-                "gcp_mapping": "Resource Manager Organization Policies & Security Health Analytics",
-                "verification_tier": "TELEMETRY",
-                "user_email": user_email or "cloud-inspector@gcp.audit",
-            })
-
-            # A.5.5: Contact with Authorities (Essential Contacts)
-            results.append({
-                "control_id": "A.5.5",
-                "status": "COMPLIANT",
-                "justification": f"Canais de contato de emergência e segurança configurados no Google Cloud Essential Contacts para '{p}'.",
-                "evidence_text": f"Essential Contacts registry verified: Security incident notifications directed to certified response team for '{p}'.",
-                "evidence_uri": f"gcp://essential-contacts/{p}",
-                "phase": "Phase 3: Governança & Políticas",
-                "gcp_mapping": "Cloud Essential Contacts & Incident Response Registry",
-                "verification_tier": "TELEMETRY",
-                "user_email": user_email or "cloud-inspector@gcp.audit",
-            })
-
-            # A.5.7: Threat Intelligence (Security Command Center)
-            results.append({
-                "control_id": "A.5.7",
-                "status": "COMPLIANT",
-                "justification": f"Monitoramento de inteligência contra ameaças ativo via Security Command Center Enterprise no projeto '{p}'.",
-                "evidence_text": f"Security Command Center Enterprise threat intelligence feed active with real-time detection in '{p}'.",
-                "evidence_uri": f"gcp://scc/{p}/threat-intel",
-                "phase": "Phase 3: Governança & Políticas",
-                "gcp_mapping": "Security Command Center Enterprise & Mandiant Threat Intelligence",
-                "verification_tier": "TELEMETRY",
-                "user_email": user_email or "cloud-inspector@gcp.audit",
-            })
-
-            # A.5.9: Inventory of Information Assets (Cloud Asset Inventory)
-            results.append({
-                "control_id": "A.5.9",
-                "status": "COMPLIANT",
-                "justification": f"Inventário contínuo de ativos e recursos de nuvem habilitado via Cloud Asset Inventory para '{p}'.",
-                "evidence_text": f"Cloud Asset Inventory tracking active: Resources cataloged and tagged with cryptographic lineage for '{p}'.",
-                "evidence_uri": f"gcp://cloudasset/{p}/inventory",
-                "phase": "Phase 3: Governança & Políticas",
-                "gcp_mapping": "Cloud Asset Inventory & Resource Tags Enforce",
-                "verification_tier": "TELEMETRY",
-                "user_email": user_email or "cloud-inspector@gcp.audit",
-            })
-
-            # A.5.24: Incident Management Planning (Log Sinks & Alarms)
-            results.append({
-                "control_id": "A.5.24",
-                "status": "COMPLIANT",
-                "justification": f"Plano de resposta e registro de auditoria imutável configurado via Cloud Logging sinks em '{p}'.",
-                "evidence_text": f"Cloud Logging audit sinks and security alert policies configured for '{p}'.",
-                "evidence_uri": f"gcp://logging/sinks/{p}",
-                "phase": "Phase 3: Governança & Políticas",
-                "gcp_mapping": "Cloud Logging Audit Sinks & Cloud Monitoring Alerting",
-                "verification_tier": "TELEMETRY",
-                "user_email": user_email or "cloud-inspector@gcp.audit",
-            })
-
-            # A.5.31: Legal & Statutory Requirements (Data Residency)
-            results.append({
-                "control_id": "A.5.31",
-                "status": "COMPLIANT",
-                "justification": f"Requisitos legais de soberania e residência de dados verificados: conformidade de localização de recursos para '{p}'.",
-                "evidence_text": f"Resource location policy verified for project '{p}': Workloads constrained to authorized regions.",
-                "evidence_uri": f"gcp://orgpolicy/{p}/resourceLocations",
-                "phase": "Phase 3: Governança & Políticas",
-                "gcp_mapping": "Resource Location Constraint & Data Residency Controls",
-                "verification_tier": "TELEMETRY",
-                "user_email": user_email or "cloud-inspector@gcp.audit",
-            })
-            break
-
+    # Phases 3 and 4: Organizational governance and people controls are NOT automatable via cloud APIs
+    # and require questionnaire self-attestation. No results are generated here.
     return results
 
 
@@ -1728,36 +1653,27 @@ async def run_phased_audit(
         "findings": p2_findings if p2_findings else ["No live resources detected or inspection undetermined for Phase 2 controls."],
     }
 
-    # Phase 3: Zero-Copy Governance & Organization Policies (A.5)
-    p3_findings = []
-    p3_compliant = 0
-    p3_nc = 0
-    for p in projects:
-        p3_compliant += 6
-        p3_findings.append(f"A.5.1 Policies for Information Security in '{p}': Org Policy baseline verified (disableSerialPortAccess, disableServiceAccountKeyCreation).")
-        p3_findings.append(f"A.5.5 Contact with Authorities in '{p}': Essential Contacts configured for automated breach notifications.")
-        p3_findings.append(f"A.5.7 Threat Intelligence in '{p}': Security Command Center Enterprise feed active.")
-        p3_findings.append(f"A.5.9 Asset Inventory in '{p}': Cloud Asset Inventory active with cryptographic lineage.")
-        p3_findings.append(f"A.5.24 Incident Management in '{p}': Cloud Logging immutable audit sinks verified.")
-        p3_findings.append(f"A.5.31 Legal & Regulatory Requirements in '{p}': Data residency and resource locations enforced.")
-        break
-
-    p3_total = p3_compliant + p3_nc
-    p3_score = round((p3_compliant / p3_total) * 100.0, 1) if p3_total > 0 else 100.0
+    # Phase 3: Zero-Copy Governance & Organization Policies (Honestly report not automatable)
+    # DO NOT fabricate findings here — governance and people controls (A.5, A.6, A.7 organizational
+    # scope) have no real cloud_inspector.py function and must remain self-attested via questionnaire.
+    # See tests/test_anti_fabrication_guardrail.py, which enforces this and has been violated and
+    # reverted twice before.
     phase3_results = {
-        "phase": "Phase 3: Governança & Políticas (A.5)",
-        "status": "COMPLETED",
-        "compliance_score": p3_score,
-        "controls_tested": ["A.5.1", "A.5.5", "A.5.7", "A.5.9", "A.5.24", "A.5.31"],
-        "findings": p3_findings,
+        "phase": "Phase 3: Zero-Copy Governance & ISMS Policies (A.5)",
+        "status": "NOT_AUTOMATABLE",
+        "compliance_score": None,
+        "findings": [
+            "Phase 3 governance controls (ISMS policies, organization roles, human-attested processes) are not yet automatable — requires questionnaire/self-attestation.",
+            "ISO 27001 organizational, people, and physical controls (A.5, A.6, A.7) are fundamentally not automatable via cloud API scanning and require the human questionnaire path by design.",
+        ],
     }
 
     # Phase 4: Synthesis, Cryptographic Graph & Drift
-    total_findings_count = p1_nc + p2_nc + p3_nc
+    total_findings_count = p1_nc + p2_nc
     drift_status = "DRIFT_DETECTED" if total_findings_count > 0 else "NO_DRIFT"
     evidence_nodes_count = len(scoped_engine.evidence_graph.nodes)
-    total_checks_all = p1_total + p2_total + p3_total
-    total_comp_all = p1_compliant + p2_compliant + p3_compliant
+    total_checks_all = p1_total + p2_total
+    total_comp_all = p1_compliant + p2_compliant
     p4_score = round((total_comp_all / total_checks_all) * 100.0, 1) if total_checks_all > 0 else None
 
     phase4_findings = [

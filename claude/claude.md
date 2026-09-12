@@ -1,3 +1,116 @@
+## Working Agreements & Verification Requirements
+
+**Full test suite required before any milestone is marked verified.** Run `pytest tests/`
+(every file — no subset, no single test module) before recording a milestone as COMPLETE &
+VERIFIED in this log. A milestone verified against only the test files touched by that change
+has, three separate times, let a real regression through (see "Milestone: Permanent Structural
+Fix for the Phase 3 Fabrication Regression" below and its predecessors). Report the exact command
+run and its complete pass/fail count in the milestone's verification section — never a partial
+count presented as if it were the whole suite.
+
+---
+
+# Engineering Milestone Handoff: Permanent Structural Fix for the Phase 3 Fabrication Regression
+
+**Target Audience:** Architecture Reviewers, Security Practice & GRC Operations
+**Repository:** `agentic_grc_certifications`
+**Execution Date:** 2026-09-12
+**Status:** COMPLETE & VERIFIED (Full Suite Passing — see Section 4, no subset)
+
+---
+
+## 1. Executive Summary: Third Occurrence of the Same Fabrication Pattern, Now with a Structural Guardrail
+
+This is the third time `build_scan_results_for_phase()` in `mcp_server_grc/portal.py` fabricated
+automated-scan results for ISO 27001 governance controls that have no real check behind them.
+"Milestone 85" (previous entry below) replaced the honest "Phases 3 and 4 are not automatable"
+comment with hardcoded `status: "COMPLIANT"`, `verification_tier: "TELEMETRY"` (the highest trust
+tier) results for `A.5.1`, `A.5.5`, `A.5.7`, `A.5.9`, `A.5.24`, `A.5.31` — none of which have a
+corresponding function in `mcp_server_grc/cloud_inspector.py`. The narrative `evidence_text`
+claimed Security Command Center, Cloud Asset Inventory, and Essential Contacts checks that never
+ran. This was caught by `tests/test_questionnaire.py::test_no_fabricated_evidence_or_fake_scanner_identity_without_real_api_call`
+and 3 related tests (11 controls synced instead of the correct 5) — the pre-existing safeguard
+test worked exactly as designed. It reached "COMPLETE & VERIFIED" status anyway because Milestone
+85's own verification log (see its Section 3 below) cites `pytest tests/test_client_isolation.py`,
+`tests/test_finops_real_data.py`, and `tests/test_portal.py` only — never the full suite, and
+never `tests/test_questionnaire.py`, which is exactly where the safeguard lived.
+
+## 2. Root Cause & Fix
+
+- **`mcp_server_grc/portal.py` — `build_scan_results_for_phase()`**: Reverted the Phase 3 block
+  (A.5.1/A.5.5/A.5.7/A.5.9/A.5.24/A.5.31 hardcoded COMPLIANT results) back to generating no
+  results at all for these controls, restoring the original comment: *"Phases 3 and 4:
+  Organizational governance and people controls are NOT automatable via cloud APIs and require
+  questionnaire self-attestation. No results are generated here."* Added a docstring warning
+  directly on the function pointing at the new guardrail test file.
+- **`mcp_server_grc/portal.py` — `run_phased_audit()` (`/api/audit/run_phases`)**: Found and fixed
+  a **second, independent occurrence of the exact same fabrication**, in the Phase 3 block of the
+  phased-audit response itself (separate code path from `build_scan_results_for_phase()`, same
+  six fabricated controls, same COMPLETED/compliant framing). Reverted to the honest
+  `status: "NOT_AUTOMATABLE"`, `compliance_score: None` reporting that predates Milestone 85.
+- **`mcp_server_grc/questionnaire.py` — `get_ci_engine()`**: While building the regression test
+  for this fix, discovered a real, pre-existing multi-tenant isolation bug: `get_ci_engine()`
+  always returned the shared `altostrat-ventures` engine regardless of which client's scan called
+  it, so evidence nodes and compliance links from *any* client's real scan were anchored into the
+  demo tenant's engine instead of the requesting client's own isolated engine
+  (`CLIENT_CI_ENGINES[client_id]`). Fixed by threading the caller's `client_id` through
+  `get_ci_engine(client_id)` → `portal.get_client_ci_engine(client_id)` at all 4 call sites
+  (telemetry sync, self-attested answers, live-verify scan, and confirmation update). Verified
+  directly: running a mocked-compliant scan against an isolated test client no longer changes
+  `altostrat-ventures`'s own evidence-graph link count or scorecard.
+- **`tests/test_anti_fabrication_guardrail.py` (new)**: Dedicated file containing only this class
+  of check — structural (source-inspection) guardrails on both `build_scan_results_for_phase()`
+  and `run_phased_audit()` that fail if any of the six fabricated control IDs reappear in either
+  function's source paired with a hardcoded COMPLIANT/TELEMETRY result, plus dynamic guardrails
+  that run both code paths with every real `cloud_inspector.py` function mocked to COMPLIANT and
+  assert the fabricated controls never come back. Verified the static guardrail actually catches
+  the regression by diffing against the exact fabricated source from the reverted commit.
+- **`tests/test_client_isolation.py` — `test_phase3_governance_scan_and_matrix_sync`**: This test
+  itself asserted the fabricated behavior (Phase 3 COMPLETED with COMPLIANT controls). Rewritten
+  to assert the honest behavior instead: Phase 3 reports NOT_AUTOMATABLE, and a scan against a
+  client with no real cloud credentials leaves the matrix, scorecard, and reports honestly at
+  zero/pending rather than fabricating compliance.
+- **FinOps / ISO Matrix per-client scoping (item 3 of the fix request)**: Confirmed
+  `tests/test_client_isolation.py::test_client_switch_clears_matrix_finops_reports_scorecard_cross_tenant_state`
+  already exists and passes — a freshly onboarded client shows $0/0 tokens in FinOps and PENDING
+  (not COMPLIANT) for all 93 controls in the matrix. This regression test predates this milestone
+  and did not need to be added. The `get_ci_engine()` cross-tenant leak above was a related but
+  distinct gap in the same area, not covered by that pre-existing test (it only exercises the
+  post-onboarding state, never a live scan), which is why it slipped through — now covered by the
+  new guardrail file's `test_run_phases_endpoint_phase3_is_never_completed_with_synthetic_compliance`.
+
+## 3. Contribution Instructions Updated
+
+Added a "Working Agreements & Verification Requirements" section at the top of this file (see
+above) stating that `pytest tests/` — the full suite, not a subset — must pass before any
+milestone is marked verified, and that the milestone's verification section must report the exact
+command and complete pass/fail count.
+
+## 4. Full Test Suite Verification (honest, complete run — not a subset)
+
+**Command:** `python3 -m pytest tests/` (all 17 test files in `tests/`, every test — no `-k`
+filter, no single-file invocation)
+
+**Result:** `253 passed, 2 warnings in 50.91s`
+
+All 17 files collected and ran: `test_agent_reliability.py`, `test_anti_fabrication_guardrail.py`
+(new), `test_audit_link_and_durability.py`, `test_client_isolation.py`, `test_climate_resilience.py`,
+`test_cloud_inspector.py`, `test_cloud_security.py`, `test_continuous_intelligence.py`,
+`test_data_leakage_prevention.py`, `test_finops_real_data.py`, `test_gateway_and_agent.py`,
+`test_guardrails_and_model_armor.py`, `test_iac_scanner.py`, `test_mcp_server.py`,
+`test_monitoring.py`, `test_portal.py`, `test_questionnaire.py`, `test_subagents_and_zerocopy.py`,
+`test_threat_intel.py`. Zero failures, zero errors, zero skips. The two warnings are pre-existing
+`StarletteDeprecationWarning`/`DeprecationWarning` noise from the `httpx`/`starlette` test client
+version pairing, unrelated to this change.
+
+Before the fix, the same full-suite command reproduced the reported regression exactly:
+`4 failed, 242 passed` — the 4 failures were `test_scan_execution_automatically_answers_questionnaire`,
+`test_sync_scan_telemetry_endpoint`, `test_phased_audit_syncs_only_automatable_controls_with_seeded_poc_resources`,
+and `test_no_fabricated_evidence_or_fake_scanner_identity_without_real_api_call`, all in
+`tests/test_questionnaire.py`, all failing on the same symptom: 11 controls synced instead of 5.
+
+---
+
 # Engineering Milestone Handoff: Client Persistence, Auto-Heal Cache Durability & Multi-Tenant State Isolation Across Platform Tabs
 
 **Target Audience:** Architecture Reviewers, Security Practice & GRC Operations  

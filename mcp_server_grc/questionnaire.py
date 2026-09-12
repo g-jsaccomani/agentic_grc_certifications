@@ -418,7 +418,7 @@ def sync_scan_telemetry_to_questionnaire(
 
         # Anchor telemetry evidence node to EvidenceGraph
         try:
-            ci = get_ci_engine()
+            ci = get_ci_engine(client_id)
             ev_node = ci.evidence_graph.add_evidence(
                 resource_type="scan_telemetry",
                 resource_id=f"scan-telemetry-{norm_cid}",
@@ -594,11 +594,16 @@ def sniff_and_validate_evidence_file(content: bytes, original_filename: str) -> 
     return "STORE_BINARY", mime, None
 
 
-def get_ci_engine():
-    """Retrieves the global ContinuousIntelligenceEngine without circular top-level imports."""
+def get_ci_engine(client_id: Optional[str] = None):
+    """Retrieves the client-scoped ContinuousIntelligenceEngine without circular top-level imports.
+
+    Must always be called with the requesting client_id — evidence anchored here (compliance
+    links, evidence nodes) must never bleed into another tenant's engine, especially the shared
+    altostrat-ventures demo engine used as the default fallback.
+    """
     try:
-        from mcp_server_grc.portal import ci_engine
-        return ci_engine
+        from mcp_server_grc.portal import get_client_ci_engine
+        return get_client_ci_engine(client_id)
     except Exception:
         from agent_orchestrator.continuous_intelligence import ContinuousIntelligenceEngine
         return ContinuousIntelligenceEngine(organization_name="Enterprise-Client-Environment")
@@ -1111,7 +1116,7 @@ async def submit_questionnaire_answer(
     )
 
     # Anchor to EvidenceGraph strictly as SELF_ATTESTED (never conflated with machine telemetry)
-    ci = get_ci_engine()
+    ci = get_ci_engine(target_client_id)
     import hashlib
     ev_node = ci.evidence_graph.add_evidence(
         resource_type="questionnaire_response",
@@ -1491,7 +1496,7 @@ async def verify_control_via_scan(
     )
 
     # Anchor to evidence graph with status VERIFICAR
-    ci = get_ci_engine()
+    ci = get_ci_engine(active_cid)
     ev_node = ci.evidence_graph.add_evidence(
         resource_type="live_scan_telemetry",
         resource_id=f"live-scan-{norm_cid}",
@@ -1583,7 +1588,7 @@ async def confirm_control_verification(
     )
 
     # Update evidence graph link
-    ci = get_ci_engine()
+    ci = get_ci_engine(active_client_id)
     for link in ci.evidence_graph.links:
         if link.control_id == norm_cid and link.framework == req.framework:
             link.status = decision
