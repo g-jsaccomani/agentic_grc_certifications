@@ -1168,7 +1168,11 @@ def test_phased_audit_auth_headers_and_adc_handling(monkeypatch):
 
 
 def test_phase3_governance_scan_and_matrix_sync():
-    """Verify that Phase 3 executes real governance evaluation (not NOT_AUTOMATABLE) and synchronizes to client's matrix, scorecard, and reports."""
+    """Verify that Phase 3 honestly reports NOT_AUTOMATABLE (governance/people controls require
+    questionnaire self-attestation, never a fabricated automated result) and that a scan against
+    a project with no real cloud credentials leaves the client's matrix, scorecard, and reports
+    honestly at zero/pending rather than fabricating compliant findings.
+    """
     headers = {**AUTH_HEADER, "X-Operator-Id": "consultant-phased-test"}
     # Onboard fresh client
     client.post(
@@ -1192,50 +1196,52 @@ def test_phase3_governance_scan_and_matrix_sync():
         fin_before = client.get("/api/finops", headers=client_headers).json()
         assert fin_before["summary"]["total_cost_usd"] == 0.0
 
-        # Execute Phased Scan
+        # Execute Phased Scan (no real cloud credentials available in this test environment)
         scan_res = client.post("/api/audit/run_phases", json={"projects": ["govcorp-prod"]}, headers=client_headers)
         assert scan_res.status_code == 200
         scan_data = scan_res.json()
 
-        # Verify Phase 3 is COMPLETED and evaluated real controls
+        # Verify Phase 3 honestly reports NOT_AUTOMATABLE — it must NEVER fabricate COMPLIANT
+        # results for A.5.1, A.5.5, A.5.7, A.5.9, A.5.24, A.5.31 or any other governance control
+        # without a matching real cloud_inspector.py function.
         phases = scan_data.get("phases", [])
         assert len(phases) == 4
         phase3 = phases[2]
-        assert phase3["phase"] == "Phase 3: Governança & Políticas (A.5)"
-        assert phase3["status"] == "COMPLETED"
-        assert "A.5.1" in phase3["controls_tested"]
-        assert "A.5.7" in phase3["controls_tested"]
-        assert len(phase3["findings"]) >= 6
+        assert phase3["phase"] == "Phase 3: Zero-Copy Governance & ISMS Policies (A.5)"
+        assert phase3["status"] == "NOT_AUTOMATABLE"
+        assert phase3["compliance_score"] is None
+        assert "controls_tested" not in phase3
+        assert any("questionnaire" in f.lower() or "self-attestation" in f.lower() for f in phase3["findings"])
 
-        # Verify scan overall score is computed and controls are synced
-        assert scan_data["overall_score"] > 0.0
-        assert scan_data["questionnaire_controls_synced"] > 0
+        # Without real cloud access, no controls become compliant and nothing is synced
+        assert scan_data["overall_score"] == 0.0
+        assert scan_data["questionnaire_controls_synced"] == 0
 
-        # After scan: Matrix is updated with real statuses
+        # After scan: Matrix remains honestly pending — no fabricated compliance
         m_after = client.get("/api/iso_matrix", headers=client_headers).json()
-        assert m_after["counts"]["compliant"] > 0
-        assert m_after["counts"]["pending"] < 93
+        assert m_after["counts"]["compliant"] == 0
+        assert m_after["counts"]["pending"] == 93
         controls_by_id = {c["id"]: c for c in m_after["controls"]}
-        assert controls_by_id["A.5.1"]["status"] == "COMPLIANT"
-        assert controls_by_id["A.5.5"]["status"] == "COMPLIANT"
-        assert controls_by_id["A.5.7"]["status"] == "COMPLIANT"
+        assert controls_by_id["A.5.1"]["status"] == "PENDING"
+        assert controls_by_id["A.5.5"]["status"] == "PENDING"
+        assert controls_by_id["A.5.7"]["status"] == "PENDING"
 
-        # After scan: Scorecard is updated
+        # After scan: Scorecard remains honestly at 0 — no fabricated compliance
         sc_after = client.get("/api/scorecard", headers=client_headers).json()
-        assert sc_after["overall_score"] > 0.0
-        assert sc_after["compliant_count"] > 0
+        assert sc_after["overall_score"] == 0.0
+        assert sc_after["compliant_count"] == 0
 
-        # After scan: FinOps has accumulated usage for this client
+        # After scan: FinOps has still accumulated usage for this client (the scan itself ran)
         fin_after = client.get("/api/finops", headers=client_headers).json()
         assert fin_after["summary"]["total_tokens"] > 0
 
-        # After scan: Executive and Technical reports reflect client
+        # After scan: Executive and Technical reports reflect this client and its honest score
         exec_rep = client.get("/api/reports/executive?format=json", headers=client_headers).json()
         assert exec_rep["client_name"] == "GovCorp Brasil"
-        assert exec_rep["overall_score"] > 0.0
+        assert exec_rep["overall_score"] == 0.0
 
         tech_rep = client.get("/api/reports/technical?format=json", headers=client_headers).json()
-        assert tech_rep["overall_score"] > 0.0
+        assert tech_rep["overall_score"] == 0.0
 
     finally:
         client.delete("/api/clients/govcorp-br", headers=headers)
